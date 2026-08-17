@@ -90,46 +90,46 @@ signature
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `signature['crs']`, `signature['geometry_column']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_read_verified_artifact` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_read_verified_artifact` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_compare_exact_frame` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `deterministic_frame_schema_signature`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `deterministic_frame_schema_signature`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_write_artifacts` via `deterministic_frame_schema_signature`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `deterministic_frame_schema_signature`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `deterministic_frame_schema_signature`.
-- import/re-export: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_write_application_artifacts` via `deterministic_frame_schema_signature`.
-- import/re-export: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_artifact_manifest` via `deterministic_frame_schema_signature`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- import: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.common.frame_integrity import deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_read_verified_artifact` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_read_verified_artifact` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_compare_exact_frame` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `deterministic_frame_schema_signature`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `deterministic_frame_schema_signature`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_write_artifacts` via `deterministic_frame_schema_signature`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `deterministic_frame_schema_signature`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `deterministic_frame_schema_signature`.
+- direct call: `tests/unit/test_apply_bess_planning_feature_policy.py::_write_application_artifacts` via `deterministic_frame_schema_signature`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::_artifact_manifest` via `deterministic_frame_schema_signature`.
 
 **Complete source-ordered implementation**
 

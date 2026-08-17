@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/interpret_bess_zoning.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: policy application/precheck stage
 - Domain: planning
 - Responsibility: Applies the source-locked Muret written-zoning evidence policy to structured regulation and parcel-zone facts to produce deterministic planning precheck evidence.
 - Source SHA256: `f230e39abedb5c61a7f51b227800c3a185df9689611f3526aa49cf362ffc99c9`
@@ -15,7 +15,7 @@ Applies the source-locked Muret written-zoning evidence policy to structured reg
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **policy application/precheck stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -73,7 +73,7 @@ This file belongs to the **processing/policy stage** layer and the **planning** 
 POLICY_SCHEMA_VERSION = 5
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `RESULT_HASH_SCHEMA_VERSION`
 
@@ -81,7 +81,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 RESULT_HASH_SCHEMA_VERSION = 5
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` (value argument/reference).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `PLANNING_PRECHECK_SCOPE`
 
@@ -89,7 +89,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_lineage` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value reference).
 
 #### `REVIEW_SCOPE`
 
@@ -97,7 +97,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 REVIEW_SCOPE = "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_lineage` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `_CHAPTER_STATUSES`
 
@@ -107,7 +107,7 @@ _CHAPTER_STATUSES = frozenset(
 )
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::<module>` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `_PARCEL_STATUSES`
 
@@ -115,7 +115,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _PARCEL_STATUSES = _CHAPTER_STATUSES | {"MIXED_REVIEW_REQUIRED"}
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `_CONFIDENCES`
 
@@ -123,7 +123,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference).
 
 #### `_RESOLVED_MAPPING_STATUSES`
 
@@ -131,7 +131,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _RESOLVED_MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS"})
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately.
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` (value reference).
 
 #### `CHAPTER_POLICY_COLUMNS`
 
@@ -164,7 +164,7 @@ CHAPTER_POLICY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `EVIDENCE_CATALOG_COLUMNS`
 
@@ -203,7 +203,7 @@ EVIDENCE_CATALOG_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `_EVIDENCE_OCCURRENCE_COLUMNS`
 
@@ -218,7 +218,7 @@ _EVIDENCE_OCCURRENCE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` (value reference).
 
 #### `ROUTE_ASSESSMENT_COLUMNS`
 
@@ -245,7 +245,7 @@ ROUTE_ASSESSMENT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `EVIDENCE_ROUTE_LINK_COLUMNS`
 
@@ -270,7 +270,7 @@ EVIDENCE_ROUTE_LINK_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `SOURCE_ZONE_POLICY_COLUMNS`
 
@@ -299,7 +299,7 @@ SOURCE_ZONE_POLICY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `PARCEL_ZONE_POLICY_COLUMNS`
 
@@ -331,7 +331,7 @@ PARCEL_ZONE_POLICY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value reference), `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` (value reference).
 
 #### `PARCEL_PRECHECK_COLUMNS`
 
@@ -355,7 +355,7 @@ PARCEL_PRECHECK_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` (value reference), `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -371,7 +371,7 @@ ChapterStatus = Literal[
 ]
 ```
 
-Written-zoning precheck result domain: POTENTIALLY_COMPATIBLE, CONDITIONAL_REVIEW, LIKELY_DIFFICULT, or UNKNOWN. It is consumed by annotations or Pydantic validation in this module.
+Written-zoning precheck result domain: POTENTIALLY_COMPATIBLE, CONDITIONAL_REVIEW, LIKELY_DIFFICULT, or UNKNOWN. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::_derived_chapter_status` (type annotation), `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy` (type annotation), `src/landscout/stages/interpret_bess_zoning.py::_route_status` (type annotation).
 
 #### `Confidence`
 
@@ -379,7 +379,7 @@ Written-zoning precheck result domain: POTENTIALLY_COMPATIBLE, CONDITIONAL_REVIE
 Confidence = Literal["HIGH", "MEDIUM", "LOW"]
 ```
 
-Written-zoning evidence confidence domain: HIGH, MEDIUM, or LOW. It is consumed by annotations or Pydantic validation in this module.
+Written-zoning evidence confidence domain: HIGH, MEDIUM, or LOW. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy` (type annotation).
 
 #### `ReviewCompleteness`
 
@@ -389,7 +389,7 @@ ReviewCompleteness = Literal[
 ]
 ```
 
-Whether configured use-control articles are complete or the review remains incomplete. It is consumed by annotations or Pydantic validation in this module.
+Whether configured use-control articles are complete or the review remains incomplete. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::_derived_chapter_status` (type annotation), `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy` (type annotation).
 
 #### `RouteKind`
 
@@ -402,7 +402,7 @@ RouteKind = Literal[
 ]
 ```
 
-Configured written-zoning evidence-route kind consumed by _route_status. It is consumed by annotations or Pydantic validation in this module.
+Configured written-zoning evidence-route kind consumed by _route_status. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment` (type annotation), `src/landscout/stages/interpret_bess_zoning.py::_route_status` (type annotation).
 
 #### `EvidenceKind`
 
@@ -419,7 +419,7 @@ EvidenceKind = Literal[
 ]
 ```
 
-Taxonomy of exact written-regulation evidence occurrences. It is consumed by annotations or Pydantic validation in this module.
+Taxonomy of exact written-regulation evidence occurrences. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence` (type annotation).
 
 #### `EvidenceDirection`
 
@@ -432,7 +432,7 @@ EvidenceDirection = Literal[
 ]
 ```
 
-Decision relationship of evidence: supports compatibility/difficulty, condition, or contextual only. It is consumed by annotations or Pydantic validation in this module.
+Decision relationship of evidence: supports compatibility/difficulty, condition, or contextual only. Enforced/consumed by `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -471,7 +471,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -479,69 +479,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_construct_unique_mapping` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_string` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_integer` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_number` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_value` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `BessZoningPrecheckError`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `BessZoningPrecheckError`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from factual source')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='completeness differs')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='extra=.*EXTRA')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='labels must be unique')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='section IDs must be unique')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `pytest.raises(BessZoningPrecheckError)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Duplicate YAML policy key')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `pytest.raises(BessZoningPrecheckError, match='source-rule offsets')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='offsets')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='section/page fragment')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `pytest.raises(BessZoningPrecheckError, match='omits required reviewed')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `pytest.raises(BessZoningPrecheckError, match='outside reviewed sections')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `pytest.raises(BessZoningPrecheckError, match='another chapter')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='fragment|offset')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='policy_config_sha256')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `pytest.raises(BessZoningPrecheckError, match='physical source invalid')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `pytest.raises(BessZoningPrecheckError)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `pytest.raises(BessZoningPrecheckError)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='duplicate chapter-scoped evidence occurrence')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='result_hash_schema_version')`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     EVIDENCE_ROUTE_LINK_COLUMNS,
@@ -555,6 +493,68 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_construct_unique_mapping` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_strict_string` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_integer` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_number` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_canonical_value` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `BessZoningPrecheckError`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `BessZoningPrecheckError`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from factual source')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='completeness differs')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='extra=.*EXTRA')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='labels must be unique')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='section IDs must be unique')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `pytest.raises(BessZoningPrecheckError)`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Duplicate YAML policy key')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `pytest.raises(BessZoningPrecheckError, match='source-rule offsets')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='offsets')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='section/page fragment')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `pytest.raises(BessZoningPrecheckError, match='omits required reviewed')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `pytest.raises(BessZoningPrecheckError, match='outside reviewed sections')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `pytest.raises(BessZoningPrecheckError, match='another chapter')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='fragment|offset')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='policy_config_sha256')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError)`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `pytest.raises(BessZoningPrecheckError, match='physical source invalid')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `pytest.raises(BessZoningPrecheckError)`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `pytest.raises(BessZoningPrecheckError)`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError)`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='duplicate chapter-scoped evidence occurrence')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='result_hash_schema_version')`.
+- expected exception type: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
 
 **Exact class source**
 
@@ -605,11 +605,11 @@ class _StrictConfigModel(BaseModel):
 | `pdf_sha256` | `pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `index_content_sha256` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `structure_result_content_sha256` | `structure_result_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `structure_profile` | `structure_profile: StrictStr = Field(min_length=1)` | Stores `PolicySourceLock`'s `structure profile` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `structure_profile` | `structure_profile: StrictStr = Field(min_length=1)` | Document-specific planning-structure profile identity propagated through source locks and results. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig` via `PolicySourceLock`.
 
 **Exact class source**
 
@@ -639,20 +639,20 @@ class PolicySourceLock(_StrictConfigModel):
 |---|---|---|
 | `evidence_id` | `evidence_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
 | `section_id` | `section_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `page_number` | `page_number: StrictInt = Field(ge=1)` | Stores `PolicyEvidence`'s `page number` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `evidence_kind` | `evidence_kind: EvidenceKind` | Closed or validated `evidence kind` classification on `PolicyEvidence`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `evidence_direction` | `evidence_direction: EvidenceDirection` | Closed or validated `evidence direction` classification on `PolicyEvidence`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `exact_raw_excerpt` | `exact_raw_excerpt: StrictStr = Field(min_length=1, max_length=600)` | Stores `PolicyEvidence`'s `exact raw excerpt` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `page_number` | `page_number: StrictInt = Field(ge=1)` | One-based source PDF page number owning this record/evidence occurrence. |
+| `evidence_kind` | `evidence_kind: EvidenceKind` | `PolicyEvidence.evidence_kind` represents the `evidence_kind` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `evidence_direction` | `evidence_direction: EvidenceDirection` | `PolicyEvidence.evidence_direction` represents the `evidence_direction` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `exact_raw_excerpt` | `exact_raw_excerpt: StrictStr = Field(min_length=1, max_length=600)` | Exact source regulation substring bound to its page fragment, offsets, and SHA256. |
 | `excerpt_sha256` | `excerpt_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `section_page_fragment_sha256` | `section_page_fragment_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `excerpt_start` | `excerpt_start: StrictInt = Field(ge=0)` | Stores `PolicyEvidence`'s `excerpt start` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `excerpt_end` | `excerpt_end: StrictInt = Field(ge=1)` | Stores `PolicyEvidence`'s `excerpt end` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `excerpt_start` | `excerpt_start: StrictInt = Field(ge=0)` | Inclusive source-fragment character offset for the exact regulation excerpt. |
+| `excerpt_end` | `excerpt_end: StrictInt = Field(ge=1)` | Exclusive source-fragment character offset for the exact regulation excerpt. |
 | `source_rule_id` | `source_rule_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
 | `source_rule_excerpt` | `source_rule_excerpt: StrictStr = Field(min_length=1)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 | `source_rule_sha256` | `source_rule_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `source_rule_start` | `source_rule_start: StrictInt = Field(ge=0)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 | `source_rule_end` | `source_rule_end: StrictInt = Field(ge=1)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
-| `interpretation_note` | `interpretation_note: StrictStr = Field(min_length=1)` | `PolicyEvidence`'s `interpretation note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `interpretation_note` | `interpretation_note: StrictStr = Field(min_length=1)` | `PolicyEvidence.interpretation_note` carries the interpretation note used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
 
 **Validators (exact source)**
 
@@ -730,7 +730,8 @@ def _validate_exact_strings(self) -> PolicyEvidence:
 
 **Interface consumers**
 
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `interpret_module.PolicyEvidence`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence._validate_exact_strings` via `PolicyEvidence`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy` via `PolicyEvidence`.
 
 **Exact class source**
 
@@ -838,11 +839,11 @@ class PolicyEvidence(_StrictConfigModel):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `route_id` | `route_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `route_kind` | `route_kind: RouteKind` | Closed or validated `route kind` classification on `RouteAssessment`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `positive_evidence_ids` | `positive_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `positive evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
-| `condition_evidence_ids` | `condition_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `condition evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
-| `difficulty_evidence_ids` | `difficulty_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `difficulty evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
-| `applicability_note` | `applicability_note: StrictStr = Field(min_length=1)` | `RouteAssessment`'s `applicability note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `route_kind` | `route_kind: RouteKind` | `RouteAssessment.route_kind` represents the `route_kind` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `positive_evidence_ids` | `positive_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment.positive_evidence_ids` carries the positive evidence ids used by the reproduced constructors and validators; its declared type is `tuple[StrictStr, ...]` and no legal meaning is inferred beyond that owner. |
+| `condition_evidence_ids` | `condition_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment.condition_evidence_ids` carries the condition evidence ids used by the reproduced constructors and validators; its declared type is `tuple[StrictStr, ...]` and no legal meaning is inferred beyond that owner. |
+| `difficulty_evidence_ids` | `difficulty_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment.difficulty_evidence_ids` carries the difficulty evidence ids used by the reproduced constructors and validators; its declared type is `tuple[StrictStr, ...]` and no legal meaning is inferred beyond that owner. |
+| `applicability_note` | `applicability_note: StrictStr = Field(min_length=1)` | `RouteAssessment.applicability_note` carries the applicability note used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
 
 **Validators (exact source)**
 
@@ -883,7 +884,9 @@ def _validate_route_shape(self) -> RouteAssessment:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `RouteAssessment`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_derived_chapter_status` via `RouteAssessment`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy` via `RouteAssessment`.
 
 **Exact class source**
 
@@ -943,16 +946,16 @@ class RouteAssessment(_StrictConfigModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `resolved_zone_chapter_label` | `resolved_zone_chapter_label: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `resolved zone chapter label` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
-| `review_completeness` | `review_completeness: ReviewCompleteness` | Stores `ChapterPolicy`'s `review completeness` value under exact annotation `ReviewCompleteness`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `resolved_zone_chapter_label` | `resolved_zone_chapter_label: StrictStr = Field(min_length=1)` | `ChapterPolicy.resolved_zone_chapter_label` carries the resolved zone chapter label used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
+| `review_completeness` | `review_completeness: ReviewCompleteness` | Configured chapter review-completeness classification consumed by the written-zoning policy. |
 | `reviewed_section_ids` | `reviewed_section_ids: tuple[StrictStr, ...] = ()` | Structured `reviewed section ids` collection owned by `ChapterPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `review_note` | `review_note: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `review note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
-| `zoning_precheck_status` | `zoning_precheck_status: ChapterStatus` | Closed or validated `zoning precheck status` classification on `ChapterPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `zoning_precheck_confidence` | `zoning_precheck_confidence: Confidence` | Stores `ChapterPolicy`'s `zoning precheck confidence` value under exact annotation `Confidence`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `rationale` | `rationale: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `rationale` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
-| `missing_information` | `missing_information: StrictStr = Field(min_length=1)` | Closed or validated `missing information` classification on `ChapterPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `evidence` | `evidence: tuple[PolicyEvidence, ...] = ()` | `ChapterPolicy`'s `evidence` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[PolicyEvidence, ...]` and is not promoted to a legal conclusion. |
-| `route_assessments` | `route_assessments: tuple[RouteAssessment, ...] = ()` | Structured `route assessments` collection owned by `ChapterPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `review_note` | `review_note: StrictStr = Field(min_length=1)` | `ChapterPolicy.review_note` carries the review note used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
+| `zoning_precheck_status` | `zoning_precheck_status: ChapterStatus` | `ChapterPolicy.zoning_precheck_status` represents the `zoning_precheck_status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `zoning_precheck_confidence` | `zoning_precheck_confidence: Confidence` | Chapter-level zoning precheck confidence propagated to mapped zones/parcels. |
+| `rationale` | `rationale: StrictStr = Field(min_length=1)` | `ChapterPolicy.rationale` carries the rationale used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
+| `missing_information` | `missing_information: StrictStr = Field(min_length=1)` | `ChapterPolicy.missing_information` represents the `missing_information` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `evidence` | `evidence: tuple[PolicyEvidence, ...] = ()` | `ChapterPolicy.evidence` carries the evidence used by the reproduced constructors and validators; its declared type is `tuple[PolicyEvidence, ...]` and no legal meaning is inferred beyond that owner. |
+| `route_assessments` | `route_assessments: tuple[RouteAssessment, ...] = ()` | Deterministic written-zoning evidence-route assessment frame. |
 
 **Validators (exact source)**
 
@@ -991,7 +994,8 @@ def _validate_evidence_semantics(self) -> ChapterPolicy:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `ChapterPolicy`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig` via `ChapterPolicy`.
 
 **Exact class source**
 
@@ -1055,8 +1059,8 @@ class ChapterPolicy(_StrictConfigModel):
 |---|---|---|
 | `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `policy_profile` | `policy_profile: StrictStr = Field(min_length=1)` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
-| `planning_precheck_scope` | `planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]` | Closed or validated `planning precheck scope` classification on `BessZoningPolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `review_scope` | `review_scope: Literal["CONFIGURED_USE_CONTROL_ARTICLES_ONLY"]` | Closed or validated `review scope` classification on `BessZoningPolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `planning_precheck_scope` | `planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]` | `BessZoningPolicyConfig.planning_precheck_scope` represents the `planning_precheck_scope` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `review_scope` | `review_scope: Literal["CONFIGURED_USE_CONTROL_ARTICLES_ONLY"]` | `BessZoningPolicyConfig.review_scope` represents the `review_scope` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `source_lock` | `source_lock: PolicySourceLock` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 | `required_zone_article_numbers` | `required_zone_article_numbers: tuple[StrictStr, ...] = Field(min_length=1)` | Structured `required zone article numbers` collection owned by `BessZoningPolicyConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 | `chapters` | `chapters: tuple[ChapterPolicy, ...] = Field(min_length=1)` | Structured `chapters` collection owned by `BessZoningPolicyConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
@@ -1200,7 +1204,7 @@ def _validate_policy(self) -> BessZoningPolicyConfig:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -1208,8 +1212,7 @@ def _validate_policy(self) -> BessZoningPolicyConfig:
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `isinstance(policy, BessZoningPolicyConfig)`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     EVIDENCE_ROUTE_LINK_COLUMNS,
@@ -1223,6 +1226,26 @@ def _validate_policy(self) -> BessZoningPolicyConfig:
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_required_section_ids_by_chapter` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_lineage` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `BessZoningPolicyConfig`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `BessZoningPolicyConfig`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_policy` via `BessZoningPolicyConfig`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_payload` via `BessZoningPolicyConfig`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_policy_with_context_only_evidence` via `BessZoningPolicyConfig`.
 
 **Exact class source**
 
@@ -1388,14 +1411,14 @@ class BessZoningPolicyConfig(_StrictConfigModel):
 | `result_hash_schema_version` | `result_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `policy_schema_version` | `policy_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `policy_profile` | `policy_profile: str` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
-| `planning_precheck_scope` | `planning_precheck_scope: str` | Closed or validated `planning precheck scope` classification on `BessZoningPrecheckResult`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `review_scope` | `review_scope: str` | Closed or validated `review scope` classification on `BessZoningPrecheckResult`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `planning_precheck_scope` | `planning_precheck_scope: str` | `BessZoningPrecheckResult.planning_precheck_scope` represents the `planning_precheck_scope` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `review_scope` | `review_scope: str` | `BessZoningPrecheckResult.review_scope` represents the `review_scope` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `pdf_sha256` | `pdf_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `index_content_sha256` | `index_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `structure_result_content_sha256` | `structure_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `structure_profile` | `structure_profile: str` | Stores `BessZoningPrecheckResult`'s `structure profile` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `structure_profile` | `structure_profile: str` | Document-specific planning-structure profile identity propagated through source locks and results. |
 | `policy_config_sha256` | `policy_config_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `factual_structure_content_sha256` | `factual_structure_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `zone_mapping_input_sha256` | `zone_mapping_input_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
@@ -1410,17 +1433,17 @@ class BessZoningPolicyConfig(_StrictConfigModel):
 | `parcel_output_content_sha256` | `parcel_output_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `complete_result_content_sha256` | `complete_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `touch_only_relation_count` | `touch_only_relation_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `evidence_catalog` | `evidence_catalog: pd.DataFrame` | `BessZoningPrecheckResult`'s `evidence catalog` evidence/text field; it retains the exact configured or source meaning under annotation `pd.DataFrame` and is not promoted to a legal conclusion. |
-| `evidence_route_links` | `evidence_route_links: pd.DataFrame` | `BessZoningPrecheckResult`'s `evidence route links` evidence/text field; it retains the exact configured or source meaning under annotation `pd.DataFrame` and is not promoted to a legal conclusion. |
-| `route_assessments` | `route_assessments: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `route assessments` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `chapter_policy` | `chapter_policy: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `chapter policy` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_catalog` | `evidence_catalog: pd.DataFrame` | `BessZoningPrecheckResult.evidence_catalog` carries the evidence catalog used by the reproduced constructors and validators; its declared type is `pd.DataFrame` and no legal meaning is inferred beyond that owner. |
+| `evidence_route_links` | `evidence_route_links: pd.DataFrame` | `BessZoningPrecheckResult.evidence_route_links` carries the evidence route links used by the reproduced constructors and validators; its declared type is `pd.DataFrame` and no legal meaning is inferred beyond that owner. |
+| `route_assessments` | `route_assessments: pd.DataFrame` | Deterministic written-zoning evidence-route assessment frame. |
+| `chapter_policy` | `chapter_policy: pd.DataFrame` | Deterministic chapter-level written-zoning policy frame. |
 | `source_zone_policy` | `source_zone_policy: pd.DataFrame` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
-| `parcel_zone_interpretations` | `parcel_zone_interpretations: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `parcel zone interpretations` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `parcel_zone_interpretations` | `parcel_zone_interpretations: pd.DataFrame` | Deterministic parcel-zone written-zoning interpretation frame. |
 | `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -1428,8 +1451,15 @@ class BessZoningPolicyConfig(_StrictConfigModel):
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPrecheckResult`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `isinstance(result, BessZoningPrecheckResult)`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_result_component_metadata` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPrecheckResult`.
+- constructor call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `BessZoningPrecheckResult`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `BessZoningPrecheckResult`.
 
 **Exact class source**
 
@@ -1485,11 +1515,7 @@ class BessZoningPrecheckResult:
 
 **Interface consumers**
 
-- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `yaml.load(config_path.read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- No repository construction/import/property/decorator reference was found; the exact declaration is retained because it participates in the module's runtime/framework namespace.
 
 **Exact class source**
 
@@ -1533,21 +1559,18 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest`, `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1654,14 +1677,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `combined`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1744,18 +1767,18 @@ Private `planning` helper for derived chapter status; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `kinds.intersection`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_derived_chapter_status`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_derived_chapter_status`.
 
 **Complete source-ordered implementation**
 
@@ -1810,14 +1833,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1899,14 +1922,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `chapter_occurrences[key]`, `source_rule_occurrences[occurrence]`, `source_rules[evidence.source_rule_id]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `chapter_occurrences[key]`, `evidence_ids`, `linked_evidence_ids`, `ranges`, `route_ids`, `source_rule_occurrences[occurrence]`, `source_rule_ranges`, `source_rules[evidence.source_rule_id]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2082,22 +2105,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result[key]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- function object argument: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
 
 **Complete source-ordered implementation**
 
@@ -2147,21 +2166,21 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence._validate_exact_strings` via `_config_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `_config_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_config_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` via `_config_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence._validate_exact_strings` via `_config_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `_config_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_config_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` via `_config_string`.
 
 **Complete source-ordered implementation**
 
@@ -2203,18 +2222,18 @@ BessZoningPolicyConfig.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `Path(path).read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -2222,14 +2241,7 @@ BessZoningPolicyConfig.model_validate(payload)
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_route_does_not_use_the_separate_icpe_condition` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_and_aup_keep_icpe_applicability_as_context` via `load_bess_zoning_policy_config`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_yaml_roundtrip_is_strict` via `load_bess_zoning_policy_config`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     EVIDENCE_ROUTE_LINK_COLUMNS,
@@ -2243,6 +2255,13 @@ BessZoningPolicyConfig.model_validate(payload)
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_route_does_not_use_the_separate_icpe_condition` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_and_aup_keep_icpe_applicability_as_context` via `load_bess_zoning_policy_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_policy_yaml_roundtrip_is_strict` via `load_bess_zoning_policy_config`.
 
 **Complete source-ordered implementation**
 
@@ -2292,55 +2311,27 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
 
 **Complete source-ordered implementation**
 
@@ -2383,31 +2374,20 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
 
 **Complete source-ordered implementation**
 
@@ -2452,30 +2432,19 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_page_tuple` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_positive_integer`.
 
 **Complete source-ordered implementation**
 
@@ -2518,25 +2487,18 @@ checksum
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validated_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validated_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2582,18 +2544,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_nonnegative_number`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_nonnegative_number`.
 
 **Complete source-ordered implementation**
 
@@ -2657,33 +2619,21 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_frame_rows` via `_canonical_value`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `_canonical_value`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `_canonical_value`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_canonical_value`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_canonical_value`.
 
 **Complete source-ordered implementation**
 
@@ -2743,48 +2693,23 @@ sha256(serialized).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(serialized).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_input_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_validated_config` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
-- property/attribute access: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_canonical_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2839,33 +2764,22 @@ payload
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `payload['crs']`, `payload['geometry_column']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_frame_payload`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_frame_payload`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_frame_payload`.
 
 **Complete source-ordered implementation**
 
@@ -2926,26 +2840,18 @@ _canonical_sha256({'domain': domain, **_frame_payload(frame, columns)})
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_source_locks` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_frame_sha256`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_frame_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2985,19 +2891,18 @@ _canonical_sha256({'domain': 'landscout.bess_zoning.policy_config', 'config': co
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_policy_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_policy_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_policy_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3044,18 +2949,18 @@ _canonical_sha256({'domain': 'landscout.bess_zoning.factual_structure_input', 's
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_factual_structure_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_factual_structure_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3111,19 +3016,19 @@ BessZoningPolicyConfig.model_validate(policy.model_dump(mode='python'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_resolved_policy`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_resolved_policy`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_resolved_policy`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_resolved_policy`.
 
 **Complete source-ordered implementation**
 
@@ -3173,18 +3078,18 @@ Rejects malformed or inconsistent policy lock; exact branches, calls, and return
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_lock`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_lock`.
 
 **Complete source-ordered implementation**
 
@@ -3245,22 +3150,22 @@ tuple(values)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `values`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_exact_id_series`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_exact_id_series`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_exact_id_series`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_exact_id_series`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_exact_id_series`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_exact_id_series`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_exact_id_series`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_exact_id_series`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_exact_id_series`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_exact_id_series`.
 
 **Complete source-ordered implementation**
 
@@ -3317,25 +3222,18 @@ parcels.copy(deep=True)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(~geometry.is_valid).any`, `geometry.geom_type.isin`, `geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all`, `geometry.is_empty.any`, `geometry.isna`, `geometry.isna().any`, `set(PARCEL_PRECHECK_COLUMNS).intersection`.
-- Hashing: `parcels[archive_column].eq(index.archive_sha256).all`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -3450,18 +3348,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `result['source_archive_sha256'].eq`, `result['source_archive_sha256'].eq(index.archive_sha256).all`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_zones`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_zones`.
 
 **Complete source-ordered implementation**
 
@@ -3547,18 +3445,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_relations`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_relations`.
 
 **Complete source-ordered implementation**
 
@@ -3693,18 +3591,18 @@ _canonical_sha256({'domain': 'landscout.bess_zoning.zone_mapping_input', 'zones'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_zone_mapping_input_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_zone_mapping_input_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3767,23 +3665,21 @@ rows
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_required_section_ids_by_chapter` via `_zone_chapter_rows`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_zone_chapter_rows`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_zone_chapter_rows`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_zone_chapter_rows`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `interpret_module._zone_chapter_rows`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `interpret_module._zone_chapter_rows`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_required_section_ids_by_chapter` via `_zone_chapter_rows`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_zone_chapter_rows`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_zone_chapter_rows`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_zone_chapter_rows`.
 
 **Complete source-ordered implementation**
 
@@ -3846,19 +3742,19 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result[str(label)]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_required_section_ids_by_chapter`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_required_section_ids_by_chapter`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_required_section_ids_by_chapter`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_required_section_ids_by_chapter`.
 
 **Complete source-ordered implementation**
 
@@ -3914,19 +3810,19 @@ Rejects malformed or inconsistent evidence occurrence uniqueness; exact branches
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_validate_evidence_occurrence_uniqueness`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validate_evidence_occurrence_uniqueness`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_validate_evidence_occurrence_uniqueness`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validate_evidence_occurrence_uniqueness`.
 
 **Complete source-ordered implementation**
 
@@ -3999,18 +3895,18 @@ Rejects malformed or inconsistent policy evidence; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(excerpt.encode('utf-8')).hexdigest`, `sha256(rule.encode('utf-8')).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `catalog['decision_linked']`, `catalog[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `catalog['decision_linked']`, `catalog[column]`, `catalog_rows`, `links_by_evidence`, `links_by_evidence.setdefault(evidence_id, [])`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_evidence`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_evidence`.
 
 **Complete source-ordered implementation**
 
@@ -4251,18 +4147,18 @@ mapping
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_mapping`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_mapping`.
 
 **Complete source-ordered implementation**
 
@@ -4339,22 +4235,22 @@ Private `planning` helper for lineage; its complete implementation below is the 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_lineage`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_lineage`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `_lineage`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_lineage`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `_lineage`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_lineage`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_lineage`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `_lineage`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_lineage`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `_lineage`.
 
 **Complete source-ordered implementation**
 
@@ -4415,18 +4311,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `frame['evidence_count']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `frame['evidence_count']`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_chapter_policy`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_chapter_policy`.
 
 **Complete source-ordered implementation**
 
@@ -4521,18 +4417,18 @@ statuses[route_kind]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_route_status`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_route_status`.
 
 **Complete source-ordered implementation**
 
@@ -4583,18 +4479,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_route_assessments`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_route_assessments`.
 
 **Complete source-ordered implementation**
 
@@ -4665,18 +4561,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_evidence_route_links`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_evidence_route_links`.
 
 **Complete source-ordered implementation**
 
@@ -4764,18 +4660,18 @@ pd.DataFrame(rows, columns=SOURCE_ZONE_POLICY_COLUMNS)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `layers_by_label[str(label)]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `layers_by_label[str(label)]`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_source_zone_policy`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_source_zone_policy`.
 
 **Complete source-ordered implementation**
 
@@ -4862,18 +4758,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_zone_interpretations`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_zone_interpretations`.
 
 **Complete source-ordered implementation**
 
@@ -4966,18 +4862,18 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_is_null`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_is_null`.
 
 **Complete source-ordered implementation**
 
@@ -5031,18 +4927,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `summary['positive_area_zone_count'].append`.
-- Hashing: `summary['zoning_precheck_policy_sha256'].append`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `output[column]`, `values[:]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `output[column]`, `summary['distinct_zone_status_count']`, `summary['dominant_zone_precheck_confidence']`, `summary['dominant_zone_precheck_status']`, `summary['non_dominant_different_status_count']`, `summary['non_zoning_planning_features_interpreted']`, `summary['planning_precheck_scope']`, `summary['positive_area_zone_count']`, `summary['review_scope']`, `summary['touch_only_zone_count']`, `summary['zoning_precheck_context_evidence_ids']`, `summary['zoning_precheck_evidence_ids']`, `summary['zoning_precheck_policy_profile']`, `summary['zoning_precheck_policy_sha256']`, `summary['zoning_precheck_requires_formal_review']`, `summary['zoning_precheck_status']`, `values[:]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_output`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_output`.
 
 **Complete source-ordered implementation**
 
@@ -5202,19 +5098,19 @@ Private `planning` helper for result component metadata; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_result_component_metadata`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_result_component_metadata`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_result_component_metadata`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_result_component_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -5277,18 +5173,18 @@ _canonical_sha256({'domain': domain, **_result_component_metadata(result), 'fram
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_result_frame_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_result_frame_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -5339,20 +5235,18 @@ _canonical_sha256({'domain': 'landscout.bess_zoning.precheck_result', **_result_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_complete_result_sha256`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_complete_result_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -5416,117 +5310,39 @@ replace(component, complete_result_content_sha256=_complete_result_sha256(compon
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_complete_result_sha256`, `_result_frame_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_compatible_policy_mutation` via `module._result_with_hashes`.
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `_result_with_hashes`.
 
 **Complete source-ordered implementation**
 
@@ -5624,45 +5440,19 @@ _result_with_hashes(result)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_factual_structure_sha256`, `_frame_sha256`, `_policy_sha256`, `_result_with_hashes`, `_zone_mapping_input_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `_factual_structure_sha256`, `_frame_sha256`, `_policy_sha256`, `_zone_mapping_input_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_build_result`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_build_result`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_build_result`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_build_result`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_build_result`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module._build_result`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module._build_result`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_build_result`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_build_result`.
 
 **Complete source-ordered implementation**
 
@@ -5811,18 +5601,18 @@ Private `planning` helper for compare frames; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_compare_frames`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_compare_frames`.
 
 **Complete source-ordered implementation**
 
@@ -5900,19 +5690,19 @@ Private `planning` helper for compare results; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `retained.intersection`.
 - Hashing: `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `context_ids`, `decision_ids`, `expected_links`, `reverse_links`, `reverse_links.setdefault(evidence_id, [])`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_compare_results`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_compare_results`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_compare_results`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_compare_results`.
 
 **Complete source-ordered implementation**
 
@@ -6205,18 +5995,18 @@ Rebuild and validate the precheck from every factual and policy input.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -6224,13 +6014,7 @@ Rebuild and validate the precheck from every factual and policy input.
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_validate` via `validate_bess_zoning_precheck`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `validate_bess_zoning_precheck`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `validate_bess_zoning_precheck`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `validate_bess_zoning_precheck`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     EVIDENCE_ROUTE_LINK_COLUMNS,
@@ -6244,6 +6028,12 @@ Rebuild and validate the precheck from every factual and policy input.
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_validate` via `validate_bess_zoning_precheck`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `validate_bess_zoning_precheck`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `validate_bess_zoning_precheck`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `validate_bess_zoning_precheck`.
 
 **Complete source-ordered implementation**
 
@@ -6335,18 +6125,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
     BessZoningPrecheckResult,
@@ -6354,32 +6144,7 @@ result
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::valid_result` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_inputs_are_not_mutated` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `interpret_bess_zoning`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `interpret_bess_zoning`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     EVIDENCE_ROUTE_LINK_COLUMNS,
@@ -6393,6 +6158,31 @@ result
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::valid_result` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_inputs_are_not_mutated` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `interpret_bess_zoning`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `interpret_bess_zoning`.
 
 **Complete source-ordered implementation**
 
@@ -6489,30 +6279,30 @@ CHAPTER_POLICY_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 2 | `chapter_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 3 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `reviewed_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `missing_required_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `review_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `reviewed_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `missing_required_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `review_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 10 | `evidence_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 12 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 13 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `rationale` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `missing_information` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `rationale` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `missing_information` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 18 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 19 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 20 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 21 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 22 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 23 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 24 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 24 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `EVIDENCE_CATALOG_COLUMNS` — canonical or derived frame-column schema
 
@@ -6554,35 +6344,35 @@ EVIDENCE_CATALOG_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `evidence_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 4 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `evidence_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `linked_route_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `linked_route_roles` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `evidence_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `linked_route_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `linked_route_roles` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 9 | `decision_linked` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 10 | `exact_raw_excerpt` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `exact_raw_excerpt` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 11 | `excerpt_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 12 | `section_page_fragment_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 15 | `source_rule_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 16 | `source_rule_excerpt` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 17 | `source_rule_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 18 | `source_rule_start` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 19 | `source_rule_end` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 20 | `interpretation_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 21 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 22 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 23 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 20 | `interpretation_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 21 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 22 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 23 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 24 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 25 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 26 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 27 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 28 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 29 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 30 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 30 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `_EVIDENCE_OCCURRENCE_COLUMNS` — canonical or derived frame-column schema
 
@@ -6599,12 +6389,12 @@ _EVIDENCE_OCCURRENCE_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 2 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 3 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 4 | `section_page_fragment_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 5 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `ROUTE_ASSESSMENT_COLUMNS` — canonical or derived frame-column schema
 
@@ -6634,23 +6424,23 @@ ROUTE_ASSESSMENT_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `route_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 4 | `derived_route_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 5 | `positive_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `condition_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `difficulty_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `applicability_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `positive_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `condition_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `difficulty_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `applicability_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 12 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 13 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 14 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 15 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 16 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 17 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 18 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `EVIDENCE_ROUTE_LINK_COLUMNS` — canonical or derived frame-column schema
 
@@ -6678,21 +6468,21 @@ EVIDENCE_ROUTE_LINK_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `route_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 4 | `evidence_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 5 | `route_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `route_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 10 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 11 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 12 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 13 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 14 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 15 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 16 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `SOURCE_ZONE_POLICY_COLUMNS` — canonical or derived frame-column schema
 
@@ -6724,25 +6514,25 @@ SOURCE_ZONE_POLICY_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `source_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `mapping_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 4 | `matched_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 6 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 7 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 9 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 10 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 14 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 15 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 16 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 17 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 18 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 19 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 20 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 20 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `PARCEL_ZONE_POLICY_COLUMNS` — canonical or derived frame-column schema
 
@@ -6780,24 +6570,24 @@ PARCEL_ZONE_POLICY_COLUMNS = (
 | 2 | `planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 3 | `source_zone_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 4 | `source_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
 | 7 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 8 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 11 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 12 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 16 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 17 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 18 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 19 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 20 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 21 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 22 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 22 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 23 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 
 ### `PARCEL_PRECHECK_COLUMNS` — canonical or derived frame-column schema
@@ -6826,18 +6616,18 @@ PARCEL_PRECHECK_COLUMNS = (
 |---:|---|---|---|---|---|
 | 1 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 2 | `dominant_zone_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 3 | `dominant_zone_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `dominant_zone_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 4 | `positive_area_zone_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 5 | `distinct_zone_status_count` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 6 | `non_dominant_different_status_count` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 7 | `touch_only_zone_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 8 | `zoning_precheck_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `zoning_precheck_context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `zoning_precheck_requires_formal_review` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `non_zoning_planning_features_interpreted` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `zoning_precheck_policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `zoning_precheck_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `zoning_precheck_context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `zoning_precheck_requires_formal_review` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `non_zoning_planning_features_interpreted` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `zoning_precheck_policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 15 | `zoning_precheck_policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 
 
@@ -6849,12 +6639,12 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `BessZoningPolicyConfig` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
-| `BessZoningPrecheckError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
-| `BessZoningPrecheckResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
-| `interpret_bess_zoning` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
-| `load_bess_zoning_policy_config` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
-| `validate_bess_zoning_precheck` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `BessZoningPolicyConfig` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `BessZoningPrecheckError` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `BessZoningPrecheckResult` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `interpret_bess_zoning` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `load_bess_zoning_policy_config` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `validate_bess_zoning_precheck` | public symbol defined in this module | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
 
 ## 9. Error handling
 

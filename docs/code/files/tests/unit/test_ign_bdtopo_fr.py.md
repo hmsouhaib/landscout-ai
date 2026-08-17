@@ -73,7 +73,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 PROJECT_ROOT = Path(__file__).parents[2]
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::<module>` (value reference).
 
 #### `CONFIG_PATH`
 
@@ -81,7 +81,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 CONFIG_PATH = PROJECT_ROOT / "configs/sources/ign_bdtopo_fr.yaml"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::source_config` (value argument/reference), `tests/unit/test_rte_odre_fr.py::source_config` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::_config_data` (value reference), `tests/unit/test_ign_bdtopo_fr.py::source_config` (value reference).
 
 #### `SYNTHETIC_SOURCE_URL`
 
@@ -89,7 +89,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SYNTHETIC_SOURCE_URL = "https://example.test/BDTOPO_TEST_D031.7z"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` (value argument/reference).
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_ign_bdtopo_fr.py::_synthetic_config` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` (value reference).
 
 #### `LINE_LAYER`
 
@@ -97,7 +97,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 LINE_LAYER = "LIGNE_ELECTRIQUE"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` (value argument/reference), `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` (value reference).
 
 #### `POST_LAYER`
 
@@ -105,7 +105,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 POST_LAYER = "POSTE_DE_TRANSFORMATION"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` (value reference).
 
 #### `DEPARTMENT_LAYER`
 
@@ -113,7 +113,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DEPARTMENT_LAYER = "DEPARTEMENT"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` (value reference).
 
 #### `ROAD_LAYER`
 
@@ -121,7 +121,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ROAD_LAYER = "TRONCON_DE_ROUTE"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` (value reference), `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -170,27 +170,21 @@ yaml.safe_load(stream)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `CONFIG_PATH.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_department_coverage_config_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_required_source_field_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_source_configuration_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unknown_source_config_field_is_rejected` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `_config_data`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_department_coverage_config_fails` via `_config_data`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_required_source_field_fails` via `_config_data`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_source_configuration_fails` via `_config_data`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unknown_source_config_field_is_rejected` via `_config_data`.
 
 **Complete source-ordered implementation**
 
@@ -235,46 +229,46 @@ IgnBdTopoSourceConfig.model_validate(content)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `content`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_synthetic_config`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_synthetic_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_synthetic_config`.
 
 **Complete source-ordered implementation**
 
@@ -344,31 +338,31 @@ Serializes gpkg; exact branches, calls, and return construction are reproduced b
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.parent.mkdir`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `geometries`, `object_ids`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_synthetic_archive_bytes` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_geopackage_is_discovered_recursively` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_write_gpkg`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_synthetic_archive_bytes` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_geopackage_is_discovered_recursively` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_write_gpkg`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_write_gpkg`.
 
 **Complete source-ordered implementation**
 
@@ -549,22 +543,22 @@ archive_path.read_bytes()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `archive_path.read_bytes`, `py7zr.SevenZipFile`.
+- Network I/O: none.
+- Filesystem read: `archive_path.read_bytes`.
 - Filesystem write: `archive_path.parent.mkdir`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_synthetic_archive_bytes` via `_pack_7z`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_pack_7z`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_pack_7z`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_pack_7z`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_pack_7z`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_synthetic_archive_bytes` via `_pack_7z`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_pack_7z`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_pack_7z`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_pack_7z`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_pack_7z`.
 
 **Complete source-ordered implementation**
 
@@ -621,42 +615,42 @@ _pack_7z(root / 'fixture.7z', [(gpkg_path, 'BDTOPO_TEST/GPKG/BDTOPO_TEST.gpkg')]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_synthetic_archive_bytes`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_synthetic_archive_bytes`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_synthetic_archive_bytes`.
 
 **Complete source-ordered implementation**
 
@@ -720,70 +714,46 @@ io.BytesIO(content)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `self._response`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_response`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_response`.
 
 **Complete source-ordered implementation**
 
@@ -823,34 +793,23 @@ archive_path.parent / f'{archive_path.name}.metadata.json'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
 
 **Complete source-ordered implementation**
 
@@ -890,23 +849,21 @@ extraction_path / '.landscout-extraction.json'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `_extraction_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `_extraction_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `_extraction_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `_extraction_metadata_path`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `_extraction_metadata_path`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `_extraction_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `_extraction_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `_extraction_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `_extraction_metadata_path`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `_extraction_metadata_path`.
 
 **Complete source-ordered implementation**
 
@@ -952,24 +909,24 @@ Private `test` helper for extracted fixture; its complete implementation below i
 **Side effects**
 
 - Network I/O: `download_ign_bdtopo_archive`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_extracted_fixture`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_extracted_fixture`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `_extracted_fixture`.
 
 **Complete source-ordered implementation**
 
@@ -1029,28 +986,22 @@ metadata_path.read_bytes()
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `metadata_path.read_bytes`, `metadata_path.read_text`.
 - Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `metadata['download_timestamp']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_expire_cache`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_expire_cache`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_expire_cache`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
 
 **Complete source-ordered implementation**
 
@@ -1085,7 +1036,7 @@ def source_config() -> IgnBdTopoSourceConfig:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid source config loads`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1123,7 +1074,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid source config loads` through the exact asserted conditions: `'IGN' in source_config.provider`; `source_config.department_code == '31'`; `source_config.projection == 'EPSG:2154'`; `source_config.format == 'GPKG'`; plus 5 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1151,7 +1102,7 @@ def test_valid_source_config_loads(source_config: IgnBdTopoSourceConfig) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid department coverage config fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1185,7 +1136,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid department coverage config fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1211,7 +1162,7 @@ def test_invalid_department_coverage_config_fails(mutation: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing required source field fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1240,7 +1191,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing required source field fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1261,7 +1212,7 @@ def test_missing_required_source_field_fails(field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid source configuration fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1290,7 +1241,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid source configuration fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1311,7 +1262,7 @@ def test_invalid_source_configuration_fails(field: str, value: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown source config field is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1340,7 +1291,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown source config field is rejected`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1361,7 +1312,7 @@ def test_unknown_source_config_field_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `successful archive download persists sha256`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1437,7 +1388,7 @@ def test_successful_archive_download_persists_sha256(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `archive integrity reports local sha256 and no fabricated checksum`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1473,7 +1424,7 @@ assert integrity.official_checksum_validated is False
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `archive integrity reports local sha256 and no fabricated checksum` through the exact asserted conditions: `integrity.file_size == len(archive_content)`; `integrity.sha256 == sha256(archive_content).hexdigest()`; `integrity.official_checksum is None`; `integrity.official_checksum_algorithm is None`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1505,7 +1456,7 @@ def test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `fresh cache is reused without network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1583,7 +1534,7 @@ def test_fresh_cache_is_reused_without_network(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale recovery backup rejects cache before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1629,7 +1580,7 @@ assert first.path.read_bytes() == content
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale recovery backup rejects cache before network`: the reproduced adversarial input must raise `IgnBdTopoDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1673,7 +1624,7 @@ def test_stale_recovery_backup_rejects_cache_before_network(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `expired cache is refreshed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1761,7 +1712,7 @@ def test_expired_cache_is_refreshed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed refresh preserves valid cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1805,7 +1756,7 @@ assert not list(cache_dir.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `failed refresh preserves valid cache`: the reproduced adversarial input must raise `IgnBdTopoDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1847,7 +1798,7 @@ def test_failed_refresh_preserves_valid_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupt new archive is rejected and temporary files are cleaned`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1885,7 +1836,7 @@ assert not list(cache_dir.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupt new archive is rejected and temporary files are cleaned`: the reproduced adversarial input must raise `IgnBdTopoArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1919,7 +1870,7 @@ def test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupt refresh preserves valid cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1964,7 +1915,7 @@ assert not list(cache_dir.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupt refresh preserves valid cache`: the reproduced adversarial input must raise `IgnBdTopoArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2007,7 +1958,7 @@ def test_corrupt_refresh_preserves_valid_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata publication failure restores previous cache pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2069,7 +2020,7 @@ assert not list(cache_dir.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `metadata publication failure restores previous cache pair`: the reproduced adversarial input must raise `IgnBdTopoDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2150,21 +2101,18 @@ Private `test` helper for fail metadata publication; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
+- function object argument: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
 
 **Complete source-ordered implementation**
 
@@ -2185,7 +2133,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `publication and rollback failure preserves exact recovery backups`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2323,27 +2271,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -2364,7 +2303,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cleanup failure does not mask double failure recovery error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2525,27 +2464,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -2588,21 +2518,18 @@ Private `test` helper for fail temporary cleanup; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- function object argument: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
 
 **Complete source-ordered implementation**
 
@@ -2621,7 +2548,7 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale cache recovery backup fails closed without destroying it`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2666,7 +2593,7 @@ assert archive_backup.read_bytes() == b"manual recovery archive"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale cache recovery backup fails closed without destroying it`: the reproduced adversarial input must raise `IgnBdTopoDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2706,7 +2633,7 @@ def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `official checksum mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2744,7 +2671,7 @@ assert not list(cache_dir.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `official checksum mismatch is rejected`: the reproduced adversarial input must raise `IgnBdTopoArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2779,7 +2706,7 @@ def test_official_checksum_mismatch_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe parent archive member is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2823,7 +2750,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsafe parent archive member is rejected`: the reproduced adversarial input must raise `IgnBdTopoArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2865,7 +2792,7 @@ def test_unsafe_parent_archive_member_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `geopackage is discovered recursively`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2893,7 +2820,7 @@ assert discover_ign_bdtopo_geopackage(tmp_path) == gpkg_path
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `geopackage is discovered recursively` through the exact asserted conditions: `discover_ign_bdtopo_geopackage(tmp_path) == gpkg_path`.
 
 **Test boundary**
 
@@ -2913,7 +2840,7 @@ def test_geopackage_is_discovered_recursively(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `multiple geopackages are rejected as ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2942,7 +2869,7 @@ with pytest.raises(IgnBdTopoArchiveError, match="GeoPackage|exactly one|ambiguou
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `multiple geopackages are rejected as ambiguous`: the reproduced adversarial input must raise `IgnBdTopoArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2963,7 +2890,7 @@ def test_multiple_geopackages_are_rejected_as_ambiguous(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `real layer names are listed and discovered`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2995,7 +2922,7 @@ assert set(selection.all_layer_names) == {LINE_LAYER, POST_LAYER}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `real layer names are listed and discovered` through the exact asserted conditions: `set(all_layers) == {LINE_LAYER, POST_LAYER}`; `selection.electric_lines_layer == LINE_LAYER`; `selection.transformation_posts_layer == POST_LAYER`; `set(selection.all_layer_names) == {LINE_LAYER, POST_LAYER}`.
 
 **Test boundary**
 
@@ -3023,7 +2950,7 @@ def test_real_layer_names_are_listed_and_discovered(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing electric line layer fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3052,7 +2979,7 @@ with pytest.raises(IgnBdTopoLayerError, match="electric|line|Ligne"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing electric line layer fails`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3075,7 +3002,7 @@ def test_missing_electric_line_layer_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing transformation post layer fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3104,7 +3031,7 @@ with pytest.raises(IgnBdTopoLayerError, match="transformation|post|Poste"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing transformation post layer fails`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3127,7 +3054,7 @@ def test_missing_transformation_post_layer_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ambiguous electric line layers fail`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3204,7 +3131,7 @@ def test_ambiguous_electric_line_layers_fail(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `synthetic archive extracts and discovers required layers`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3243,7 +3170,7 @@ assert extraction.transformation_posts_layer == POST_LAYER
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `synthetic archive extracts and discovers required layers` through the exact asserted conditions: `extraction.geopackage_path.is_file()`; `extraction.electric_lines_layer == LINE_LAYER`; `extraction.transformation_posts_layer == POST_LAYER`.
 
 **Test boundary**
 
@@ -3280,7 +3207,7 @@ def test_synthetic_archive_extracts_and_discovers_required_layers(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v2 extraction metadata binds physical geopackage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3366,7 +3293,7 @@ def test_schema_v2_extraction_metadata_binds_physical_geopackage(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `same size geopackage tamper invalidates extraction cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3436,7 +3363,7 @@ def test_same_size_geopackage_tamper_invalidates_extraction_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `forged extraction metadata never returns cache hit`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3505,7 +3432,7 @@ def test_forged_extraction_metadata_never_returns_cache_hit(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed geopackage sha is not trusted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3569,7 +3496,7 @@ def test_malformed_geopackage_sha_is_not_trusted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed geopackage size is not trusted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3633,7 +3560,7 @@ def test_malformed_geopackage_size_is_not_trusted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `default extraction path is short and content addressed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3669,7 +3596,7 @@ assert extraction.geopackage_path.is_file()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `default extraction path is short and content addressed` through the exact asserted conditions: `extraction.extraction_path == cache_dir / 'x' / download.sha256[:16]`; `len(extraction.extraction_path.name) == 16`; `extraction.geopackage_path.is_file()`.
 
 **Test boundary**
 
@@ -3703,7 +3630,7 @@ def test_default_extraction_path_is_short_and_content_addressed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `layer loader retains crs counts and null geometries`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3780,7 +3707,7 @@ def test_layer_loader_retains_crs_counts_and_null_geometries(tmp_path: Path) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid geometry is preserved without repair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3853,7 +3780,7 @@ def test_invalid_geometry_is_preserved_without_repair(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `geographic crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3903,7 +3830,7 @@ def test_geographic_crs_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `electricity loader retains both layer counts`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3990,7 +3917,7 @@ def test_electricity_loader_retains_both_layer_counts(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road layer discovery loads selected physical layer`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4030,7 +3957,7 @@ assert loaded.road_segments_summary.spatial_role == "PROXY_GEOMETRY"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `road layer discovery loads selected physical layer` through the exact asserted conditions: `loaded.extraction is extraction`; `loaded.road_segments_summary.source_layer_name == ROAD_LAYER`; `loaded.road_segments_summary.logical_name == 'road_segments'`; `loaded.road_segments['object_id'].tolist() == ['R_LINE', 'R_MULTI']`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -4069,7 +3996,7 @@ def test_road_layer_discovery_loads_selected_physical_layer(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road physical layer cannot collide with electricity roles`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4105,7 +4032,7 @@ with pytest.raises(IgnBdTopoLayerError, match="same layer|collid|role"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road physical layer cannot collide with electricity roles`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4137,7 +4064,7 @@ def test_road_physical_layer_cannot_collide_with_electricity_roles(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing road layer fails safely`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4173,7 +4100,7 @@ with pytest.raises(IgnBdTopoLayerError, match="road|route|found 0"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing road layer fails safely`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4206,7 +4133,7 @@ def test_missing_road_layer_fails_safely(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ambiguous road layer fails safely`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4310,7 +4237,7 @@ def test_ambiguous_road_layer_fails_safely(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road loader rejects wrong archive config department`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4349,7 +4276,7 @@ with pytest.raises(IgnBdTopoLayerError, match="department|archive|lineage"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road loader rejects wrong archive config department`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4385,7 +4312,7 @@ def test_road_loader_rejects_wrong_archive_config_department(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road loader rejects changed layer inventory`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4479,7 +4406,7 @@ def test_road_loader_rejects_changed_layer_inventory(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road loader rejects geographic crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4552,7 +4479,7 @@ def test_road_loader_rejects_geographic_crs(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road loader preserves lambert93 lines unchanged`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4644,7 +4571,7 @@ def test_road_loader_preserves_lambert93_lines_unchanged(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road layer does not change electricity loading or cache shape`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4700,7 +4627,7 @@ assert set(metadata) == {
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `road layer does not change electricity loading or cache shape` through the exact asserted conditions: `len(electricity.electric_lines) == 2`; `len(electricity.transformation_posts) == 2`; `electricity.electric_lines_summary.source_layer_name == LINE_LAYER`; `electricity.transformation_posts_summary.source_layer_name == POST_LAYER`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -4754,7 +4681,7 @@ def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public sources export only stable road api`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4785,7 +4712,7 @@ assert not hasattr(sources, "_discover_road_layer")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public sources export only stable road api` through the exact asserted conditions: `sources.IgnBdTopoRoadData is ign_bdtopo_fr.IgnBdTopoRoadData`; `sources.load_ign_bdtopo_roads is ign_bdtopo_fr.load_ign_bdtopo_roads`; `'IgnBdTopoRoadData' in sources.__all__`; `'load_ign_bdtopo_roads' in sources.__all__`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -4806,7 +4733,7 @@ def test_public_sources_export_only_stable_road_api() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `department coverage loader selects configured identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4911,7 +4838,7 @@ def test_department_coverage_loader_selects_configured_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `department coverage requires one authoritative feature`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4963,7 +4890,7 @@ with pytest.raises(IgnBdTopoLayerError, match="exactly one|found"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `department coverage requires one authoritative feature`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5015,7 +4942,7 @@ def test_department_coverage_requires_one_authoritative_feature(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `department coverage requires configured identity field`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5060,7 +4987,7 @@ with pytest.raises(IgnBdTopoLayerError, match="identity field|missing_code"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `department coverage requires configured identity field`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5102,7 +5029,7 @@ def test_department_coverage_requires_configured_identity_field(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing department coverage layer fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5140,7 +5067,7 @@ with pytest.raises(IgnBdTopoLayerError, match="department|found 0"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing department coverage layer fails`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5175,7 +5102,7 @@ def test_missing_department_coverage_layer_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `department coverage layer discovery must be unambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5283,7 +5210,7 @@ def test_department_coverage_layer_discovery_must_be_unambiguous(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `direct consumers reject same inventory content tampering`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5341,7 +5268,7 @@ with pytest.raises(IgnBdTopoLayerError, match="integrity|SHA|physical|changed"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `direct consumers reject same inventory content tampering`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5402,7 +5329,7 @@ def test_direct_consumers_reject_same_inventory_content_tampering(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road loader rejects source change after physical read`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5445,7 +5372,7 @@ with (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road loader rejects source change after physical read`: the reproduced adversarial input must raise `IgnBdTopoLayerError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5509,19 +5436,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `extraction.geopackage_path.read_bytes`.
 - Filesystem write: `extraction.geopackage_path.write_bytes`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `patch('landscout.sources.cadastre_loader_fr.gpd.read_file', side_effect=mutate_after_read)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `patch.object(ign_bdtopo_fr.gpd, 'read_file', side_effect=mutate_after_read)`.
+- function object argument: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `patch.object(ign_bdtopo_fr.gpd, 'read_file', side_effect=mutate_after_read)`.
 
 **Complete source-ordered implementation**
 

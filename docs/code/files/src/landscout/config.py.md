@@ -59,7 +59,7 @@ No meaningful module constant is declared.
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 ```
 
-String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+String constrained non-empty after the exact StringConstraints behavior in the declaration. Enforced/consumed by `src/landscout/config.py::ShapeCalibrationConfig` (type annotation), `src/landscout/config.py::CrsConfig` (type annotation), `src/landscout/config.py::BessProfile` (type annotation), `src/landscout/config.py::ScanMetadata` (type annotation).
 
 #### `CommuneCode`
 
@@ -70,7 +70,7 @@ CommuneCode = Annotated[
 ]
 ```
 
-Canonical French commune identity constrained by the exact regex in the declaration. It is consumed by annotations or Pydantic validation in this module.
+Canonical French commune identity constrained by the exact regex in the declaration. Enforced/consumed by `src/landscout/config.py::AoiConfig` (type annotation).
 
 #### `StrictFiniteFloat`
 
@@ -78,7 +78,7 @@ Canonical French commune identity constrained by the exact regex in the declarat
 StrictFiniteFloat = Annotated[float, BeforeValidator(_strict_finite_number)]
 ```
 
-Non-Boolean real converted to float only after the named finite-number validator accepts it. It is consumed by annotations or Pydantic validation in this module.
+Non-Boolean real converted to float only after the named finite-number validator accepts it. Enforced/consumed by `src/landscout/config.py::ShapeCalibrationConfig` (type annotation), `src/landscout/config.py::ShapeScreeningConfig` (type annotation).
 
 #### `StrictPositiveFloat`
 
@@ -90,7 +90,7 @@ StrictPositiveFloat = Annotated[
 ]
 ```
 
-StrictFiniteFloat plus a greater-than-zero Pydantic bound. It is consumed by annotations or Pydantic validation in this module.
+StrictFiniteFloat plus a greater-than-zero Pydantic bound. Enforced/consumed by `src/landscout/config.py::ParcelConfig` (type annotation), `src/landscout/config.py::ShapeScreeningConfig` (type annotation).
 
 #### `StrictPositiveInt`
 
@@ -98,7 +98,7 @@ StrictFiniteFloat plus a greater-than-zero Pydantic bound. It is consumed by ann
 StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
 ```
 
-Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). It is consumed by annotations or Pydantic validation in this module.
+Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). Enforced/consumed by `src/landscout/config.py::ShapeCalibrationConfig` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -165,10 +165,28 @@ def validate_area_range(self) -> "ParcelConfig":
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::area_config` via `ParcelConfig`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `ParcelConfig`.
-- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.config import ParcelConfig`.
+- import: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
+- import: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.config import ParcelConfig`.
+- type annotation: `src/landscout/config.py::BessProfile` via `ParcelConfig`.
+- type annotation: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::area_config` via `ParcelConfig`.
+- constructor call: `tests/unit/test_filter_parcels.py::area_config` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_minimum_boundary_is_included` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_maximum_boundary_is_included` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_rejected_parcel_has_expected_reason` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_no_parcel_disappears` via `ParcelConfig`.
+- constructor call: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_candidate_and_rejected_ids_do_not_overlap` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_exact_parcel_ids_are_preserved` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `ParcelConfig`.
+- type annotation: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `ParcelConfig`.
 
 **Exact class source**
 
@@ -199,8 +217,8 @@ class ParcelConfig(_ConfigModel):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `policy_version` | `policy_version: NonEmptyString` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
-| `method` | `method: NonEmptyString` | Closed or validated `method` classification on `ShapeCalibrationConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `calibration_scope` | `calibration_scope: NonEmptyString` | Closed or validated `calibration scope` classification on `ShapeCalibrationConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `method` | `method: NonEmptyString` | `ShapeCalibrationConfig.method` represents the `method` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `calibration_scope` | `calibration_scope: NonEmptyString` | `ShapeCalibrationConfig.calibration_scope` represents the `calibration_scope` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `sample_size` | `sample_size: StrictPositiveInt` | Strict positive integer number of rows in the diagnostic/profile sample. |
 | `calibrated_at` | `calibrated_at: NonEmptyString` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `target_retention_pct` | `target_retention_pct: Annotated[
@@ -212,8 +230,9 @@ class ParcelConfig(_ConfigModel):
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeCalibrationConfig`.
-- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+- import: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+- type annotation: `src/landscout/config.py::ShapeScreeningConfig` via `ShapeCalibrationConfig`.
+- constructor call: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeCalibrationConfig`.
 
 **Exact class source**
 
@@ -276,11 +295,35 @@ def validate_enabled_policy(self) -> "ShapeScreeningConfig":
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
-- direct call or construction: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeScreeningConfig`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `ShapeScreeningConfig`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `ShapeScreeningConfig`.
-- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+- import: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
+- import: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+- type annotation: `src/landscout/config.py::BessProfile` via `ShapeScreeningConfig`.
+- type annotation: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeScreeningConfig`.
+- constructor call: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::shape_config` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_exact_width_and_ratio_boundaries_are_retained` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_rejected_parcel_has_expected_primary_reason` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_rejection_reason_precedence_is_deterministic` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_shape_error_precedence_does_not_inspect_metrics` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_enabled_outputs_record_active_policy_metadata` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_enabled_partition_preserves_exact_ids_and_crs` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_filter_does_not_mutate_input` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `ShapeScreeningConfig`.
+- constructor call: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `ShapeScreeningConfig`.
+- constructor call: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `ShapeScreeningConfig`.
+- type annotation: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `ShapeScreeningConfig`.
 
 **Exact class source**
 
@@ -348,7 +391,7 @@ def validate_crs_contract(self) -> "CrsConfig":
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::BessProfile` via `CrsConfig`.
 
 **Exact class source**
 
@@ -394,7 +437,7 @@ class CrsConfig(_ConfigModel):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::LoadedScanConfig` via `BessProfile`.
 
 **Exact class source**
 
@@ -427,7 +470,7 @@ class BessProfile(_ConfigModel):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::ScanConfig` via `ScanMetadata`.
 
 **Exact class source**
 
@@ -467,7 +510,7 @@ def validate_unique_communes(self) -> "AoiConfig":
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::ScanConfig` via `AoiConfig`.
 
 **Exact class source**
 
@@ -500,7 +543,7 @@ class AoiConfig(_ConfigModel):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::ScanConfig` via `ProfileReference`.
 
 **Exact class source**
 
@@ -527,7 +570,7 @@ class ProfileReference(_ConfigModel):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::ScanConfig` via `OutputConfig`.
 
 **Exact class source**
 
@@ -557,7 +600,7 @@ class OutputConfig(_ConfigModel):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/config.py::LoadedScanConfig` via `ScanConfig`.
 
 **Exact class source**
 
@@ -602,7 +645,8 @@ def validate_scan_profile_identity(self) -> "LoadedScanConfig":
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/config.py::load_scan_config` via `LoadedScanConfig`.
+- type annotation: `src/landscout/config.py::load_scan_config` via `LoadedScanConfig`.
+- constructor call: `src/landscout/config.py::load_scan_config` via `LoadedScanConfig`.
 
 **Exact class source**
 
@@ -652,18 +696,18 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/config.py::<module>` via `BeforeValidator(_strict_finite_number)`.
+- function object argument: `src/landscout/config.py::<module>` via `BeforeValidator(_strict_finite_number)`.
 
 **Complete source-ordered implementation**
 
@@ -710,14 +754,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -765,14 +809,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -828,14 +872,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -889,14 +933,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -943,14 +987,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -998,18 +1042,18 @@ content
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/config.py::load_scan_config` via `_load_yaml`.
+- direct call: `src/landscout/config.py::load_scan_config` via `_load_yaml`.
 
 **Complete source-ordered implementation**
 
@@ -1055,18 +1099,18 @@ profile_path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/config.py::load_scan_config` via `_resolve_profile_path`.
+- direct call: `src/landscout/config.py::load_scan_config` via `_resolve_profile_path`.
 
 **Complete source-ordered implementation**
 
@@ -1111,28 +1155,28 @@ LoadedScanConfig(scan_config=scan_config, profile=profile, profile_path=profile_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `profile_path.is_file`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_config.py::_load_temporary_profile` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_valid_config_loads` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_missing_profile_fails` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `load_scan_config`.
-- direct call or construction: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `load_scan_config`.
-- import/re-export: `tests/unit/test_config.py::<module>` via `from landscout.config import load_scan_config`.
+- import: `tests/unit/test_config.py::<module>` via `from landscout.config import load_scan_config`.
+- direct call: `tests/unit/test_config.py::_load_temporary_profile` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_valid_config_loads` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_missing_profile_fails` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `load_scan_config`.
+- direct call: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `load_scan_config`.
 
 **Complete source-ordered implementation**
 

@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/__init__.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: processing stage
 - Domain: project
 - Responsibility: Re-exports stable stage result, error, loader, validator, and transformation APIs.
 - Source SHA256: `486c673828a9bdc77ca594316d86e3ab8b026cda42dec33326dc8f6dc12f28d5`
@@ -15,7 +15,7 @@ Re-exports stable stage result, error, loader, validator, and transformation API
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **project** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **processing stage** layer and the **project** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -321,110 +321,110 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `BessPlanningFeatureApplicationArtifactManifest` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationArtifactManifest` | yes |
-| `BessPlanningFeatureApplicationError` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationError` | yes |
-| `BessPlanningFeatureApplicationResult` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationResult` | yes |
-| `BessPlanningFeatureParcelAggregationArtifactManifest` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationArtifactManifest` | yes |
-| `BessPlanningFeatureParcelAggregationError` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationError` | yes |
-| `BessPlanningFeatureParcelAggregationResult` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationResult` | yes |
-| `BessPlanningFeaturePolicyArtifactManifest` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyArtifactManifest` | yes |
-| `BessPlanningFeaturePolicyConfig` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyConfig` | yes |
-| `BessPlanningFeaturePolicyError` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyError` | yes |
-| `BessPlanningFeaturePolicyResult` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyResult` | yes |
-| `BessZoningPolicyConfig` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.BessZoningPolicyConfig` | yes |
-| `BessZoningPrecheckError` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.BessZoningPrecheckError` | yes |
-| `BessZoningPrecheckResult` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.BessZoningPrecheckResult` | yes |
-| `BoundaryDistanceProfile` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.BoundaryDistanceProfile` | yes |
-| `CadastreNormalizationError` | re-exported/defined Python symbol | `landscout.stages.normalize_cadastre.CadastreNormalizationError` | yes |
-| `CnigFeatureCodeProfile` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.CnigFeatureCodeProfile` | yes |
-| `CoverageStatusCounts` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.CoverageStatusCounts` | yes |
-| `DistanceProfile` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.DistanceProfile` | yes |
-| `GridCoverageAssessmentError` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.GridCoverageAssessmentError` | yes |
-| `GridCoverageAssessmentResult` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.GridCoverageAssessmentResult` | yes |
-| `GridCoverageProfile` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.GridCoverageProfile` | yes |
-| `GridProximityError` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.GridProximityError` | yes |
-| `GridProximityProfile` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.GridProximityProfile` | yes |
-| `GridProximityResult` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.GridProximityResult` | yes |
-| `IgnGridNormalizationError` | re-exported/defined Python symbol | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` | yes |
-| `IgnRoadNormalizationError` | re-exported/defined Python symbol | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` | yes |
-| `IgnRoadVehicleProxyApplicationError` | re-exported/defined Python symbol | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` | yes |
-| `IgnRoadVehicleProxyApplicationResult` | re-exported/defined Python symbol | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationResult` | yes |
-| `IgnRoadVehicleProxyPolicy` | re-exported/defined Python symbol | `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicy` | yes |
-| `IgnRoadVehicleProxyPolicyError` | re-exported/defined Python symbol | `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicyError` | yes |
-| `IgnVoltageNormalization` | re-exported/defined Python symbol | `landscout.stages.normalize_grid_ign.IgnVoltageNormalization` | yes |
-| `NormalizedIgnElectricityData` | re-exported/defined Python symbol | `landscout.stages.normalize_grid_ign.NormalizedIgnElectricityData` | yes |
-| `NormalizedIgnRoadData` | re-exported/defined Python symbol | `landscout.stages.normalize_access_ign.NormalizedIgnRoadData` | yes |
-| `ParcelFilterError` | re-exported/defined Python symbol | `landscout.stages.filter_parcels.ParcelFilterError` | yes |
-| `ParcelPlanningFeaturesResult` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_features.ParcelPlanningFeaturesResult` | yes |
-| `ParcelRoadProximityResult` | re-exported/defined Python symbol | `landscout.stages.enrich_road_proximity.ParcelRoadProximityResult` | yes |
-| `PlanningFeatureCodeError` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.PlanningFeatureCodeError` | yes |
-| `PlanningFeatureCodeResult` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.PlanningFeatureCodeResult` | yes |
-| `PlanningFeatureInputValidation` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_features.PlanningFeatureInputValidation` | yes |
-| `PlanningFeaturesError` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_features.PlanningFeaturesError` | yes |
-| `PlanningRegulationIndex` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.PlanningRegulationIndex` | yes |
-| `PlanningRegulationIndexError` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` | yes |
-| `PlanningRegulationSearchResult` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.PlanningRegulationSearchResult` | yes |
-| `PlanningRegulationStructureConfig` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig` | yes |
-| `PlanningRegulationStructureError` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` | yes |
-| `PlanningRegulationStructureResult` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult` | yes |
-| `RoadProximityCoverageAssessmentResult` | re-exported/defined Python symbol | `landscout.stages.assess_road_proximity_coverage.RoadProximityCoverageAssessmentResult` | yes |
-| `RoadProximityCoverageError` | re-exported/defined Python symbol | `landscout.stages.assess_road_proximity_coverage.RoadProximityCoverageError` | yes |
-| `RoadProximityError` | re-exported/defined Python symbol | `landscout.stages.enrich_road_proximity.RoadProximityError` | yes |
-| `RoadProxyClassCoverage` | re-exported/defined Python symbol | `landscout.stages.enrich_road_proximity.RoadProxyClassCoverage` | yes |
-| `ShapeDistributionProfile` | re-exported/defined Python symbol | `landscout.stages.profile_shape.ShapeDistributionProfile` | yes |
-| `ShapeEnrichmentError` | re-exported/defined Python symbol | `landscout.stages.enrich_shape.ShapeEnrichmentError` | yes |
-| `ShapeProfileError` | re-exported/defined Python symbol | `landscout.stages.profile_shape.ShapeProfileError` | yes |
-| `VoltageCoverageStatusProfile` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.VoltageCoverageStatusProfile` | yes |
-| `VoltageLevelCoverage` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage` | yes |
-| `VoltageLevelDistanceProfile` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile` | yes |
-| `aggregate_bess_planning_feature_policy_to_parcels` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.aggregate_bess_planning_feature_policy_to_parcels` | yes |
-| `apply_bess_planning_feature_policy` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.apply_bess_planning_feature_policy` | yes |
-| `apply_ign_road_vehicle_proxy_policy` | re-exported/defined Python symbol | `landscout.stages.apply_road_vehicle_proxy_policy.apply_ign_road_vehicle_proxy_policy` | yes |
-| `assess_grid_coverage` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.assess_grid_coverage` | yes |
-| `assess_road_proximity_coverage` | re-exported/defined Python symbol | `landscout.stages.assess_road_proximity_coverage.assess_road_proximity_coverage` | yes |
-| `compile_bess_planning_feature_policy` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.compile_bess_planning_feature_policy` | yes |
-| `enrich_parcel_grid_proximity` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` | yes |
-| `enrich_parcel_road_proximity` | re-exported/defined Python symbol | `landscout.stages.enrich_road_proximity.enrich_parcel_road_proximity` | yes |
-| `enrich_parcel_shapes` | re-exported/defined Python symbol | `landscout.stages.enrich_shape.enrich_parcel_shapes` | yes |
-| `filter_parcels_by_area` | re-exported/defined Python symbol | `landscout.stages.filter_parcels.filter_parcels_by_area` | yes |
-| `filter_parcels_by_shape` | re-exported/defined Python symbol | `landscout.stages.filter_parcels.filter_parcels_by_shape` | yes |
-| `index_planning_regulation` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.index_planning_regulation` | yes |
-| `interpret_bess_zoning` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.interpret_bess_zoning` | yes |
-| `intersect_parcels_with_gpu_planning_features` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_features.intersect_parcels_with_gpu_planning_features` | yes |
-| `intersect_parcels_with_gpu_zoning` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_zoning.intersect_parcels_with_gpu_zoning` | yes |
-| `load_bess_planning_feature_application_artifacts` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.load_bess_planning_feature_application_artifacts` | yes |
-| `load_bess_planning_feature_parcel_aggregation_artifacts` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.load_bess_planning_feature_parcel_aggregation_artifacts` | yes |
-| `load_bess_planning_feature_policy_artifacts` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.load_bess_planning_feature_policy_artifacts` | yes |
-| `load_bess_planning_feature_policy_config` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.load_bess_planning_feature_policy_config` | yes |
-| `load_bess_zoning_policy_config` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.load_bess_zoning_policy_config` | yes |
-| `load_cnig_feature_code_profile` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile` | yes |
-| `load_ign_road_vehicle_proxy_policy` | re-exported/defined Python symbol | `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy` | yes |
-| `load_planning_regulation_structure_config` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` | yes |
-| `normalize_cadastre_parcels` | re-exported/defined Python symbol | `landscout.stages.normalize_cadastre.normalize_cadastre_parcels` | yes |
-| `normalize_ign_electricity` | re-exported/defined Python symbol | `landscout.stages.normalize_grid_ign.normalize_ign_electricity` | yes |
-| `normalize_ign_roads` | re-exported/defined Python symbol | `landscout.stages.normalize_access_ign.normalize_ign_roads` | yes |
-| `parse_ign_voltage` | re-exported/defined Python symbol | `landscout.stages.normalize_grid_ign.parse_ign_voltage` | yes |
-| `planning_regulation_section_page_fragments` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.planning_regulation_section_page_fragments` | yes |
-| `profile_grid_coverage` | re-exported/defined Python symbol | `landscout.stages.assess_grid_coverage.profile_grid_coverage` | yes |
-| `profile_grid_proximity` | re-exported/defined Python symbol | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` | yes |
-| `profile_shape_distribution` | re-exported/defined Python symbol | `landscout.stages.profile_shape.profile_shape_distribution` | yes |
-| `resolve_planning_feature_codes` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.resolve_planning_feature_codes` | yes |
-| `search_planning_regulation` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.search_planning_regulation` | yes |
-| `structure_planning_regulation` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.structure_planning_regulation` | yes |
-| `validate_bess_planning_feature_application_result` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.validate_bess_planning_feature_application_result` | yes |
-| `validate_bess_planning_feature_application_result_envelope` | re-exported/defined Python symbol | `landscout.stages.apply_bess_planning_feature_policy.validate_bess_planning_feature_application_result_envelope` | yes |
-| `validate_bess_planning_feature_parcel_aggregation_result` | re-exported/defined Python symbol | `landscout.stages.aggregate_bess_planning_feature_policy.validate_bess_planning_feature_parcel_aggregation_result` | yes |
-| `validate_bess_planning_feature_policy_result` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.validate_bess_planning_feature_policy_result` | yes |
-| `validate_bess_planning_feature_policy_result_envelope` | re-exported/defined Python symbol | `landscout.stages.bess_planning_feature_policy.validate_bess_planning_feature_policy_result_envelope` | yes |
-| `validate_bess_zoning_precheck` | re-exported/defined Python symbol | `landscout.stages.interpret_bess_zoning.validate_bess_zoning_precheck` | yes |
-| `validate_normalized_planning_feature_inputs` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_features.validate_normalized_planning_feature_inputs` | yes |
-| `validate_normalized_planning_zoning_inputs` | re-exported/defined Python symbol | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` | yes |
-| `validate_planning_feature_code_result` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.validate_planning_feature_code_result` | yes |
-| `validate_planning_feature_code_result_envelope` | re-exported/defined Python symbol | `landscout.stages.resolve_planning_feature_codes.validate_planning_feature_code_result_envelope` | yes |
-| `validate_planning_regulation_index` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` | yes |
-| `validate_planning_regulation_search_result` | re-exported/defined Python symbol | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` | yes |
-| `validate_planning_regulation_structure` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure` | yes |
-| `validate_planning_regulation_structure_with_fragments` | re-exported/defined Python symbol | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments` | yes |
+| `BessPlanningFeatureApplicationArtifactManifest` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationArtifactManifest` | yes |
+| `BessPlanningFeatureApplicationError` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationError` | yes |
+| `BessPlanningFeatureApplicationResult` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.BessPlanningFeatureApplicationResult` | yes |
+| `BessPlanningFeatureParcelAggregationArtifactManifest` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationArtifactManifest` | yes |
+| `BessPlanningFeatureParcelAggregationError` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationError` | yes |
+| `BessPlanningFeatureParcelAggregationResult` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationResult` | yes |
+| `BessPlanningFeaturePolicyArtifactManifest` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyArtifactManifest` | yes |
+| `BessPlanningFeaturePolicyConfig` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyConfig` | yes |
+| `BessPlanningFeaturePolicyError` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyError` | yes |
+| `BessPlanningFeaturePolicyResult` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.BessPlanningFeaturePolicyResult` | yes |
+| `BessZoningPolicyConfig` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.BessZoningPolicyConfig` | yes |
+| `BessZoningPrecheckError` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.BessZoningPrecheckError` | yes |
+| `BessZoningPrecheckResult` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.BessZoningPrecheckResult` | yes |
+| `BoundaryDistanceProfile` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.BoundaryDistanceProfile` | yes |
+| `CadastreNormalizationError` | public re-export imported from its declaring module | `landscout.stages.normalize_cadastre.CadastreNormalizationError` | yes |
+| `CnigFeatureCodeProfile` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.CnigFeatureCodeProfile` | yes |
+| `CoverageStatusCounts` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.CoverageStatusCounts` | yes |
+| `DistanceProfile` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.DistanceProfile` | yes |
+| `GridCoverageAssessmentError` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.GridCoverageAssessmentError` | yes |
+| `GridCoverageAssessmentResult` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.GridCoverageAssessmentResult` | yes |
+| `GridCoverageProfile` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.GridCoverageProfile` | yes |
+| `GridProximityError` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.GridProximityError` | yes |
+| `GridProximityProfile` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.GridProximityProfile` | yes |
+| `GridProximityResult` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.GridProximityResult` | yes |
+| `IgnGridNormalizationError` | public re-export imported from its declaring module | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` | yes |
+| `IgnRoadNormalizationError` | public re-export imported from its declaring module | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` | yes |
+| `IgnRoadVehicleProxyApplicationError` | public re-export imported from its declaring module | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` | yes |
+| `IgnRoadVehicleProxyApplicationResult` | public re-export imported from its declaring module | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationResult` | yes |
+| `IgnRoadVehicleProxyPolicy` | public re-export imported from its declaring module | `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicy` | yes |
+| `IgnRoadVehicleProxyPolicyError` | public re-export imported from its declaring module | `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicyError` | yes |
+| `IgnVoltageNormalization` | public re-export imported from its declaring module | `landscout.stages.normalize_grid_ign.IgnVoltageNormalization` | yes |
+| `NormalizedIgnElectricityData` | public re-export imported from its declaring module | `landscout.stages.normalize_grid_ign.NormalizedIgnElectricityData` | yes |
+| `NormalizedIgnRoadData` | public re-export imported from its declaring module | `landscout.stages.normalize_access_ign.NormalizedIgnRoadData` | yes |
+| `ParcelFilterError` | public re-export imported from its declaring module | `landscout.stages.filter_parcels.ParcelFilterError` | yes |
+| `ParcelPlanningFeaturesResult` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_features.ParcelPlanningFeaturesResult` | yes |
+| `ParcelRoadProximityResult` | public re-export imported from its declaring module | `landscout.stages.enrich_road_proximity.ParcelRoadProximityResult` | yes |
+| `PlanningFeatureCodeError` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.PlanningFeatureCodeError` | yes |
+| `PlanningFeatureCodeResult` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.PlanningFeatureCodeResult` | yes |
+| `PlanningFeatureInputValidation` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_features.PlanningFeatureInputValidation` | yes |
+| `PlanningFeaturesError` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_features.PlanningFeaturesError` | yes |
+| `PlanningRegulationIndex` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.PlanningRegulationIndex` | yes |
+| `PlanningRegulationIndexError` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` | yes |
+| `PlanningRegulationSearchResult` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.PlanningRegulationSearchResult` | yes |
+| `PlanningRegulationStructureConfig` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig` | yes |
+| `PlanningRegulationStructureError` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` | yes |
+| `PlanningRegulationStructureResult` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult` | yes |
+| `RoadProximityCoverageAssessmentResult` | public re-export imported from its declaring module | `landscout.stages.assess_road_proximity_coverage.RoadProximityCoverageAssessmentResult` | yes |
+| `RoadProximityCoverageError` | public re-export imported from its declaring module | `landscout.stages.assess_road_proximity_coverage.RoadProximityCoverageError` | yes |
+| `RoadProximityError` | public re-export imported from its declaring module | `landscout.stages.enrich_road_proximity.RoadProximityError` | yes |
+| `RoadProxyClassCoverage` | public re-export imported from its declaring module | `landscout.stages.enrich_road_proximity.RoadProxyClassCoverage` | yes |
+| `ShapeDistributionProfile` | public re-export imported from its declaring module | `landscout.stages.profile_shape.ShapeDistributionProfile` | yes |
+| `ShapeEnrichmentError` | public re-export imported from its declaring module | `landscout.stages.enrich_shape.ShapeEnrichmentError` | yes |
+| `ShapeProfileError` | public re-export imported from its declaring module | `landscout.stages.profile_shape.ShapeProfileError` | yes |
+| `VoltageCoverageStatusProfile` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.VoltageCoverageStatusProfile` | yes |
+| `VoltageLevelCoverage` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage` | yes |
+| `VoltageLevelDistanceProfile` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile` | yes |
+| `aggregate_bess_planning_feature_policy_to_parcels` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.aggregate_bess_planning_feature_policy_to_parcels` | yes |
+| `apply_bess_planning_feature_policy` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.apply_bess_planning_feature_policy` | yes |
+| `apply_ign_road_vehicle_proxy_policy` | public re-export imported from its declaring module | `landscout.stages.apply_road_vehicle_proxy_policy.apply_ign_road_vehicle_proxy_policy` | yes |
+| `assess_grid_coverage` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.assess_grid_coverage` | yes |
+| `assess_road_proximity_coverage` | public re-export imported from its declaring module | `landscout.stages.assess_road_proximity_coverage.assess_road_proximity_coverage` | yes |
+| `compile_bess_planning_feature_policy` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.compile_bess_planning_feature_policy` | yes |
+| `enrich_parcel_grid_proximity` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` | yes |
+| `enrich_parcel_road_proximity` | public re-export imported from its declaring module | `landscout.stages.enrich_road_proximity.enrich_parcel_road_proximity` | yes |
+| `enrich_parcel_shapes` | public re-export imported from its declaring module | `landscout.stages.enrich_shape.enrich_parcel_shapes` | yes |
+| `filter_parcels_by_area` | public re-export imported from its declaring module | `landscout.stages.filter_parcels.filter_parcels_by_area` | yes |
+| `filter_parcels_by_shape` | public re-export imported from its declaring module | `landscout.stages.filter_parcels.filter_parcels_by_shape` | yes |
+| `index_planning_regulation` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.index_planning_regulation` | yes |
+| `interpret_bess_zoning` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.interpret_bess_zoning` | yes |
+| `intersect_parcels_with_gpu_planning_features` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_features.intersect_parcels_with_gpu_planning_features` | yes |
+| `intersect_parcels_with_gpu_zoning` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_zoning.intersect_parcels_with_gpu_zoning` | yes |
+| `load_bess_planning_feature_application_artifacts` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.load_bess_planning_feature_application_artifacts` | yes |
+| `load_bess_planning_feature_parcel_aggregation_artifacts` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.load_bess_planning_feature_parcel_aggregation_artifacts` | yes |
+| `load_bess_planning_feature_policy_artifacts` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.load_bess_planning_feature_policy_artifacts` | yes |
+| `load_bess_planning_feature_policy_config` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.load_bess_planning_feature_policy_config` | yes |
+| `load_bess_zoning_policy_config` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.load_bess_zoning_policy_config` | yes |
+| `load_cnig_feature_code_profile` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile` | yes |
+| `load_ign_road_vehicle_proxy_policy` | public re-export imported from its declaring module | `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy` | yes |
+| `load_planning_regulation_structure_config` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` | yes |
+| `normalize_cadastre_parcels` | public re-export imported from its declaring module | `landscout.stages.normalize_cadastre.normalize_cadastre_parcels` | yes |
+| `normalize_ign_electricity` | public re-export imported from its declaring module | `landscout.stages.normalize_grid_ign.normalize_ign_electricity` | yes |
+| `normalize_ign_roads` | public re-export imported from its declaring module | `landscout.stages.normalize_access_ign.normalize_ign_roads` | yes |
+| `parse_ign_voltage` | public re-export imported from its declaring module | `landscout.stages.normalize_grid_ign.parse_ign_voltage` | yes |
+| `planning_regulation_section_page_fragments` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.planning_regulation_section_page_fragments` | yes |
+| `profile_grid_coverage` | public re-export imported from its declaring module | `landscout.stages.assess_grid_coverage.profile_grid_coverage` | yes |
+| `profile_grid_proximity` | public re-export imported from its declaring module | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` | yes |
+| `profile_shape_distribution` | public re-export imported from its declaring module | `landscout.stages.profile_shape.profile_shape_distribution` | yes |
+| `resolve_planning_feature_codes` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.resolve_planning_feature_codes` | yes |
+| `search_planning_regulation` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.search_planning_regulation` | yes |
+| `structure_planning_regulation` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.structure_planning_regulation` | yes |
+| `validate_bess_planning_feature_application_result` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.validate_bess_planning_feature_application_result` | yes |
+| `validate_bess_planning_feature_application_result_envelope` | public re-export imported from its declaring module | `landscout.stages.apply_bess_planning_feature_policy.validate_bess_planning_feature_application_result_envelope` | yes |
+| `validate_bess_planning_feature_parcel_aggregation_result` | public re-export imported from its declaring module | `landscout.stages.aggregate_bess_planning_feature_policy.validate_bess_planning_feature_parcel_aggregation_result` | yes |
+| `validate_bess_planning_feature_policy_result` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.validate_bess_planning_feature_policy_result` | yes |
+| `validate_bess_planning_feature_policy_result_envelope` | public re-export imported from its declaring module | `landscout.stages.bess_planning_feature_policy.validate_bess_planning_feature_policy_result_envelope` | yes |
+| `validate_bess_zoning_precheck` | public re-export imported from its declaring module | `landscout.stages.interpret_bess_zoning.validate_bess_zoning_precheck` | yes |
+| `validate_normalized_planning_feature_inputs` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_features.validate_normalized_planning_feature_inputs` | yes |
+| `validate_normalized_planning_zoning_inputs` | public re-export imported from its declaring module | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` | yes |
+| `validate_planning_feature_code_result` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.validate_planning_feature_code_result` | yes |
+| `validate_planning_feature_code_result_envelope` | public re-export imported from its declaring module | `landscout.stages.resolve_planning_feature_codes.validate_planning_feature_code_result_envelope` | yes |
+| `validate_planning_regulation_index` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` | yes |
+| `validate_planning_regulation_search_result` | public re-export imported from its declaring module | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` | yes |
+| `validate_planning_regulation_structure` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure` | yes |
+| `validate_planning_regulation_structure_with_fragments` | public re-export imported from its declaring module | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments` | yes |
 
 ## 9. Error handling
 

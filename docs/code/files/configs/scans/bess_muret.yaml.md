@@ -25,12 +25,12 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 | Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
 |---|---|---|---|---|---|
-| `scan.name` | `"bess_muret"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `name` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
-| `scan.country` | `"FR"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); must agree across scan and referenced profile; current configured identity is France/FR | Configures `country` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
-| `scan.technology` | `"BESS"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); must agree across scan and referenced profile; current configured identity is BESS | Configures `technology` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
-| `aoi.commune_codes[0]` | `"31395"` | `str` | annotation `list[Annotated[str, StringConstraints(strip_whitespace=None, to_upper=None, to_lower=None, strict=True, min_length=None, max_length=None, pattern='^(?:\\d{5}|2[AB]\\d{3})$', ascii_only=None)]]`; required; MinLen(min_length=1); non-empty ordered collection of unique canonical commune codes | Ordered configured member of `aoi.commune_codes`; order and uniqueness are validated/consumed where required. | `landscout.config.load_scan_config` |
-| `profile.path` | `"configs/profiles/bess_default_fr.yaml"` | `str` | annotation `<class 'pathlib.Path'>`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `path` under the exact parent path `profile`. | `landscout.config.load_scan_config` |
-| `output.directory` | `"outputs"` | `str` | annotation `<class 'pathlib.Path'>`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `directory` under the exact parent path `output`. | `landscout.config.load_scan_config` |
+| `scan.name` | `"bess_muret"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `name` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
+| `scan.country` | `"FR"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is France/FR | Configures `country` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
+| `scan.technology` | `"BESS"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is BESS | Configures `technology` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
+| `aoi.commune_codes[0]` | `"31395"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; non-empty ordered collection of unique canonical commune codes | Ordered configured member of `aoi.commune_codes`; order and uniqueness are validated/consumed where required. | `landscout.config.load_scan_config` |
+| `profile.path` | `"configs/profiles/bess_default_fr.yaml"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `path` under the exact parent path `profile`. | `landscout.config.load_scan_config` |
+| `output.directory` | `"outputs"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `directory` under the exact parent path `output`. | `landscout.config.load_scan_config` |
 
 ## 5. Classes / models / dataclasses
 
@@ -154,7 +154,7 @@ class LoadedScanConfig(_ConfigModel):
 
 ## 6. Functions and methods
 
-Loader: `landscout.config.load_scan_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, byte hashing, and cross-field validation.
+Loader: `landscout.config.load_scan_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, exact validation, and any hashing actually performed by that loader.
 
 ## 7. Data contracts
 
@@ -170,7 +170,7 @@ The owning Pydantic model rejects extra/missing/unsupported/coerced values accor
 
 ## 10. Side effects
 
-Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: loaders that expose config identity hash these exact bytes.
+Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: none; this loader parses/validates configuration values but does not hash this file's bytes.
 
 ## 11. Security / trust boundaries
 
@@ -182,7 +182,7 @@ Only explicit CRS fields impose GIS rules; configured storage/calculation CRS va
 
 ## 13. Provenance rules
 
-The file's SHA256 binds this exact policy/configuration snapshot. Source identities remain textual until the adapter validates physical bytes/content.
+The companion's Source SHA256 binds this checked-in file for documentation fidelity; that documentation digest is not attributed to the runtime loader. Source identities remain textual until the adapter validates physical bytes/content.
 
 ## 14. Business meaning
 
@@ -194,8 +194,8 @@ Thresholds and outcomes are policy/configuration values. They are never relabele
 
 ## 16. Tests
 
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior.
+The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
 
 ## 17. Change impact
 
-Any YAML byte/value change requires policy/source review, affected config/result hashes, consumer tests, generated artifacts where applicable, and this companion SHA update.
+Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.

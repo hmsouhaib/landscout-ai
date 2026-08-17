@@ -85,7 +85,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value argument/reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value argument/reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::_sha256` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value reference).
 
 #### `SPATIAL_ROLE`
 
@@ -93,7 +93,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_validate_layer_summary_contract` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` (value reference).
 
 #### `COVERAGE_SPATIAL_ROLE`
 
@@ -101,7 +101,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` (value reference), `src/landscout/sources/ign_bdtopo_fr.py::_validate_coverage_summary_contract` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -112,7 +112,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 SpatialRole = Literal["PROXY_GEOMETRY"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDownload` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoExtraction` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLayerSummary` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoElectricityData` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::_CacheMetadata` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::_ExtractionMetadata` (type annotation).
 
 #### `CoverageSpatialRole`
 
@@ -120,7 +120,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 CoverageSpatialRole = Literal["SOURCE_COVERAGE_BOUNDARY"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoCoverageLayerSummary` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDepartmentCoverage` (type annotation).
 
 #### `LogicalLayerName`
 
@@ -132,7 +132,7 @@ LogicalLayerName = Literal[
 ]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLayerSummary` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` (type annotation).
 
 #### `Projection`
 
@@ -140,7 +140,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 Projection = Literal["EPSG:2154"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation).
 
 #### `PackageFormat`
 
@@ -148,7 +148,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 PackageFormat = Literal["GPKG"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation).
 
 #### `ArchiveFormat`
 
@@ -156,7 +156,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 ArchiveFormat = Literal["7z"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation).
 
 #### `ChecksumAlgorithm`
 
@@ -164,7 +164,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 ChecksumAlgorithm = Literal["md5", "sha256"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoArchiveIntegrity` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDownload` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::_CacheMetadata` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (type annotation).
 
 #### `NonEmptyString`
 
@@ -172,7 +172,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 ```
 
-String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+String constrained non-empty after the exact StringConstraints behavior in the declaration. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayerConfig` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDepartmentLayerConfig` (type annotation), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation).
 
 #### `DepartmentCode`
 
@@ -186,7 +186,7 @@ DepartmentCode = Annotated[
 ]
 ```
 
-Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/stages/normalize_access_ign.py::<module>` (callback/function object), `src/landscout/stages/normalize_access_ign.py::<module>` (import/re-export), `src/landscout/stages/normalize_grid_ign.py::<module>` (callback/function object), `src/landscout/stages/normalize_grid_ign.py::<module>` (import/re-export).
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/stages/normalize_access_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::<module>` (import), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation), `src/landscout/stages/normalize_access_ign.py::<module>` (value reference), `src/landscout/stages/normalize_grid_ign.py::<module>` (value reference).
 
 #### `EditionString`
 
@@ -197,7 +197,7 @@ EditionString = Annotated[
 ]
 ```
 
-Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/stages/normalize_access_ign.py::<module>` (callback/function object), `src/landscout/stages/normalize_access_ign.py::<module>` (import/re-export), `src/landscout/stages/normalize_grid_ign.py::<module>` (callback/function object), `src/landscout/stages/normalize_grid_ign.py::<module>` (import/re-export).
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/stages/normalize_access_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::<module>` (import), `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation), `src/landscout/stages/normalize_access_ign.py::<module>` (value reference), `src/landscout/stages/normalize_grid_ign.py::<module>` (value reference).
 
 #### `HexChecksum`
 
@@ -208,7 +208,7 @@ HexChecksum = Annotated[
 ]
 ```
 
-Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` (type annotation).
 
 #### `CanonicalSha256`
 
@@ -219,7 +219,7 @@ CanonicalSha256 = Annotated[
 ]
 ```
 
-Strict lowercase 64-hex SHA256 string used by Pydantic/source-result validation. It is consumed by annotations or Pydantic validation in this module.
+Strict lowercase 64-hex SHA256 string used by Pydantic/source-result validation. Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::_ExtractionMetadata` (type annotation).
 
 #### `StrictPositiveInt`
 
@@ -227,7 +227,7 @@ Strict lowercase 64-hex SHA256 string used by Pydantic/source-result validation.
 StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
 ```
 
-Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). It is consumed by annotations or Pydantic validation in this module.
+Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). Enforced/consumed by `src/landscout/sources/ign_bdtopo_fr.py::_ExtractionMetadata` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -255,7 +255,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `class_label` | `class_label: NonEmptyString` | Closed or validated `class label` classification on `IgnBdTopoLogicalLayerConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `class_label` | `class_label: NonEmptyString` | `IgnBdTopoLogicalLayerConfig.class_label` represents the `class_label` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `match_tokens` | `match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)` | Structured `match tokens` collection owned by `IgnBdTopoLogicalLayerConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
 **Validators (exact source)**
@@ -274,7 +274,7 @@ def _unique_tokens(cls, value: tuple[str, ...]) -> tuple[str, ...]:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -306,6 +306,9 @@ def _unique_tokens(cls, value: tuple[str, ...]) -> tuple[str, ...]:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayersConfig` via `IgnBdTopoLogicalLayerConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoAccessConfig` via `IgnBdTopoLogicalLayerConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_matching_layers` via `IgnBdTopoLogicalLayerConfig`.
 
 **Exact class source**
 
@@ -343,8 +346,8 @@ class IgnBdTopoLogicalLayerConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `electric_lines` | `electric_lines: IgnBdTopoLogicalLayerConfig` | Stores `IgnBdTopoLogicalLayersConfig`'s `electric lines` value under exact annotation `IgnBdTopoLogicalLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts` | `transformation_posts: IgnBdTopoLogicalLayerConfig` | Closed or validated `transformation posts` classification on `IgnBdTopoLogicalLayersConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `electric_lines` | `electric_lines: IgnBdTopoLogicalLayerConfig` | Factual IGN electricity-line GeoDataFrame owned by this source/normalized result. |
+| `transformation_posts` | `transformation_posts: IgnBdTopoLogicalLayerConfig` | `IgnBdTopoLogicalLayersConfig.transformation_posts` represents the `transformation_posts` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Validators (exact source)**
 
@@ -366,7 +369,7 @@ def _different_token_sets(self) -> Self:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -398,6 +401,7 @@ def _different_token_sets(self) -> Self:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` via `IgnBdTopoLogicalLayersConfig`.
 
 **Exact class source**
 
@@ -436,11 +440,11 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `department_code_field` | `department_code_field: NonEmptyString` | Stores `IgnBdTopoDepartmentLayerConfig`'s `department code field` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `department_code_field` | `department_code_field: NonEmptyString` | Configured physical attribute containing the department code. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -472,6 +476,7 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoCoverageConfig` via `IgnBdTopoDepartmentLayerConfig`.
 
 **Exact class source**
 
@@ -500,7 +505,7 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` via `IgnBdTopoAccessConfig`.
 
 **Exact class source**
 
@@ -527,11 +532,11 @@ class IgnBdTopoAccessConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `department_layer` | `department_layer: IgnBdTopoDepartmentLayerConfig` | Stores `IgnBdTopoCoverageConfig`'s `department layer` value under exact annotation `IgnBdTopoDepartmentLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `department_layer` | `department_layer: IgnBdTopoDepartmentLayerConfig` | Configured department-coverage physical-layer match rule. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -563,6 +568,7 @@ class IgnBdTopoAccessConfig(BaseModel):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoSourceConfig` via `IgnBdTopoCoverageConfig`.
 
 **Exact class source**
 
@@ -587,23 +593,23 @@ class IgnBdTopoCoverageConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: NonEmptyString` | Stores `IgnBdTopoSourceConfig`'s `provider` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product` | `product: NonEmptyString` | Stores `IgnBdTopoSourceConfig`'s `product` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `department_code` | `department_code: DepartmentCode` | Stores `IgnBdTopoSourceConfig`'s `department code` value under exact annotation `DepartmentCode`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `edition` | `edition: EditionString` | Stores `IgnBdTopoSourceConfig`'s `edition` value under exact annotation `EditionString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product_version` | `product_version: NonEmptyString \| None = None` | Stores `IgnBdTopoSourceConfig`'s `product version` value under exact annotation `NonEmptyString | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `projection` | `projection: Projection` | Stores `IgnBdTopoSourceConfig`'s `projection` value under exact annotation `Projection`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `format` | `format: PackageFormat` | Closed or validated `format` classification on `IgnBdTopoSourceConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `archive_format` | `archive_format: ArchiveFormat` | Closed or validated `archive format` classification on `IgnBdTopoSourceConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `provider` | `provider: NonEmptyString` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `product` | `product: NonEmptyString` | Source product identity validated by the owning adapter. |
+| `department_code` | `department_code: DepartmentCode` | French department code bound to this source package or normalization context. |
+| `edition` | `edition: EditionString` | Declared physical source edition bound to this package/result. |
+| `product_version` | `product_version: NonEmptyString \| None = None` | Nullable source product version copied from the verified package lineage. |
+| `projection` | `projection: Projection` | Declared source-package projection identity checked by the owning adapter. |
+| `format` | `format: PackageFormat` | `IgnBdTopoSourceConfig.format` represents the `format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `archive_format` | `archive_format: ArchiveFormat` | `IgnBdTopoSourceConfig.archive_format` represents the `archive_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `source_url` | `source_url: HttpUrl` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `checksum_url` | `checksum_url: HttpUrl \| None = None` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
-| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None = None` | Stores `IgnBdTopoSourceConfig`'s `official checksum algorithm` value under exact annotation `ChecksumAlgorithm | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `official_checksum` | `official_checksum: HexChecksum \| None = None` | Stores `IgnBdTopoSourceConfig`'s `official checksum` value under exact annotation `HexChecksum | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `expected_archive_size_bytes` | `expected_archive_size_bytes: int \| None = Field(default=None, gt=0)` | Stores `IgnBdTopoSourceConfig`'s `expected archive size bytes` value under exact annotation `int | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `cache_max_age_hours` | `cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Stores `IgnBdTopoSourceConfig`'s `cache max age hours` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `logical_layers` | `logical_layers: IgnBdTopoLogicalLayersConfig` | Stores `IgnBdTopoSourceConfig`'s `logical layers` value under exact annotation `IgnBdTopoLogicalLayersConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `access` | `access: IgnBdTopoAccessConfig` | Stores `IgnBdTopoSourceConfig`'s `access` value under exact annotation `IgnBdTopoAccessConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `coverage` | `coverage: IgnBdTopoCoverageConfig` | Stores `IgnBdTopoSourceConfig`'s `coverage` value under exact annotation `IgnBdTopoCoverageConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None = None` | Official checksum algorithm declared for the source archive; null only when the source publishes no official checksum. |
+| `official_checksum` | `official_checksum: HexChecksum \| None = None` | Official archive checksum value validated under official_checksum_algorithm; distinct from LandScout's SHA256. |
+| `expected_archive_size_bytes` | `expected_archive_size_bytes: int \| None = Field(default=None, gt=0)` | Strict positive configured physical archive-size pin in bytes. |
+| `cache_max_age_hours` | `cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Configured maximum IGN archive-cache age in hours. |
+| `logical_layers` | `logical_layers: IgnBdTopoLogicalLayersConfig` | Nested IGN electricity logical-role selection configuration. |
+| `access` | `access: IgnBdTopoAccessConfig` | Nested IGN road logical-role selection configuration. |
+| `coverage` | `coverage: IgnBdTopoCoverageConfig` | Nested department coverage-boundary selection configuration or validated coverage result. |
 
 **Validators (exact source)**
 
@@ -651,7 +657,7 @@ def _consistent_package_and_checksum(self) -> Self:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -683,11 +689,11 @@ def _consistent_package_and_checksum(self) -> Self:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -695,7 +701,7 @@ def _consistent_package_and_checksum(self) -> Self:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -703,15 +709,15 @@ def _consistent_package_and_checksum(self) -> Self:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -722,7 +728,7 @@ def _consistent_package_and_checksum(self) -> Self:
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -733,12 +739,12 @@ def _consistent_package_and_checksum(self) -> Self:
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -748,7 +754,7 @@ def _consistent_package_and_checksum(self) -> Self:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -758,7 +764,7 @@ def _consistent_package_and_checksum(self) -> Self:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -776,7 +782,7 @@ def _consistent_package_and_checksum(self) -> Self:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -785,7 +791,7 @@ def _consistent_package_and_checksum(self) -> Self:
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -793,6 +799,72 @@ def _consistent_package_and_checksum(self) -> Self:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_source_config` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_archive_filename` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_discover_department_coverage_layer` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_discover_road_layer` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_validated_layer_source_config` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/enrich_road_proximity.py::enrich_parcel_road_proximity` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `IgnBdTopoSourceConfig`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::_synthetic_config` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::source_config` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_valid_source_config_loads` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `IgnBdTopoSourceConfig`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `IgnBdTopoSourceConfig`.
 
 **Exact class source**
 
@@ -872,7 +944,7 @@ class IgnBdTopoSourceConfig(BaseModel):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -926,7 +998,7 @@ class IgnBdTopoError(RuntimeError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -958,20 +1030,7 @@ class IgnBdTopoError(RuntimeError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_source_config` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_archive_filename` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_prepare_temporary_cache_file` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_cleanup_temporary_cache_files` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `IgnBdTopoDownloadError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoDownloadError`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `pytest.raises(IgnBdTopoDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `pytest.raises(IgnBdTopoDownloadError)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `pytest.raises(IgnBdTopoDownloadError)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `pytest.raises(IgnBdTopoDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(IgnBdTopoDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `pytest.raises(IgnBdTopoDownloadError, match='backup|recovery|manual')`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -989,6 +1048,19 @@ class IgnBdTopoError(RuntimeError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_source_config` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_archive_filename` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_prepare_temporary_cache_file` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_cleanup_temporary_cache_files` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `IgnBdTopoDownloadError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoDownloadError`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `pytest.raises(IgnBdTopoDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `pytest.raises(IgnBdTopoDownloadError)`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `pytest.raises(IgnBdTopoDownloadError)`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `pytest.raises(IgnBdTopoDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(IgnBdTopoDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `pytest.raises(IgnBdTopoDownloadError, match='backup|recovery|manual')`.
 
 **Exact class source**
 
@@ -1011,7 +1083,7 @@ class IgnBdTopoDownloadError(IgnBdTopoError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1043,21 +1115,7 @@ class IgnBdTopoDownloadError(IgnBdTopoError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_members` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_geopackage` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `IgnBdTopoArchiveError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoArchiveError`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `pytest.raises(IgnBdTopoArchiveError)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `pytest.raises(IgnBdTopoArchiveError)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `pytest.raises(IgnBdTopoArchiveError, match='checksum|SHA')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `pytest.raises(IgnBdTopoArchiveError, match='unsafe|member|path')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `pytest.raises(IgnBdTopoArchiveError, match='GeoPackage|exactly one|ambiguous')`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -1075,6 +1133,20 @@ class IgnBdTopoDownloadError(IgnBdTopoError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_members` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_geopackage` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `IgnBdTopoArchiveError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoArchiveError`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `pytest.raises(IgnBdTopoArchiveError)`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `pytest.raises(IgnBdTopoArchiveError)`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `pytest.raises(IgnBdTopoArchiveError, match='checksum|SHA')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `pytest.raises(IgnBdTopoArchiveError, match='unsafe|member|path')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `pytest.raises(IgnBdTopoArchiveError, match='GeoPackage|exactly one|ambiguous')`.
 
 **Exact class source**
 
@@ -1097,7 +1169,7 @@ class IgnBdTopoArchiveError(IgnBdTopoError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1129,47 +1201,7 @@ class IgnBdTopoArchiveError(IgnBdTopoError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::list_ign_bdtopo_layers` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_discover_department_coverage_layer` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_discover_road_layer` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_read_layer_frame` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_layer_summary_contract` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_compare_layer_summary` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_compare_loaded_frame` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_lambert93` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validated_layer_source_config` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_coverage_summary_contract` via `IgnBdTopoLayerError`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `IgnBdTopoLayerError`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='electric|line|Ligne')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='transformation|post|Poste')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `pytest.raises(IgnBdTopoLayerError, match='unambiguous|found 2')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `pytest.raises(IgnBdTopoLayerError, match='2154|Lambert|projected|CRS')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `pytest.raises(IgnBdTopoLayerError, match='same layer|collid|role')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `pytest.raises(IgnBdTopoLayerError, match='road|route|found 0')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `pytest.raises(IgnBdTopoLayerError, match='road|route|found 2')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `pytest.raises(IgnBdTopoLayerError, match='department|archive|lineage')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `pytest.raises(IgnBdTopoLayerError, match='inventory|changed')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `pytest.raises(IgnBdTopoLayerError, match='2154|Lambert|projected|CRS')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `pytest.raises(IgnBdTopoLayerError, match='exactly one|found')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `pytest.raises(IgnBdTopoLayerError, match='identity field|missing_code')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='department|found 0')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `pytest.raises(IgnBdTopoLayerError, match='unambiguous|found 2')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `pytest.raises(IgnBdTopoLayerError, match='integrity|SHA|physical|changed')`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `pytest.raises(IgnBdTopoLayerError, match='changed|integrity|SHA')`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -1187,6 +1219,46 @@ class IgnBdTopoArchiveError(IgnBdTopoError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::list_ign_bdtopo_layers` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_discover_department_coverage_layer` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_discover_road_layer` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_read_layer_frame` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_layer_summary_contract` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_compare_layer_summary` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_compare_loaded_frame` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_lambert93` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validated_layer_source_config` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_coverage_summary_contract` via `IgnBdTopoLayerError`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `IgnBdTopoLayerError`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='electric|line|Ligne')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='transformation|post|Poste')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `pytest.raises(IgnBdTopoLayerError, match='unambiguous|found 2')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `pytest.raises(IgnBdTopoLayerError, match='2154|Lambert|projected|CRS')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `pytest.raises(IgnBdTopoLayerError, match='same layer|collid|role')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `pytest.raises(IgnBdTopoLayerError, match='road|route|found 0')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `pytest.raises(IgnBdTopoLayerError, match='road|route|found 2')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `pytest.raises(IgnBdTopoLayerError, match='department|archive|lineage')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `pytest.raises(IgnBdTopoLayerError, match='inventory|changed')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `pytest.raises(IgnBdTopoLayerError, match='2154|Lambert|projected|CRS')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `pytest.raises(IgnBdTopoLayerError, match='exactly one|found')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `pytest.raises(IgnBdTopoLayerError, match='identity field|missing_code')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `pytest.raises(IgnBdTopoLayerError, match='department|found 0')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `pytest.raises(IgnBdTopoLayerError, match='unambiguous|found 2')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `pytest.raises(IgnBdTopoLayerError, match='integrity|SHA|physical|changed')`.
+- expected exception type: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `pytest.raises(IgnBdTopoLayerError, match='changed|integrity|SHA')`.
 
 **Exact class source**
 
@@ -1211,13 +1283,13 @@ class IgnBdTopoLayerError(IgnBdTopoError):
 |---|---|---|
 | `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Stores `IgnBdTopoArchiveIntegrity`'s `official checksum algorithm` value under exact annotation `ChecksumAlgorithm | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `official_checksum` | `official_checksum: str \| None` | Stores `IgnBdTopoArchiveIntegrity`'s `official checksum` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Official checksum algorithm declared for the source archive; null only when the source publishes no official checksum. |
+| `official_checksum` | `official_checksum: str \| None` | Official archive checksum value validated under official_checksum_algorithm; distinct from LandScout's SHA256. |
 | `official_checksum_validated` | `official_checksum_validated: bool` | Boolean `official checksum validated` flag on `IgnBdTopoArchiveIntegrity`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1249,7 +1321,8 @@ class IgnBdTopoLayerError(IgnBdTopoError):
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoArchiveIntegrity`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoArchiveIntegrity`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `IgnBdTopoArchiveIntegrity`.
 
 **Exact class source**
 
@@ -1276,22 +1349,22 @@ class IgnBdTopoArchiveIntegrity:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: str` | Stores `IgnBdTopoDownload`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product` | `product: str` | Stores `IgnBdTopoDownload`'s `product` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `department_code` | `department_code: str` | Stores `IgnBdTopoDownload`'s `department code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `edition` | `edition: str` | Stores `IgnBdTopoDownload`'s `edition` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product_version` | `product_version: str \| None` | Stores `IgnBdTopoDownload`'s `product version` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `projection` | `projection: str` | Stores `IgnBdTopoDownload`'s `projection` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `package_format` | `package_format: str` | Closed or validated `package format` classification on `IgnBdTopoDownload`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `archive_format` | `archive_format: str` | Closed or validated `archive format` classification on `IgnBdTopoDownload`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `product` | `product: str` | Source product identity validated by the owning adapter. |
+| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
+| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
+| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
+| `projection` | `projection: str` | Declared source-package projection identity checked by the owning adapter. |
+| `package_format` | `package_format: str` | `IgnBdTopoDownload.package_format` represents the `package_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `archive_format` | `archive_format: str` | `IgnBdTopoDownload.archive_format` represents the `archive_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `checksum_url` | `checksum_url: str \| None` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
 | `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Stores `IgnBdTopoDownload`'s `official checksum algorithm` value under exact annotation `ChecksumAlgorithm | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `official_checksum` | `official_checksum: str \| None` | Stores `IgnBdTopoDownload`'s `official checksum` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Official checksum algorithm declared for the source archive; null only when the source publishes no official checksum. |
+| `official_checksum` | `official_checksum: str \| None` | Official archive checksum value validated under official_checksum_algorithm; distinct from LandScout's SHA256. |
 | `official_checksum_validated` | `official_checksum_validated: bool` | Boolean `official checksum validated` flag on `IgnBdTopoDownload`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
 | `path` | `path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `cache_hit` | `cache_hit: bool` | True only when already verified local cache state was reused. |
@@ -1299,7 +1372,7 @@ class IgnBdTopoArchiveIntegrity:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1331,9 +1404,7 @@ class IgnBdTopoArchiveIntegrity:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_download_from_metadata` via `IgnBdTopoDownload`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoDownload`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1344,7 +1415,7 @@ class IgnBdTopoArchiveIntegrity:
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1355,8 +1426,7 @@ class IgnBdTopoArchiveIntegrity:
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoDownload`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1366,8 +1436,7 @@ class IgnBdTopoArchiveIntegrity:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_archive` via `IgnBdTopoDownload`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1377,15 +1446,14 @@ class IgnBdTopoArchiveIntegrity:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoDownload`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -1403,8 +1471,7 @@ class IgnBdTopoArchiveIntegrity:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoDownload`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -1413,8 +1480,7 @@ class IgnBdTopoArchiveIntegrity:
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoDownload`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -1422,6 +1488,22 @@ class IgnBdTopoArchiveIntegrity:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoExtraction` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_cache_metadata_from_download` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_download_from_metadata` via `IgnBdTopoDownload`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_download_from_metadata` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoDownload`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `IgnBdTopoDownload`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoDownload`.
+- constructor call: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoDownload`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_archive` via `IgnBdTopoDownload`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_archive` via `IgnBdTopoDownload`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoDownload`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `IgnBdTopoDownload`.
+- constructor call: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoDownload`.
+- constructor call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoDownload`.
 
 **Exact class source**
 
@@ -1464,12 +1546,12 @@ class IgnBdTopoDownload:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `all_layer_names` | `all_layer_names: tuple[str, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
-| `electric_lines_layer` | `electric_lines_layer: str` | Stores `IgnBdTopoLayerSelection`'s `electric lines layer` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts_layer` | `transformation_posts_layer: str` | Closed or validated `transformation posts layer` classification on `IgnBdTopoLayerSelection`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `electric_lines_layer` | `electric_lines_layer: str` | Physical GeoPackage layer selected for the configured electricity-line role. |
+| `transformation_posts_layer` | `transformation_posts_layer: str` | `IgnBdTopoLayerSelection.transformation_posts_layer` represents the `transformation_posts_layer` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1501,7 +1583,8 @@ class IgnBdTopoDownload:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoLayerSelection`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoLayerSelection`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `IgnBdTopoLayerSelection`.
 
 **Exact class source**
 
@@ -1526,21 +1609,21 @@ class IgnBdTopoLayerSelection:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `archive` | `archive: IgnBdTopoDownload` | Stores `IgnBdTopoExtraction`'s `archive` value under exact annotation `IgnBdTopoDownload`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `archive` | `archive: IgnBdTopoDownload` | Verified archive/download envelope from which this extraction or source object was built. |
 | `extraction_path` | `extraction_path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `geopackage_path` | `geopackage_path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `geopackage_filename` | `geopackage_filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
-| `geopackage_size_bytes` | `geopackage_size_bytes: int` | Stores `IgnBdTopoExtraction`'s `geopackage size bytes` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `geopackage_size_bytes` | `geopackage_size_bytes: int` | Measured physical byte size of the verified extracted GeoPackage. |
 | `geopackage_sha256` | `geopackage_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `all_layer_names` | `all_layer_names: tuple[str, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
-| `electric_lines_layer` | `electric_lines_layer: str` | Stores `IgnBdTopoExtraction`'s `electric lines layer` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts_layer` | `transformation_posts_layer: str` | Closed or validated `transformation posts layer` classification on `IgnBdTopoExtraction`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `electric_lines_layer` | `electric_lines_layer: str` | Physical GeoPackage layer selected for the configured electricity-line role. |
+| `transformation_posts_layer` | `transformation_posts_layer: str` | `IgnBdTopoExtraction.transformation_posts_layer` represents the `transformation_posts_layer` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `cache_hit` | `cache_hit: bool` | True only when already verified local cache state was reused. |
 | `spatial_role` | `spatial_role: SpatialRole = "PROXY_GEOMETRY"` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1572,9 +1655,7 @@ class IgnBdTopoLayerSelection:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `IgnBdTopoExtraction`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoExtraction`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1585,7 +1666,7 @@ class IgnBdTopoLayerSelection:
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1596,8 +1677,7 @@ class IgnBdTopoLayerSelection:
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoExtraction`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1607,8 +1687,7 @@ class IgnBdTopoLayerSelection:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_extraction` via `IgnBdTopoExtraction`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1618,15 +1697,14 @@ class IgnBdTopoLayerSelection:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoExtraction`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     load_ign_bdtopo_source_config,
 )`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -1644,8 +1722,7 @@ class IgnBdTopoLayerSelection:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoExtraction`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -1654,8 +1731,7 @@ class IgnBdTopoLayerSelection:
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoExtraction`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -1663,6 +1739,28 @@ class IgnBdTopoLayerSelection:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoElectricityData` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoRoadData` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDepartmentCoverage` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_VerifiedIgnExtraction` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `IgnBdTopoExtraction`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoExtraction`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `IgnBdTopoExtraction`.
+- constructor call: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoExtraction`.
+- type annotation: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `IgnBdTopoExtraction`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_extraction` via `IgnBdTopoExtraction`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_extraction` via `IgnBdTopoExtraction`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoExtraction`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoExtraction`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoExtraction`.
+- type annotation: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `IgnBdTopoExtraction`.
+- constructor call: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoExtraction`.
+- constructor call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoExtraction`.
 
 **Exact class source**
 
@@ -1695,21 +1793,21 @@ class IgnBdTopoExtraction:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `logical_name` | `logical_name: LogicalLayerName` | Stores `IgnBdTopoLayerSummary`'s `logical name` value under exact annotation `LogicalLayerName`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `logical_name` | `logical_name: LogicalLayerName` | LandScout logical dataset/layer role bound to the selected physical source. |
 | `source_layer_name` | `source_layer_name: str` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 | `crs` | `crs: str` | Coordinate reference system identity; exact accepted/storage/calculation behavior is enforced by the owning CRS validator. |
 | `feature_count` | `feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `columns` | `columns: tuple[str, ...]` | Structured `columns` collection owned by `IgnBdTopoLayerSummary`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | Closed or validated `dtypes` classification on `IgnBdTopoLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | `IgnBdTopoLayerSummary.dtypes` represents the `dtypes` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `null_geometry_count` | `null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `empty_geometry_count` | `empty_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `invalid_geometry_count` | `invalid_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `geometry_types` | `geometry_types: tuple[str, ...]` | Closed or validated `geometry types` classification on `IgnBdTopoLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `geometry_types` | `geometry_types: tuple[str, ...]` | `IgnBdTopoLayerSummary.geometry_types` represents the `geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `spatial_role` | `spatial_role: SpatialRole = "PROXY_GEOMETRY"` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1741,8 +1839,7 @@ class IgnBdTopoExtraction:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLayerSummary`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1753,7 +1850,7 @@ class IgnBdTopoExtraction:
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1764,8 +1861,7 @@ class IgnBdTopoExtraction:
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoLayerSummary`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1775,16 +1871,14 @@ class IgnBdTopoExtraction:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_summary` via `IgnBdTopoLayerSummary`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_summary` via `IgnBdTopoLayerSummary`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -1793,8 +1887,7 @@ class IgnBdTopoExtraction:
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_summary` via `IgnBdTopoLayerSummary`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -1802,6 +1895,21 @@ class IgnBdTopoExtraction:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLoadedLayer` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoElectricityData` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoRoadData` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_validate_layer_summary_contract` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_compare_layer_summary` via `IgnBdTopoLayerSummary`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `IgnBdTopoLayerSummary`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `IgnBdTopoLayerSummary`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoLayerSummary`.
+- type annotation: `tests/unit/test_enrich_grid_proximity.py::_physical_summary` via `IgnBdTopoLayerSummary`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::_physical_summary` via `IgnBdTopoLayerSummary`.
+- type annotation: `tests/unit/test_normalize_access_ign.py::_summary` via `IgnBdTopoLayerSummary`.
+- constructor call: `tests/unit/test_normalize_access_ign.py::_summary` via `IgnBdTopoLayerSummary`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::_summary` via `IgnBdTopoLayerSummary`.
+- constructor call: `tests/unit/test_normalize_grid_ign.py::_summary` via `IgnBdTopoLayerSummary`.
 
 **Exact class source**
 
@@ -1834,12 +1942,12 @@ class IgnBdTopoLayerSummary:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `data` | `data: gpd.GeoDataFrame` | Stores `IgnBdTopoLoadedLayer`'s `data` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `summary` | `summary: IgnBdTopoLayerSummary` | Stores `IgnBdTopoLoadedLayer`'s `summary` value under exact annotation `IgnBdTopoLayerSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `data` | `data: gpd.GeoDataFrame` | GeoDataFrame loaded for this exact inspected logical/physical layer. |
+| `summary` | `summary: IgnBdTopoLayerSummary` | Validated immutable summary of the owning physical frame/layer. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1871,7 +1979,9 @@ class IgnBdTopoLayerSummary:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLoadedLayer`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLoadedLayer`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `IgnBdTopoLoadedLayer`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `IgnBdTopoLoadedLayer`.
 
 **Exact class source**
 
@@ -1895,16 +2005,16 @@ class IgnBdTopoLoadedLayer:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoElectricityData`'s `extraction` evidence/text field; it retains the exact configured or source meaning under annotation `IgnBdTopoExtraction` and is not promoted to a legal conclusion. |
-| `electric_lines` | `electric_lines: gpd.GeoDataFrame` | Stores `IgnBdTopoElectricityData`'s `electric lines` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts` | `transformation_posts: gpd.GeoDataFrame` | Closed or validated `transformation posts` classification on `IgnBdTopoElectricityData`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `electric_lines_summary` | `electric_lines_summary: IgnBdTopoLayerSummary` | Stores `IgnBdTopoElectricityData`'s `electric lines summary` value under exact annotation `IgnBdTopoLayerSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts_summary` | `transformation_posts_summary: IgnBdTopoLayerSummary` | Closed or validated `transformation posts summary` classification on `IgnBdTopoElectricityData`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoElectricityData.extraction` carries the extraction used by the reproduced constructors and validators; its declared type is `IgnBdTopoExtraction` and no legal meaning is inferred beyond that owner. |
+| `electric_lines` | `electric_lines: gpd.GeoDataFrame` | Factual IGN electricity-line GeoDataFrame owned by this source/normalized result. |
+| `transformation_posts` | `transformation_posts: gpd.GeoDataFrame` | `IgnBdTopoElectricityData.transformation_posts` represents the `transformation_posts` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `electric_lines_summary` | `electric_lines_summary: IgnBdTopoLayerSummary` | Validated summary of the factual IGN electricity-line frame. |
+| `transformation_posts_summary` | `transformation_posts_summary: IgnBdTopoLayerSummary` | `IgnBdTopoElectricityData.transformation_posts_summary` represents the `transformation_posts_summary` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `spatial_role` | `spatial_role: SpatialRole = "PROXY_GEOMETRY"` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -1936,8 +2046,7 @@ class IgnBdTopoLoadedLayer:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoElectricityData`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -1945,11 +2054,11 @@ class IgnBdTopoLoadedLayer:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -1960,8 +2069,7 @@ class IgnBdTopoLoadedLayer:
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `IgnBdTopoElectricityData`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -1971,17 +2079,14 @@ class IgnBdTopoLoadedLayer:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `IgnBdTopoElectricityData`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoElectricityData`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoElectricityData`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -1989,6 +2094,27 @@ class IgnBdTopoLoadedLayer:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoElectricityData`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `IgnBdTopoElectricityData`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `IgnBdTopoElectricityData`.
+- constructor call: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `IgnBdTopoElectricityData`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoElectricityData`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_enrich_grid_proximity.py::_alternate_role_electricity_source` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_enrich_grid_proximity.py::_configured_role_electricity_source` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoElectricityData`.
+- constructor call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `IgnBdTopoElectricityData`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::_source_bundle_with_archive` via `IgnBdTopoElectricityData`.
 
 **Exact class source**
 
@@ -2016,13 +2142,13 @@ class IgnBdTopoElectricityData:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoRoadData`'s `extraction` evidence/text field; it retains the exact configured or source meaning under annotation `IgnBdTopoExtraction` and is not promoted to a legal conclusion. |
+| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoRoadData.extraction` carries the extraction used by the reproduced constructors and validators; its declared type is `IgnBdTopoExtraction` and no legal meaning is inferred beyond that owner. |
 | `road_segments` | `road_segments: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-| `road_segments_summary` | `road_segments_summary: IgnBdTopoLayerSummary` | Stores `IgnBdTopoRoadData`'s `road segments summary` value under exact annotation `IgnBdTopoLayerSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `road_segments_summary` | `road_segments_summary: IgnBdTopoLayerSummary` | Validated summary of the factual IGN road-segment frame. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -2054,12 +2180,11 @@ class IgnBdTopoElectricityData:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoRoadData`.
-- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -2067,11 +2192,11 @@ class IgnBdTopoElectricityData:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
 )`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -2082,14 +2207,12 @@ class IgnBdTopoElectricityData:
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_source` via `IgnBdTopoRoadData`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoRoadData`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2099,15 +2222,11 @@ class IgnBdTopoElectricityData:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_source` via `IgnBdTopoRoadData`.
-- import/re-export: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     load_ign_bdtopo_source_config,
 )`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_public_sources_export_only_stable_road_api` via `sources.IgnBdTopoRoadData`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_public_sources_export_only_stable_road_api` via `ign_bdtopo_fr.IgnBdTopoRoadData`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoRoadData`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -2116,6 +2235,30 @@ class IgnBdTopoElectricityData:
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoRoadData`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/enrich_road_proximity.py::enrich_parcel_road_proximity` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `IgnBdTopoRoadData`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_source` via `IgnBdTopoRoadData`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_source` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoRoadData`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_enrich_road_proximity.py::_source` via `IgnBdTopoRoadData`.
+- constructor call: `tests/unit/test_enrich_road_proximity.py::_source` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoRoadData`.
+- constructor call: `tests/unit/test_normalize_access_ign.py::_source` via `IgnBdTopoRoadData`.
+- type annotation: `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` via `IgnBdTopoRoadData`.
 
 **Exact class source**
 
@@ -2147,18 +2290,18 @@ class IgnBdTopoRoadData:
 | `source_feature_count` | `source_feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `selected_feature_count` | `selected_feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `columns` | `columns: tuple[str, ...]` | Structured `columns` collection owned by `IgnBdTopoCoverageLayerSummary`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | Closed or validated `dtypes` classification on `IgnBdTopoCoverageLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | `IgnBdTopoCoverageLayerSummary.dtypes` represents the `dtypes` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `null_geometry_count` | `null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `empty_geometry_count` | `empty_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `invalid_geometry_count` | `invalid_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `geometry_types` | `geometry_types: tuple[str, ...]` | Closed or validated `geometry types` classification on `IgnBdTopoCoverageLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `department_code_field` | `department_code_field: str` | Stores `IgnBdTopoCoverageLayerSummary`'s `department code field` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `selected_department_code` | `selected_department_code: str` | Stores `IgnBdTopoCoverageLayerSummary`'s `selected department code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `geometry_types` | `geometry_types: tuple[str, ...]` | `IgnBdTopoCoverageLayerSummary.geometry_types` represents the `geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `department_code_field` | `department_code_field: str` | Configured physical attribute containing the department code. |
+| `selected_department_code` | `selected_department_code: str` | Department code selected from the configured coverage layer; it must equal package/config lineage. |
 | `spatial_role` | `spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -2190,8 +2333,7 @@ class IgnBdTopoRoadData:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoCoverageLayerSummary`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -2199,7 +2341,7 @@ class IgnBdTopoRoadData:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -2207,8 +2349,7 @@ class IgnBdTopoRoadData:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoCoverageLayerSummary`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2218,8 +2359,7 @@ class IgnBdTopoRoadData:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoCoverageLayerSummary`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2229,6 +2369,11 @@ class IgnBdTopoRoadData:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoDepartmentCoverage` via `IgnBdTopoCoverageLayerSummary`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoCoverageLayerSummary`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_validate_coverage_summary_contract` via `IgnBdTopoCoverageLayerSummary`.
+- constructor call: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoCoverageLayerSummary`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoCoverageLayerSummary`.
 
 **Exact class source**
 
@@ -2265,9 +2410,9 @@ class IgnBdTopoCoverageLayerSummary:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoDepartmentCoverage`'s `extraction` evidence/text field; it retains the exact configured or source meaning under annotation `IgnBdTopoExtraction` and is not promoted to a legal conclusion. |
-| `coverage` | `coverage: gpd.GeoDataFrame` | Stores `IgnBdTopoDepartmentCoverage`'s `coverage` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `summary` | `summary: IgnBdTopoCoverageLayerSummary` | Stores `IgnBdTopoDepartmentCoverage`'s `summary` value under exact annotation `IgnBdTopoCoverageLayerSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `extraction` | `extraction: IgnBdTopoExtraction` | `IgnBdTopoDepartmentCoverage.extraction` carries the extraction used by the reproduced constructors and validators; its declared type is `IgnBdTopoExtraction` and no legal meaning is inferred beyond that owner. |
+| `coverage` | `coverage: gpd.GeoDataFrame` | Nested department coverage-boundary selection configuration or validated coverage result. |
+| `summary` | `summary: IgnBdTopoCoverageLayerSummary` | Validated immutable summary of the owning physical frame/layer. |
 | `source_provider` | `source_provider: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
 | `source_product` | `source_product: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
 | `source_department_code` | `source_department_code: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
@@ -2279,7 +2424,7 @@ class IgnBdTopoCoverageLayerSummary:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -2311,8 +2456,7 @@ class IgnBdTopoCoverageLayerSummary:
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoDepartmentCoverage`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -2320,7 +2464,7 @@ class IgnBdTopoCoverageLayerSummary:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -2328,8 +2472,7 @@ class IgnBdTopoCoverageLayerSummary:
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2339,8 +2482,7 @@ class IgnBdTopoCoverageLayerSummary:
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2350,6 +2492,32 @@ class IgnBdTopoCoverageLayerSummary:
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoDepartmentCoverage`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::GridCoverageAssessmentResult` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_coverage_lineage_values` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_proximity_source_identity` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::RoadProximityCoverageAssessmentResult` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_coverage_lineage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_diagnosed_class_proximity` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_selected_road_package` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
+- constructor call: `tests/unit/test_assess_grid_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `tests/unit/test_assess_grid_coverage.py::_with_alternate_coverage_layer` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
+- constructor call: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_measured_boundary_distance` via `IgnBdTopoDepartmentCoverage`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `IgnBdTopoDepartmentCoverage`.
 
 **Exact class source**
 
@@ -2385,28 +2553,30 @@ class IgnBdTopoDepartmentCoverage:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `schema_version` | `schema_version: Literal[1]` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
-| `provider` | `provider: str` | Stores `_CacheMetadata`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product` | `product: str` | Stores `_CacheMetadata`'s `product` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `department_code` | `department_code: str` | Stores `_CacheMetadata`'s `department code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `edition` | `edition: str` | Stores `_CacheMetadata`'s `edition` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product_version` | `product_version: str \| None` | Stores `_CacheMetadata`'s `product version` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `projection` | `projection: str` | Stores `_CacheMetadata`'s `projection` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `package_format` | `package_format: str` | Closed or validated `package format` classification on `_CacheMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `archive_format` | `archive_format: str` | Closed or validated `archive format` classification on `_CacheMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `product` | `product: str` | Source product identity validated by the owning adapter. |
+| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
+| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
+| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
+| `projection` | `projection: str` | Declared source-package projection identity checked by the owning adapter. |
+| `package_format` | `package_format: str` | `_CacheMetadata.package_format` represents the `package_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `archive_format` | `archive_format: str` | `_CacheMetadata.archive_format` represents the `archive_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `checksum_url` | `checksum_url: str \| None` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
 | `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Stores `_CacheMetadata`'s `official checksum algorithm` value under exact annotation `ChecksumAlgorithm | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `official_checksum` | `official_checksum: str \| None` | Stores `_CacheMetadata`'s `official checksum` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `official_checksum_algorithm` | `official_checksum_algorithm: ChecksumAlgorithm \| None` | Official checksum algorithm declared for the source archive; null only when the source publishes no official checksum. |
+| `official_checksum` | `official_checksum: str \| None` | Official archive checksum value validated under official_checksum_algorithm; distinct from LandScout's SHA256. |
 | `official_checksum_validated` | `official_checksum_validated: bool` | Boolean `official checksum validated` flag on `_CacheMetadata`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
 | `spatial_role` | `spatial_role: SpatialRole` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_cache_metadata_from_download` via `_CacheMetadata`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_cache_metadata_from_download` via `_CacheMetadata`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_cache_metadata_from_download` via `_CacheMetadata`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_download_from_metadata` via `_CacheMetadata`.
 
 **Exact class source**
 
@@ -2452,17 +2622,17 @@ class _CacheMetadata(BaseModel):
 | `schema_version` | `schema_version: Literal[2]` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `archive_sha256` | `archive_sha256: CanonicalSha256` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `geopackage_relative_path` | `geopackage_relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
-| `geopackage_size_bytes` | `geopackage_size_bytes: StrictPositiveInt` | Stores `_ExtractionMetadata`'s `geopackage size bytes` value under exact annotation `StrictPositiveInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `geopackage_size_bytes` | `geopackage_size_bytes: StrictPositiveInt` | Measured physical byte size of the verified extracted GeoPackage. |
 | `geopackage_sha256` | `geopackage_sha256: CanonicalSha256` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `all_layer_names` | `all_layer_names: tuple[str, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
-| `electric_lines_layer` | `electric_lines_layer: str` | Stores `_ExtractionMetadata`'s `electric lines layer` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts_layer` | `transformation_posts_layer: str` | Closed or validated `transformation posts layer` classification on `_ExtractionMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `electric_lines_layer` | `electric_lines_layer: str` | Physical GeoPackage layer selected for the configured electricity-line role. |
+| `transformation_posts_layer` | `transformation_posts_layer: str` | `_ExtractionMetadata.transformation_posts_layer` represents the `transformation_posts_layer` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `spatial_role` | `spatial_role: SpatialRole` | Closed role identifying how the source/result participates in the pipeline; it is not a suitability outcome. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_ExtractionMetadata`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractionMetadata`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_VerifiedIgnExtraction` via `_ExtractionMetadata`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_ExtractionMetadata`.
 
 **Exact class source**
 
@@ -2495,13 +2665,16 @@ class _ExtractionMetadata(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `extraction` | `extraction: IgnBdTopoExtraction` | `_VerifiedIgnExtraction`'s `extraction` evidence/text field; it retains the exact configured or source meaning under annotation `IgnBdTopoExtraction` and is not promoted to a legal conclusion. |
-| `metadata` | `metadata: _ExtractionMetadata` | Stores `_VerifiedIgnExtraction`'s `metadata` value under exact annotation `_ExtractionMetadata`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `extraction` | `extraction: IgnBdTopoExtraction` | `_VerifiedIgnExtraction.extraction` carries the extraction used by the reproduced constructors and validators; its declared type is `IgnBdTopoExtraction` and no legal meaning is inferred beyond that owner. |
+| `metadata` | `metadata: _ExtractionMetadata` | Strict parsed cache/extraction metadata bound to the verified physical source. |
 | `geopackage_path` | `geopackage_path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_VerifiedIgnExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_VerifiedIgnExtraction`.
+- constructor call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_VerifiedIgnExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `_VerifiedIgnExtraction`.
+- type annotation: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_VerifiedIgnExtraction`.
 
 **Exact class source**
 
@@ -2543,14 +2716,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2599,14 +2772,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2659,14 +2832,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2718,14 +2891,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2793,22 +2966,20 @@ Projects validated source facts into words; exact branches, calls, and return co
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::GpuLogicalLayerConfig._unique_tokens` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayerConfig._unique_tokens` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayersConfig._different_token_sets` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_matching_layers` via `_normalize_words`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayerConfig._unique_tokens` via `_normalize_words`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayersConfig._different_token_sets` via `_normalize_words`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_matching_layers` via `_normalize_words`.
 
 **Complete source-ordered implementation**
 
@@ -2852,18 +3023,18 @@ IgnBdTopoSourceConfig.model_validate(content)
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -2895,14 +3066,12 @@ IgnBdTopoSourceConfig.model_validate(content)
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2912,8 +3081,7 @@ IgnBdTopoSourceConfig.model_validate(content)
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -2923,21 +3091,18 @@ IgnBdTopoSourceConfig.model_validate(content)
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.sources import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoRoadData,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::source_config` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -2955,8 +3120,7 @@ IgnBdTopoSourceConfig.model_validate(content)
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -2965,8 +3129,7 @@ IgnBdTopoSourceConfig.model_validate(content)
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::<module>` via `load_ign_bdtopo_source_config`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
@@ -2974,6 +3137,14 @@ IgnBdTopoSourceConfig.model_validate(content)
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_source_config,
 )`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_enrich_road_proximity.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::source_config` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_normalize_access_ign.py::<module>` via `load_ign_bdtopo_source_config`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::<module>` via `load_ign_bdtopo_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -3024,19 +3195,19 @@ filename
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_archive_filename`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` via `_archive_filename`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_archive_filename`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_archive_config_lineage` via `_archive_filename`.
 
 **Complete source-ordered implementation**
 
@@ -3081,18 +3252,18 @@ Private `grid/source` helper for calculate checksums; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `official_digest.hexdigest`, `official_digest.update`, `sha256`, `sha256_digest.hexdigest`, `sha256_digest.update`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `md5`, `official_digest.hexdigest`, `sha256`, `sha256_digest.hexdigest`.
+- Environment/process effects: none.
+- In-memory mutation: `official_digest`, `sha256_digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `_calculate_checksums`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::validate_ign_bdtopo_archive` via `_calculate_checksums`.
 
 **Complete source-ordered implementation**
 
@@ -3158,18 +3329,18 @@ IgnBdTopoArchiveIntegrity(file_size=file_size, sha256=local_sha256, official_che
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`, `py7zr.SevenZipFile`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -3201,11 +3372,7 @@ IgnBdTopoArchiveIntegrity(file_size=file_size, sha256=local_sha256, official_che
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `validate_ign_bdtopo_archive`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `validate_ign_bdtopo_archive`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `validate_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `validate_ign_bdtopo_archive`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -3223,6 +3390,10 @@ IgnBdTopoArchiveIntegrity(file_size=file_size, sha256=local_sha256, official_che
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `validate_ign_bdtopo_archive`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `validate_ign_bdtopo_archive`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `validate_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `validate_ign_bdtopo_archive`.
 
 **Complete source-ordered implementation**
 
@@ -3316,18 +3487,18 @@ _CacheMetadata(schema_version=1, provider=download.provider, product=download.pr
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cache_metadata_from_download`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cache_metadata_from_download`.
 
 **Complete source-ordered implementation**
 
@@ -3389,18 +3560,18 @@ IgnBdTopoDownload(provider=metadata.provider, product=metadata.product, departme
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownload`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `_download_from_metadata`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_download` via `_download_from_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -3479,22 +3650,18 @@ None
 
 **Side effects**
 
-- Network I/O: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `_download_from_metadata`, `downloaded_at.astimezone`.
-- Filesystem read: `metadata_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: `_download_from_metadata`.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`, `metadata_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._load_cached_download`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
 
 **Complete source-ordered implementation**
 
@@ -3591,39 +3758,18 @@ Private `grid/source` helper for replace file; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
 
 **Complete source-ordered implementation**
 
@@ -3666,25 +3812,19 @@ Private `grid/source` helper for cache recovery paths; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
 
 **Complete source-ordered implementation**
 
@@ -3730,25 +3870,19 @@ Private `grid/source` helper for require no cache recovery material; its complet
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
 
 **Complete source-ordered implementation**
 
@@ -3797,21 +3931,18 @@ Private `grid/source` helper for prepare temporary cache file; its complete impl
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
 
 **Complete source-ordered implementation**
 
@@ -3867,21 +3998,18 @@ Private `grid/source` helper for cleanup temporary cache files; its complete imp
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
 
 **Complete source-ordered implementation**
 
@@ -3935,34 +4063,18 @@ Private `grid/source` helper for publish cache pair; its complete implementation
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`.
 - Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
 
 **Complete source-ordered implementation**
 
@@ -4054,18 +4166,18 @@ result
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownload`, `IgnBdTopoDownloadError`, `_cache_metadata_from_download`, `_load_cached_download`, `open_safe_https`.
-- Filesystem read: none directly visible.
+- Network I/O: `open_safe_https`.
+- Filesystem read: `temporary_archive.open`.
 - Filesystem write: `cache_dir.mkdir`, `copyfileobj`, `temporary_metadata.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -4097,36 +4209,7 @@ result
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `download_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `download_ign_bdtopo_archive`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -4144,6 +4227,35 @@ result
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `download_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `download_ign_bdtopo_archive`.
 
 **Complete source-ordered implementation**
 
@@ -4255,18 +4367,18 @@ Rejects malformed or inconsistent archive members; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_validate_archive_members`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_validate_archive_members`.
 
 **Complete source-ordered implementation**
 
@@ -4334,18 +4446,18 @@ root
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `root.is_dir`, `root.is_file`, `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -4377,12 +4489,7 @@ root
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discover_ign_bdtopo_geopackage`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discover_ign_bdtopo_geopackage`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `discover_ign_bdtopo_geopackage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_geopackage_is_discovered_recursively` via `discover_ign_bdtopo_geopackage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `discover_ign_bdtopo_geopackage`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -4400,6 +4507,11 @@ root
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discover_ign_bdtopo_geopackage`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discover_ign_bdtopo_geopackage`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `discover_ign_bdtopo_geopackage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_geopackage_is_discovered_recursively` via `discover_ign_bdtopo_geopackage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_multiple_geopackages_are_rejected_as_ambiguous` via `discover_ign_bdtopo_geopackage`.
 
 **Complete source-ordered implementation**
 
@@ -4462,18 +4574,18 @@ names
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `geopackage_path.is_file`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -4505,11 +4617,7 @@ names
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `list_ign_bdtopo_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `list_ign_bdtopo_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `list_ign_bdtopo_layers`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `list_ign_bdtopo_layers`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -4527,6 +4635,10 @@ names
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `list_ign_bdtopo_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `list_ign_bdtopo_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `list_ign_bdtopo_layers`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `list_ign_bdtopo_layers`.
 
 **Complete source-ordered implementation**
 
@@ -4583,20 +4695,20 @@ tuple(matches)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `matches`, `token_words`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `_matching_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_discover_department_coverage_layer` via `_matching_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_discover_road_layer` via `_matching_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::discover_ign_bdtopo_layers` via `_matching_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_discover_department_coverage_layer` via `_matching_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_discover_road_layer` via `_matching_layers`.
 
 **Complete source-ordered implementation**
 
@@ -4651,18 +4763,18 @@ IgnBdTopoLayerSelection(all_layer_names=layer_names, electric_lines_layer=electr
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -4694,14 +4806,7 @@ IgnBdTopoLayerSelection(all_layer_names=layer_names, electric_lines_layer=electr
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `discover_ign_bdtopo_layers`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `discover_ign_bdtopo_layers`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -4719,6 +4824,13 @@ IgnBdTopoLayerSelection(all_layer_names=layer_names, electric_lines_layer=electr
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discover_ign_bdtopo_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `discover_ign_bdtopo_layers`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `discover_ign_bdtopo_layers`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_real_layer_names_are_listed_and_discovered` via `discover_ign_bdtopo_layers`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_electric_line_layer_fails` via `discover_ign_bdtopo_layers`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_transformation_post_layer_fails` via `discover_ign_bdtopo_layers`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_electric_line_layers_fail` via `discover_ign_bdtopo_layers`.
 
 **Complete source-ordered implementation**
 
@@ -4793,20 +4905,18 @@ matches[0]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_discover_department_coverage_layer`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_discover_department_coverage_layer`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -4814,8 +4924,7 @@ matches[0]
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_discover_department_coverage_layer`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -4823,6 +4932,9 @@ matches[0]
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_discover_department_coverage_layer`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_discover_department_coverage_layer`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_discover_department_coverage_layer`.
 
 **Complete source-ordered implementation**
 
@@ -4875,18 +4987,18 @@ matches[0]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_discover_road_layer`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_discover_road_layer`.
 
 **Complete source-ordered implementation**
 
@@ -4936,18 +5048,18 @@ path.resolve().relative_to(root.resolve()).as_posix()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_safe_relative_path`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_safe_relative_path`.
 
 **Complete source-ordered implementation**
 
@@ -4992,20 +5104,20 @@ candidate
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_resolve_relative_path`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `_resolve_relative_path`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_resolve_relative_path`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_resolve_relative_path`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `_resolve_relative_path`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_resolve_relative_path`.
 
 **Complete source-ordered implementation**
 
@@ -5065,21 +5177,21 @@ Private `grid/source` helper for geopackage integrity; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.open`, `path.stat`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_geopackage_integrity`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `_geopackage_integrity`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `_geopackage_integrity`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_geopackage_integrity`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_geopackage_integrity`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_verify_unchanged_extraction` via `_geopackage_integrity`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `_geopackage_integrity`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_geopackage_integrity`.
 
 **Complete source-ordered implementation**
 
@@ -5136,18 +5248,18 @@ type(value) is tuple and bool(value) and all((isinstance(name, str) and bool(nam
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_valid_layer_inventory`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `_valid_layer_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -5214,20 +5326,20 @@ _VerifiedIgnExtraction(extraction=extraction, metadata=metadata, geopackage_path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `marker_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `marker_path.is_file`, `marker_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validate_extraction_envelope`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_validate_extraction_envelope`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_validate_extraction_envelope`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validate_extraction_envelope`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_validate_extraction_envelope`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_validate_extraction_envelope`.
 
 **Complete source-ordered implementation**
 
@@ -5358,18 +5470,18 @@ Private `grid/source` helper for verify unchanged extraction; its complete imple
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_verify_unchanged_extraction`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_verify_unchanged_extraction`.
 
 **Complete source-ordered implementation**
 
@@ -5419,19 +5531,19 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_read_layer_frame`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `_read_layer_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_read_layer_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `_read_layer_frame`.
 
 **Complete source-ordered implementation**
 
@@ -5489,20 +5601,20 @@ frames
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_read_verified_layer_frames`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_read_verified_layer_frames`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_read_verified_layer_frames`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_read_verified_layer_frames`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_read_verified_layer_frames`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_read_verified_layer_frames`.
 
 **Complete source-ordered implementation**
 
@@ -5562,21 +5674,18 @@ summary
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_compare_layer_summary` via `_validate_layer_summary_contract`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `_validate_layer_summary_contract`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validate_layer_summary_contract`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -5587,8 +5696,7 @@ summary
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validate_layer_summary_contract`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -5599,6 +5707,10 @@ summary
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_compare_layer_summary` via `_validate_layer_summary_contract`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `_validate_layer_summary_contract`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validate_layer_summary_contract`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validate_layer_summary_contract`.
 
 **Complete source-ordered implementation**
 
@@ -5695,19 +5807,19 @@ Private `grid/source` helper for compare layer summary; its complete implementat
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `_compare_layer_summary`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `_compare_layer_summary`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `_compare_layer_summary`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `_compare_layer_summary`.
 
 **Complete source-ordered implementation**
 
@@ -5762,20 +5874,20 @@ Private `grid/source` helper for compare loaded frame; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `expected.geometry.to_wkb`, `expected.geometry.to_wkb(hex=True).tolist`, `supplied.geometry.to_wkb`, `supplied.geometry.to_wkb(hex=True).tolist`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `_compare_loaded_frame`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `_compare_loaded_frame`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `_compare_loaded_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `_compare_loaded_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `_compare_loaded_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `_compare_loaded_frame`.
 
 **Complete source-ordered implementation**
 
@@ -5877,18 +5989,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `metadata_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `extraction_path.is_dir`, `metadata_path.is_file`, `metadata_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_load_cached_extraction`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_load_cached_extraction`.
 
 **Complete source-ordered implementation**
 
@@ -5982,23 +6094,18 @@ Private `grid/source` helper for replace directory; its complete implementation 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `_replace_directory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `inpn._replace_directory`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `_replace_directory`.
 
 **Complete source-ordered implementation**
 
@@ -6035,19 +6142,19 @@ Private `grid/source` helper for remove tree; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_dir`.
 - Filesystem write: `path.unlink`, `shutil.rmtree`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `_remove_tree`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_remove_tree`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `_remove_tree`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_remove_tree`.
 
 **Complete source-ordered implementation**
 
@@ -6089,20 +6196,18 @@ Private `grid/source` helper for publish extraction directory; its complete impl
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `extraction_path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_publish_extraction_directory`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_publish_extraction_directory`.
 
 **Complete source-ordered implementation**
 
@@ -6168,18 +6273,18 @@ IgnBdTopoExtraction(archive=download, extraction_path=extraction_path, geopackag
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `py7zr.SevenZipFile`.
+- Network I/O: none.
+- Filesystem read: `extraction_path.exists`, `extraction_path.is_dir`.
 - Filesystem write: `(temporary_path / '.landscout-extraction.json').write_text`, `extraction_path.parent.mkdir`, `temporary_path.mkdir`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -6211,31 +6316,7 @@ IgnBdTopoExtraction(archive=download, extraction_path=extraction_path, geopackag
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `extract_ign_bdtopo_archive`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `extract_ign_bdtopo_archive`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -6253,6 +6334,30 @@ IgnBdTopoExtraction(archive=download, extraction_path=extraction_path, geopackag
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_schema_v2_extraction_metadata_binds_physical_geopackage` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_forged_extraction_metadata_never_returns_cache_hit` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_sha_is_not_trusted` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_malformed_geopackage_size_is_not_trusted` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `extract_ign_bdtopo_archive`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `extract_ign_bdtopo_archive`.
 
 **Complete source-ordered implementation**
 
@@ -6364,20 +6469,20 @@ crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_compare_loaded_frame` via `_validate_lambert93`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `_validate_lambert93`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `_validate_lambert93`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_compare_loaded_frame` via `_validate_lambert93`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_loaded_layer_from_frame` via `_validate_lambert93`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_department_coverage_from_frame` via `_validate_lambert93`.
 
 **Complete source-ordered implementation**
 
@@ -6440,20 +6545,20 @@ IgnBdTopoLoadedLayer(data=frame, summary=summary)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[non_null_mask].geom_type.dropna`, `geometry[non_null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `_loaded_layer_from_frame`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_loaded_layer_from_frame`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_loaded_layer_from_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_layer` via `_loaded_layer_from_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_loaded_layer_from_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_loaded_layer_from_frame`.
 
 **Complete source-ordered implementation**
 
@@ -6538,18 +6643,18 @@ _loaded_layer_from_frame(frame, layer_name, logical_name)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `geopackage_path.is_file`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -6581,10 +6686,7 @@ _loaded_layer_from_frame(frame, layer_name, logical_name)
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` via `load_ign_bdtopo_layer`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` via `load_ign_bdtopo_layer`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `load_ign_bdtopo_layer`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -6602,6 +6704,9 @@ _loaded_layer_from_frame(frame, layer_name, logical_name)
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` via `load_ign_bdtopo_layer`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` via `load_ign_bdtopo_layer`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` via `load_ign_bdtopo_layer`.
 
 **Complete source-ordered implementation**
 
@@ -6652,18 +6757,18 @@ IgnBdTopoSourceConfig.model_validate(config.model_dump(mode='python'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validated_layer_source_config`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validated_layer_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -6717,18 +6822,18 @@ Rejects malformed or inconsistent archive config lineage; exact branches, calls,
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validate_archive_config_lineage`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_validate_archive_config_lineage`.
 
 **Complete source-ordered implementation**
 
@@ -6828,18 +6933,18 @@ IgnBdTopoElectricityData(extraction=extraction, electric_lines=electric_lines.da
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -6871,11 +6976,7 @@ IgnBdTopoElectricityData(extraction=extraction, electric_lines=electric_lines.da
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `load_ign_bdtopo_electricity`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `load_ign_bdtopo_electricity`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `load_ign_bdtopo_electricity`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `load_ign_bdtopo_electricity`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -6893,6 +6994,10 @@ IgnBdTopoElectricityData(extraction=extraction, electric_lines=electric_lines.da
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_electricity_data` via `load_ign_bdtopo_electricity`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `load_ign_bdtopo_electricity`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `load_ign_bdtopo_electricity`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `load_ign_bdtopo_electricity`.
 
 **Complete source-ordered implementation**
 
@@ -6981,18 +7086,18 @@ IgnBdTopoRoadData(extraction=extraction, road_segments=loaded.data, road_segment
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -7024,32 +7129,7 @@ IgnBdTopoRoadData(extraction=extraction, road_segments=loaded.data, road_segment
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_physical_layer_cannot_collide_with_electricity_roles` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_public_sources_export_only_stable_road_api` via `sources.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_public_sources_export_only_stable_road_api` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `ign_bdtopo_fr.load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` via `load_ign_bdtopo_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `load_ign_bdtopo_roads`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
@@ -7058,6 +7138,9 @@ IgnBdTopoRoadData(extraction=extraction, road_segments=loaded.data, road_segment
     load_ign_bdtopo_roads,
     load_ign_bdtopo_source_config,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_road_data` via `load_ign_bdtopo_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` via `load_ign_bdtopo_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `load_ign_bdtopo_roads`.
 
 **Complete source-ordered implementation**
 
@@ -7138,18 +7221,18 @@ IgnBdTopoDepartmentCoverage(extraction=extraction, coverage=selected, summary=su
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[non_null_mask].geom_type.dropna`, `geometry[non_null_mask].geom_type.dropna().unique`, `selected_geometry.geom_type.dropna`, `selected_geometry.is_empty.any`, `selected_geometry.is_valid.all`, `selected_geometry.isna`, `selected_geometry.isna().any`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `selected[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_department_coverage_from_frame`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_department_coverage_from_frame`.
 
 **Complete source-ordered implementation**
 
@@ -7300,18 +7383,18 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoArchiveIntegrity,
     IgnBdTopoCoverageConfig,
@@ -7343,9 +7426,7 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `load_ign_bdtopo_department_coverage`.
-- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoElectricityData,
@@ -7353,8 +7434,7 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `load_ign_bdtopo_department_coverage`.
-- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoRoadData,
@@ -7362,9 +7442,7 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
     _discover_department_coverage_layer,
     load_ign_bdtopo_department_coverage,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_with_alternate_coverage_layer` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `load_ign_bdtopo_department_coverage`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
@@ -7374,13 +7452,7 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_source_config,
 )`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `load_ign_bdtopo_department_coverage`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `load_ign_bdtopo_department_coverage`.
-- import/re-export: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `tests/unit/test_ign_bdtopo_fr.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
     IgnBdTopoDownload,
     IgnBdTopoDownloadError,
@@ -7398,6 +7470,17 @@ _department_coverage_from_frame(extraction, frame, layer_name, config.coverage.d
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::_revalidate_ign_bdtopo_department_coverage` via `load_ign_bdtopo_department_coverage`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `load_ign_bdtopo_department_coverage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::_with_alternate_coverage_layer` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `load_ign_bdtopo_department_coverage`.
+- direct call: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `load_ign_bdtopo_department_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -7462,19 +7545,18 @@ fresh
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_revalidate_ign_bdtopo_electricity_data`.
-- import/re-export: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_grid_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -7485,6 +7567,7 @@ fresh
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_revalidate_ign_bdtopo_electricity_data`.
 
 **Complete source-ordered implementation**
 
@@ -7560,19 +7643,18 @@ fresh
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_revalidate_ign_bdtopo_road_data`.
-- import/re-export: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
+- import: `src/landscout/stages/normalize_access_ign.py::<module>` via `from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
     IgnBdTopoDownload,
@@ -7583,6 +7665,7 @@ fresh
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_revalidate_ign_bdtopo_road_data`.
 
 **Complete source-ordered implementation**
 
@@ -7656,14 +7739,14 @@ summary
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -7761,14 +7844,14 @@ fresh
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 

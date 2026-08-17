@@ -68,7 +68,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 SOURCE_CONFIG = load_ign_bdtopo_source_config()
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` (value reference).
 
 #### `POLICY_PATH`
 
@@ -76,7 +76,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 POLICY_PATH = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_pins_all_twelve_exact_muret_decisions` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` (value argument/reference), `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value reference).
 
 #### `POLICY_COLUMNS`
 
@@ -97,7 +97,7 @@ POLICY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_apply_bess_planning_feature_policy.py::test_policy_suffix_has_one_exact_deterministic_dtype_schema` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_valid_empty_optional_application_catalog_retains_schema_and_crs` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_and_relation_inputs_are_preserved_and_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -168,19 +168,18 @@ Private `test` helper for base row; its complete implementation below is the aut
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_roads` via `_base_row`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_base_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_roads` via `_base_row`.
 
 **Complete source-ordered implementation**
 
@@ -265,46 +264,27 @@ gpd.GeoDataFrame(rows, geometry='geometry', crs='EPSG:2154')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `row`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_source` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_row` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_result_is_frozen_and_contains_no_unsafe_claim_vocabulary` via `_roads`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_source` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_enrich` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_independent_policy_sha_mismatch_is_rejected` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_duplicate_road_feature_id_is_rejected` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_unknown_road_proxy_class_is_rejected` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_road_policy_lineage_is_rejected` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_eligible_class_requires_valid_geometry_status` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_eligible_class_rejects_unsupported_geometry` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_not_distance_road_is_counted_but_never_indexed` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_intersecting_or_touching_road_has_zero_distance` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_exact_tie_counts_two_and_lexical_id_wins` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_tie_winner_is_independent_of_source_order` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_unequal_distance_wins_regardless_of_identifier` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_empty_eligible_class_emits_null_row_per_parcel` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_parcels_and_road_application_are_not_mutated` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_selected_rows_belong_to_requested_class` via `_roads`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_policy_sha_mismatch_does_not_construct_spatial_index` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_source` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_row` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_result_is_frozen_and_contains_no_unsafe_claim_vocabulary` via `_roads`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `_roads`.
 
 **Complete source-ordered implementation**
 
@@ -350,63 +330,26 @@ IgnBdTopoRoadData(extraction=cast(Any, None), road_segments=_roads(), road_segme
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_enrich` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_parcel_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_source_config_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_policy_path_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_failure_stops_proximity` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_malformed_policy_stops_before_application` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_application_result_type_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `_source`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `_source`.
 
 **Complete source-ordered implementation**
 
@@ -454,22 +397,22 @@ apply_ign_road_vehicle_proxy_policy(_source(), SOURCE_CONFIG, policy_path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_row` via `_apply`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` via `_apply`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `_apply`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row` via `_apply`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_result_is_frozen_and_contains_no_unsafe_claim_vocabulary` via `_apply`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_row` via `_apply`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` via `_apply`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `_apply`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row` via `_apply`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_result_is_frozen_and_contains_no_unsafe_claim_vocabulary` via `_apply`.
 
 **Complete source-ordered implementation**
 
@@ -522,41 +465,30 @@ result.roads.iloc[0]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_non_valid_geometry_uses_technical_gate` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_each_policy_rule_selects_approved_outcome` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_precedence_conflicts_select_first_rule` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_boolean_like_source_values_are_parsed_without_coercion` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_critical_vocabulary_never_uses_general_fallback` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_width_contract` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_optional_restriction_source_contract` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_every_configured_known_restriction_is_applied` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_general_fallback_requires_complete_positive_evidence_and_tracks_toll` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_open_access_does_not_hide_unresolved_evidence` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_trace_is_complete_unique_and_in_policy_order` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_known_higher_rule_remains_primary_while_unknown_is_traced` via `_row`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_fields_trace_is_fixed_and_deterministic` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_known_polygon_to_line_distance_is_ten_metres` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_intersecting_or_touching_road_has_zero_distance` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_distance_uses_full_polygon_not_centroid` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_storage_geometry_stays_epsg4326_while_distance_is_metric` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_each_eligible_class_has_independent_distance` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_near_not_distance_road_cannot_change_general_distance` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_single_nearest_road_has_tie_count_one` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_exact_tie_counts_two_and_lexical_id_wins` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_tie_winner_is_independent_of_source_order` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_unequal_distance_wins_regardless_of_identifier` via `_row`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_selected_road_evidence_and_lineage_are_exact` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_non_valid_geometry_uses_technical_gate` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_each_policy_rule_selects_approved_outcome` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_precedence_conflicts_select_first_rule` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_boolean_like_source_values_are_parsed_without_coercion` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_critical_vocabulary_never_uses_general_fallback` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_width_contract` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_optional_restriction_source_contract` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_every_configured_known_restriction_is_applied` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_general_fallback_requires_complete_positive_evidence_and_tracks_toll` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_open_access_does_not_hide_unresolved_evidence` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_trace_is_complete_unique_and_in_policy_order` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_known_higher_rule_remains_primary_while_unknown_is_traced` via `_row`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_fields_trace_is_fixed_and_deterministic` via `_row`.
 
 **Complete source-ordered implementation**
 
@@ -576,7 +508,7 @@ def _row(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public api exports only stable application symbols`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -611,7 +543,7 @@ assert not hasattr(stages, "_classify_road_frame")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public api exports only stable application symbols` through the exact asserted conditions: `set(module.__all__) == expected`; `expected <= set(stages.__all__)`; `all((hasattr(stages, symbol) for symbol in expected))`; `not hasattr(stages, '_classify_road_frame')`.
 
 **Test boundary**
 
@@ -638,7 +570,7 @@ def test_public_api_exports_only_stable_application_symbols() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong source type has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -668,7 +600,7 @@ with pytest.raises(IgnRoadVehicleProxyApplicationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong source type has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -688,7 +620,7 @@ def test_wrong_source_type_has_controlled_error() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong source config type has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -718,7 +650,7 @@ with pytest.raises(IgnRoadVehicleProxyApplicationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong source config type has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -738,7 +670,7 @@ def test_wrong_source_config_type_has_controlled_error() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed policy path has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -770,7 +702,7 @@ with patch(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed policy path has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -795,7 +727,7 @@ def test_malformed_policy_path_has_controlled_error(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete normalization is invoked exactly once`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -851,7 +783,7 @@ def test_source_complete_normalization_is_invoked_exactly_once() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalization failure stops policy loading`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -884,7 +816,7 @@ with patch(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `normalization failure stops policy loading`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -909,7 +841,7 @@ def test_normalization_failure_stops_policy_loading() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalized facts rows index crs and geometry are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -982,7 +914,7 @@ def test_normalized_facts_rows_index_crs_and_geometry_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source object is not mutated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1016,7 +948,7 @@ with patch(
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `source object is not mutated` by requiring the reproduced call path `_source`, `deepcopy`, `NormalizedIgnRoadData`, `assert_geodataframe_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -1044,7 +976,7 @@ def test_source_object_is_not_mutated() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non valid geometry uses technical gate`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1096,7 +1028,7 @@ def test_non_valid_geometry_uses_technical_gate(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown geometry status is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1124,7 +1056,7 @@ with pytest.raises(IgnRoadVehicleProxyApplicationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown geometry status is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1142,7 +1074,7 @@ def test_unknown_geometry_status_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `each policy rule selects approved outcome`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1170,7 +1102,7 @@ assert row.road_proxy_class == expected_class
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `each policy rule selects approved outcome` through the exact asserted conditions: `row.road_proxy_primary_rule == rule`; `row.road_proxy_class == expected_class`.
 
 **Test boundary**
 
@@ -1192,7 +1124,7 @@ def test_each_policy_rule_selects_approved_outcome(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy precedence conflicts select first rule`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1238,7 +1170,7 @@ def test_policy_precedence_conflicts_select_first_rule(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `boolean like source values are parsed without coercion`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1265,7 +1197,7 @@ assert _row({field: value}).road_proxy_primary_rule == expected_rule
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `boolean like source values are parsed without coercion` through the exact asserted conditions: `_row({field: value}).road_proxy_primary_rule == expected_rule`.
 
 **Test boundary**
 
@@ -1284,7 +1216,7 @@ def test_boolean_like_source_values_are_parsed_without_coercion(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown critical vocabulary never uses general fallback`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1313,7 +1245,7 @@ assert field in row.road_proxy_unknown_fields_json
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unknown critical vocabulary never uses general fallback` through the exact asserted conditions: `row.road_proxy_primary_rule == 'UNKNOWN'`; `row.road_proxy_class == 'UNKNOWN_REVIEW'`; `field in row.road_proxy_unknown_fields_json`.
 
 **Test boundary**
 
@@ -1336,7 +1268,7 @@ def test_unknown_critical_vocabulary_never_uses_general_fallback(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `width contract`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1365,7 +1297,7 @@ assert _row({"carriageway_width_raw": value}).road_proxy_primary_rule == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `width contract` through the exact asserted conditions: `_row({'carriageway_width_raw': value}).road_proxy_primary_rule == expected_rule`.
 
 **Test boundary**
 
@@ -1384,7 +1316,7 @@ def test_width_contract(value: object, expected_rule: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `optional restriction source contract`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1411,7 +1343,7 @@ assert _row({field: value}).road_proxy_primary_rule == expected_rule
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `optional restriction source contract` through the exact asserted conditions: `_row({field: value}).road_proxy_primary_rule == expected_rule`.
 
 **Test boundary**
 
@@ -1430,7 +1362,7 @@ def test_optional_restriction_source_contract(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every configured known restriction is applied`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1460,7 +1392,7 @@ policy = load_ign_road_vehicle_proxy_policy()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `every configured known restriction is applied` through the exact asserted conditions: `_row({'restriction_nature_raw': restriction}).road_proxy_primary_rule == 'KNOWN_RESTRICTION'`.
 
 **Test boundary**
 
@@ -1481,7 +1413,7 @@ def test_every_configured_known_restriction_is_applied() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `general fallback requires complete positive evidence and tracks toll`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1512,7 +1444,7 @@ assert toll_row.road_proxy_toll_evidence
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `general fallback requires complete positive evidence and tracks toll` through the exact asserted conditions: `open_row.road_proxy_class == 'GENERAL_VEHICLE_PROXY'`; `not open_row.road_proxy_toll_evidence`; `toll_row.road_proxy_class == 'GENERAL_VEHICLE_PROXY'`; `toll_row.road_proxy_toll_evidence`.
 
 **Test boundary**
 
@@ -1535,7 +1467,7 @@ def test_general_fallback_requires_complete_positive_evidence_and_tracks_toll() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `open access does not hide unresolved evidence`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1562,7 +1494,7 @@ assert _row(overrides).road_proxy_primary_rule == "UNKNOWN"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `open access does not hide unresolved evidence` through the exact asserted conditions: `_row(overrides).road_proxy_primary_rule == 'UNKNOWN'`.
 
 **Test boundary**
 
@@ -1581,7 +1513,7 @@ def test_open_access_does_not_hide_unresolved_evidence(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `trace is complete unique and in policy order`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1622,7 +1554,7 @@ assert row.road_proxy_primary_rule == "PRIVATE_ROAD"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `trace is complete unique and in policy order` through the exact asserted conditions: `row.road_proxy_rule_trace_json == expected`; `row.road_proxy_primary_rule == 'PRIVATE_ROAD'`.
 
 **Test boundary**
 
@@ -1655,7 +1587,7 @@ def test_trace_is_complete_unique_and_in_policy_order() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `known higher rule remains primary while unknown is traced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1684,7 +1616,7 @@ assert row.road_proxy_unknown_fields_json == '["importance_raw"]'
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `known higher rule remains primary while unknown is traced` through the exact asserted conditions: `row.road_proxy_primary_rule == 'PRIVATE_ROAD'`; `row.road_proxy_rule_trace_json == '["PRIVATE_ROAD","UNKNOWN"]'`; `row.road_proxy_unknown_fields_json == '["importance_raw"]'`.
 
 **Test boundary**
 
@@ -1705,7 +1637,7 @@ def test_known_higher_rule_remains_primary_while_unknown_is_traced() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown fields trace is fixed and deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1750,7 +1682,7 @@ assert _row().road_proxy_unknown_fields_json == "[]"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unknown fields trace is fixed and deterministic` through the exact asserted conditions: `row.road_proxy_unknown_fields_json == '["fictitious_raw","asset_status_raw","nature_raw","light_vehicle_access_raw","private_raw","importance_raw","carriageway_width_raw","closure_period_raw","restriction_nature_raw"]'`; `_row().road_proxy_unknown_fields_json == '[]'`.
 
 **Test boundary**
 
@@ -1786,7 +1718,7 @@ def test_unknown_fields_trace_is_fixed_and_deterministic() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy lineage is exact on every row`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1821,7 +1753,7 @@ assert set(result.road_proxy_heavy_vehicle_access) == {"NOT_PROVEN"}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `policy lineage is exact on every row` through the exact asserted conditions: `set(result.road_proxy_policy_id) == {policy.policy_id}`; `set(result.road_proxy_policy_schema_version) == {policy.schema_version}`; `set(result.road_proxy_policy_config_sha256) == {policy.config_sha256}`; `set(result.road_proxy_policy_scope) == {policy.scope}`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1849,7 +1781,7 @@ def test_policy_lineage_is_exact_on_every_row() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `result is frozen and contains no unsafe claim vocabulary`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1891,7 +1823,7 @@ assert all(token not in produced for token in forbidden)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `result is frozen and contains no unsafe claim vocabulary`: the reproduced adversarial input must raise `FrozenInstanceError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1925,7 +1857,7 @@ def test_result_is_frozen_and_contains_no_unsafe_claim_vocabulary() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid geometry status with unsupported geometry is not repaired`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1958,7 +1890,7 @@ assert roads.geometry.iloc[0].equals_exact(polygon, tolerance=0)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid geometry status with unsupported geometry is not repaired`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1987,7 +1919,7 @@ def test_valid_geometry_status_with_unsupported_geometry_is_not_repaired() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy path must be path or none`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2017,7 +1949,7 @@ with pytest.raises(IgnRoadVehicleProxyApplicationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `policy path must be path or none`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2037,7 +1969,7 @@ def test_policy_path_must_be_path_or_none() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source config is exact pydantic type`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2068,7 +2000,7 @@ with pytest.raises(IgnRoadVehicleProxyApplicationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `source config is exact pydantic type`: the reproduced adversarial input must raise `IgnRoadVehicleProxyApplicationError` before the prohibited success path.
 
 **Test boundary**
 

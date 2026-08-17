@@ -5,7 +5,7 @@
 - Repository path: `docs/DEV_LOG.md`
 - File type: Markdown
 - Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `ca4d5cce1a32512dd40d519b915ae2cd5697e5fb69c126cf67bea8430e9edf40`
+- Source SHA256: `558deb28047465c0b3de72bffc1173eab97390e9e0332eda94e25036154b0385`
 
 ## 1. Purpose
 
@@ -29,10 +29,27 @@ Its exact content is reproduced below. No Python alias, frame column, model fiel
 ## Current project state
 
 - Current phase: Technical-reference fidelity correction
-- Latest completed step: STEP 7F.1A.3.1
+- Latest completed step: STEP 7F.1A.3.2
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of STEP 7F.1A.3.1; no functional step selected
+- Next step waiting for review: independent review of STEP 7F.1A.3.2; no functional step selected
+
+## STEP 7F.1A.3.2 — Correct qualified-reference ownership and semantic documentation
+
+- Status: Complete. This documentation-only correction addresses the remaining independent-review findings from STEP 7F.1A.3.1 without modifying source, tests, configuration, dependencies, lock resolution, README content, generated artifacts, or production behavior.
+- Qualified ownership: the repository reference graph now keys every declaration by repository module path plus lexical qualified name. Unqualified names resolve only through their current lexical/module binding; cross-module relationships require a resolved import, qualified module access, explicit re-export, statically proven receiver ownership, or an explicitly passed repository function object. The 44,905-entry legacy graph was re-audited and replaced by 8,942 conservative qualified relationships. Among relationships that STEP 7F.1A.3.1 published in companions, 449 false cross-module same-name claims and 26 false same-file lexical-scope claims were removed.
+- Relationship semantics: all 1,499 legacy combined import-or-re-export classifications were re-evaluated as exact imports or explicit public re-exports; the final graph contains 514 imports and 210 re-exports. The 27,257 legacy callback/property heuristics were removed or replaced with proven constructor, direct-call, method-call, property-access, function-object, expected-exception, decorator, annotation, or value-reference relationships. Repeated constants and helpers such as `DOWNLOAD_CHUNK_SIZE`, `RESULT_HASH_SCHEMA_VERSION`, `CALCULATION_CRS`, `SPATIAL_ROLE`, `_index`, `_zones`, `_source`, `_config`, `_context`, `_result`, `_policy`, `_summary`, and `_frame` now remain bound to their actual owner and lexical scope.
+- Side effects: all 803 production functions and methods were re-audited from their actual operations; 803 generated side-effect blocks and 6,090 category statements were corrected. Exception construction, raising, pure validation, and scalar comparison no longer imply network or filesystem I/O. In particular, `rte_odre_fr._validate_records_count` now records no network I/O, filesystem read, filesystem write, hashing, or input mutation and describes only its in-memory comparison/validation behavior.
+- Deterministic semantics: 525 model/field descriptions and 54 type-alias descriptions were corrected to state source-level meaning rather than annotation-shaped heuristics. The safe-HTTPS hostname/port/request-target/address and TLS-context fields, parcel geometry alias and shape metrics, source/result lineage, configuration constraints, and effective frame validators now have owner-specific semantics. Runtime Pydantic representations and process memory addresses are absent. Configuration companions describe `Field`, `StringConstraints`, `Literal`, `Annotated`, validators, and cross-field checks deterministically; `load_scan_config` is correctly documented as parsing/validating the scan and referenced profile without hashing profile YAML bytes.
+- Tests and stages: 928 test regression descriptions were rewritten to name the concrete invariant locked by their actual setup, exception, and assertions while preserving the detailed DNS-rebinding, cache-recovery, and UP/AUp ICPE regressions. All 23 stage companions now use an accurate normalization, enrichment, screening, diagnostic, compilation, application/precheck, aggregation, or artifact/loading functional layer instead of a generic policy-stage label. Effective frame contracts include value-level identity, null, uniqueness, canonicalization, dtype, index, CRS, geometry, and preservation checks where the owning validator enforces them.
+- Cadastre trust terminology: architecture, data-flow, source-trust, Cadastre-pipeline, and loader-companion documentation now consistently describe `load_cadastre_parcels` as byte/physical-integrity validation against a supplied `CadastreDownload` envelope. The loader adds no lineage columns and does not independently re-pin the official Cadastre host, so it is not documented as equivalent to the stronger IGN source-complete revalidation boundary.
+- Documentation audit: all 100 companions remain present and exactly SHA-bound, with zero missing/extra companions, source-SHA mismatches, undocumented symbols/aliases/constants/exports/tests, frame-schema conflicts, runtime addresses, generic regression/field phrases, ambiguous relationship labels, generic stage labels, truncation markers, Markdown-fence defects, or conflict markers. All 15 cross-cutting documents were checked against source; the public API tables retain exact import, origin, re-export, and `__all__` distinctions.
+- Validation: the first pytest invocation used a nested relative base-temp path whose parent did not exist on Windows and therefore produced setup-only `FileNotFoundError` errors. After creating the repository-local parent, the unchanged authoritative full suite passed 2,842 tests with 4 expected geometry/CRS warnings in 650.99 seconds. Repository Ruff passed; mypy reported no issues in 45 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible installed packages; and the deterministic documentation auditor and `git diff --check` passed.
+- Boundary: no source acquisition, cache behavior, geometry, parcel, grid, road, planning, environmental, policy, score, rank, decision, ownership, export, legal, or engineering behavior changed.
+
+### CODE FOLLOW-UP OBSERVATIONS
+
+- The Cadastre loader follow-up from STEP 7F.1A.3.1 remains open: `load_cadastre_parcels` validates the supplied envelope and physical gzip bytes but does not independently establish that a separately supplied envelope originated from the official Cadastre host. This ticket corrects documentation terminology only and does not change that source boundary.
 
 ## STEP 7F.1A.3.1 — Rebuild documentation fidelity from source semantics
 

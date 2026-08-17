@@ -87,7 +87,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 DOCUMENT_ID = "doc-1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value reference), `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` (value reference), `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` (value reference), `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` (value reference), `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` (value reference), `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_renamed_feature_identity` (value reference).
 
 #### `ARCHIVE_NAME`
 
@@ -95,7 +95,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ARCHIVE_NAME = "31395_PLU_20240215"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_source_frame` (value reference), `tests/unit/test_enrich_planning_features.py::_planning_document` (value reference), `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` (value reference).
 
 #### `ARCHIVE_SHA`
 
@@ -103,7 +103,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ARCHIVE_SHA = "a" * 64
 ```
 
-Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value reference), `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` (value reference).
 
 #### `STANDARD`
 
@@ -111,7 +111,7 @@ Hash identity, algorithm, or canonical-content field used by the named integrity
 STANDARD = "CNIG PLU v2017"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value reference).
 
 #### `LOCAL_ENGINEERING_CRS`
 
@@ -123,7 +123,7 @@ LOCAL_ENGINEERING_CRS = (
 )
 ```
 
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` (value argument/reference).
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -172,60 +172,39 @@ Polygon([(x1, y1), (x1, y2), (x2, y2), (x2, y1), (x1, y1)])
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_parcels` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_parcels` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_zones` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_raw_zoning_values_are_preserved_exactly` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_intersection_table_references_only_known_parcels_and_zones` via `_rectangle`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_parcels` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_rectangle`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_rectangle`.
 
 **Complete source-ordered implementation**
 
@@ -272,117 +251,34 @@ frame.set_crs(None, allow_override=True)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `frame.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_run` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_parcels`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -452,52 +348,52 @@ frame.set_crs(crs, allow_override=True)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `frame.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_source_frame`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_source_frame`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_source_frame`.
 
 **Complete source-ordered implementation**
 
@@ -575,29 +471,24 @@ GpuLayerSummary(source_document_id=document_id, source_archive_sha256=archive_sh
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.isna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
 
 **Complete source-ordered implementation**
 
@@ -666,52 +557,52 @@ GpuInspectedLayer(logical_name=logical, reference=reference, data=frame, summary
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_inspected`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_inspected`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_inspected`.
 
 **Complete source-ordered implementation**
 
@@ -762,20 +653,19 @@ tuple(records)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.read_bytes`, `path.stat`, `sha256(path.read_bytes()).hexdigest`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `item.is_file`, `path.read_bytes`, `path.stat`, `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(path.read_bytes()).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `records`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_physical_inventory`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_physical_inventory`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_physical_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_physical_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_physical_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -830,20 +720,19 @@ Serializes extraction manifest; exact branches, calls, and return construction a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `(root / EXTRACTION_MANIFEST_NAME).write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_write_extraction_manifest`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_write_extraction_manifest`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_write_extraction_manifest`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_write_extraction_manifest`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_write_extraction_manifest`.
 
 **Complete source-ordered implementation**
 
@@ -902,18 +791,18 @@ replace(layer, reference=replace(reference, dataset_path=path), data=reread, sum
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `gpd.read_file`.
+- Network I/O: none.
+- Filesystem read: `gpd.read_file`, `reference.dataset_path.is_file`.
 - Filesystem write: `layer.data.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_materialize_layer`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_materialize_layer`.
 
 **Complete source-ordered implementation**
 
@@ -978,36 +867,27 @@ GpuPlanningDocument(extraction=extraction, all_spatial_layers=(zoning_ref, *(lay
 
 **Side effects**
 
-- Network I/O: `GpuArchiveDownload`.
-- Filesystem read: `gpd.read_file`.
+- Network I/O: none.
+- Filesystem read: `gpd.read_file`, `layer.reference.dataset_path.is_file`.
 - Filesystem write: `zoning_frame.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_run` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_planning_document`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_planning_document`.
 
 **Complete source-ordered implementation**
 
@@ -1133,77 +1013,49 @@ intersect_parcels_with_gpu_planning_features(parcels if parcels is not None else
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_is_frozen` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_optional_layer_families_return_stable_empty_catalogs` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_empty_and_nonempty_catalogs_have_identical_kind_schemas` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_result_container_is_frozen` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_raw_zoning_values_are_preserved_exactly` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_intersection_table_references_only_known_parcels_and_zones` via `_run`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_result_frames_are_independent_from_inputs` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_result_is_frozen` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_full_overlap_normalizes_raw_values_and_lineage` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_surface_partial_and_touch_relations` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_overlapping_surface_union_is_not_double_counted` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_polygon_and_multipolygon_surfaces` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_crossing_and_partly_inside` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_line_boundary_touch_is_zero_length` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_linestring_and_multilinestring` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_points_inside_boundary_outside_and_multipoint` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_optional_layer_families_return_stable_empty_catalogs` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_optional_raw_source_fields_are_not_fabricated` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_present_empty_optional_layer_is_valid` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_empty_and_nonempty_catalogs_have_identical_kind_schemas` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_same_source_id_is_allowed_in_distinct_logical_layers` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `_run`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_gpu_source_z_is_normalized_to_canonical_2d` via `_run`.
 
 **Complete source-ordered implementation**
 
@@ -1226,7 +1078,7 @@ def _run(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `only high level api is exported`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1261,7 +1113,7 @@ assert "ParcelPlanningFeaturesResult" in stages.__all__
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `only high level api is exported` through the exact asserted conditions: `stages.intersect_parcels_with_gpu_planning_features is intersect_parcels_with_gpu_planning_features`; `'intersect_parcels_with_gpu_planning_features' in stages.__all__`; `stages.PlanningFeaturesError is PlanningFeaturesError`; `stages.ParcelPlanningFeaturesResult is ParcelPlanningFeaturesResult`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1286,7 +1138,7 @@ def test_only_high_level_api_is_exported() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `result is frozen`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1314,7 +1166,7 @@ with pytest.raises(FrozenInstanceError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `result is frozen`: the reproduced adversarial input must raise `FrozenInstanceError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1333,7 +1185,7 @@ def test_result_is_frozen() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `surface full overlap normalizes raw values and lineage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1469,7 +1321,7 @@ def test_surface_full_overlap_normalizes_raw_values_and_lineage() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `surface partial and touch relations`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1506,7 +1358,7 @@ assert result.parcels.iloc[0]["planning_surface_touch_count"] == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `surface partial and touch relations` through the exact asserted conditions: `relations.loc['PART', 'relation_type'] == 'AREA_OVERLAP'`; `relations.loc['PART', 'intersection_area_m2'] == pytest.approx(50.0)`; `relations.loc['TOUCH', 'relation_type'] == 'TOUCH_ONLY'`; `relations.loc['TOUCH', 'intersection_area_m2'] == pytest.approx(0.0)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1534,7 +1386,7 @@ def test_surface_partial_and_touch_relations() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `overlapping surface union is not double counted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1583,7 +1435,7 @@ assert parcel["information_surface_covered_union_area_m2"] == pytest.approx(50.0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `overlapping surface union is not double counted` through the exact asserted conditions: `parcel['planning_surface_intersection_area_sum_m2'] == pytest.approx(150.0)`; `parcel['planning_surface_covered_union_area_m2'] == pytest.approx(100.0)`; `parcel['planning_surface_covered_pct'] == pytest.approx(100.0)`; `parcel['prescription_surface_covered_union_area_m2'] == pytest.approx(100.0)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1623,7 +1475,7 @@ def test_overlapping_surface_union_is_not_double_counted() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `polygon and multipolygon surfaces`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1657,7 +1509,7 @@ assert result.relations.iloc[0]["intersection_area_m2"] > 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `polygon and multipolygon surfaces` through the exact asserted conditions: `len(result.relations) == 1`; `result.relations.iloc[0]['intersection_area_m2'] > 0`.
 
 **Test boundary**
 
@@ -1682,7 +1534,7 @@ def test_polygon_and_multipolygon_surfaces(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line crossing and partly inside`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1723,7 +1575,7 @@ assert parcel["planning_line_intersection_length_sum_m"] == pytest.approx(15.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `line crossing and partly inside` through the exact asserted conditions: `relations.loc['CROSS', 'relation_type'] == 'LENGTH_OVERLAP'`; `relations.loc['CROSS', 'intersection_length_m'] == pytest.approx(10.0)`; `relations.loc['CROSS', 'source_line_length_m'] == pytest.approx(20.0)`; `relations.loc['PART', 'intersection_length_m'] == pytest.approx(5.0)`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1755,7 +1607,7 @@ def test_line_crossing_and_partly_inside() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line boundary touch is zero length`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1789,7 +1641,7 @@ assert result.parcels.iloc[0]["planning_line_touch_count"] == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `line boundary touch is zero length` through the exact asserted conditions: `result.relations.iloc[0]['relation_type'] == 'TOUCH_ONLY'`; `result.relations.iloc[0]['intersection_length_m'] == pytest.approx(0.0)`; `result.parcels.iloc[0]['planning_line_touch_count'] == 1`.
 
 **Test boundary**
 
@@ -1814,7 +1666,7 @@ def test_line_boundary_touch_is_zero_length() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `linestring and multilinestring`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1847,7 +1699,7 @@ assert result.relations.iloc[0]["intersection_length_m"] > 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `linestring and multilinestring` through the exact asserted conditions: `result.relations.iloc[0]['intersection_length_m'] > 0`.
 
 **Test boundary**
 
@@ -1871,7 +1723,7 @@ def test_linestring_and_multilinestring(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `points inside boundary outside and multipoint`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1920,7 +1772,7 @@ assert parcel["planning_point_boundary_count"] == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `points inside boundary outside and multipoint` through the exact asserted conditions: `set(relations.index) == {'IN', 'BOUNDARY', 'MULTI'}`; `relations.loc['IN', 'relation_type'] == 'INSIDE'`; `relations.loc['BOUNDARY', 'relation_type'] == 'BOUNDARY_TOUCH'`; `relations.loc['MULTI', 'point_member_count'] == 3`; plus 5 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1960,7 +1812,7 @@ def test_points_inside_boundary_outside_and_multipoint() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing optional layer families return stable empty catalogs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2017,7 +1869,7 @@ def test_missing_optional_layer_families_return_stable_empty_catalogs() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `optional raw source fields are not fabricated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2056,7 +1908,7 @@ for column in (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `optional raw source fields are not fabricated` through the exact asserted conditions: `pd.isna(feature[column])`.
 
 **Test boundary**
 
@@ -2085,7 +1937,7 @@ def test_optional_raw_source_fields_are_not_fabricated() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `epsg4326 parcels are measured in lambert93 but preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2154,7 +2006,7 @@ def test_epsg4326_parcels_are_measured_in_lambert93_but_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid parcel ids are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2182,7 +2034,7 @@ with pytest.raises(PlanningFeaturesError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid parcel ids are rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2200,7 +2052,7 @@ def test_invalid_parcel_ids_are_rejected(bad_id: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel ids are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2231,7 +2083,7 @@ with pytest.raises(PlanningFeaturesError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel ids are rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2252,7 +2104,7 @@ def test_duplicate_parcel_ids_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate source ids are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2284,7 +2136,7 @@ with pytest.raises(PlanningFeaturesError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate source ids are rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2307,7 +2159,7 @@ def test_duplicate_source_ids_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `prescription surface uses validated source ogr fid when cnig id absent`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2361,7 +2213,7 @@ assert result.surface_features.iloc[0]["planning_feature_id"] == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `prescription surface uses validated source ogr fid when cnig id absent` through the exact asserted conditions: `result.surface_features.iloc[0]['source_feature_id'] == 'OGR_FID:0'`; `result.surface_features.iloc[0]['source_identity_kind'] == 'ARCHIVE_SCOPED_OGR_FID'`; `result.surface_features.iloc[0]['source_identity_field'] == 'OGR_FID'`; `result.surface_features.iloc[0]['planning_feature_id'] == f'GPU:{DOCUMENT_ID}:prescription_surface:OGR_FID:0'`.
 
 **Test boundary**
 
@@ -2408,7 +2260,7 @@ def test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `geopackage prescription surface uses sealed ogr fid fallback`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2444,7 +2296,7 @@ assert feature["planning_feature_id"] == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `geopackage prescription surface uses sealed ogr fid fallback` through the exact asserted conditions: `feature['source_feature_id'] == 'OGR_FID:1'`; `feature['source_identity_kind'] == 'ARCHIVE_SCOPED_OGR_FID'`; `feature['source_identity_field'] == 'OGR_FID'`; `feature['planning_feature_id'] == f'GPU:{DOCUMENT_ID}:prescription_surface:OGR_FID:1'`.
 
 **Test boundary**
 
@@ -2471,7 +2323,7 @@ def test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `idurba mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2501,7 +2353,7 @@ with pytest.raises(PlanningFeaturesError, match="IDURBA"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `idurba mismatch is rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2522,7 +2374,7 @@ def test_idurba_mismatch_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing required source fields fail`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2552,7 +2404,7 @@ with pytest.raises(PlanningFeaturesError, match=missing):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing required source fields fail`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2573,7 +2425,7 @@ def test_missing_required_source_fields_fail(missing: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong geometry kind is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2601,7 +2453,7 @@ with pytest.raises(PlanningFeaturesError, match="geometry"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong geometry kind is rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2619,7 +2471,7 @@ def test_wrong_geometry_kind_is_rejected(logical: str, geometry: object) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid surface geometry is rejected without repair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2654,7 +2506,7 @@ with pytest.raises(PlanningFeaturesError, match="valid"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid surface geometry is rejected without repair`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2680,7 +2532,7 @@ def test_invalid_surface_geometry_is_rejected_without_repair() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null or empty source geometry is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2731,7 +2583,7 @@ def test_null_or_empty_source_geometry_is_rejected(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2788,7 +2640,7 @@ def test_missing_crs_is_rejected(target: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unusable source crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2839,7 +2691,7 @@ def test_unusable_source_crs_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutated source summary is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2900,7 +2752,7 @@ def test_mutated_source_summary_is_rejected(field: str, value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source summary counts are strict integers`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2940,7 +2792,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `source summary counts are strict integers`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2971,7 +2823,7 @@ def test_source_summary_counts_are_strict_integers(bad_count: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `reserved output column collision is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3000,7 +2852,7 @@ with pytest.raises(PlanningFeaturesError, match="output columns"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `reserved output column collision is rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3020,7 +2872,7 @@ def test_reserved_output_column_collision_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `inputs and all existing parcel fields are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3060,7 +2912,7 @@ assert np.array_equal(result.parcels.geometry.to_wkb(), parcels.geometry.to_wkb(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `inputs and all existing parcel fields are preserved` through the exact asserted conditions: `result.parcels['parcel_id'].tolist() == parcels['parcel_id'].tolist()`; `result.parcels.index.equals(parcels.index)`; `result.parcels['existing_zoning_fact'].equals(parcels['existing_zoning_fact'])`; `np.array_equal(result.parcels.geometry.to_wkb(), parcels.geometry.to_wkb())`.
 
 **Test boundary**
 
@@ -3092,7 +2944,7 @@ def test_inputs_and_all_existing_parcel_fields_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relations are unique deterministic and summaries agree`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3145,7 +2997,7 @@ assert first["planning_line_intersection_length_sum_m"] == pytest.approx(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `relations are unique deterministic and summaries agree` through the exact asserted conditions: `not result.relations.duplicated(['parcel_id', 'planning_feature_id']).any()`; `result.relations['parcel_id'].tolist() == ['P-B', 'P-B', 'P-A']`; `first['planning_surface_relation_count'] == int(((result.relations['parcel_id'] == 'P-B') & (result.relations['geometry_kind'] == 'SURFACE')).sum())`; `first['planning_line_intersection_length_sum_m'] == pytest.approx(result.relations.loc[(result.relations['parcel_id'] == 'P-B') & (result.relations['geometry_kind'] == 'LINE'), 'intersection_length_m'].sum())`.
 
 **Test boundary**
 
@@ -3189,7 +3041,7 @@ def test_relations_are_unique_deterministic_and_summaries_agree() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `result frames are independent from mutable inputs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3225,7 +3077,7 @@ assert_frame_equal(result.relations, snapshot)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `result frames are independent from mutable inputs` by requiring the reproduced call path `_parcels`, `_inspected`, `_run`, `deepcopy` without an unasserted exception.
 
 **Test boundary**
 
@@ -3251,7 +3103,7 @@ def test_result_frames_are_independent_from_mutable_inputs() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `present empty optional layer is valid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3375,27 +3227,27 @@ Private `test` helper for contract result; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_empty_and_nonempty_catalogs_have_identical_kind_schemas` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_contract_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_empty_and_nonempty_catalogs_have_identical_kind_schemas` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_contract_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_contract_result`.
 
 **Complete source-ordered implementation**
 
@@ -3471,56 +3323,56 @@ Private `test` helper for source complete contract; its complete implementation 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_complete_parcel_output_summaries` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_duplicate_parcel_ids` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_invalid_parcel_geometry` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_renamed_feature_identity` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_independent_gpu_lineage_mutation` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_gpu_document_context` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_three_dimensional_normalized_catalogs_are_rejected` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_two_dimensional_normalized_catalogs_remain_valid` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_size` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_gpkg_bytes` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_complete_parcel_output_summaries` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_duplicate_parcel_ids` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_invalid_parcel_geometry` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_renamed_feature_identity` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_independent_gpu_lineage_mutation` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_gpu_document_context` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_three_dimensional_normalized_catalogs_are_rejected` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_two_dimensional_normalized_catalogs_remain_valid` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_size` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_gpkg_bytes` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `_source_complete_contract`.
 
 **Complete source-ordered implementation**
 
@@ -3603,22 +3455,22 @@ Build equal-area parcels so relation identity cannot hide behind area checks.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `_two_parcel_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `_two_parcel_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `_two_parcel_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `_two_parcel_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `_two_parcel_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `_two_parcel_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `_two_parcel_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `_two_parcel_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `_two_parcel_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `_two_parcel_source_complete_contract`.
 
 **Complete source-ordered implementation**
 
@@ -3696,61 +3548,61 @@ validate_normalized_planning_feature_inputs(planning_document, parcels, result.s
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_complete_parcel_output_summaries` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_duplicate_parcel_ids` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_invalid_parcel_geometry` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_renamed_feature_identity` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_independent_gpu_lineage_mutation` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_gpu_document_context` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_three_dimensional_normalized_catalogs_are_rejected` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_two_dimensional_normalized_catalogs_remain_valid` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_size` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_gpkg_bytes` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_every_shapefile_sidecar` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_requires_shapefile_core_members` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` via `_validate_source_complete`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_complete_parcel_output_summaries` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_duplicate_parcel_ids` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_invalid_parcel_geometry` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_renamed_feature_identity` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_independent_gpu_lineage_mutation` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_gpu_document_context` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_three_dimensional_normalized_catalogs_are_rejected` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_two_dimensional_normalized_catalogs_remain_valid` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_tampered_gpkg_size` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_gpkg_bytes` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_every_shapefile_sidecar` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_requires_shapefile_core_members` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` via `_validate_source_complete`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_validate_source_complete`.
 
 **Complete source-ordered implementation**
 
@@ -3805,18 +3657,18 @@ replace(planning_document, related_layers=tuple(related))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `related`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_replace_related_layer`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_reloads_and_compares_source_catalog` via `_replace_related_layer`.
 
 **Complete source-ordered implementation**
 
@@ -3875,18 +3727,18 @@ replace(planning_document, related_layers=tuple((layer for layer in planning_doc
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_without_related_layer`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` via `_without_related_layer`.
 
 **Complete source-ordered implementation**
 
@@ -3938,21 +3790,21 @@ replace(planning_document, extraction=replace(extraction, files=files))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_refresh_extraction_inventory`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_refresh_extraction_inventory`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_refresh_extraction_inventory`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_refresh_extraction_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherently_changed_physical_gpkg` via `_refresh_extraction_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_physical_gpkg_geometry` via `_refresh_extraction_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_refresh_extraction_inventory`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_refresh_extraction_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -4011,18 +3863,18 @@ replace(planning_document, related_layers=related, all_spatial_layers=spatial)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_replace_layer_reference`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_dataset_outside_extraction_root` via `_replace_layer_reference`.
 
 **Complete source-ordered implementation**
 
@@ -4062,7 +3914,7 @@ def _replace_layer_reference(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public normalized input contract validates step 7d 3 1 result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4140,7 +3992,7 @@ def test_public_normalized_input_contract_validates_step_7d_3_1_result() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public normalized input contract wraps malformed document context`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4191,7 +4043,7 @@ def test_public_normalized_input_contract_wraps_malformed_document_context() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract binds inspected spatial inventory`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4240,7 +4092,7 @@ def test_source_complete_contract_binds_inspected_spatial_inventory() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public normalized input contract is exported`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4273,7 +4125,7 @@ assert "PlanningFeatureInputValidation" in stages.__all__
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public normalized input contract is exported` through the exact asserted conditions: `stages.validate_normalized_planning_feature_inputs is validate_normalized_planning_feature_inputs`; `'validate_normalized_planning_feature_inputs' in stages.__all__`; `stages.PlanningFeatureInputValidation is PlanningFeatureInputValidation`; `'PlanningFeatureInputValidation' in stages.__all__`.
 
 **Test boundary**
 
@@ -4298,7 +4150,7 @@ def test_public_normalized_input_contract_is_exported() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public source validation hashes survive parquet readback`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4382,7 +4234,7 @@ def test_public_source_validation_hashes_survive_parquet_readback(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public normalized input contract rejects stripped catalog`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4445,7 +4297,7 @@ def test_public_normalized_input_contract_rejects_stripped_catalog() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty and nonempty catalogs have identical kind schemas`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4483,7 +4335,7 @@ for populated_catalog, empty_catalog in zip(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `empty and nonempty catalogs have identical kind schemas` through the exact asserted conditions: `list(empty_catalog.columns) == list(populated_catalog.columns)`.
 
 **Test boundary**
 
@@ -4511,7 +4363,7 @@ def test_empty_and_nonempty_catalogs_have_identical_kind_schemas() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `strict relation integer counts are enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4578,7 +4430,7 @@ def test_strict_relation_integer_counts_are_enforced(bad_count: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `strict parcel summary integer counts are enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4615,7 +4467,7 @@ with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `strict parcel summary integer counts are enforced`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4645,7 +4497,7 @@ def test_strict_parcel_summary_integer_counts_are_enforced(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted relation semantics are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4681,7 +4533,7 @@ with pytest.raises(PlanningFeaturesError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupted relation semantics are rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4712,7 +4564,7 @@ def test_corrupted_relation_semantics_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `point member relation semantics are exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4748,7 +4600,7 @@ with pytest.raises(PlanningFeaturesError, match="relation type"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `point member relation semantics are exact`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4775,7 +4627,7 @@ def test_point_member_relation_semantics_are_exact() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shared intrinsic relation semantics reject every invalid case`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4838,7 +4690,7 @@ with pytest.raises((TypeError, ValueError)):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shared intrinsic relation semantics reject every invalid case`: the reproduced adversarial input must raise `(TypeError, ValueError)` before the prohibited success path.
 
 **Test boundary**
 
@@ -4894,7 +4746,7 @@ def test_shared_intrinsic_relation_semantics_reject_every_invalid_case(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation must match feature catalog`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4968,7 +4820,7 @@ def test_relation_must_match_feature_catalog(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `feature ids are globally unique across catalogs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5004,7 +4856,7 @@ with pytest.raises(PlanningFeaturesError, match="globally unique|deterministic")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `feature ids are globally unique across catalogs`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5031,7 +4883,7 @@ def test_feature_ids_are_globally_unique_across_catalogs() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `same source id is allowed in distinct logical layers`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5074,7 +4926,7 @@ assert result.relations["planning_feature_id"].nunique() == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `same source id is allowed in distinct logical layers` through the exact asserted conditions: `len(result.relations) == 2`; `result.relations['planning_feature_id'].nunique() == 2`.
 
 **Test boundary**
 
@@ -5108,7 +4960,7 @@ def test_same_source_id_is_allowed_in_distinct_logical_layers() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted parcel summary is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5142,7 +4994,7 @@ with pytest.raises(PlanningFeaturesError, match="inconsistent with relations"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupted parcel summary is rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5167,7 +5019,7 @@ def test_corrupted_parcel_summary_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted surface union contract is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5201,7 +5053,7 @@ with pytest.raises(PlanningFeaturesError, match="union"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupted surface union contract is rejected`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5226,7 +5078,7 @@ def test_corrupted_surface_union_contract_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `geospatial operation failure is controlled and chained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5261,7 +5113,7 @@ assert isinstance(caught.value.__cause__, RuntimeError)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `geospatial operation failure is controlled and chained`: the reproduced adversarial input must raise `PlanningFeaturesError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5311,18 +5163,18 @@ Private `test` helper for fail join; its complete implementation below is the au
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `monkeypatch.setattr(planning_features_module.gpd, 'sjoin', fail_join)`.
+- function object argument: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `monkeypatch.setattr(planning_features_module.gpd, 'sjoin', fail_join)`.
 
 **Complete source-ordered implementation**
 
@@ -5339,7 +5191,7 @@ def fail_join(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects unknown relation parcel`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5392,7 +5244,7 @@ def test_source_complete_contract_rejects_unknown_relation_parcel() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects coherent parcel metric mutation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5449,7 +5301,7 @@ def test_source_complete_contract_rejects_coherent_parcel_metric_mutation() -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects same area wrong parcel relation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5502,7 +5354,7 @@ def test_source_complete_contract_rejects_same_area_wrong_parcel_relation() -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects missing expected relation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5551,7 +5403,7 @@ def test_source_complete_contract_rejects_missing_expected_relation() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects extra geometrically false relation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5606,7 +5458,7 @@ def test_source_complete_contract_rejects_extra_geometrically_false_relation() -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects reordered relations`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5657,7 +5509,7 @@ def test_source_complete_contract_rejects_reordered_relations() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects noncanonical relation dtype`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5715,7 +5567,7 @@ def test_source_complete_contract_rejects_noncanonical_relation_dtype(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects relation index name change`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5770,7 +5622,7 @@ def test_source_complete_contract_rejects_relation_index_name_change() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects relation index dtype change`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5833,7 +5685,7 @@ def test_source_complete_contract_rejects_relation_index_dtype_change() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects relation index class change`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5902,7 +5754,7 @@ def test_source_complete_contract_rejects_relation_index_class_change() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `expected relation hash binds dtype and index metadata`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6001,7 +5853,7 @@ def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects coherent but wrong line metric`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6056,7 +5908,7 @@ def test_source_complete_contract_rejects_coherent_but_wrong_line_metric() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract accepts complete parcel output summaries`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6102,7 +5954,7 @@ def test_source_complete_contract_accepts_complete_parcel_output_summaries() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects partial parcel output columns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6153,7 +6005,7 @@ def test_source_complete_contract_rejects_partial_parcel_output_columns() -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects corrupted complete parcel summaries`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6204,7 +6056,7 @@ def test_source_complete_contract_rejects_corrupted_complete_parcel_summaries() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects noncanonical parcel summary dtype`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6259,7 +6111,7 @@ def test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype() ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects each corrupted parcel summary fact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6319,7 +6171,7 @@ def test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects duplicate parcel ids`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6370,7 +6222,7 @@ def test_source_complete_contract_rejects_duplicate_parcel_ids() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects invalid parcel geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6425,7 +6277,7 @@ def test_source_complete_contract_rejects_invalid_parcel_geometry() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract accepts epsg4326 parcels`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6474,7 +6326,7 @@ def test_source_complete_contract_accepts_epsg4326_parcels() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source document reference allows one archive zip suffix`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6550,7 +6402,7 @@ def test_source_document_reference_allows_one_archive_zip_suffix() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects coherently renamed feature identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6621,7 +6473,7 @@ def test_source_complete_contract_rejects_coherently_renamed_feature_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects independent gpu lineage mutation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6685,7 +6537,7 @@ def test_source_complete_contract_rejects_independent_gpu_lineage_mutation(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract binds gpu document context`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6759,7 +6611,7 @@ def test_source_complete_contract_binds_gpu_document_context(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract reloads and compares source catalog`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6860,7 +6712,7 @@ def test_source_complete_contract_reloads_and_compares_source_catalog(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects catalog for absent gpu layer`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6909,7 +6761,7 @@ def test_source_complete_contract_rejects_catalog_for_absent_gpu_layer() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `three dimensional normalized catalogs are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6965,7 +6817,7 @@ def test_three_dimensional_normalized_catalogs_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `two dimensional normalized catalogs remain valid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7023,7 +6875,7 @@ def test_two_dimensional_normalized_catalogs_remain_valid() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `gpu source z is normalized to canonical 2d`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7051,7 +6903,7 @@ assert not catalog.geometry.has_z.any()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `gpu source z is normalized to canonical 2d` through the exact asserted conditions: `not catalog.geometry.has_z.any()`.
 
 **Test boundary**
 
@@ -7074,7 +6926,7 @@ def test_gpu_source_z_is_normalized_to_canonical_2d(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects tampered gpkg inventory hash`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7145,7 +6997,7 @@ def test_source_complete_contract_rejects_tampered_gpkg_inventory_hash() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects tampered gpkg size`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7220,7 +7072,7 @@ def test_source_complete_contract_rejects_tampered_gpkg_size() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects changed gpkg bytes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7273,7 +7125,7 @@ def test_source_complete_contract_rejects_changed_gpkg_bytes() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects same size gpkg byte tamper`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7328,7 +7180,7 @@ def test_source_complete_contract_rejects_same_size_gpkg_byte_tamper() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects coherently changed physical gpkg`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7397,7 +7249,7 @@ def test_source_complete_contract_rejects_coherently_changed_physical_gpkg() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects changed physical gpkg geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7467,7 +7319,7 @@ def test_source_complete_contract_rejects_changed_physical_gpkg_geometry() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects reordered physical gpkg rows`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7561,7 +7413,7 @@ def test_source_complete_contract_rejects_reordered_physical_gpkg_rows() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects loaded source attrs not on disk`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7628,7 +7480,7 @@ def test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk() -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects dataset outside extraction root`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7687,7 +7539,7 @@ def test_source_complete_contract_rejects_dataset_outside_extraction_root(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects linked spatial dataset`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7779,18 +7631,18 @@ path == dataset or actual_link_check(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `monkeypatch.setattr(gpu_source_module, '_is_link_or_junction', synthetic_link)`.
+- function object argument: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `monkeypatch.setattr(gpu_source_module, '_is_link_or_junction', synthetic_link)`.
 
 **Complete source-ordered implementation**
 
@@ -7832,21 +7684,21 @@ Private `test` helper for shapefile source complete contract; its complete imple
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
 - Filesystem write: `frame.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_every_shapefile_sidecar` via `_shapefile_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_requires_shapefile_core_members` via `_shapefile_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` via `_shapefile_source_complete_contract`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_shapefile_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_every_shapefile_sidecar` via `_shapefile_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_requires_shapefile_core_members` via `_shapefile_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` via `_shapefile_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shapefile_family_excludes_dotted_sibling_dataset` via `_shapefile_source_complete_contract`.
 
 **Complete source-ordered implementation**
 
@@ -7909,18 +7761,18 @@ Private `test` helper for shapefile ogr fid source complete contract; its comple
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
 - Filesystem write: `frame.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `_shapefile_ogr_fid_source_complete_contract`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `_shapefile_ogr_fid_source_complete_contract`.
 
 **Complete source-ordered implementation**
 
@@ -7958,7 +7810,7 @@ def _shapefile_ogr_fid_source_complete_contract(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract binds every shapefile sidecar`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8041,7 +7893,7 @@ def test_source_complete_contract_binds_every_shapefile_sidecar(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects changed or reordered ogr fids`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8145,18 +7997,18 @@ reread
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `reread.index`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `monkeypatch.setattr(gpu_source_module.pyogrio, 'read_dataframe', changed_fid_read)`.
+- function object argument: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` via `monkeypatch.setattr(gpu_source_module.pyogrio, 'read_dataframe', changed_fid_read)`.
 
 **Complete source-ordered implementation**
 
@@ -8176,7 +8028,7 @@ def changed_fid_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract requires shapefile core members`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8229,7 +8081,7 @@ def test_source_complete_contract_requires_shapefile_core_members(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete contract rejects changed shapefile sidecar bytes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8290,7 +8142,7 @@ def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shapefile family excludes dotted sibling dataset`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8362,7 +8214,7 @@ def test_shapefile_family_excludes_dotted_sibling_dataset(tmp_path: Path) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `batch gpu revalidation rejects malformed layer items`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8417,7 +8269,7 @@ def test_batch_gpu_revalidation_rejects_malformed_layer_items(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `batch gpu revalidation rejects malformed planning document`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8448,7 +8300,7 @@ with pytest.raises(gpu_source_module.GpuSpatialInspectionError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `batch gpu revalidation rejects malformed planning document`: the reproduced adversarial input must raise `gpu_source_module.GpuSpatialInspectionError` before the prohibited success path.
 
 **Test boundary**
 
@@ -8469,7 +8321,7 @@ def test_batch_gpu_revalidation_rejects_malformed_planning_document() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `batch gpu revalidation rejects duplicate logical name`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8524,7 +8376,7 @@ def test_batch_gpu_revalidation_rejects_duplicate_logical_name() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `common planning contracts import without initializing stages`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -8561,7 +8413,7 @@ assert completed.returncode == 0, completed.stderr
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `common planning contracts import without initializing stages` through the exact asserted conditions: `completed.returncode == 0`.
 
 **Test boundary**
 

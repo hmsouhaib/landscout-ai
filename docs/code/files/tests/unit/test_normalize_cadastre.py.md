@@ -94,33 +94,33 @@ gpd.GeoDataFrame({'id': parcel_ids, 'commune': ['31395'] * count, 'prefixe': ['0
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_field_normalization` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `_source_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_field_normalization` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `_source_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity` via `_source_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -172,7 +172,7 @@ def valid_polygon() -> Polygon:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `field normalization`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -215,7 +215,7 @@ assert normalized.iloc[0]["geometry_status"] == "VALID"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks the exact ordered 12-column normalized Cadastre schema, source-id to parcel_id mapping, canonical commune_code, and geometry_status=VALID for the valid source fixture.
 
 **Test boundary**
 
@@ -250,7 +250,7 @@ def test_field_normalization(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `lambert93 area calculation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -302,7 +302,7 @@ def test_lambert93_area_calculation(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `output geometry stays in wgs84`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -354,7 +354,7 @@ def test_output_geometry_stays_in_wgs84(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid geometry is preserved with null area`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -412,7 +412,7 @@ def test_invalid_geometry_is_preserved_with_null_area() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -460,7 +460,7 @@ def test_missing_crs_fails(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -490,7 +490,7 @@ with pytest.raises(CadastreNormalizationError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -512,7 +512,7 @@ def test_duplicate_parcel_id_fails(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non geodataframe is rejected safely`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -540,7 +540,7 @@ with pytest.raises(CadastreNormalizationError, match="GeoDataFrame"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non geodataframe is rejected safely`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -558,7 +558,7 @@ def test_non_geodataframe_is_rejected_safely() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate columns are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -616,7 +616,7 @@ def test_duplicate_columns_are_rejected(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `projected source crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -664,7 +664,7 @@ def test_projected_source_crs_is_rejected(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel id must be an exact nonempty string`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -692,7 +692,7 @@ with pytest.raises(CadastreNormalizationError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `parcel id must be an exact nonempty string`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -715,7 +715,7 @@ def test_parcel_id_must_be_an_exact_nonempty_string(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non polygonal geometry is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -743,7 +743,7 @@ with pytest.raises(CadastreNormalizationError, match="Polygon"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non polygonal geometry is rejected`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -761,7 +761,7 @@ def test_non_polygonal_geometry_is_rejected(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid multipolygon is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -791,7 +791,7 @@ assert normalized.loc[0, "area_m2"] > 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid multipolygon is accepted` through the exact asserted conditions: `normalized.loc[0, 'geometry_status'] == 'VALID'`; `normalized.loc[0, 'area_m2'] > 0`.
 
 **Test boundary**
 
@@ -813,7 +813,7 @@ def test_valid_multipolygon_is_accepted(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null and empty geometry are preserved as invalid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -868,7 +868,7 @@ def test_null_and_empty_geometry_are_preserved_as_invalid(geometry: object) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalization does not mutate input`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -897,7 +897,7 @@ normalize_cadastre_parcels(source)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `normalization does not mutate input` by requiring the reproduced call path `_source_parcels`, `deepcopy`, `normalize_cadastre_parcels`, `assert_geodataframe_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -919,7 +919,7 @@ def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every cadastral identity field requires an exact nonempty string`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -949,7 +949,7 @@ with pytest.raises(CadastreNormalizationError, match=column):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `every cadastral identity field requires an exact nonempty string`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -975,7 +975,7 @@ def test_every_cadastral_identity_field_requires_an_exact_nonempty_string(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `commune requires canonical french insee identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1004,7 +1004,7 @@ with pytest.raises(CadastreNormalizationError, match="commune"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `commune requires canonical french insee identity`: the reproduced adversarial input must raise `CadastreNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1028,7 +1028,7 @@ def test_commune_requires_canonical_french_insee_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `commune accepts canonical french insee identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1056,7 +1056,7 @@ assert result.loc[0, "commune_code"] == commune
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `commune accepts canonical french insee identity` through the exact asserted conditions: `result.loc[0, 'commune_code'] == commune`.
 
 **Test boundary**
 

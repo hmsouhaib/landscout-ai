@@ -62,7 +62,7 @@ No class/model/dataclass is declared.
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `crs constants`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -108,7 +108,7 @@ def test_crs_constants() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `reproject to lambert93 and back to latlon`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -139,7 +139,7 @@ assert longitude == pytest.approx(2.005, abs=0.001)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `reproject to lambert93 and back to latlon` through the exact asserted conditions: `latitude == pytest.approx(48.005, abs=0.001)`; `longitude == pytest.approx(2.005, abs=0.001)`.
 
 **Test boundary**
 
@@ -164,7 +164,7 @@ def test_reproject_to_lambert93_and_back_to_latlon() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `reprojection rejects malformed crs with controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

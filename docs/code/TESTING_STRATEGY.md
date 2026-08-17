@@ -10,7 +10,7 @@ Every test file has a companion under `docs/code/files/tests/unit/`. Each test f
 
 ### Pure contracts and configuration
 
-Configuration/policy tests load checked-in YAML or synthetic mutations, reject duplicate keys/extra fields/coercion/version drift, verify exact identities/domains, and bind hashes to exact bytes. Examples include scan config, road policy, CNIG profile, BESS policies, and planning structure/written-zoning profiles.
+Configuration/policy tests load checked-in YAML or synthetic mutations, reject duplicate keys/extra fields/coercion/version drift, and verify exact identities/domains. Byte or canonical-config hashes are asserted only for loaders/compilers whose current source actually computes them; `load_scan_config`, for example, parses and validates the scan and referenced profile YAML without hashing their bytes.
 
 ### Geometry and frame contracts
 

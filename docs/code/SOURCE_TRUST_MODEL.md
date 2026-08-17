@@ -43,6 +43,7 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - Cached bytes must match the sidecar, freshness rule, source URL, physical size/SHA, and valid gzip structure.
 - `load_cadastre_parcels` requires the exact `CadastreDownload` runtime type; a `Path` that exists; an exact non-empty source URL whose scheme is currently either HTTP or HTTPS; filename/path agreement; strict positive size; canonical lowercase SHA256; current physical size/SHA agreement; valid gzip; and stable size/SHA after parsing. It then validates non-empty polygonal GeoJSON geometry.
 - The loader does **not** independently re-pin the official Cadastre host, and it does not add the download URL/provider/timestamp/size/SHA to the returned GeoDataFrame. Normalization therefore has no download-lineage columns to propagate. Physical trust is held by the validated call boundary and download object, not embedded in parcel rows.
+- Consequently, `load_cadastre_parcels` alone is byte/physical-integrity validation against a supplied Cadastre envelope. It is not equivalent to IGN's stronger config-bound source-complete revalidation, which independently reproduces source identity and physical logical-layer selection.
 
 ## RTE / ODRÉ
 

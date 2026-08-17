@@ -41,7 +41,7 @@ This file belongs to the **internal common contract** layer and the **cadastre**
 CADASTRE_GEOMETRY_STATUSES = frozenset({"VALID", "INVALID"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/common/cadastre_contract.py::validate_cadastre_geometry_statuses` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -87,21 +87,21 @@ Require the exact geometry-status vocabulary emitted by normalization.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `validate_cadastre_geometry_statuses`.
-- import/re-export: `src/landscout/stages/enrich_shape.py::<module>` via `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `validate_cadastre_geometry_statuses`.
-- import/re-export: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses`.
+- import: `src/landscout/stages/enrich_shape.py::<module>` via `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses`.
+- import: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses`.
+- direct call: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `validate_cadastre_geometry_statuses`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `validate_cadastre_geometry_statuses`.
 
 **Complete source-ordered implementation**
 

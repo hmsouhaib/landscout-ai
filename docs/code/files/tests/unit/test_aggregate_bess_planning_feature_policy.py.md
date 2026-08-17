@@ -105,7 +105,7 @@ PARCEL_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_and_relation_prefixes_order_and_inputs_are_preserved` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` (value reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_and_relation_prefixes_order_and_inputs_are_preserved` (value reference).
 
 #### `RELATION_COLUMNS`
 
@@ -120,7 +120,7 @@ RELATION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export), `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_and_relation_prefixes_order_and_inputs_are_preserved` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::_canonical_relation_schema` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` (value reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_and_relation_prefixes_order_and_inputs_are_preserved` (value reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` (value reference).
 
 #### `_LAST_SOURCE_PARCELS`
 
@@ -128,7 +128,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 _LAST_SOURCE_PARCELS: gpd.GeoDataFrame | None = None
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` (value reference).
 
 #### `_LAST_APPLICATION_RESULT`
 
@@ -136,7 +136,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _LAST_APPLICATION_RESULT: object | None = None
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -192,37 +192,37 @@ Private `test` helper for aggregation fixture; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_filenames_are_casefold_unique` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `_aggregation_fixture`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_rejects_nonportable_filename` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_filenames_are_casefold_unique` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `_aggregation_fixture`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_rejects_nonportable_filename` via `_aggregation_fixture`.
 
 **Complete source-ordered implementation**
 
@@ -286,44 +286,27 @@ _load_legacy_local_aggregation_artifacts(manifest_path, parcels_path, relation_a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.aggregate_bess_planning_feature_policy import (
-    BessPlanningFeatureParcelAggregationArtifactManifest,
-    BessPlanningFeatureParcelAggregationError,
-    BessPlanningFeatureParcelAggregationResult,
-    aggregate_bess_planning_feature_policy_to_parcels,
-    load_bess_planning_feature_parcel_aggregation_artifacts,
-    validate_bess_planning_feature_parcel_aggregation_result,
-)`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_relation_identity_artifact_corruption_fails_locally` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- callback/property argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams` via `inspect.signature(module.load_bess_planning_feature_parcel_aggregation_artifacts)`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams` via `module.load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module.load_bess_planning_feature_parcel_aggregation_artifacts`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module.load_bess_planning_feature_parcel_aggregation_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module.load_bess_planning_feature_parcel_aggregation_artifacts`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module.load_bess_planning_feature_parcel_aggregation_artifacts`.
-- import/re-export: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.aggregate_bess_planning_feature_policy import (
-    load_bess_planning_feature_parcel_aggregation_artifacts as _load_aggregation_artifacts,
-)`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_relation_identity_artifact_corruption_fails_locally` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `load_bess_planning_feature_parcel_aggregation_artifacts`.
 
 **Complete source-ordered implementation**
 
@@ -398,18 +381,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `Path(manifest_path).read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_load_legacy_local_aggregation_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_load_legacy_local_aggregation_artifacts`.
 
 **Complete source-ordered implementation**
 
@@ -481,53 +464,53 @@ module._build_result(parcels, application)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `relations.loc[surface_mask, 'intersection_area_m2'].astype`, `relations['geometry_kind'].eq`.
-- Hashing: `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `relations.index`, `relations.loc[surface_mask, 'parcel_share_pct']`, `relations['bess_cnig_policy_profile']`, `relations['bess_cnig_policy_result_sha256']`, `relations['bess_cnig_policy_sha256']`, `relations['parcel_metric_area_m2']`, `relations[column]`.
 - Input mutation: `relations.index`, `relations.loc[surface_mask, 'parcel_share_pct']`, `relations['bess_cnig_policy_profile']`, `relations['bess_cnig_policy_result_sha256']`, `relations['bess_cnig_policy_sha256']`, `relations['parcel_metric_area_m2']`, `relations[column]`.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_exact_relations_select_configured_max_priority_and_lowest_confidence` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_policy_unknown_is_exact_but_unresolved_controlling_overrides` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_positive_relation_type_controls_without_threshold` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_boundary_only_relations_are_contextual` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_touch_relation_remains_context_beside_a_controlling_relation` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_is_retained_without_a_decision` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_inherited_application_relation_domain_is_validated_locally` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unresolved_relation_cannot_contain_a_decision` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_all_application_identity_scope_and_boundary_fields_are_intrinsic` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_relation_suffix_dtype_is_validated_locally` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_status_and_priority_mapping_is_one_to_one_at_every_level` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_repeated_status_and_priority_mapping_selects_every_exact_match` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_parcel_feature_identity_is_rejected_for_every_role` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_role` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_deferred_feature_id_is_rejected_independently_of_json_role` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_relation_parcel_id_is_rejected` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unknown_relation_type_is_rejected_by_shared_relation_contract` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_priority_cannot_map_to_two_statuses` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_status_cannot_map_to_two_priorities` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_repeated_mapping_and_unresolved_rows_are_valid` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_complete_five_status_policy_mapping_is_globally_valid` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_noncanonical_feature_ids_are_rejected` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_current_gpu_feature_id_is_canonical` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_build_from_relations`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_exact_relations_select_configured_max_priority_and_lowest_confidence` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_policy_unknown_is_exact_but_unresolved_controlling_overrides` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_positive_relation_type_controls_without_threshold` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_boundary_only_relations_are_contextual` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_touch_relation_remains_context_beside_a_controlling_relation` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_is_retained_without_a_decision` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_inherited_application_relation_domain_is_validated_locally` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unresolved_relation_cannot_contain_a_decision` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_all_application_identity_scope_and_boundary_fields_are_intrinsic` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_relation_suffix_dtype_is_validated_locally` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_status_and_priority_mapping_is_one_to_one_at_every_level` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_repeated_status_and_priority_mapping_selects_every_exact_match` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_parcel_feature_identity_is_rejected_for_every_role` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_role` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_deferred_feature_id_is_rejected_independently_of_json_role` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_relation_parcel_id_is_rejected` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unknown_relation_type_is_rejected_by_shared_relation_contract` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_priority_cannot_map_to_two_statuses` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_status_cannot_map_to_two_priorities` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_repeated_mapping_and_unresolved_rows_are_valid` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_complete_five_status_policy_mapping_is_globally_valid` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_noncanonical_feature_ids_are_rejected` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_current_gpu_feature_id_is_canonical` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_build_from_relations`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_build_from_relations`.
 
 **Complete source-ordered implementation**
 
@@ -634,53 +617,50 @@ row
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `application.relations.loc[application.relations['geometry_kind'].eq('LINE')].iloc[0].to_dict`, `application.relations.loc[application.relations['geometry_kind'].eq('SURFACE')].iloc[0].to_dict`, `application.relations['geometry_kind'].eq`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `row['feature_area_m2']`, `row['intersection_length_m']`, `row['parcel_metric_area_m2']`, `row['source_line_length_m']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `row`, `row['feature_area_m2']`, `row['intersection_length_m']`, `row['parcel_metric_area_m2']`, `row['source_line_length_m']`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_exact_relations_select_configured_max_priority_and_lowest_confidence` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_policy_unknown_is_exact_but_unresolved_controlling_overrides` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_positive_relation_type_controls_without_threshold` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_boundary_only_relations_are_contextual` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_touch_relation_remains_context_beside_a_controlling_relation` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_is_retained_without_a_decision` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_inherited_application_relation_domain_is_validated_locally` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unresolved_relation_cannot_contain_a_decision` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_all_application_identity_scope_and_boundary_fields_are_intrinsic` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_relation_suffix_dtype_is_validated_locally` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_status_and_priority_mapping_is_one_to_one_at_every_level` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_repeated_status_and_priority_mapping_selects_every_exact_match` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_parcel_feature_identity_is_rejected_for_every_role` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_role` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_deferred_feature_id_is_rejected_independently_of_json_role` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_relation_parcel_id_is_rejected` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unknown_relation_type_is_rejected_by_shared_relation_contract` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_priority_cannot_map_to_two_statuses` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_status_cannot_map_to_two_priorities` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_repeated_mapping_and_unresolved_rows_are_valid` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_complete_five_status_policy_mapping_is_globally_valid` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_noncanonical_feature_ids_are_rejected` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_current_gpu_feature_id_is_canonical` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_relation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_exact_relations_select_configured_max_priority_and_lowest_confidence` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_policy_unknown_is_exact_but_unresolved_controlling_overrides` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_every_positive_relation_type_controls_without_threshold` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_boundary_only_relations_are_contextual` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_touch_relation_remains_context_beside_a_controlling_relation` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_is_retained_without_a_decision` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unresolved_relation_cannot_contain_a_decision` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_all_application_identity_scope_and_boundary_fields_are_intrinsic` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_relation_suffix_dtype_is_validated_locally` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_repeated_status_and_priority_mapping_selects_every_exact_match` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_role` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_deferred_feature_id_is_rejected_independently_of_json_role` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_relation_parcel_id_is_rejected` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_unknown_relation_type_is_rejected_by_shared_relation_contract` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_priority_cannot_map_to_two_statuses` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_same_status_cannot_map_to_two_priorities` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_document_wide_repeated_mapping_and_unresolved_rows_are_valid` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_complete_five_status_policy_mapping_is_globally_valid` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_noncanonical_feature_ids_are_rejected` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_current_gpu_feature_id_is_canonical` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_relation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_relation`.
 
 **Complete source-ordered implementation**
 
@@ -814,41 +794,32 @@ Serializes artifacts; exact branches, calls, and return construction are reprodu
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `path.read_bytes`.
 - Filesystem write: `frame.to_parquet`, `manifest_path.write_text`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `paths[role]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `paths[role]`, `records`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_relation_identity_artifact_corruption_fails_locally` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_filenames_are_casefold_unique` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_rejects_nonportable_filename` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema` via `_write_artifacts`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_relation_identity_artifact_corruption_fails_locally` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_filenames_are_casefold_unique` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `_write_artifacts`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_rejects_nonportable_filename` via `_write_artifacts`.
 
 **Complete source-ordered implementation**
 
@@ -938,24 +909,24 @@ module._result_with_hashes(updated)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `module._frame_sha256`, `module._result_with_hashes`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `module._frame_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_coherent_parcel_area_mutation` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_rehash_coordinated_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_duplicate_selected_pair_result` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_invalid_lower_feature_id_result` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_cross_parcel_priority_conflict_result` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_coherent_parcel_area_mutation` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_rehash_coordinated_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `_rehash_coordinated_result`.
 
 **Complete source-ordered implementation**
 
@@ -1013,18 +984,18 @@ _rehash_coordinated_result(replace(result, parcels=parcels, relation_assessments
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_rehash_coordinated_result`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `parcels.loc[parcels.index[0], 'bess_cnig_selected_feature_ids_json']`, `relations.loc[relations.index[1], 'planning_feature_id']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_duplicate_selected_pair_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_duplicate_selected_pair_result`.
 
 **Complete source-ordered implementation**
 
@@ -1078,18 +1049,18 @@ _rehash_coordinated_result(replace(result, relation_assessments=relations))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_rehash_coordinated_result`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `relations.loc[relations.index[0], 'planning_feature_id']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_invalid_lower_feature_id_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_invalid_lower_feature_id_result`.
 
 **Complete source-ordered implementation**
 
@@ -1145,18 +1116,18 @@ _rehash_coordinated_result(replace(result, parcels=parcels, relation_assessments
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_rehash_coordinated_result`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `parcels.loc[parcels['parcel_id'].eq('PARCEL-2'), 'bess_cnig_parcel_status_priority']`, `relations.loc[mask, 'bess_cnig_resulting_parcel_status_priority']`, `relations.loc[mask, 'bess_cnig_status_priority']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_cross_parcel_priority_conflict_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `_cross_parcel_priority_conflict_result`.
 
 **Complete source-ordered implementation**
 
@@ -1230,19 +1201,19 @@ module._build_result(inputs[1], changed_application)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_surface_touch_with_positive_area`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `module.validate_bess_application_relation_frame`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `_surface_touch_semantic_corruption_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `_surface_touch_semantic_corruption_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `_surface_touch_semantic_corruption_result`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `_surface_touch_semantic_corruption_result`.
 
 **Complete source-ordered implementation**
 
@@ -1298,14 +1269,14 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1326,7 +1297,7 @@ def bypass(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact relations select configured max priority and lowest confidence`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1389,7 +1360,7 @@ assert result.relation_assessments["bess_cnig_parcel_relation_role"].tolist() ==
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact relations select configured max priority and lowest confidence` through the exact asserted conditions: `parcel.bess_cnig_parcel_aggregation_status == 'AGGREGATED_EXACT_POLICY'`; `parcel.bess_cnig_parcel_precheck_status == 'LIKELY_MATERIAL_CONSTRAINT'`; `parcel.bess_cnig_parcel_precheck_confidence == 'LOW'`; `parcel.bess_cnig_parcel_status_priority == 50`; plus 6 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1443,7 +1414,7 @@ def test_exact_relations_select_configured_max_priority_and_lowest_confidence() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy unknown is exact but unresolved controlling overrides`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1492,7 +1463,7 @@ assert mixed.relation_assessments["bess_cnig_parcel_relation_role"].tolist() == 
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `policy unknown is exact but unresolved controlling overrides` through the exact asserted conditions: `exact_unknown.parcels.iloc[0].bess_cnig_parcel_precheck_status == 'UNKNOWN'`; `parcel.bess_cnig_parcel_aggregation_status == 'UNRESOLVED_CONTROLLING_CODE_PAIR'`; `pd.isna(parcel.bess_cnig_parcel_precheck_status)`; `pd.isna(parcel.bess_cnig_parcel_precheck_confidence)`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1532,7 +1503,7 @@ def test_policy_unknown_is_exact_but_unresolved_controlling_overrides() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every positive relation type controls without threshold`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1565,7 +1536,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `every positive relation type controls without threshold` through the exact asserted conditions: `result.parcels.iloc[0].bess_cnig_controlling_relation_count == 1`; `result.relation_assessments.iloc[0].bess_cnig_parcel_relation_role == 'SELECTED_CONTROLLING'`.
 
 **Test boundary**
 
@@ -1591,7 +1562,7 @@ def test_every_positive_relation_type_controls_without_threshold(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `boundary only relations are contextual`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1627,7 +1598,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `boundary only relations are contextual` through the exact asserted conditions: `parcel.bess_cnig_parcel_aggregation_status == 'TOUCH_ONLY_RELATIONS_ONLY'`; `pd.isna(parcel.bess_cnig_parcel_precheck_status)`; `parcel.bess_cnig_touch_only_feature_ids_json == '["F-1"]'`; `result.relation_assessments.iloc[0].bess_cnig_parcel_relation_role == 'TOUCH_ONLY_CONTEXT'`.
 
 **Test boundary**
 
@@ -1654,7 +1625,7 @@ def test_boundary_only_relations_are_contextual(relation_type: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `touch relation remains context beside a controlling relation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1699,7 +1670,7 @@ assert result.relation_assessments["bess_cnig_parcel_relation_role"].tolist() ==
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `touch relation remains context beside a controlling relation` through the exact asserted conditions: `result.parcels.iloc[0].bess_cnig_parcel_precheck_status == 'MATERIAL_REVIEW_REQUIRED'`; `result.relation_assessments['bess_cnig_parcel_relation_role'].tolist() == ['SELECTED_CONTROLLING', 'TOUCH_ONLY_CONTEXT']`.
 
 **Test boundary**
 
@@ -1735,7 +1706,7 @@ def test_touch_relation_remains_context_beside_a_controlling_relation() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no relation parcel is retained without a decision`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1765,7 +1736,7 @@ assert bool(parcel.bess_cnig_formal_review_required) is True
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `no relation parcel is retained without a decision` through the exact asserted conditions: `parcel.bess_cnig_parcel_aggregation_status == 'NO_PLANNING_FEATURE_RELATION'`; `pd.isna(parcel.bess_cnig_parcel_precheck_status)`; `bool(parcel.bess_cnig_formal_review_required) is True`.
 
 **Test boundary**
 
@@ -1786,7 +1757,7 @@ def test_no_relation_parcel_is_retained_without_a_decision() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel and relation prefixes order and inputs are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1868,7 +1839,7 @@ def test_parcel_and_relation_prefixes_order_and_inputs_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `local corruption fast fails before heavy validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1912,7 +1883,7 @@ assert calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `local corruption fast fails before heavy validation`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1971,38 +1942,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -2020,7 +1971,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated local cross table corruption is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2054,7 +2005,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated local cross table corruption is rejected`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2083,7 +2034,7 @@ def test_coordinated_local_cross_table_corruption_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid output dtype and non 2d parcel fail locally`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2178,7 +2129,7 @@ def test_invalid_output_dtype_and_non_2d_parcel_fail_locally() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every inherited application relation domain is validated locally`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2206,7 +2157,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `every inherited application relation domain is validated locally`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2226,7 +2177,7 @@ def test_every_inherited_application_relation_domain_is_validated_locally(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unresolved relation cannot contain a decision`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2260,7 +2211,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unresolved relation cannot contain a decision`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2285,7 +2236,7 @@ def test_unresolved_relation_cannot_contain_a_decision() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `all application identity scope and boundary fields are intrinsic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2314,7 +2265,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `all application identity scope and boundary fields are intrinsic`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2336,7 +2287,7 @@ def test_all_application_identity_scope_and_boundary_fields_are_intrinsic(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `application relation suffix dtype is validated locally`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2389,7 +2340,7 @@ def test_application_relation_suffix_dtype_is_validated_locally() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `status and priority mapping is one to one at every level`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2417,7 +2368,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError, match="priority"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `status and priority mapping is one to one at every level`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2437,7 +2388,7 @@ def test_status_and_priority_mapping_is_one_to_one_at_every_level(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid repeated status and priority mapping selects every exact match`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2475,7 +2426,7 @@ assert result.relation_assessments["bess_cnig_parcel_relation_role"].tolist() ==
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid repeated status and priority mapping selects every exact match` through the exact asserted conditions: `result.parcels.iloc[0].bess_cnig_selected_relation_count == 2`; `result.relation_assessments['bess_cnig_parcel_relation_role'].tolist() == ['SELECTED_CONTROLLING', 'SELECTED_CONTROLLING']`.
 
 **Test boundary**
 
@@ -2504,7 +2455,7 @@ def test_valid_repeated_status_and_priority_mapping_selects_every_exact_match() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel feature identity is rejected for every role`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2534,7 +2485,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel feature identity is rejected for every role`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2556,7 +2507,7 @@ def test_duplicate_parcel_feature_identity_is_rejected_for_every_role(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid lower priority feature id is rejected independently of json role`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2595,7 +2546,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid lower priority feature id is rejected independently of json role`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2627,7 +2578,7 @@ def test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_rol
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid deferred feature id is rejected independently of json role`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2668,7 +2619,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid deferred feature id is rejected independently of json role`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2702,7 +2653,7 @@ def test_invalid_deferred_feature_id_is_rejected_independently_of_json_role(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid relation parcel id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2733,7 +2684,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid relation parcel id is rejected`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2755,7 +2706,7 @@ def test_invalid_relation_parcel_id_is_rejected(parcel_id: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown relation type is rejected by shared relation contract`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2785,7 +2736,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown relation type is rejected by shared relation contract`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2805,7 +2756,7 @@ def test_unknown_relation_type_is_rejected_by_shared_relation_contract() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document wide same priority cannot map to two statuses`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2852,7 +2803,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document wide same priority cannot map to two statuses`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2892,7 +2843,7 @@ def test_document_wide_same_priority_cannot_map_to_two_statuses(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document wide same status cannot map to two priorities`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2937,7 +2888,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document wide same status cannot map to two priorities`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2973,7 +2924,7 @@ def test_document_wide_same_status_cannot_map_to_two_priorities() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document wide repeated mapping and unresolved rows are valid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3014,7 +2965,7 @@ assert len(result.relation_assessments) == 3
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `document wide repeated mapping and unresolved rows are valid` through the exact asserted conditions: `len(result.relation_assessments) == 3`.
 
 **Test boundary**
 
@@ -3046,7 +2997,7 @@ def test_document_wide_repeated_mapping_and_unresolved_rows_are_valid() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `complete five status policy mapping is globally valid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3095,7 +3046,7 @@ assert len(result.relation_assessments) == 5
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `complete five status policy mapping is globally valid` through the exact asserted conditions: `len(result.relation_assessments) == 5`.
 
 **Test boundary**
 
@@ -3135,7 +3086,7 @@ def test_complete_five_status_policy_mapping_is_globally_valid() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `selected relation role requires selected status and priority`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3189,7 +3140,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `selected relation role requires selected status and priority`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3254,19 +3205,19 @@ Rejects malformed or inconsistent parcel geometries; exact branches, calls, and 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_malformed_parcel_geometry_is_rejected_intrinsically` via `_validate_parcel_geometries`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_polygon_and_multipolygon_parcels_are_accepted` via `_validate_parcel_geometries`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_malformed_parcel_geometry_is_rejected_intrinsically` via `_validate_parcel_geometries`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_polygon_and_multipolygon_parcels_are_accepted` via `_validate_parcel_geometries`.
 
 **Complete source-ordered implementation**
 
@@ -3295,7 +3246,7 @@ def _validate_parcel_geometries(geometries: list[object]) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed parcel geometry is rejected intrinsically`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3341,7 +3292,7 @@ def test_malformed_parcel_geometry_is_rejected_intrinsically(geometry: object) -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid polygon and multipolygon parcels are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3369,7 +3320,7 @@ _validate_parcel_geometries([polygon, MultiPolygon([polygon])])
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `valid polygon and multipolygon parcels are accepted` by requiring the reproduced call path `Polygon`, `_validate_parcel_geometries`, `MultiPolygon` without an unasserted exception.
 
 **Test boundary**
 
@@ -3387,7 +3338,7 @@ def test_valid_polygon_and_multipolygon_parcels_are_accepted() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate output columns are rejected intrinsically`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3454,7 +3405,7 @@ def test_duplicate_output_columns_are_rejected_intrinsically(frame_name: str) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `only application result schema two is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3490,7 +3441,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `only application result schema two is accepted`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3517,7 +3468,7 @@ def test_only_application_result_schema_two_is_accepted(version: int) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `application result schema two remains accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3548,7 +3499,7 @@ assert result.application_result_hash_schema_version == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `application result schema two remains accepted` through the exact asserted conditions: `result.application_result_hash_schema_version == 2`.
 
 **Test boundary**
 
@@ -3570,7 +3521,7 @@ def test_application_result_schema_two_remains_accepted() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `noncanonical feature ids are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3598,7 +3549,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError, match="Feature ID"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `noncanonical feature ids are rejected`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3616,7 +3567,7 @@ def test_noncanonical_feature_ids_are_rejected(feature_id: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `current gpu feature id is canonical`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3646,7 +3597,7 @@ assert result.parcels.iloc[0].bess_cnig_selected_feature_ids_json == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `current gpu feature id is canonical` through the exact asserted conditions: `result.parcels.iloc[0].bess_cnig_selected_feature_ids_json == f'["{feature_id}"]'`.
 
 **Test boundary**
 
@@ -3667,7 +3618,7 @@ def test_current_gpu_feature_id_is_canonical() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `authorized status artifact fails local verified byte loading`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3719,7 +3670,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `authorized status artifact fails local verified byte loading`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3764,7 +3715,7 @@ def test_authorized_status_artifact_fails_local_verified_byte_loading(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated relation identity artifact corruption fails locally`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3796,7 +3747,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated relation identity artifact corruption fails locally`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3822,7 +3773,7 @@ def test_coordinated_relation_identity_artifact_corruption_fails_locally(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `controlling relation cannot be relabelled contextual in artifact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3855,7 +3806,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `controlling relation cannot be relabelled contextual in artifact`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3881,7 +3832,7 @@ def test_controlling_relation_cannot_be_relabelled_contextual_in_artifact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no relation parcel rejects textual null identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3993,7 +3944,7 @@ def test_no_relation_parcel_rejects_textual_null_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation identity and global mapping fail before heavy validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4039,7 +3990,7 @@ assert calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation identity and global mapping fail before heavy validation`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4100,38 +4051,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -4149,7 +4080,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation semantic failure fast fails before heavy validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4195,7 +4126,7 @@ assert calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation semantic failure fast fails before heavy validation`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4256,38 +4187,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -4305,7 +4216,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel decision status domain rejects forbidden vocabulary`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4342,7 +4253,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError, match="status"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `parcel decision status domain rejects forbidden vocabulary`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4372,7 +4283,7 @@ def test_parcel_decision_status_domain_rejects_forbidden_vocabulary(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `persisted feature id json must be portable and canonical`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4406,7 +4317,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `persisted feature id json must be portable and canonical`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4433,7 +4344,7 @@ def test_persisted_feature_id_json_must_be_portable_and_canonical(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `representative intrinsic failures all precede heavy validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4660,38 +4571,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -4709,7 +4600,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `one aggregation and one public validation each call heavy once`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4754,7 +4645,7 @@ assert calls == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `one aggregation and one public validation each call heavy once` through the exact asserted conditions: `calls == 1`; `calls == 2`.
 
 **Test boundary**
 
@@ -4815,38 +4706,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -4865,7 +4736,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid two file verified byte artifacts and source readback`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4900,7 +4771,7 @@ validate_bess_planning_feature_parcel_aggregation_result(
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `valid two file verified byte artifacts and source readback` by requiring the reproduced call path `_aggregation_fixture`, `_write_artifacts`, `load_bess_planning_feature_parcel_aggregation_artifacts`, `assert_geodataframe_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -4929,7 +4800,7 @@ def test_valid_two_file_verified_byte_artifacts_and_source_readback(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `artifact manifest corruption is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4990,7 +4861,7 @@ def test_artifact_manifest_corruption_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate json and physical replacement are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5035,7 +4906,7 @@ with pytest.raises(BessPlanningFeatureParcelAggregationError, match="size|SHA"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate json and physical replacement are rejected`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5071,7 +4942,7 @@ def test_duplicate_json_and_physical_replacement_are_rejected(tmp_path: Path) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `verified bytes are the bytes parsed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5125,7 +4996,7 @@ assert verified in observed
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `verified bytes are the bytes parsed` through the exact asserted conditions: `verified in observed`.
 
 **Test boundary**
 
@@ -5199,19 +5070,18 @@ payload
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `original_read_bytes`.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_bytes`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `monkeypatch.setattr(Path, 'read_bytes', replace_after_read)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_artifact_loader_parses_only_verified_bytes` via `monkeypatch.setattr(Path, 'read_bytes', replace_after_read)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `monkeypatch.setattr(Path, 'read_bytes', replace_after_read)`.
 
 **Complete source-ordered implementation**
 
@@ -5254,18 +5124,18 @@ original_read(source, *args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `observed`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `monkeypatch.setattr(module.pd, 'read_parquet', inspect_read)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `monkeypatch.setattr(module.pd, 'read_parquet', inspect_read)`.
 
 **Complete source-ordered implementation**
 
@@ -5284,7 +5154,7 @@ def inspect_read(source: object, *args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public exports are stable`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5322,7 +5192,7 @@ assert required.issubset(set(stages.__all__))
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public exports are stable` through the exact asserted conditions: `set(module.__all__) == required`; `required.issubset(set(stages.__all__))`.
 
 **Test boundary**
 
@@ -5377,20 +5247,20 @@ _rehash_coordinated_result(replace(result, relation_assessments=relations))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `relations['geometry_kind'].eq`.
-- Hashing: `_rehash_coordinated_result`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `relations.loc[index, 'parcel_metric_area_m2']`, `relations.loc[index, 'parcel_share_pct']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_coherent_parcel_area_mutation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_coherent_parcel_area_mutation`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_coherent_parcel_area_mutation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `_coherent_parcel_area_mutation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_coherent_parcel_area_mutation`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `_coherent_parcel_area_mutation`.
 
 **Complete source-ordered implementation**
 
@@ -5417,7 +5287,7 @@ def _coherent_parcel_area_mutation(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation parcel area is bound to real parcel geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5483,7 +5353,7 @@ def test_relation_parcel_area_is_bound_to_real_parcel_geometry(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `self consistent parcel area artifact is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5538,7 +5408,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `self consistent parcel area artifact is rejected`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5585,7 +5455,7 @@ def test_self_consistent_parcel_area_artifact_is_rejected(tmp_path: Path) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel area validation uses reprojected calculation copy`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5649,7 +5519,7 @@ def test_parcel_area_validation_uses_reprojected_calculation_copy() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel area defect fast fails before application source validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5692,7 +5562,7 @@ assert calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `parcel area defect fast fails before application source validation`: the reproduced adversarial input must raise `BessPlanningFeatureParcelAggregationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5750,38 +5620,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -5799,7 +5649,7 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `step 7d 5b 2b 5 aggregation loader requires exact upstreams`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5839,7 +5689,7 @@ assert hasattr(module, "validate_bess_planning_feature_application_result_envelo
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `step 7d 5b 2b 5 aggregation loader requires exact upstreams` through the exact asserted conditions: `tuple(inspect.signature(module.load_bess_planning_feature_parcel_aggregation_artifacts).parameters) == ('manifest_path', 'parcels_path', 'relation_assessments_path', 'source_parcels', 'application_result')`; `hasattr(module, 'validate_bess_planning_feature_application_result_envelope')`.
 
 **Test boundary**
 
@@ -5870,7 +5720,7 @@ def test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source bound aggregation loader accepts only supplied upstreams`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5907,7 +5757,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `source bound aggregation loader accepts only supplied upstreams` through the exact asserted conditions: `loaded.complete_result_content_sha256 == result.complete_result_content_sha256`.
 
 **Test boundary**
 
@@ -5937,7 +5787,7 @@ def test_source_bound_aggregation_loader_accepts_only_supplied_upstreams(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `aggregation manifest filenames are casefold unique`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5969,7 +5819,7 @@ with pytest.raises(ValueError, match="filename|duplicate"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `aggregation manifest filenames are casefold unique`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6018,18 +5868,18 @@ Private `test` helper for changed parcel geometry upstreams; its complete implem
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `changed_parcels.to_crs`, `relations.loc[surface, 'intersection_area_m2'].astype`, `relations['geometry_kind'].eq`.
-- Hashing: `application_module._result_with_hashes`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `changed_parcels.loc[parcel_index, geometry_column]`, `relations.loc[mask, 'parcel_metric_area_m2']`, `relations.loc[surface, 'parcel_share_pct']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_changed_parcel_geometry_upstreams`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_changed_parcel_geometry_upstreams`.
 
 **Complete source-ordered implementation**
 
@@ -6074,7 +5924,7 @@ def _changed_parcel_geometry_upstreams(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source bound aggregation loader rejects coordinated upstream changes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6271,20 +6121,18 @@ Private `test` helper for forbidden heavy; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', forbidden_heavy)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
 
 **Complete source-ordered implementation**
 
@@ -6302,7 +6150,7 @@ def forbidden_heavy(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source bound aggregation loader rebuilds once without mutating upstreams`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6363,7 +6211,7 @@ assert heavy_calls == 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `source bound aggregation loader rebuilds once without mutating upstreams` through the exact asserted conditions: `loaded.complete_result_content_sha256 == result.complete_result_content_sha256`; `build_calls == 1`; `heavy_calls == 0`.
 
 **Test boundary**
 
@@ -6445,18 +6293,18 @@ actual_build(*args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `monkeypatch.setattr(module, '_build_result', counted_build)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `monkeypatch.setattr(module, '_build_result', counted_build)`.
 
 **Complete source-ordered implementation**
 
@@ -6495,20 +6343,18 @@ Private `test` helper for forbidden heavy; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', forbidden_heavy)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', forbidden_heavy)`.
 
 **Complete source-ordered implementation**
 
@@ -6526,7 +6372,7 @@ def forbidden_heavy(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `aggregation loader rejects bad application before artifact reads`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6570,7 +6416,7 @@ assert reads == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `aggregation loader rejects bad application before artifact reads`: the reproduced adversarial input must raise `Exception` before the prohibited success path.
 
 **Test boundary**
 
@@ -6633,38 +6479,18 @@ original(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -6683,7 +6509,7 @@ def counted(path: Path) -> bytes:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `aggregation manifest rejects nonportable filename`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6713,7 +6539,7 @@ with pytest.raises(ValueError, match="filename|basename|portable"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `aggregation manifest rejects nonportable filename`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 

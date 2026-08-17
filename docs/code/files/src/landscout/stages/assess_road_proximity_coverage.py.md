@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/assess_road_proximity_coverage.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: diagnostic/profile stage
 - Domain: road
 - Responsibility: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
 - Source SHA256: `ff3fda58bfc1086082d8222ed099f1fae529ec45b05476c90d3177c42c114d2d`
@@ -15,7 +15,7 @@ Diagnoses road proxy proximity against the verified IGN department coverage boun
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **diagnostic/profile stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -74,7 +74,7 @@ This file belongs to the **processing/policy stage** layer and the **road** doma
 _CALCULATION_CRS = "EPSG:2154"
 ```
 
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_parcel_coverage_diagnostics` (value argument/reference), `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` (value argument/reference).
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_parcel_coverage_diagnostics` (value reference).
 
 #### `_PROXIMITY_SCOPE`
 
@@ -82,7 +82,7 @@ Coordinate-reference-system identity used for an explicit storage, validation, o
 _PROXIMITY_SCOPE = "WITHIN_VERIFIED_SOURCE_PACKAGE"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` (value reference).
 
 #### `_COVERAGE_SPATIAL_ROLE`
 
@@ -90,7 +90,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` (value reference), `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` (value reference).
 
 #### `_SOURCE_SPATIAL_ROLE`
 
@@ -98,7 +98,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _SOURCE_SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` (value reference).
 
 #### `_POSITIONS`
 
@@ -108,7 +108,7 @@ _POSITIONS = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` (value reference).
 
 #### `_STATUSES`
 
@@ -123,7 +123,7 @@ _STATUSES = frozenset(
 )
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` (value reference).
 
 #### `_PARCEL_GEOMETRY_TYPES`
 
@@ -131,7 +131,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _PARCEL_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` (value reference).
 
 #### `_COVERAGE_GEOMETRY_TYPES`
 
@@ -139,7 +139,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _COVERAGE_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` (value reference).
 
 #### `_SHA256_PATTERN`
 
@@ -147,7 +147,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` (value reference).
 
 #### `_IGN_PROVIDER_IDENTITIES`
 
@@ -160,7 +160,7 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` (value reference).
 
 #### `_COVERAGE_LINEAGE_COLUMNS`
 
@@ -177,7 +177,7 @@ _COVERAGE_LINEAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::<module>` (value reference).
 
 #### `_DIAGNOSTIC_COLUMNS`
 
@@ -190,7 +190,7 @@ _DIAGNOSTIC_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` (value argument/reference), `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` (value reference), `src/landscout/stages/assess_road_proximity_coverage.py::_diagnosed_class_proximity` (value reference), `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` (value reference).
 
 #### `_COVERAGE_FRAME_LINEAGE`
 
@@ -207,7 +207,7 @@ _COVERAGE_FRAME_LINEAGE = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` (value reference).
 
 #### `_SELECTED_ROAD_COLUMNS`
 
@@ -235,7 +235,7 @@ _SELECTED_ROAD_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -275,46 +275,46 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validated_crs` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_normalized_identity` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_exact_string` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_exact_ids` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_finite_nonnegative` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_class_coverage` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_parcel_coverage_diagnostics` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_selected_road_package` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `RoadProximityCoverageError`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `RoadProximityCoverageError`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive` via `pytest.raises(RoadProximityCoverageError, match='package|lineage|provider|product')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` via `pytest.raises(RoadProximityCoverageError, match='configured|layer')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact` via `pytest.raises(RoadProximityCoverageError, match='department')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `pytest.raises(RoadProximityCoverageError, match='spatial|lineage')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object` via `pytest.raises(RoadProximityCoverageError, match='extraction')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected` via `pytest.raises(RoadProximityCoverageError, match=message)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage` via `pytest.raises(RoadProximityCoverageError, match='lineage|package')`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `pytest.raises(RoadProximityCoverageError)`.
-- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `pytest.raises(RoadProximityCoverageError)`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validated_crs` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_normalized_identity` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_exact_string` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_exact_ids` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_finite_nonnegative` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_class_coverage` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_parcel_coverage_diagnostics` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_selected_road_package` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `RoadProximityCoverageError`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `RoadProximityCoverageError`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive` via `pytest.raises(RoadProximityCoverageError, match='package|lineage|provider|product')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` via `pytest.raises(RoadProximityCoverageError, match='configured|layer')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact` via `pytest.raises(RoadProximityCoverageError, match='department')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `pytest.raises(RoadProximityCoverageError, match='spatial|lineage')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object` via `pytest.raises(RoadProximityCoverageError, match='extraction')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected` via `pytest.raises(RoadProximityCoverageError, match=message)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage` via `pytest.raises(RoadProximityCoverageError, match='lineage|package')`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `pytest.raises(RoadProximityCoverageError)`.
+- expected exception type: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `pytest.raises(RoadProximityCoverageError)`.
 
 **Exact class source**
 
@@ -339,22 +339,26 @@ class RoadProximityCoverageError(ValueError):
 |---|---|---|
 | `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 | `class_proximity` | `class_proximity: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-| `class_coverage` | `class_coverage: tuple[RoadProxyClassCoverage, ...]` | Closed or validated `class coverage` classification on `RoadProximityCoverageAssessmentResult`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `class_coverage` | `class_coverage: tuple[RoadProxyClassCoverage, ...]` | `RoadProximityCoverageAssessmentResult.class_coverage` represents the `class_coverage` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `source_coverage` | `source_coverage: IgnBdTopoDepartmentCoverage` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `RoadProximityCoverageAssessmentResult`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `RoadProximityCoverageAssessmentResult`.
+- constructor call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `RoadProximityCoverageAssessmentResult`.
+- type annotation: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `RoadProximityCoverageAssessmentResult`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `RoadProximityCoverageAssessmentResult`.
+- type annotation: `tests/unit/test_assess_road_proximity_coverage.py::_first_row` via `RoadProximityCoverageAssessmentResult`.
 
 **Exact class source**
 
@@ -399,26 +403,21 @@ actual
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_require_lambert93` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_parcels` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_output_integrity` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_require_crs` via `_validated_crs`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_parcel_preservation` via `_validated_crs`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `_validated_crs`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `_validated_crs`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `_validated_crs`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validated_crs`.
 
 **Complete source-ordered implementation**
 
@@ -469,22 +468,18 @@ Private `road` helper for normalized identity; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_normalized_identity`.
 
 **Complete source-ordered implementation**
 
@@ -533,39 +528,18 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -613,18 +587,18 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_null_safe_scalar_equal`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_null_safe_scalar_equal`.
 
 **Complete source-ordered implementation**
 
@@ -669,18 +643,18 @@ Private `road` helper for exact ids; its complete implementation below is the au
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `_exact_ids`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `_exact_ids`.
 
 **Complete source-ordered implementation**
 
@@ -737,23 +711,20 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.geom_type.dropna`, `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` via `_validate_parcel_frame`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_validate_parcel_frame`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_validate_parcel_frame`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_parcel_frame`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_parcel_frame`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_parcel_frame`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_parcel_frame`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_parcel_frame`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_parcel_frame`.
 
 **Complete source-ordered implementation**
 
@@ -817,19 +788,19 @@ bool(type(left) is type(right) and left.names == right.names and (str(left.dtype
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `_same_index`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_same_index`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `_same_index`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_same_index`.
 
 **Complete source-ordered implementation**
 
@@ -880,19 +851,19 @@ Private `road` helper for require same parcels; its complete implementation belo
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `actual.drop(columns='geometry').equals`, `actual.geometry.to_wkb`, `actual.geometry.to_wkb().equals`, `expected.geometry.to_wkb`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_require_same_parcels`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_require_same_parcels`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_require_same_parcels`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_require_same_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -952,21 +923,19 @@ np.asarray(converted, dtype='float64')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `converted`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` via `_finite_nonnegative`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
 
 **Complete source-ordered implementation**
 
@@ -1023,18 +992,18 @@ eligible
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_class_coverage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_class_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -1104,18 +1073,18 @@ Rejects malformed or inconsistent match rows; exact branches, calls, and return 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `rows['nearest_road_proxy_distance_m'].notna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_match_rows`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_upstream_result` via `_validate_match_rows`.
 
 **Complete source-ordered implementation**
 
@@ -1214,18 +1183,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_upstream_result`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_upstream_result`.
 
 **Complete source-ordered implementation**
 
@@ -1323,19 +1292,18 @@ Rejects malformed or inconsistent coverage summary; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
 
 **Complete source-ordered implementation**
 
@@ -1449,21 +1417,19 @@ Rejects malformed or inconsistent source coverage; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.geom_type.dropna`, `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: `_SHA256_PATTERN.fullmatch`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_source_coverage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_source_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -1596,18 +1562,18 @@ Private `road` helper for coverage lineage; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `_coverage_lineage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `_coverage_lineage`.
 
 **Complete source-ordered implementation**
 
@@ -1661,19 +1627,19 @@ Private `road` helper for parcel coverage diagnostics; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `boundary`, `distance`, `force_2d`, `parcels.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_parcel_coverage_diagnostics`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_parcel_coverage_diagnostics`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_parcel_coverage_diagnostics`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_parcel_coverage_diagnostics`.
 
 **Complete source-ordered implementation**
 
@@ -1745,20 +1711,18 @@ statuses
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `distances.to_numpy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `statuses[internal & (numeric < boundary_distances)]`, `statuses[internal & (numeric >= boundary_distances)]`, `statuses[outside]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_coverage_statuses`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_coverage_statuses`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `_coverage_statuses`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `_coverage_statuses`.
 
 **Complete source-ordered implementation**
 
@@ -1817,19 +1781,19 @@ output.loc[:, list(_DIAGNOSTIC_COLUMNS)]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `row_boundary.to_numpy`, `table['parcel_id'].map(boundary_by_id).astype`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['road_proximity_coverage_status']`, `output['road_source_boundary_distance_m']`, `output['road_source_coverage_position']`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_diagnosed_class_proximity` via `_expected_diagnostics`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_expected_diagnostics`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_diagnosed_class_proximity` via `_expected_diagnostics`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_expected_diagnostics`.
 
 **Complete source-ordered implementation**
 
@@ -1897,20 +1861,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_diagnosed_class_proximity`.
-- property/attribute access: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `module._diagnosed_class_proximity`.
-- property/attribute access: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `module._diagnosed_class_proximity`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_diagnosed_class_proximity`.
 
 **Complete source-ordered implementation**
 
@@ -1962,19 +1924,19 @@ Rejects malformed or inconsistent selected road package; exact branches, calls, 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `table['nearest_road_proxy_distance_m'].notna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_selected_road_package`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_selected_road_package`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_selected_road_package`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_selected_road_package`.
 
 **Complete source-ordered implementation**
 
@@ -2042,20 +2004,18 @@ Rejects malformed or inconsistent assessment result; exact branches, calls, and 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_assessment_result`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_validate_assessment_result`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_assessment_result`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_assessment_result`.
 
 **Complete source-ordered implementation**
 
@@ -2163,18 +2123,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `_assess_road_proximity_coverage`.
+- direct call: `src/landscout/stages/assess_road_proximity_coverage.py::assess_road_proximity_coverage` via `_assess_road_proximity_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -2272,34 +2232,34 @@ _assess_road_proximity_coverage(parcels, road_source, source_config, policy_path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `assess_road_proximity_coverage`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `assess_road_proximity_coverage`.
-- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
+- import: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.assess_road_proximity_coverage import (
     RoadProximityCoverageAssessmentResult,
     RoadProximityCoverageError,
     assess_road_proximity_coverage,
 )`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `assess_road_proximity_coverage`.
+- direct call: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `assess_road_proximity_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -2366,14 +2326,14 @@ _COVERAGE_LINEAGE_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `road_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `road_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `road_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `road_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `road_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `road_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `road_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `road_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `road_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `road_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `road_source_coverage_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 7 | `road_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `road_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `road_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `road_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `_DIAGNOSTIC_COLUMNS` — canonical or derived frame-column schema
 
@@ -2389,16 +2349,16 @@ _DIAGNOSTIC_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `road_source_boundary_distance_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 2 | `road_source_coverage_position` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `road_source_coverage_position` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `road_proximity_coverage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `road_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `road_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `road_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `road_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `road_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `road_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `road_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `road_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `road_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `road_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 9 | `road_source_coverage_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 10 | `road_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `road_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `road_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `road_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `_SELECTED_ROAD_COLUMNS` — canonical or derived frame-column schema
 
@@ -2433,8 +2393,8 @@ _SELECTED_ROAD_COLUMNS = (
 | 3 | `nearest_road_tie_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 4 | `nearest_road_primary_rule` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 5 | `nearest_road_rule_trace_json` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 6 | `nearest_road_unknown_fields_json` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `nearest_road_toll_evidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `nearest_road_unknown_fields_json` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `nearest_road_toll_evidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `nearest_nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 9 | `nearest_importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 10 | `nearest_asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -2443,9 +2403,9 @@ _SELECTED_ROAD_COLUMNS = (
 | 13 | `nearest_carriageway_width_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 14 | `nearest_closure_period_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 15 | `nearest_restriction_nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 16 | `nearest_source_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `nearest_source_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `nearest_source_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `nearest_source_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `nearest_source_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `nearest_source_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 19 | `nearest_source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 
 
@@ -2457,9 +2417,9 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `RoadProximityCoverageAssessmentResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
-| `RoadProximityCoverageError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
-| `assess_road_proximity_coverage` | re-exported/defined Python symbol | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
+| `RoadProximityCoverageAssessmentResult` | public symbol defined in this module | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
+| `RoadProximityCoverageError` | public symbol defined in this module | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
+| `assess_road_proximity_coverage` | public symbol defined in this module | `defined in `src/landscout/stages/assess_road_proximity_coverage.py`` | yes |
 
 ## 9. Error handling
 

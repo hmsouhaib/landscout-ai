@@ -216,7 +216,7 @@ class IgnRoadVehicleProxyPolicy:
 
 ## 6. Functions and methods
 
-Loader: `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, byte hashing, and cross-field validation.
+Loader: `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, exact validation, and any hashing actually performed by that loader.
 
 ## 7. Data contracts
 
@@ -232,7 +232,7 @@ The owning Pydantic model rejects extra/missing/unsupported/coerced values accor
 
 ## 10. Side effects
 
-Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: loaders that expose config identity hash these exact bytes.
+Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: the road-policy loader hashes the exact UTF-8 policy bytes and stores that SHA256 in the compiled policy.
 
 ## 11. Security / trust boundaries
 
@@ -244,7 +244,7 @@ Only explicit CRS fields impose GIS rules; configured storage/calculation CRS va
 
 ## 13. Provenance rules
 
-The file's SHA256 binds this exact policy/configuration snapshot. Source identities remain textual until the adapter validates physical bytes/content.
+The companion's Source SHA256 binds this checked-in file for documentation fidelity; that documentation digest is not attributed to the runtime loader. Source identities remain textual until the adapter validates physical bytes/content.
 
 ## 14. Business meaning
 
@@ -256,8 +256,8 @@ Thresholds and outcomes are policy/configuration values. They are never relabele
 
 ## 16. Tests
 
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior.
+The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
 
 ## 17. Change impact
 
-Any YAML byte/value change requires policy/source review, affected config/result hashes, consumer tests, generated artifacts where applicable, and this companion SHA update.
+Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.

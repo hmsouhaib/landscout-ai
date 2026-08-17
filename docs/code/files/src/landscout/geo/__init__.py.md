@@ -113,25 +113,25 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `LAMBERT93` | re-exported/defined Python symbol | `landscout.geo.crs.LAMBERT93` | yes |
-| `WGS84` | re-exported/defined Python symbol | `landscout.geo.crs.WGS84` | yes |
-| `EmptyGeometryError` | re-exported/defined Python symbol | `landscout.geo.geometry.EmptyGeometryError` | yes |
-| `GeometryError` | re-exported/defined Python symbol | `landscout.geo.geometry.GeometryError` | yes |
-| `InvalidGeometryError` | re-exported/defined Python symbol | `landscout.geo.geometry.InvalidGeometryError` | yes |
-| `MetricCrsError` | re-exported/defined Python symbol | `landscout.geo.geometry.MetricCrsError` | yes |
-| `ParcelShapeMetrics` | re-exported/defined Python symbol | `landscout.geo.geometry.ParcelShapeMetrics` | yes |
-| `UnsupportedGeometryError` | re-exported/defined Python symbol | `landscout.geo.geometry.UnsupportedGeometryError` | yes |
-| `ZeroAreaGeometryError` | re-exported/defined Python symbol | `landscout.geo.geometry.ZeroAreaGeometryError` | yes |
-| `approximate_length_m` | re-exported/defined Python symbol | `landscout.geo.geometry.approximate_length_m` | yes |
-| `approximate_width_m` | re-exported/defined Python symbol | `landscout.geo.geometry.approximate_width_m` | yes |
-| `area_m2` | re-exported/defined Python symbol | `landscout.geo.geometry.area_m2` | yes |
-| `centroid` | re-exported/defined Python symbol | `landscout.geo.geometry.centroid` | yes |
-| `centroid_to_latlon` | re-exported/defined Python symbol | `landscout.geo.geometry.centroid_to_latlon` | yes |
-| `compactness_score` | re-exported/defined Python symbol | `landscout.geo.geometry.compactness_score` | yes |
-| `length_width_ratio` | re-exported/defined Python symbol | `landscout.geo.geometry.length_width_ratio` | yes |
-| `parcel_shape_metrics_m` | re-exported/defined Python symbol | `landscout.geo.geometry.parcel_shape_metrics_m` | yes |
-| `perimeter_m` | re-exported/defined Python symbol | `landscout.geo.geometry.perimeter_m` | yes |
-| `reproject_to_lambert93` | re-exported/defined Python symbol | `landscout.geo.geometry.reproject_to_lambert93` | yes |
+| `LAMBERT93` | public re-export imported from its declaring module | `landscout.geo.crs.LAMBERT93` | yes |
+| `WGS84` | public re-export imported from its declaring module | `landscout.geo.crs.WGS84` | yes |
+| `EmptyGeometryError` | public re-export imported from its declaring module | `landscout.geo.geometry.EmptyGeometryError` | yes |
+| `GeometryError` | public re-export imported from its declaring module | `landscout.geo.geometry.GeometryError` | yes |
+| `InvalidGeometryError` | public re-export imported from its declaring module | `landscout.geo.geometry.InvalidGeometryError` | yes |
+| `MetricCrsError` | public re-export imported from its declaring module | `landscout.geo.geometry.MetricCrsError` | yes |
+| `ParcelShapeMetrics` | public re-export imported from its declaring module | `landscout.geo.geometry.ParcelShapeMetrics` | yes |
+| `UnsupportedGeometryError` | public re-export imported from its declaring module | `landscout.geo.geometry.UnsupportedGeometryError` | yes |
+| `ZeroAreaGeometryError` | public re-export imported from its declaring module | `landscout.geo.geometry.ZeroAreaGeometryError` | yes |
+| `approximate_length_m` | public re-export imported from its declaring module | `landscout.geo.geometry.approximate_length_m` | yes |
+| `approximate_width_m` | public re-export imported from its declaring module | `landscout.geo.geometry.approximate_width_m` | yes |
+| `area_m2` | public re-export imported from its declaring module | `landscout.geo.geometry.area_m2` | yes |
+| `centroid` | public re-export imported from its declaring module | `landscout.geo.geometry.centroid` | yes |
+| `centroid_to_latlon` | public re-export imported from its declaring module | `landscout.geo.geometry.centroid_to_latlon` | yes |
+| `compactness_score` | public re-export imported from its declaring module | `landscout.geo.geometry.compactness_score` | yes |
+| `length_width_ratio` | public re-export imported from its declaring module | `landscout.geo.geometry.length_width_ratio` | yes |
+| `parcel_shape_metrics_m` | public re-export imported from its declaring module | `landscout.geo.geometry.parcel_shape_metrics_m` | yes |
+| `perimeter_m` | public re-export imported from its declaring module | `landscout.geo.geometry.perimeter_m` | yes |
+| `reproject_to_lambert93` | public re-export imported from its declaring module | `landscout.geo.geometry.reproject_to_lambert93` | yes |
 
 ## 9. Error handling
 

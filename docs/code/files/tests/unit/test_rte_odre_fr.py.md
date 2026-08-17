@@ -59,7 +59,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 PROJECT_ROOT = Path(__file__).parents[2]
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_rte_odre_fr.py::<module>` (value reference).
 
 #### `CONFIG_PATH`
 
@@ -67,7 +67,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 CONFIG_PATH = PROJECT_ROOT / "configs/sources/rte_odre_fr.yaml"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::source_config` (value argument/reference), `tests/unit/test_rte_odre_fr.py::source_config` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_rte_odre_fr.py::_config_data` (value reference), `tests/unit/test_rte_odre_fr.py::source_config` (value reference).
 
 #### `BASE_URL`
 
@@ -75,7 +75,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 BASE_URL = "https://odre.opendatasoft.com/api/explore/v2.1"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_rte_odre_fr.py::test_build_export_url` (value reference), `tests/unit/test_rte_odre_fr.py::test_build_metadata_url` (value reference).
 
 #### `DATASET_IDS`
 
@@ -87,7 +87,7 @@ DATASET_IDS = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` (value reference), `tests/unit/test_rte_odre_fr.py::test_successful_download` (value reference), `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` (value reference), `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` (value reference), `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` (value reference), `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` (value reference), `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` (value reference), `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` (value reference), `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` (value reference), `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` (value reference), `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` (value reference), `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` (value reference), `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` (value reference), `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` (value reference), `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` (value reference), `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` (value reference), `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` (value reference), `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` (value reference), `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` (value reference), `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -136,27 +136,23 @@ yaml.safe_load(stream)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `CONFIG_PATH.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_department_coverage_config_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_required_source_field_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_source_configuration_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unknown_source_config_field_is_rejected` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails` via `_config_data`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails` via `_config_data`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `_config_data`.
 
 **Complete source-ordered implementation**
 
@@ -197,39 +193,39 @@ json.dumps(payload, ensure_ascii=False).encode('utf-8')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_content`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_content`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_metadata_content`.
 
 **Complete source-ordered implementation**
 
@@ -287,35 +283,35 @@ json.dumps(payload).encode('utf-8')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_feature_collection`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_feature_collection`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_feature_collection`.
 
 **Complete source-ordered implementation**
 
@@ -371,70 +367,39 @@ io.BytesIO(content)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `self._response`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_response`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_response`.
 
 **Complete source-ordered implementation**
 
@@ -474,34 +439,27 @@ cache_dir / f'{dataset_id}.geojson.metadata.json'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `_metadata_path`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
 
 **Complete source-ordered implementation**
 
@@ -538,28 +496,23 @@ Private `test` helper for expire cache; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `metadata_path.read_text`.
 - Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `metadata['download_timestamp']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_expire_cache`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_expire_cache`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
 
 **Complete source-ordered implementation**
 
@@ -593,7 +546,7 @@ def source_config() -> RteOdreSourceConfig:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid source config loads`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -623,7 +576,7 @@ assert source_config.cache.max_age_hours == 168
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid source config loads` through the exact asserted conditions: `source_config.provider == 'RTE'`; `source_config.portal == 'ODRE'`; `source_config.datasets.sites.dataset_id == 'postes-electriques-rte'`; `source_config.cache.max_age_hours == 168`.
 
 **Test boundary**
 
@@ -643,7 +596,7 @@ def test_valid_source_config_loads(source_config: RteOdreSourceConfig) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing dataset id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -672,7 +625,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing dataset id fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -693,7 +646,7 @@ def test_missing_dataset_id_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty base url fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -722,7 +675,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `empty base url fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -743,7 +696,7 @@ def test_empty_base_url_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `api base is pinned to the official https origin and path`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -772,7 +725,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `api base is pinned to the official https origin and path`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -795,7 +748,7 @@ def test_api_base_is_pinned_to_the_official_https_origin_and_path(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutated loaded api origin is rejected before metadata network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -832,7 +785,7 @@ assert network_calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `mutated loaded api origin is rejected before metadata network`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -888,24 +841,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -924,7 +871,7 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `negative cache age fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -953,7 +900,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `negative cache age fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -974,7 +921,7 @@ def test_negative_cache_age_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported export format fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1003,7 +950,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported export format fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1024,7 +971,7 @@ def test_unsupported_export_format_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `build export url`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1051,7 +998,7 @@ assert url == f"{BASE_URL}/catalog/datasets/{dataset_id}/exports/geojson"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `build export url` through the exact asserted conditions: `url == f'{BASE_URL}/catalog/datasets/{dataset_id}/exports/geojson'`.
 
 **Test boundary**
 
@@ -1072,7 +1019,7 @@ def test_build_export_url(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `build metadata url`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1101,7 +1048,7 @@ assert build_rte_odre_metadata_url(source_config, "sites") == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `build metadata url` through the exact asserted conditions: `build_rte_odre_metadata_url(source_config, 'sites') == f'{BASE_URL}/catalog/datasets/postes-electriques-rte'`.
 
 **Test boundary**
 
@@ -1120,7 +1067,7 @@ def test_build_metadata_url(source_config: RteOdreSourceConfig) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `export url uses configured dataset id`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1151,7 +1098,7 @@ assert build_rte_odre_export_url(config, "sites").endswith(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `export url uses configured dataset id` through the exact asserted conditions: `build_rte_odre_export_url(config, 'sites').endswith('/catalog/datasets/configured-sites/exports/geojson')`.
 
 **Test boundary**
 
@@ -1174,7 +1121,7 @@ def test_export_url_uses_configured_dataset_id() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata is captured without fabrication`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1211,7 +1158,7 @@ assert metadata.geometry_precision_status == "GENERALIZED_OR_RESTRICTED"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `metadata is captured without fabrication` through the exact asserted conditions: `metadata.title == 'Official RTE dataset'`; `metadata.publisher == 'RTE'`; `metadata.modified == '2026-06-16T12:00:00+00:00'`; `metadata.data_processed == '2026-06-16T12:01:00+00:00'`; plus 4 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1245,7 +1192,7 @@ def test_metadata_is_captured_without_fabrication(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `successful download`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1345,7 +1292,7 @@ def test_successful_download(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata export record count mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1385,7 +1332,7 @@ assert not list(tmp_path.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `metadata export record count mismatch is rejected`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1423,7 +1370,7 @@ def test_metadata_export_record_count_mismatch_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unavailable metadata record count is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1458,7 +1405,7 @@ assert result.export_summary.feature_count == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unavailable metadata record count is accepted` through the exact asserted conditions: `result.dataset_metadata.records_count is None`; `result.export_summary.feature_count == 2`.
 
 **Test boundary**
 
@@ -1490,7 +1437,7 @@ def test_unavailable_metadata_record_count_is_accepted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `negative source record count is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1526,7 +1473,7 @@ assert not list(tmp_path.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `negative source record count is rejected`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1558,7 +1505,7 @@ def test_negative_source_record_count_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `export summary rejects invalid geometry counts`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1618,7 +1565,7 @@ def test_export_summary_rejects_invalid_geometry_counts(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `fresh cache is reused`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1693,7 +1640,7 @@ def test_fresh_cache_is_reused(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `expired cache is refreshed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1802,7 +1749,7 @@ def test_expired_cache_is_refreshed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `http failure raises and cleans temporary files`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1839,7 +1786,7 @@ assert not list(tmp_path.glob("*.geojson"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `http failure raises and cleans temporary files`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1873,7 +1820,7 @@ def test_http_failure_raises_and_cleans_temporary_files(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed refresh preserves previous valid cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1922,7 +1869,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `failed refresh preserves previous valid cache`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1969,7 +1916,7 @@ def test_failed_refresh_preserves_previous_valid_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted refresh preserves previous valid cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2020,7 +1967,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupted refresh preserves previous valid cache`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2069,7 +2016,7 @@ def test_corrupted_refresh_preserves_previous_valid_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata publication failure restores previous pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2223,21 +2170,18 @@ Private `test` helper for fail metadata publication; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
 
 **Complete source-ordered implementation**
 
@@ -2258,7 +2202,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid geojson download is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2297,7 +2241,7 @@ assert not list(tmp_path.glob("*.geojson"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid geojson download is rejected`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2334,7 +2278,7 @@ def test_invalid_geojson_download_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed geojson feature or geometry is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2366,7 +2310,7 @@ with pytest.raises(RteOdreDownloadError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed geojson feature or geometry is rejected`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2394,7 +2338,7 @@ def test_malformed_geojson_feature_or_geometry_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `standard geojson geometry types are summarized`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2506,7 +2450,7 @@ def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `point requires a finite numeric position`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2548,7 +2492,7 @@ with pytest.raises(RteOdreDownloadError, match="coordinate|Point|finite"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `point requires a finite numeric position`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2586,7 +2530,7 @@ def test_point_requires_a_finite_numeric_position(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `nested coordinate geometries reject obvious invalid structure`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2631,7 +2575,7 @@ with pytest.raises(RteOdreDownloadError, match="coordinate|structure|finite"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `nested coordinate geometries reject obvious invalid structure`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2673,7 +2617,7 @@ def test_nested_coordinate_geometries_reject_obvious_invalid_structure(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `geometry collection members are validated recursively`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2720,7 +2664,7 @@ with pytest.raises(RteOdreDownloadError, match="coordinate|Point"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `geometry collection members are validated recursively`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2760,7 +2704,7 @@ def test_geometry_collection_members_are_validated_recursively(tmp_path: Path) -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null feature geometries are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2842,7 +2786,7 @@ def test_null_feature_geometries_are_accepted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `lineage sidecar records integrity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2946,7 +2890,7 @@ def test_lineage_sidecar_records_integrity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid cached record count invalidates cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3046,7 +2990,7 @@ def test_invalid_cached_record_count_invalidates_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cached export summary mismatch invalidates cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3147,7 +3091,7 @@ def test_cached_export_summary_mismatch_invalidates_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted cached export triggers refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3237,7 +3181,7 @@ def test_corrupted_cached_export_triggers_refresh(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `double failure preserves recovery and next run uses zero network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3403,27 +3347,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -3469,19 +3404,18 @@ _response(_feature_collection())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
 
 **Complete source-ordered implementation**
 
@@ -3520,24 +3454,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `network_calls`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -3555,7 +3483,7 @@ def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `temporary link or junction cannot modify target before rte network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3623,7 +3551,7 @@ assert sentinel.read_bytes() == sentinel_bytes
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `temporary link or junction cannot modify target before rte network`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3721,23 +3649,18 @@ link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
 **Complete source-ordered implementation**
 
@@ -3779,19 +3702,18 @@ link_kind == 'junction' and path == unsafe_path or original_is_junction(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
 
 **Complete source-ordered implementation**
 
@@ -3837,20 +3759,18 @@ original_open(sentinel, *args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
 
 **Complete source-ordered implementation**
 
@@ -3896,20 +3816,18 @@ _response(_feature_collection())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(gpu, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', record_network)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', record_network)`.
 
 **Complete source-ordered implementation**
 
@@ -3930,7 +3848,7 @@ def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `broken recovery symlink rejects rte before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3970,7 +3888,7 @@ assert network_calls == []
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `broken recovery symlink rejects rte before network`: the reproduced adversarial input must raise `RteOdreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4036,23 +3954,18 @@ path == recovery_path or original_is_symlink(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
 **Complete source-ordered implementation**
 
@@ -4089,24 +4002,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `network_calls`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -4124,7 +4031,7 @@ def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rte cleanup failure does not mask double failure recovery error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4281,27 +4188,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -4344,21 +4242,18 @@ Private `test` helper for fail temporary cleanup; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
 
 **Complete source-ordered implementation**
 
@@ -4402,19 +4297,18 @@ _response(_feature_collection())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+- function object argument: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
 
 **Complete source-ordered implementation**
 

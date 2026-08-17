@@ -60,7 +60,7 @@ No class/model/dataclass is declared.
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `package import and version`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -87,7 +87,7 @@ assert landscout.__version__
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `package import and version` through the exact asserted conditions: `landscout.__version__`.
 
 **Test boundary**
 

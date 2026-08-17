@@ -20,9 +20,9 @@ flowchart TD
 
 `build_cadastre_parcelles_url` validates a canonical French commune identifier, derives the department path (including Corsican handling), and builds the official Etalab Cadastre parcels gzip URL. `download_cadastre_parcelles` uses shared safe HTTPS, streams exact bytes, validates gzip, computes size/SHA, and creates a frozen `CadastreDownload`. See [CACHE_AND_RECOVERY.md](CACHE_AND_RECOVERY.md) for hit/refresh/rollback behavior.
 
-## Source-complete load
+## Byte/physical-integrity load against a supplied envelope
 
-`load_cadastre_parcels(download)` accepts the result object rather than a caller path. `_validate_download` requires the exact `CadastreDownload` runtime type, a real `Path`, an existing file, an exact non-empty source URL with an `http` or `https` scheme, filename/path agreement, strict positive size, and canonical lowercase SHA256. It compares current physical size/SHA, fully reads the gzip to validate it, parses GeoJSON with GeoPandas, rejects an empty dataset/missing active geometry/non-polygon types, and compares size/SHA again after parsing. It does **not** independently pin `cadastre.data.gouv.fr` and does **not** append source identity/URL/timestamp/hash fields to the returned frame.
+`load_cadastre_parcels(download)` accepts the result object rather than a caller path. `_validate_download` requires the exact `CadastreDownload` runtime type, a real `Path`, an existing file, an exact non-empty source URL with an `http` or `https` scheme, filename/path agreement, strict positive size, and canonical lowercase SHA256. It compares current physical size/SHA, fully reads the gzip to validate it, parses GeoJSON with GeoPandas, rejects an empty dataset/missing active geometry/non-polygon types, and compares size/SHA again after parsing. It does **not** independently pin `cadastre.data.gouv.fr` and does **not** append source identity/URL/timestamp/hash fields to the returned frame. Under LandScout's current trust definition, that makes the loader a byte/physical-integrity validator for a supplied envelope, not an equivalent of IGN's config-bound source-complete revalidation.
 
 ## Normalization
 

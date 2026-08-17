@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/enrich_planning_features.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: spatial proxy enrichment stage
 - Domain: planning
 - Responsibility: Normalizes GPU planning feature catalogs and constructs validated factual parcel-feature relations.
 - Source SHA256: `01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148`
@@ -15,7 +15,7 @@ Normalizes GPU planning feature catalogs and constructs validated factual parcel
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **spatial proxy enrichment stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -88,7 +88,7 @@ This file belongs to the **processing/policy stage** layer and the **planning** 
 CALCULATION_CRS = "EPSG:2154"
 ```
 
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value reference).
 
 #### `PARCEL_REQUIRED_COLUMNS`
 
@@ -96,7 +96,7 @@ Coordinate-reference-system identity used for an explicit storage, validation, o
 PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference).
 
 #### `SOURCE_IDENTITY_KINDS`
 
@@ -104,7 +104,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 SOURCE_IDENTITY_KINDS = frozenset({"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
 
 #### `SURFACE_TYPES`
 
@@ -112,7 +112,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 SURFACE_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference).
 
 #### `LINE_TYPES`
 
@@ -120,7 +120,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 LINE_TYPES = frozenset({"LineString", "MultiLineString"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference).
 
 #### `POINT_TYPES`
 
@@ -128,7 +128,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 POINT_TYPES = frozenset({"Point", "MultiPoint"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference).
 
 #### `LAYER_SPECS`
 
@@ -191,7 +191,7 @@ LAYER_SPECS = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` (value reference), `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
 
 #### `COMMON_SOURCE_FIELDS`
 
@@ -206,7 +206,7 @@ COMMON_SOURCE_FIELDS = {
 }
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value reference).
 
 #### `OPTIONAL_SOURCE_FIELDS`
 
@@ -234,7 +234,7 @@ _CATALOG_GEOMETRY_TYPES = {
 }
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` (value reference).
 
 #### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS`
 
@@ -262,7 +262,7 @@ _CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
 
 #### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS`
 
@@ -277,7 +277,7 @@ _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
 
 #### `PARCEL_OUTPUT_COLUMNS`
 
@@ -309,7 +309,7 @@ PARCEL_OUTPUT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference), `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_result` (value reference).
 
 #### `PARCEL_COUNT_COLUMNS`
 
@@ -331,7 +331,7 @@ PARCEL_COUNT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value reference).
 
 #### `_RELATION_CATALOG_FIELDS`
 
@@ -355,7 +355,7 @@ _RELATION_CATALOG_FIELDS = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -366,7 +366,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 ```
 
-Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is consumed by annotations or Pydantic validation in this module.
+Official planning-feature family domain: PRESCRIPTION or INFORMATION. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_LayerSpec` (type annotation).
 
 #### `GeometryKind`
 
@@ -374,7 +374,7 @@ Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is cons
 GeometryKind = Literal["SURFACE", "LINE", "POINT"]
 ```
 
-Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (callback/function object), `src/landscout/common/bess_application_contract.py::<module>` (import/re-export), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (callback/function object), `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import/re-export).
+Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_LayerSpec` (type annotation), `src/landscout/stages/enrich_planning_features.py::_canonical_catalog_dtypes` (type annotation), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (type annotation), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (type annotation), `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` (type annotation), `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` (type annotation).
 
 #### `SourceIdentityKind`
 
@@ -382,7 +382,7 @@ Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforce
 SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -420,17 +420,19 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `logical_layer` | `logical_layer: str` | Stores `_LayerSpec`'s `logical layer` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `feature_family` | `feature_family: FeatureFamily` | Closed or validated `feature family` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `geometry_kind` | `geometry_kind: GeometryKind` | Closed or validated `geometry kind` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `identity_field` | `identity_field: str` | Stores `_LayerSpec`'s `identity field` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `type_field` | `type_field: str` | Closed or validated `type field` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `subtype_field` | `subtype_field: str` | Closed or validated `subtype field` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `allowed_geometry_types` | `allowed_geometry_types: frozenset[str]` | Closed or validated `allowed geometry types` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `logical_layer` | `logical_layer: str` | LandScout logical GPU feature-layer name represented by this normalization specification. |
+| `feature_family` | `feature_family: FeatureFamily` | `_LayerSpec.feature_family` represents the `feature_family` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `geometry_kind` | `geometry_kind: GeometryKind` | `_LayerSpec.geometry_kind` represents the `geometry_kind` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `identity_field` | `identity_field: str` | Source attribute selected as the stable feature identity for this layer specification. |
+| `type_field` | `type_field: str` | `_LayerSpec.type_field` represents the `type_field` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `subtype_field` | `subtype_field: str` | `_LayerSpec.subtype_field` represents the `subtype_field` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `allowed_geometry_types` | `allowed_geometry_types: frozenset[str]` | `_LayerSpec.allowed_geometry_types` represents the `allowed_geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::<module>` via `_LayerSpec`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::<module>` via `_LayerSpec`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_LayerSpec`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_LayerSpec`.
 
 **Exact class source**
 
@@ -459,92 +461,99 @@ class _LayerSpec(NamedTuple):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_strict_string` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_strict_nonnegative_integer` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_crs` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_active_geometry` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_geometries` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_two_dimensional_geometry` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_relation_base` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_value` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_sha256` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_numeric_values` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_require_close` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `PlanningFeaturesError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `PlanningFeaturesError`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.PlanningFeaturesError`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `pytest.raises(PlanningFeaturesError, match='IDURBA')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `pytest.raises(PlanningFeaturesError, match=missing)`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `pytest.raises(PlanningFeaturesError, match='valid')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS|physical revalidation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='summary|physical revalidation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|summary|physical revalidation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `pytest.raises(PlanningFeaturesError, match='output columns')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `pytest.raises(PlanningFeaturesError)`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `pytest.raises(PlanningFeaturesError, match='inventory|reference')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `pytest.raises(PlanningFeaturesError, match='schema|label_raw')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|dtype|schema')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `pytest.raises(PlanningFeaturesError)`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `pytest.raises(PlanningFeaturesError, match='relation type')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `pytest.raises(PlanningFeaturesError, match='catalog|geometry kind|LINE relation|unrelated metric')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeaturesError, match='globally unique|deterministic')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='inconsistent with relations')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `pytest.raises(PlanningFeaturesError, match='union')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `pytest.raises(PlanningFeaturesError, match='spatial join')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `pytest.raises(PlanningFeaturesError, match='parcel|source')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `pytest.raises(PlanningFeaturesError, match='parcel|metric|source')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `pytest.raises(PlanningFeaturesError, match='relation|parcel|rebuilt|source')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `pytest.raises(PlanningFeaturesError, match='relation|order|rebuilt')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `pytest.raises(PlanningFeaturesError, match='schema|dtype|relation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `pytest.raises(PlanningFeaturesError, match='relation|metric|rebuilt')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `pytest.raises(PlanningFeaturesError, match='[Pp]arcel|output|summary|columns')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `pytest.raises(PlanningFeaturesError, match='parcel|schema|dtype|summary')`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation|lineage|document|archive|union|percentage')`.
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_strict_string` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_strict_nonnegative_integer` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_crs` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_active_geometry` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_geometries` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_two_dimensional_geometry` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_relation_base` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_value` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_sha256` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_numeric_values` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_require_close` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `PlanningFeaturesError`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `PlanningFeaturesError`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `pytest.raises(PlanningFeaturesError, match='IDURBA')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `pytest.raises(PlanningFeaturesError, match=missing)`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `pytest.raises(PlanningFeaturesError, match='valid')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS|physical revalidation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='summary|physical revalidation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|summary|physical revalidation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `pytest.raises(PlanningFeaturesError, match='output columns')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `pytest.raises(PlanningFeaturesError)`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `pytest.raises(PlanningFeaturesError, match='inventory|reference')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `pytest.raises(PlanningFeaturesError, match='schema|label_raw')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|dtype|schema')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `pytest.raises(PlanningFeaturesError)`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `pytest.raises(PlanningFeaturesError, match='relation type')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `pytest.raises(PlanningFeaturesError, match='catalog|geometry kind|LINE relation|unrelated metric')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeaturesError, match='globally unique|deterministic')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='inconsistent with relations')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `pytest.raises(PlanningFeaturesError, match='union')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `pytest.raises(PlanningFeaturesError, match='spatial join')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `pytest.raises(PlanningFeaturesError, match='parcel|source')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `pytest.raises(PlanningFeaturesError, match='parcel|metric|source')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `pytest.raises(PlanningFeaturesError, match='relation|parcel|rebuilt|source')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `pytest.raises(PlanningFeaturesError, match='relation|order|rebuilt')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `pytest.raises(PlanningFeaturesError, match='schema|dtype|relation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `pytest.raises(PlanningFeaturesError, match='relation|metric|rebuilt')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `pytest.raises(PlanningFeaturesError, match='[Pp]arcel|output|summary|columns')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `pytest.raises(PlanningFeaturesError, match='parcel|schema|dtype|summary')`.
+- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation|lineage|document|archive|union|percentage')`.
 
 **Exact class source**
 
@@ -568,23 +577,21 @@ class PlanningFeaturesError(ValueError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-| `surface_features` | `surface_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `surface features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `line_features` | `line_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `line features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `point_features` | `point_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `point features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `surface_features` | `surface_features: gpd.GeoDataFrame` | Canonical surface planning-feature catalog in this result envelope. |
+| `line_features` | `line_features: gpd.GeoDataFrame` | Canonical line planning-feature catalog in this result envelope. |
+| `point_features` | `point_features: gpd.GeoDataFrame` | Canonical point planning-feature catalog in this result envelope. |
 | `relations` | `relations: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.ParcelPlanningFeaturesResult`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
@@ -592,6 +599,16 @@ class PlanningFeaturesError(ValueError):
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `ParcelPlanningFeaturesResult`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_run` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_contract_result` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `ParcelPlanningFeaturesResult`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `ParcelPlanningFeaturesResult`.
 
 **Exact class source**
 
@@ -628,21 +645,18 @@ class ParcelPlanningFeaturesResult:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
     PlanningFeatureInputValidation,
     validate_normalized_planning_feature_inputs,
 )`.
-- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `isinstance(validation, PlanningFeatureInputValidation)`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_is_exported` via `stages.PlanningFeatureInputValidation`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
@@ -650,6 +664,11 @@ class ParcelPlanningFeaturesResult:
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureInputValidation`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `PlanningFeatureInputValidation`.
 
 **Exact class source**
 
@@ -678,19 +697,22 @@ class PlanningFeatureInputValidation:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: str` | Stores `_PlanningContext`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: str` | Stores `_PlanningContext`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `commune_code` | `commune_code: str` | Stores `_PlanningContext`'s `commune code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
+| `commune_code` | `commune_code: str` | Canonical five-character French commune identity attached to this source/configuration context. |
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `document_type` | `document_type: str` | Closed or validated `document type` classification on `_PlanningContext`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `archive_name` | `archive_name: str` | Stores `_PlanningContext`'s `archive name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document_type` | `document_type: str` | `_PlanningContext.document_type` represents the `document_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `archive_name` | `archive_name: str` | Portable physical source-archive basename retained in lineage. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
+- constructor call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_PlanningContext`.
 
 **Exact class source**
 
@@ -736,55 +758,23 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
 
 **Complete source-ordered implementation**
 
@@ -827,31 +817,19 @@ int(value)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
 
 **Complete source-ordered implementation**
 
@@ -892,21 +870,21 @@ Rejects malformed or inconsistent ids; exact branches, calls, and return constru
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_ids`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_validate_ids`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_validate_ids`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_ids`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_ids`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_validate_ids`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_validate_ids`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_ids`.
 
 **Complete source-ordered implementation**
 
@@ -945,21 +923,21 @@ Rejects malformed or inconsistent exact strings; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
 
 **Complete source-ordered implementation**
 
@@ -999,18 +977,18 @@ Rejects malformed or inconsistent optional exact strings; exact branches, calls,
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_optional_exact_strings`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_optional_exact_strings`.
 
 **Complete source-ordered implementation**
 
@@ -1053,22 +1031,22 @@ CRS.from_user_input(value)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_crs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_crs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_crs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `_crs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `_crs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_crs`.
 
 **Complete source-ordered implementation**
 
@@ -1111,22 +1089,20 @@ Private `planning` helper for active geometry; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_active_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -1177,20 +1153,20 @@ Rejects malformed or inconsistent geometries; exact branches, calls, and return 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_geometries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_geometries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_geometries`.
 
 **Complete source-ordered implementation**
 
@@ -1246,18 +1222,18 @@ Rejects malformed or inconsistent two dimensional geometry; exact branches, call
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_two_dimensional_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_two_dimensional_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -1318,25 +1294,19 @@ source_crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_active_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -1399,19 +1369,18 @@ values[0] if values else None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `values`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_standard_model`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
 
 **Complete source-ordered implementation**
 
@@ -1462,20 +1431,20 @@ _PlanningContext(provider=_strict_string(metadata.provider, 'GPU provider'), por
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_planning_context`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_planning_context`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_planning_context`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_planning_context`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_planning_context`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_planning_context`.
 
 **Complete source-ordered implementation**
 
@@ -1531,18 +1500,18 @@ tuple(((str(key), int(value)) for key, value in counts.items()))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `frame.geometry.geom_type.value_counts`, `frame.geometry.geom_type.value_counts().sort_index`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_summary_geometry_types`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_summary_geometry_types`.
 
 **Complete source-ordered implementation**
 
@@ -1583,20 +1552,18 @@ Rejects malformed or inconsistent layer summary; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `_summary_geometry_types`, `geometry.notna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
 
 **Complete source-ordered implementation**
 
@@ -1682,19 +1649,19 @@ gpd.GeoSeries(force_2d(projected.array), crs=target)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `force_2d`, `frame.geometry.copy`, `frame.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_project_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `_project_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_project_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `_project_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -1755,18 +1722,18 @@ Private `planning` helper for source feature ids; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_source_feature_ids`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_source_feature_ids`.
 
 **Complete source-ordered implementation**
 
@@ -1835,18 +1802,18 @@ np.full(len(frame), None, dtype='object')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_optional_values`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_optional_values`.
 
 **Complete source-ordered implementation**
 
@@ -1900,18 +1867,18 @@ projected
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_active_geometry`, `_project_geometry`, `geometry.to_numpy`, `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`, `projected.geometry.area.to_numpy`, `projected.geometry.length.to_numpy`.
-- Hashing: `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `projected['feature_area_m2']`, `projected['feature_length_m']`, `projected['point_member_count']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_normalize_layer`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_normalize_layer`.
 
 **Complete source-ordered implementation**
 
@@ -2060,19 +2027,19 @@ catalog
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `catalog.index`, `catalog[column]`.
 - Input mutation: `catalog.index`, `catalog[column]`.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_empty_catalog` via `_canonical_catalog_dtypes`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_empty_catalog` via `_canonical_catalog_dtypes`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes`.
 
 **Complete source-ordered implementation**
 
@@ -2126,18 +2093,18 @@ _canonical_catalog_dtypes(output, kind)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `data[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_empty_catalog`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_empty_catalog`.
 
 **Complete source-ordered implementation**
 
@@ -2193,18 +2160,18 @@ _empty_catalog(kind)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` via `_combine_catalogs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` via `_combine_catalogs`.
 
 **Complete source-ordered implementation**
 
@@ -2263,19 +2230,19 @@ _combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `layer_map[logical]`, `normalized[logical]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_normalized_catalogs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_normalized_catalogs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_normalized_catalogs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_normalized_catalogs`.
 
 **Complete source-ordered implementation**
 
@@ -2379,22 +2346,18 @@ _combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_status_priority_mapping(combined, 'feature document-wide')`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes(combined, kind)`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `combined`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `set(combined)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `len(combined)`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `combined`.
 
 **Complete source-ordered implementation**
 
@@ -2441,24 +2404,20 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(areas <= 0).any`, `_project_geometry`, `geometry.to_numpy`, `np.isfinite(areas).all`, `result.geometry.area.to_numpy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result['_parcel_area_m2']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_parcels` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_parcels` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_or_wrong_storage_crs_is_rejected` via `_metric_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -2521,20 +2480,20 @@ Private `planning` helper for relation base; its complete implementation below i
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `catalog.geometry.to_numpy`, `metric['_parcel_area_m2'].to_numpy`.
-- Hashing: `selected['source_archive_sha256'].to_numpy`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `_relation_base`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `_relation_base`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `_relation_base`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `_relation_base`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `_relation_base`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `_relation_base`.
 
 **Complete source-ordered implementation**
 
@@ -2639,18 +2598,18 @@ base
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `catalog['feature_area_m2'].to_numpy`, `intersection`, `shapely_area`.
-- Hashing: `shapely_area`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `base['_intersection_geometry']`, `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_surface_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_surface_relations`.
 
 **Complete source-ordered implementation**
 
@@ -2724,18 +2683,18 @@ base
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `intersection`.
-- Hashing: `shapely_length`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_line_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_line_relations`.
 
 **Complete source-ordered implementation**
 
@@ -2806,18 +2765,18 @@ base
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(inside_counts + boundary_counts <= 0).any`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `base['point_member_count']`, `base['point_members_boundary_count']`, `base['point_members_inside_count']`, `base['relation_type']`, `base[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_point_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_point_relations`.
 
 **Complete source-ordered implementation**
 
@@ -2892,18 +2851,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output.index`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_empty_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_empty_relations`.
 
 **Complete source-ordered implementation**
 
@@ -2965,20 +2924,19 @@ Constructs relation tables; exact branches, calls, and return construction are r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `relations.index`, `relations[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_build_relation_tables`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_build_relation_tables`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `enrich_module._build_relation_tables`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_build_relation_tables`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_build_relation_tables`.
 
 **Complete source-ordered implementation**
 
@@ -3056,18 +3014,18 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_value`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_value`.
 
 **Complete source-ordered implementation**
 
@@ -3134,19 +3092,19 @@ sha256(encoded).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(encoded).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `_canonical_integrity_sha256`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_sha256`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `_canonical_integrity_sha256`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3201,18 +3159,18 @@ _canonical_integrity_sha256({'domain': 'landscout.planning_features.verified_gpu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_integrity_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_gpu_related_source_files_sha256`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_gpu_related_source_files_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3284,20 +3242,18 @@ _canonical_integrity_sha256({'domain': 'landscout.planning_features.expected_rel
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_integrity_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_expected_relations_content_sha256`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `planning_features_module._expected_relations_content_sha256`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `planning_features_module._expected_relations_content_sha256`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_expected_relations_content_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3349,18 +3305,18 @@ technical_overlay_tolerance(parcel_area)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `_technical_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `_technical_tolerance`.
 
 **Complete source-ordered implementation**
 
@@ -3408,19 +3364,19 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `group['_intersection_geometry'].to_numpy`, `shapely_area`.
-- Hashing: `shapely_area`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output[position]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_surface_union_summary`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_surface_union_summary`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_surface_union_summary`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_surface_union_summary`.
 
 **Complete source-ordered implementation**
 
@@ -3496,19 +3452,19 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `line_work.groupby('_parcel_position', sort=False)['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `surface_positive.groupby('_parcel_position', sort=False)['intersection_area_m2'].sum`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `line_sum[values.index.to_numpy(dtype='int64')]`, `output['planning_feature_archive_sha256']`, `output['planning_feature_document_id']`, `output['planning_line_intersection_length_sum_m']`, `output['planning_line_length_overlap_count']`, `output['planning_line_relation_count']`, `output['planning_line_touch_count']`, `output['planning_point_relation_count']`, `output['planning_surface_area_overlap_count']`, `output['planning_surface_covered_pct']`, `output['planning_surface_covered_union_area_m2']`, `output['planning_surface_intersection_area_sum_m2']`, `output['planning_surface_relation_count']`, `output['planning_surface_touch_count']`, `output[f'{prefix}_surface_covered_pct']`, `output[f'{prefix}_surface_covered_union_area_m2']`, `output[f'{prefix}_surface_relation_count']`, `output[target]`, `raw_sum[sums.index.to_numpy(dtype='int64')]`, `result[counts.index.to_numpy(dtype='int64')]`, `values[grouped.index.to_numpy(dtype='int64')]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_attach_parcel_summaries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_attach_parcel_summaries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_attach_parcel_summaries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_attach_parcel_summaries`.
 
 **Complete source-ordered implementation**
 
@@ -3660,18 +3616,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result[counts.index.to_numpy(dtype='int64')]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `relation_counts`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `relation_counts`.
 
 **Complete source-ordered implementation**
 
@@ -3725,19 +3681,19 @@ Private `planning` helper for numeric values; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_numeric_values`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_numeric_values`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_numeric_values`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_numeric_values`.
 
 **Complete source-ordered implementation**
 
@@ -3803,19 +3759,19 @@ Private `planning` helper for integer values; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_integer_values`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_integer_values`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_integer_values`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_integer_values`.
 
 **Complete source-ordered implementation**
 
@@ -3875,25 +3831,19 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_relations` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_coded_policy_compatibility` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_selected_evidence` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_null_safe_equal`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
 
 **Complete source-ordered implementation**
 
@@ -3948,22 +3898,22 @@ Private `planning` helper for require close; its complete implementation below i
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_require_close`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_require_close`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_require_close`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_require_close`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_require_close`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_require_close`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_require_close`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_require_close`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_require_close`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_require_close`.
 
 **Complete source-ordered implementation**
 
@@ -4017,18 +3967,18 @@ Rejects malformed or inconsistent catalog identity; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_catalog_identity`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_catalog_identity`.
 
 **Complete source-ordered implementation**
 
@@ -4123,18 +4073,18 @@ catalog
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(catalog['feature_area_m2'] <= 0).any`, `_active_geometry`, `_validate_two_dimensional_geometry`, `catalog.geometry.area.to_numpy`, `catalog.geometry.length.to_numpy`, `catalog['feature_area_m2'].tolist`, `catalog['geometry_kind'].eq`, `catalog['geometry_kind'].eq(geometry_kind).all`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_catalog_contract`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_catalog_contract`.
 
 **Complete source-ordered implementation**
 
@@ -4256,18 +4206,18 @@ Private `planning` helper for compare normalized catalog; its complete implement
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.drop(columns='geometry').equals`, `supplied.geometry.to_wkb`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_normalized_catalog`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_normalized_catalog`.
 
 **Complete source-ordered implementation**
 
@@ -4340,18 +4290,18 @@ Rejects malformed or inconsistent relation catalog consistency; exact branches, 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `{'SURFACE': 'feature_area_m2', 'LINE': 'feature_length_m', 'POINT': 'point_member_count'}.get`, `{'SURFACE': 'feature_area_m2', 'LINE': 'source_line_length_m', 'POINT': 'point_member_count'}.get`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_catalog_consistency`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_catalog_consistency`.
 
 **Complete source-ordered implementation**
 
@@ -4430,18 +4380,18 @@ Rejects malformed or inconsistent relation semantics; exact branches, calls, and
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_semantics`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_semantics`.
 
 **Complete source-ordered implementation**
 
@@ -4490,18 +4440,18 @@ Private `planning` helper for compare rebuilt relations; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_relations`.
 
 **Complete source-ordered implementation**
 
@@ -4581,18 +4531,18 @@ Private `planning` helper for compare rebuilt parcel output; its complete implem
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.geometry.to_wkb`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_parcel_output`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_parcel_output`.
 
 **Complete source-ordered implementation**
 
@@ -4690,18 +4640,18 @@ PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_sour
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `metric_parcels['_parcel_area_m2'].tolist`, `relations[['parcel_id', 'parcel_metric_area_m2']].itertuples`.
-- Hashing: `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`, `parcels['planning_feature_archive_sha256'].eq`, `parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `_validate_normalized_planning_feature_inputs`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `_validate_normalized_planning_feature_inputs`.
 
 **Complete source-ordered implementation**
 
@@ -4885,38 +4835,29 @@ _validate_normalized_planning_feature_inputs(planning_document, parcels, surface
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `validate_normalized_planning_feature_inputs`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `validate_normalized_planning_feature_inputs`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `validate_normalized_planning_feature_inputs`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
     PlanningFeatureInputValidation,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `validate_normalized_planning_feature_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `validate_normalized_planning_feature_inputs`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_is_exported` via `stages.validate_normalized_planning_feature_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `validate_normalized_planning_feature_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `validate_normalized_planning_feature_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `validate_normalized_planning_feature_inputs`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
@@ -4924,6 +4865,14 @@ _validate_normalized_planning_feature_inputs(planning_document, parcels, surface
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `validate_normalized_planning_feature_inputs`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `validate_normalized_planning_feature_inputs`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `validate_normalized_planning_feature_inputs`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `validate_normalized_planning_feature_inputs`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `validate_normalized_planning_feature_inputs`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `validate_normalized_planning_feature_inputs`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `validate_normalized_planning_feature_inputs`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `validate_normalized_planning_feature_inputs`.
 
 **Complete source-ordered implementation**
 
@@ -4992,19 +4941,19 @@ Rejects malformed or inconsistent parcel summaries; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `lines['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `metric['_parcel_area_m2'].tolist`, `points['point_members_boundary_count'].sum`, `positive_surfaces['intersection_area_m2'].sum`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcel_summaries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_parcel_summaries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcel_summaries`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_parcel_summaries`.
 
 **Complete source-ordered implementation**
 
@@ -5175,29 +5124,18 @@ Rejects malformed or inconsistent result; exact branches, calls, and return cons
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `output.geometry.to_wkb`, `source.geometry.to_wkb`.
-- Hashing: `catalog['source_archive_sha256'].tolist`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_result`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
@@ -5205,6 +5143,15 @@ Rejects malformed or inconsistent result; exact branches, calls, and return cons
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
 
 **Complete source-ordered implementation**
 
@@ -5327,38 +5274,25 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `intersect_parcels_with_gpu_planning_features`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeatureInputValidation,
     PlanningFeaturesError,
@@ -5366,14 +5300,26 @@ result
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `intersect_parcels_with_gpu_planning_features`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `intersect_parcels_with_gpu_planning_features`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
     RELATION_COLUMNS,
     intersect_parcels_with_gpu_planning_features,
 )`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_run` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `intersect_parcels_with_gpu_planning_features`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `intersect_parcels_with_gpu_planning_features`.
 
 **Complete source-ordered implementation**
 
@@ -5471,11 +5417,11 @@ OPTIONAL_SOURCE_FIELDS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `TXT` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `TXT` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` — required input frame fields (unordered when stored as a set)
 
@@ -5509,9 +5455,9 @@ _CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
 | 2 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 3 | `source_identity_kind` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 4 | `source_identity_field` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `logical_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `feature_family` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `logical_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `feature_family` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `type_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 9 | `subtype_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 10 | `source_document_reference_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -5644,11 +5590,11 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `ParcelPlanningFeaturesResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `PlanningFeatureInputValidation` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `PlanningFeaturesError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `intersect_parcels_with_gpu_planning_features` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `validate_normalized_planning_feature_inputs` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `ParcelPlanningFeaturesResult` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `PlanningFeatureInputValidation` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `PlanningFeaturesError` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `intersect_parcels_with_gpu_planning_features` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `validate_normalized_planning_feature_inputs` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
 
 ## 9. Error handling
 

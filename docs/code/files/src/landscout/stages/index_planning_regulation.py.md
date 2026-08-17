@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/index_planning_regulation.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: processing stage
 - Domain: planning
 - Responsibility: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
 - Source SHA256: `b9434ebeb1b3e05a0604bb56facde5f17183beb04cc2b6da667a438d11aa50d1`
@@ -15,7 +15,7 @@ Selects the authoritative written regulation PDF, extracts text records, and bui
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **processing stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -62,7 +62,7 @@ This file belongs to the **processing/policy stage** layer and the **planning** 
 SEARCH_NORMALIZATION_PROFILE = planning_text.SEARCH_NORMALIZATION_PROFILE
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/index_planning_regulation.py::<module>` (property/attribute access), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value argument/reference), `tests/unit/test_index_planning_regulation.py::<module>` (import/re-export), `tests/unit/test_interpret_bess_zoning.py::_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (value argument/reference), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::<module>` (import), `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `tests/unit/test_structure_planning_regulation.py::<module>` (import), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` (value reference), `src/landscout/stages/index_planning_regulation.py::_build_hits` (value reference), `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` (value reference), `tests/unit/test_interpret_bess_zoning.py::_index` (value reference), `tests/unit/test_structure_planning_regulation.py::_index` (value reference).
 
 #### `_normalize_search_text`
 
@@ -70,7 +70,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _normalize_search_text = planning_text.normalize_planning_search_text
 ```
 
-Module-level callback/compatibility alias consumed by runtime calls and monkeypatch-based regression tests. Consumers include `src/landscout/stages/index_planning_regulation.py::_validate_pages` (direct call or construction), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (direct call or construction), `src/landscout/stages/index_planning_regulation.py::_validated_terms` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig._validate_grammar` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_heading_events` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_build_sections` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_literal_topic_matches` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_validate_sections` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` (direct call or construction), `tests/unit/test_index_planning_regulation.py::test_french_literal_normalization` (direct call or construction), `tests/unit/test_interpret_bess_zoning.py::_index` (direct call or construction), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (direct call or construction), `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` (direct call or construction), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+Private module-level technical value; only the qualified references below are attributed to this declaration. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `tests/unit/test_structure_planning_regulation.py::<module>` (import).
 
 #### `_normalize_search_text_with_mapping`
 
@@ -80,7 +80,7 @@ _normalize_search_text_with_mapping = (
 )
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/index_planning_regulation.py::_build_hits` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` (direct call or construction).
+Explicit mapping between source/input and target/output fields; keys and values are documented separately.
 
 #### `_raw_context`
 
@@ -88,7 +88,7 @@ Explicit mapping between source/input and target/output fields; keys and values 
 _raw_context = planning_text.raw_context_from_spans
 ```
 
-Module-level callback/compatibility alias consumed by runtime calls and monkeypatch-based regression tests. Consumers include `src/landscout/stages/index_planning_regulation.py::_build_hits` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` (direct call or construction), `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` (direct call or construction).
+Private module-level technical value; only the qualified references below are attributed to this declaration.
 
 #### `PAGE_HASH_SCHEMA_VERSION`
 
@@ -96,7 +96,7 @@ Module-level callback/compatibility alias consumed by runtime calls and monkeypa
 PAGE_HASH_SCHEMA_VERSION = 1
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value argument/reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (value argument/reference), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `tests/unit/test_structure_planning_regulation.py::<module>` (import), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` (value reference), `tests/unit/test_interpret_bess_zoning.py::_index` (value reference), `tests/unit/test_structure_planning_regulation.py::_index` (value reference).
 
 #### `INDEX_HASH_SCHEMA_VERSION`
 
@@ -104,7 +104,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 INDEX_HASH_SCHEMA_VERSION = 1
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value argument/reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (value argument/reference), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `tests/unit/test_interpret_bess_zoning.py::<module>` (import), `tests/unit/test_structure_planning_regulation.py::<module>` (import), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` (value reference), `tests/unit/test_interpret_bess_zoning.py::_index` (value reference), `tests/unit/test_structure_planning_regulation.py::_index` (value reference).
 
 #### `SEARCH_HASH_SCHEMA_VERSION`
 
@@ -112,7 +112,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 SEARCH_HASH_SCHEMA_VERSION = 1
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` (value argument/reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` (value argument/reference), `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` (property/attribute access).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` (value reference).
 
 #### `PAGE_COLUMNS`
 
@@ -128,7 +128,7 @@ PAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/index_planning_regulation.py::_pages_frame` (value argument/reference), `tests/unit/test_index_planning_regulation.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_index_planning_regulation.py::<module>` (import), `src/landscout/stages/index_planning_regulation.py::_canonical_page_record` (value reference), `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` (value reference), `src/landscout/stages/index_planning_regulation.py::_pages_frame` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_pages` (value reference), `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` (value reference).
 
 #### `SEARCH_HIT_COLUMNS`
 
@@ -147,7 +147,7 @@ SEARCH_HIT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/index_planning_regulation.py::_build_hits` (value argument/reference), `tests/unit/test_index_planning_regulation.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_index_planning_regulation.py::<module>` (import), `src/landscout/stages/index_planning_regulation.py::_empty_hits` (value reference), `src/landscout/stages/index_planning_regulation.py::_build_hits` (value reference), `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` (value reference), `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` (value reference), `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` (value reference), `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` (value reference).
 
 #### `_validate_index`
 
@@ -155,7 +155,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 _validate_index = validate_planning_regulation_index
 ```
 
-Module-level callback/compatibility alias consumed by runtime calls and monkeypatch-based regression tests.
+Private module-level technical value; only the qualified references below are attributed to this declaration.
 
 
 ### B. Type aliases and closed domains
@@ -166,7 +166,7 @@ Module-level callback/compatibility alias consumed by runtime calls and monkeypa
 ExtractionStatus = Literal["TEXT", "EMPTY", "ERROR"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -206,7 +206,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -215,64 +215,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_string` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_nonnegative_integer` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_canonical_sha256` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_is_link_or_junction` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_zoning_regulation_filenames` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pypdf_version` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_index` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `PlanningRegulationIndexError`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `PlanningRegulationIndexError`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `pytest.raises(PlanningRegulationIndexError, match='zoning|source')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='zoning|source')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='missing NOMFIC')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='no regulation filename')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `pytest.raises(PlanningRegulationIndexError, match='ambiguous')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='filename')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `pytest.raises(PlanningRegulationIndexError, match='not referenced')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `pytest.raises(PlanningRegulationIndexError, match='written_files')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `pytest.raises(PlanningRegulationIndexError, match='missing from GPU inventory|verified manifest')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `pytest.raises(PlanningRegulationIndexError, match='ambiguous')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='unsafe|verified manifest')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `pytest.raises(PlanningRegulationIndexError, match='differs')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='at least one page')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='opened or parsed')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='version')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `pytest.raises(PlanningRegulationIndexError, match='envelope')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `pytest.raises(PlanningRegulationIndexError, match='tuple')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `pytest.raises(PlanningRegulationIndexError, match='lineage')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='search term')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `pytest.raises(PlanningRegulationIndexError, match='unique')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='serialized')`.
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
@@ -282,6 +225,63 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_strict_string` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_strict_nonnegative_integer` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_canonical_sha256` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_is_link_or_junction` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_zoning_regulation_filenames` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_pypdf_version` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_index` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `PlanningRegulationIndexError`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `PlanningRegulationIndexError`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `pytest.raises(PlanningRegulationIndexError, match='zoning|source')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='zoning|source')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='missing NOMFIC')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='no regulation filename')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `pytest.raises(PlanningRegulationIndexError, match='ambiguous')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='filename')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `pytest.raises(PlanningRegulationIndexError, match='not referenced')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `pytest.raises(PlanningRegulationIndexError, match='written_files')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `pytest.raises(PlanningRegulationIndexError, match='missing from GPU inventory|verified manifest')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `pytest.raises(PlanningRegulationIndexError, match='ambiguous')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='unsafe|verified manifest')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `pytest.raises(PlanningRegulationIndexError, match='differs')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='at least one page')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='opened or parsed')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='version')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `pytest.raises(PlanningRegulationIndexError, match='envelope')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `pytest.raises(PlanningRegulationIndexError, match='tuple')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `pytest.raises(PlanningRegulationIndexError, match='lineage')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `pytest.raises(PlanningRegulationIndexError, match='search term')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `pytest.raises(PlanningRegulationIndexError, match='unique')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `pytest.raises(PlanningRegulationIndexError, match='serialized')`.
+- expected exception type: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `pytest.raises(PlanningRegulationIndexError)`.
 
 **Exact class source**
 
@@ -310,21 +310,21 @@ class PlanningRegulationIndexError(ValueError):
 | `source_selection_method` | `source_selection_method: str` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
 | `source_selection_sha256` | `source_selection_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `pdf_relative_path` | `pdf_relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
-| `pdf_size_bytes` | `pdf_size_bytes: int` | Stores `PlanningRegulationIndex`'s `pdf size bytes` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `pdf_size_bytes` | `pdf_size_bytes: int` | Measured physical written-regulation PDF size in bytes. |
 | `pdf_sha256` | `pdf_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `extraction_library` | `extraction_library: str` | `PlanningRegulationIndex`'s `extraction library` evidence/text field; it retains the exact configured or source meaning under annotation `str` and is not promoted to a legal conclusion. |
-| `extraction_library_version` | `extraction_library_version: str` | `PlanningRegulationIndex`'s `extraction library version` evidence/text field; it retains the exact configured or source meaning under annotation `str` and is not promoted to a legal conclusion. |
-| `search_normalization_profile` | `search_normalization_profile: str` | Stores `PlanningRegulationIndex`'s `search normalization profile` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `extraction_library` | `extraction_library: str` | `PlanningRegulationIndex.extraction_library` carries the extraction library used by the reproduced constructors and validators; its declared type is `str` and no legal meaning is inferred beyond that owner. |
+| `extraction_library_version` | `extraction_library_version: str` | `PlanningRegulationIndex.extraction_library_version` carries the extraction library version used by the reproduced constructors and validators; its declared type is `str` and no legal meaning is inferred beyond that owner. |
+| `search_normalization_profile` | `search_normalization_profile: str` | Named deterministic text-normalization profile used to index and search regulation pages. |
 | `page_hash_schema_version` | `page_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `index_hash_schema_version` | `index_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `total_page_count` | `total_page_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `pages_content_sha256` | `pages_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `index_content_sha256` | `index_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `pages` | `pages: pd.DataFrame` | Stores `PlanningRegulationIndex`'s `pages` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `pages` | `pages: pd.DataFrame` | Deterministically ordered regulation PDF page records. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -333,18 +333,15 @@ class PlanningRegulationIndexError(ValueError):
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `PlanningRegulationIndex`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `isinstance(index, PlanningRegulationIndex)`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
 )`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
 )`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_index` via `PlanningRegulationIndex`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -354,8 +351,7 @@ class PlanningRegulationIndexError(ValueError):
     _page_content_sha256,
     _pages_content_sha256,
 )`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_index` via `PlanningRegulationIndex`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -365,6 +361,59 @@ class PlanningRegulationIndexError(ValueError):
     _page_content_sha256,
     _pages_content_sha256,
 )`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_index_hash_payload` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `PlanningRegulationIndex`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_index` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_build_hits` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_lineage` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validated_zoning_inputs` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::planning_regulation_section_page_fragments` via `PlanningRegulationIndex`.
+- type annotation: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_index` via `PlanningRegulationIndex`.
+- constructor call: `tests/unit/test_interpret_bess_zoning.py::_index` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_zones` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_relations` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_structure_config` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_interpret_bess_zoning.py::_parcels` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_index` via `PlanningRegulationIndex`.
+- constructor call: `tests/unit/test_structure_planning_regulation.py::_index` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_config` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_zones` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_intersections` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_validate` via `PlanningRegulationIndex`.
+- type annotation: `tests/unit/test_structure_planning_regulation.py::_config_with_structural_patterns` via `PlanningRegulationIndex`.
 
 **Exact class source**
 
@@ -408,18 +457,18 @@ class PlanningRegulationIndex:
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `pdf_sha256` | `pdf_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `search_normalization_profile` | `search_normalization_profile: str` | Stores `PlanningRegulationSearchResult`'s `search normalization profile` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `search_normalization_profile` | `search_normalization_profile: str` | Named deterministic text-normalization profile used to index and search regulation pages. |
 | `search_hash_schema_version` | `search_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `index_content_sha256` | `index_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `requested_terms` | `requested_terms: tuple[str, ...]` | Structured `requested terms` collection owned by `PlanningRegulationSearchResult`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `context_characters` | `context_characters: int` | `PlanningRegulationSearchResult`'s `context characters` evidence/text field; it retains the exact configured or source meaning under annotation `int` and is not promoted to a legal conclusion. |
+| `context_characters` | `context_characters: int` | `PlanningRegulationSearchResult.context_characters` carries the context characters used by the reproduced constructors and validators; its declared type is `int` and no legal meaning is inferred beyond that owner. |
 | `hit_count` | `hit_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `hits_content_sha256` | `hits_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `hits` | `hits: pd.DataFrame` | Stores `PlanningRegulationSearchResult`'s `hits` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `hits` | `hits: pd.DataFrame` | Deterministically ordered exact regulation search matches. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -428,8 +477,10 @@ class PlanningRegulationIndex:
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `PlanningRegulationSearchResult`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `isinstance(result, PlanningRegulationSearchResult)`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `PlanningRegulationSearchResult`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `PlanningRegulationSearchResult`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `PlanningRegulationSearchResult`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `PlanningRegulationSearchResult`.
 
 **Exact class source**
 
@@ -465,12 +516,13 @@ class PlanningRegulationSearchResult:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `relative_path` | `relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
-| `size_bytes` | `size_bytes: int` | Stores `_ZoningSourceFileIntegrity`'s `size bytes` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `size_bytes` | `size_bytes: int` | Measured physical file size in bytes for this artifact or extracted source member. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `_ZoningSourceFileIntegrity`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_ZoningSourceEvidence` via `_ZoningSourceFileIntegrity`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `_ZoningSourceFileIntegrity`.
 
 **Exact class source**
 
@@ -496,12 +548,15 @@ class _ZoningSourceFileIntegrity:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `driver` | `driver: str` | Stores `_ZoningSourceEvidence`'s `driver` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `driver` | `driver: str` | Physical GIS driver reported for the inspected source file/layer. |
 | `files` | `files: tuple[_ZoningSourceFileIntegrity, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `_ZoningSourceEvidence`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `_ZoningSourceEvidence`.
+- constructor call: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `_ZoningSourceEvidence`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_ZoningSourceEvidence`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_ZoningSourceEvidence`.
 
 **Exact class source**
 
@@ -542,55 +597,26 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
 
 **Complete source-ordered implementation**
 
@@ -635,31 +661,21 @@ int(value)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
 
 **Complete source-ordered implementation**
 
@@ -703,30 +719,22 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_page_tuple` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_positive_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_positive_integer`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_positive_integer`.
 
 **Complete source-ordered implementation**
 
@@ -769,19 +777,19 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_supported_schema_version`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_supported_schema_version`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_supported_schema_version`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_supported_schema_version`.
 
 **Complete source-ordered implementation**
 
@@ -826,25 +834,22 @@ checksum
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_validated_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validated_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_validated_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_validated_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -889,48 +894,22 @@ sha256(payload).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_input_frame_sha256` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `_canonical_sha256`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_validated_config` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_canonical_sha256`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
-- property/attribute access: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_canonical_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `_canonical_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -982,38 +961,18 @@ path.is_symlink() or path.is_junction()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
 
 **Complete source-ordered implementation**
 
@@ -1060,19 +1019,19 @@ relative
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_relative_path`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_relative_path`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_relative_path`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_relative_path`.
 
 **Complete source-ordered implementation**
 
@@ -1121,20 +1080,20 @@ name
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_zoning_regulation_filenames` via `_validated_pdf_basename`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_validated_pdf_basename`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_pdf_basename`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_zoning_regulation_filenames` via `_validated_pdf_basename`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_validated_pdf_basename`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_pdf_basename`.
 
 **Complete source-ordered implementation**
 
@@ -1186,19 +1145,19 @@ digest.hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_file_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_file_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_file_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_file_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -1249,18 +1208,18 @@ Re-read immutable zoning bytes before trusting source PDF references.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_revalidate_zoning_source`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_revalidate_zoning_source`.
 
 **Complete source-ordered implementation**
 
@@ -1339,18 +1298,18 @@ Rejects malformed or inconsistent document lineage; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_validate_document_lineage`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_validate_document_lineage`.
 
 **Complete source-ordered implementation**
 
@@ -1439,18 +1398,18 @@ tuple(sorted(values, key=str.casefold))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `values`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_zoning_regulation_filenames`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_zoning_regulation_filenames`.
 
 **Complete source-ordered implementation**
 
@@ -1516,18 +1475,18 @@ tuple(matches)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `matches`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_written_file_matches`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `_written_file_matches`.
 
 **Complete source-ordered implementation**
 
@@ -1594,18 +1553,18 @@ Resolves regulation filename; exact branches, calls, and return construction are
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_resolve_regulation_filename`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_resolve_regulation_filename`.
 
 **Complete source-ordered implementation**
 
@@ -1677,18 +1636,18 @@ Private `planning` helper for locate regulation pdf; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.stat`, `root.is_dir`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_file_sha256`, `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `inventory_paths`, `matches`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_locate_regulation_pdf`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_locate_regulation_pdf`.
 
 **Complete source-ordered implementation**
 
@@ -1805,18 +1764,18 @@ f'{type(error).__name__}: {message}' if message else type(error).__name__
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_page_error`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_page_error`.
 
 **Complete source-ordered implementation**
 
@@ -1857,19 +1816,19 @@ record
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `record['extraction_error']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_hash_payload` via `_canonical_page_record`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_page_record`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_page_hash_payload` via `_canonical_page_record`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_page_record`.
 
 **Complete source-ordered implementation**
 
@@ -1920,18 +1879,18 @@ Private `planning` helper for page hash payload; its complete implementation bel
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_page_hash_payload`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_page_hash_payload`.
 
 **Complete source-ordered implementation**
 
@@ -1983,23 +1942,18 @@ _canonical_sha256(_page_hash_payload(row, page_hash_schema_version, search_norma
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_canonical_sha256`, `_page_hash_payload`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_page_content_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_page_content_sha256`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `regulation_module._page_content_sha256`.
-- property/attribute access: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `regulation_module._page_content_sha256`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_index` via `_page_content_sha256`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2009,8 +1963,7 @@ _canonical_sha256(_page_hash_payload(row, page_hash_schema_version, search_norma
     _page_content_sha256,
     _pages_content_sha256,
 )`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_index` via `_page_content_sha256`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2020,6 +1973,10 @@ _canonical_sha256(_page_hash_payload(row, page_hash_schema_version, search_norma
     _page_content_sha256,
     _pages_content_sha256,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_page_content_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_page_content_sha256`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_index` via `_page_content_sha256`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_index` via `_page_content_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2073,21 +2030,18 @@ _canonical_sha256({'schema_version': page_hash_schema_version, 'search_normaliza
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `canonical['page_content_sha256']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `canonical['page_content_sha256']`, `pages`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pages_content_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_pages_content_sha256`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_index` via `_pages_content_sha256`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2097,8 +2051,7 @@ _canonical_sha256({'schema_version': page_hash_schema_version, 'search_normaliza
     _page_content_sha256,
     _pages_content_sha256,
 )`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_index` via `_pages_content_sha256`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2108,6 +2061,10 @@ _canonical_sha256({'schema_version': page_hash_schema_version, 'search_normaliza
     _page_content_sha256,
     _pages_content_sha256,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pages_content_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_pages_content_sha256`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_index` via `_pages_content_sha256`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_index` via `_pages_content_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2162,18 +2119,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `frame['character_count']`, `frame['page_number']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pages_frame`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pages_frame`.
 
 **Complete source-ordered implementation**
 
@@ -2216,18 +2173,18 @@ Private `planning` helper for index hash payload; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_index_hash_payload`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_index_hash_payload`.
 
 **Complete source-ordered implementation**
 
@@ -2284,21 +2241,18 @@ _canonical_sha256(_index_hash_payload(index))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_canonical_sha256`, `_index_hash_payload`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_index_content_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_index_content_sha256`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_index` via `_index_content_sha256`.
-- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2308,8 +2262,7 @@ _canonical_sha256(_index_hash_payload(index))
     _page_content_sha256,
     _pages_content_sha256,
 )`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_index` via `_index_content_sha256`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2319,6 +2272,10 @@ _canonical_sha256(_index_hash_payload(index))
     _page_content_sha256,
     _pages_content_sha256,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_index_content_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_index_content_sha256`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_index` via `_index_content_sha256`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_index` via `_index_content_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2364,18 +2321,18 @@ _canonical_sha256({'domain': 'landscout.planning_regulation.source_selection', '
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_source_selection_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_source_selection_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -2465,18 +2422,18 @@ Rejects malformed or inconsistent pages; exact branches, calls, and return const
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_page_content_sha256`, `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validate_pages`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validate_pages`.
 
 **Complete source-ordered implementation**
 
@@ -2572,18 +2529,18 @@ version('pypdf')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pypdf_version`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `_pypdf_version`.
 
 **Complete source-ordered implementation**
 
@@ -2634,18 +2591,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.open`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_file_sha256`, `_index_content_sha256`, `_page_content_sha256`, `_pages_content_sha256`, `_source_selection_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `row['page_content_sha256']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `row['page_content_sha256']`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `_index_planning_regulation`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `_index_planning_regulation`.
 
 **Complete source-ordered implementation**
 
@@ -2781,18 +2738,18 @@ _index_planning_regulation(planning_document, regulation_filename)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -2801,33 +2758,7 @@ _index_planning_regulation(planning_document, regulation_filename)
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `index_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `index_planning_regulation`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
@@ -2837,6 +2768,32 @@ _index_planning_regulation(planning_document, regulation_filename)
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `index_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `index_planning_regulation`.
 
 **Complete source-ordered implementation**
 
@@ -2891,18 +2848,18 @@ Rejects malformed or inconsistent planning regulation index; exact branches, cal
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_index_content_sha256`, `_pages_content_sha256`, `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_index` via `_validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_index` via `_validate_planning_regulation_index`.
 
 **Complete source-ordered implementation**
 
@@ -2998,18 +2955,18 @@ Validate all page, metadata, and complete index integrity contracts.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -3018,28 +2975,15 @@ Validate all page, metadata, and complete index integrity contracts.
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `validate_planning_regulation_index`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `validate_planning_regulation_index`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `validate_planning_regulation_index`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `validate_planning_regulation_index`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
 )`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `validate_planning_regulation_index`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `validate_planning_regulation_index`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `validate_planning_regulation_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `validate_planning_regulation_index`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
@@ -3049,6 +2993,19 @@ Validate all page, metadata, and complete index integrity contracts.
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `validate_planning_regulation_index`.
+- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `validate_planning_regulation_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `validate_planning_regulation_index`.
 
 **Complete source-ordered implementation**
 
@@ -3098,19 +3055,19 @@ tuple(result)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `normalized_seen`, `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_validated_terms`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_terms`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_validated_terms`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_terms`.
 
 **Complete source-ordered implementation**
 
@@ -3163,18 +3120,18 @@ pd.DataFrame({column: pd.Series(dtype='int64' if column in {'page_number', 'occu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_build_hits` via `_empty_hits`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_build_hits` via `_empty_hits`.
 
 **Complete source-ordered implementation**
 
@@ -3231,19 +3188,19 @@ _empty_hits()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `frame['occurrence_count']`, `frame['page_number']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `frame['occurrence_count']`, `frame['page_number']`, `hits`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_build_hits`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_build_hits`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_build_hits`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_build_hits`.
 
 **Complete source-ordered implementation**
 
@@ -3332,19 +3289,19 @@ _canonical_sha256({'domain': 'landscout.planning_regulation.search', 'search_has
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_hits_content_sha256`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_hits_content_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_hits_content_sha256`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_hits_content_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3409,18 +3366,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_hits_content_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -3429,16 +3386,7 @@ result
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_valid_search_result` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `search_planning_regulation`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `search_planning_regulation`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
@@ -3448,6 +3396,15 @@ result
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_valid_search_result` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `search_planning_regulation`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `search_planning_regulation`.
 
 **Complete source-ordered implementation**
 
@@ -3524,18 +3481,18 @@ Rejects malformed or inconsistent planning regulation search result; exact branc
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_hits_content_sha256`, `_validated_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `seen`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `_validate_planning_regulation_search_result`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::validate_planning_regulation_search_result` via `_validate_planning_regulation_search_result`.
 
 **Complete source-ordered implementation**
 
@@ -3657,18 +3614,18 @@ Validate search lineage, schema, rows, hash, and source-derived contexts.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
     PlanningRegulationSearchResult,
@@ -3677,15 +3634,7 @@ Validate search lineage, schema, rows, hash, and source-derived contexts.
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `validate_planning_regulation_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `validate_planning_regulation_search_result`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
@@ -3695,6 +3644,14 @@ Validate search lineage, schema, rows, hash, and source-derived contexts.
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `validate_planning_regulation_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `validate_planning_regulation_search_result`.
 
 **Complete source-ordered implementation**
 
@@ -3738,12 +3695,12 @@ PAGE_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 2 | `extraction_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 3 | `raw_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `normalized_search_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `raw_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `normalized_search_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 5 | `character_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 6 | `extraction_error` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `extraction_error` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 7 | `page_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 
 ### `SEARCH_HIT_COLUMNS` — canonical or derived frame-column schema
@@ -3768,13 +3725,13 @@ SEARCH_HIT_COLUMNS = (
 | 1 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 2 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 3 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 4 | `search_normalization_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `normalized_search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `search_normalization_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `normalized_search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `occurrence_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 9 | `raw_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `normalized_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `raw_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `normalized_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
@@ -3785,13 +3742,13 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `PlanningRegulationIndex` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `PlanningRegulationIndexError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `PlanningRegulationSearchResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `index_planning_regulation` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `search_planning_regulation` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `validate_planning_regulation_index` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
-| `validate_planning_regulation_search_result` | re-exported/defined Python symbol | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `PlanningRegulationIndex` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `PlanningRegulationIndexError` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `PlanningRegulationSearchResult` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `index_planning_regulation` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `search_planning_regulation` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `validate_planning_regulation_index` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
+| `validate_planning_regulation_search_result` | public symbol defined in this module | `defined in `src/landscout/stages/index_planning_regulation.py`` | yes |
 
 ## 9. Error handling
 

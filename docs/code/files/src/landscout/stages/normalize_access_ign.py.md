@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/normalize_access_ign.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: factual/source normalization stage
 - Domain: road
 - Responsibility: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 - Source SHA256: `7f5132849965a01ce4e6826044f2e879dd3a4c7614ae8f5cc8e2d0fed080cfa3`
@@ -15,7 +15,7 @@ Source-completely normalizes IGN road segments and raw access attributes without
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **factual/source normalization stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -58,7 +58,7 @@ This file belongs to the **processing/policy stage** layer and the **road** doma
 _SOURCE_PROVIDER = "IGN"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_SOURCE_PRODUCT`
 
@@ -66,7 +66,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _SOURCE_PRODUCT = "BD_TOPO"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_SPATIAL_ROLE`
 
@@ -74,7 +74,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` (value reference), `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_ROAD_FEATURE_TYPE`
 
@@ -82,7 +82,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _ROAD_FEATURE_TYPE = "ROAD_SEGMENT"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_OUTPUT_COLUMNS`
 
@@ -135,7 +135,7 @@ _OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_RAW_FIELD_MAPPING`
 
@@ -173,7 +173,7 @@ _RAW_FIELD_MAPPING = (
 )
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately.
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/normalize_access_ign.py::<module>` (value reference), `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_REQUIRED_SOURCE_FIELDS`
 
@@ -183,7 +183,7 @@ _REQUIRED_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` (value reference).
 
 #### `_ROAD_GEOMETRY_TYPES`
 
@@ -191,7 +191,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 _ROAD_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
 
 #### `_DEPARTMENT_CODE_VALIDATOR`
 
@@ -199,7 +199,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
 
 #### `_EDITION_VALIDATOR`
 
@@ -207,7 +207,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
 
 #### `_HTTP_URL_VALIDATOR`
 
@@ -215,7 +215,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
 
 #### `_SHA256_PATTERN`
 
@@ -223,7 +223,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
 
 #### `_IGN_PROVIDER_IDENTITIES`
 
@@ -237,7 +237,7 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -277,54 +277,54 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validated_lambert93` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_required_exact_string` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalized_identity` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_identifiers` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `IgnRoadNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `IgnRoadNormalizationError`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `IgnRoadNormalizationError`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadNormalizationError`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
 )`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `pytest.raises(IgnRoadNormalizationError, match='source|configured|physical')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=column)`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='unique')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=message)`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='PROXY_GEOMETRY')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='row count')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `pytest.raises(IgnRoadNormalizationError)`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnRoadNormalizationError)`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='schema|columns|dtype')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `pytest.raises(IgnRoadNormalizationError, match='same layer|distinct|role')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `pytest.raises(IgnRoadNormalizationError, match='inventory|duplicate')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry summary')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `pytest.raises(IgnRoadNormalizationError, match='layer inventory')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='physical layer')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='logical name')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry types')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `pytest.raises(IgnRoadNormalizationError, match='physical|fresh|source')`.
-- callback/function object: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `pytest.raises(IgnRoadNormalizationError)`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validated_lambert93` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_required_exact_string` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalized_identity` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_identifiers` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `IgnRoadNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `IgnRoadNormalizationError`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `IgnRoadNormalizationError`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadNormalizationError`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `pytest.raises(IgnRoadNormalizationError, match='source|configured|physical')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=column)`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='unique')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=message)`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='PROXY_GEOMETRY')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='row count')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `pytest.raises(IgnRoadNormalizationError)`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnRoadNormalizationError)`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='schema|columns|dtype')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `pytest.raises(IgnRoadNormalizationError, match='same layer|distinct|role')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `pytest.raises(IgnRoadNormalizationError, match='inventory|duplicate')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry summary')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `pytest.raises(IgnRoadNormalizationError, match='layer inventory')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='physical layer')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='logical name')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry types')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `pytest.raises(IgnRoadNormalizationError, match='physical|fresh|source')`.
+- expected exception type: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `pytest.raises(IgnRoadNormalizationError)`.
 
 **Exact class source**
 
@@ -348,16 +348,19 @@ class IgnRoadNormalizationError(ValueError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `department_code` | `department_code: str` | Stores `_IgnRoadSourceContext`'s `department code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `edition` | `edition: str` | Stores `_IgnRoadSourceContext`'s `edition` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product_version` | `product_version: str \| None` | Stores `_IgnRoadSourceContext`'s `product version` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
+| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
+| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_IgnRoadSourceContext`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_IgnRoadSourceContext`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_IgnRoadSourceContext`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_IgnRoadSourceContext`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_IgnRoadSourceContext`.
 
 **Exact class source**
 
@@ -390,29 +393,31 @@ class _IgnRoadSourceContext:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
-- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `NormalizedIgnRoadData`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `NormalizedIgnRoadData`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `NormalizedIgnRoadData`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `NormalizedIgnRoadData`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `NormalizedIgnRoadData`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
 )`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `NormalizedIgnRoadData`.
+- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `NormalizedIgnRoadData`.
+- type annotation: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `NormalizedIgnRoadData`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `NormalizedIgnRoadData`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `NormalizedIgnRoadData`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `NormalizedIgnRoadData`.
+- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `NormalizedIgnRoadData`.
 
 **Exact class source**
 
@@ -454,25 +459,20 @@ source_crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validated_lambert93`.
 
 **Complete source-ordered implementation**
 
@@ -522,20 +522,19 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_required_exact_string`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_required_exact_string`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_required_exact_string`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_required_exact_string`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_required_exact_string`.
 
 **Complete source-ordered implementation**
 
@@ -581,24 +580,18 @@ Rejects malformed or inconsistent source context; exact branches, calls, and ret
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_SHA256_PATTERN.fullmatch`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_context`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_source_context`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_source_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_context`.
 
 **Complete source-ordered implementation**
 
@@ -697,22 +690,18 @@ Private `road` helper for normalized identity; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
 
 **Complete source-ordered implementation**
 
@@ -762,19 +751,18 @@ Private `road` helper for geometry summary; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_geometry_summary`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_geometry_summary`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_geometry_summary`.
 
 **Complete source-ordered implementation**
 
@@ -835,20 +823,18 @@ Rejects malformed or inconsistent layer summary; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_summary`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
 
 **Complete source-ordered implementation**
 
@@ -950,19 +936,18 @@ _IgnRoadSourceContext(source_layer=source.road_segments_summary.source_layer_nam
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_validate_source_bundle`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_validate_source_bundle`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_validate_source_bundle`.
 
 **Complete source-ordered implementation**
 
@@ -1080,18 +1065,18 @@ Rejects malformed or inconsistent identifiers; exact branches, calls, and return
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validate_identifiers`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validate_identifiers`.
 
 **Complete source-ordered implementation**
 
@@ -1153,19 +1138,19 @@ Rejects malformed or inconsistent source frame; exact branches, calls, and retur
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_source_frame`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_frame`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_source_frame`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1220,22 +1205,18 @@ status
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `status.loc[empty_mask]`, `status.loc[invalid_mask]`, `status.loc[null_mask]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_lines` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_posts` via `_geometry_status`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_geometry_status`.
 
 **Complete source-ordered implementation**
 
@@ -1288,18 +1269,18 @@ normalized
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_status`, `working.geometry.copy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['geometry']`, `output['geometry_status']`, `output['road_feature_id']`, `output['road_feature_type']`, `output['source_archive_sha256']`, `output['source_department_code']`, `output['source_download_timestamp']`, `output['source_edition']`, `output['source_feature_id']`, `output['source_layer']`, `output['source_product']`, `output['source_product_version']`, `output['source_provider']`, `output['source_url']`, `output['spatial_role']`, `output[output_column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_normalize_road_frame`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_normalize_road_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1396,18 +1377,18 @@ NormalizedIgnRoadData(road_segments=_normalize_road_frame(source.road_segments, 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `_normalize_ign_roads`.
+- direct call: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `_normalize_ign_roads`.
 
 **Complete source-ordered implementation**
 
@@ -1458,61 +1439,61 @@ _normalize_ign_roads(source, config)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `normalize_ign_roads`.
-- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `normalize_ign_roads`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `normalize_ign_roads`.
-- import/re-export: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
 )`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `normalize_ign_roads`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `normalize_ign_roads`.
 
 **Complete source-ordered implementation**
 
@@ -1603,7 +1584,7 @@ _OUTPUT_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `road_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `road_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `road_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -1641,9 +1622,9 @@ _OUTPUT_COLUMNS = (
 | 37 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 38 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 39 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 40 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 40 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 41 | `planimetric_precision_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 42 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 42 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 43 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 44 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
 
@@ -1725,37 +1706,37 @@ _REQUIRED_SOURCE_FIELDS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `acces_vehicule_leger` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `acces_vehicule_leger` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `cpx_classement_administratif` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `cpx_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `fictif` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `cpx_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `fictif` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 10 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 11 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `largeur_de_chaussee` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `matieres_dangereuses_interdites` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `nature` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `nature_de_la_restriction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `nombre_de_voies` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 19 | `periode_de_fermeture` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 20 | `position_par_rapport_au_sol` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 21 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 22 | `prive` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 23 | `restriction_de_hauteur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 24 | `restriction_de_largeur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 25 | `restriction_de_longueur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 26 | `restriction_de_poids_par_essieu` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 27 | `restriction_de_poids_total` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 28 | `sens_de_circulation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 29 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 30 | `urbain` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 31 | `vitesse_moyenne_vl` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `largeur_de_chaussee` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `matieres_dangereuses_interdites` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `nature` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `nature_de_la_restriction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `nombre_de_voies` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 19 | `periode_de_fermeture` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 20 | `position_par_rapport_au_sol` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 21 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 22 | `prive` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 23 | `restriction_de_hauteur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 24 | `restriction_de_largeur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 25 | `restriction_de_longueur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 26 | `restriction_de_poids_par_essieu` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 27 | `restriction_de_poids_total` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 28 | `sens_de_circulation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 29 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 30 | `urbain` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 31 | `vitesse_moyenne_vl` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
@@ -1766,9 +1747,9 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `IgnRoadNormalizationError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
-| `NormalizedIgnRoadData` | re-exported/defined Python symbol | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
-| `normalize_ign_roads` | re-exported/defined Python symbol | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
+| `IgnRoadNormalizationError` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
+| `NormalizedIgnRoadData` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
+| `normalize_ign_roads` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
 
 ## 9. Error handling
 

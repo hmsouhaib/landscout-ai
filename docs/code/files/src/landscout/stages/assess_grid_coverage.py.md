@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/assess_grid_coverage.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: diagnostic/profile stage
 - Domain: grid/source
 - Responsibility: Diagnoses grid proxy distances against the configured IGN source-package boundary.
 - Source SHA256: `2a74a08a04563372347c42bacbf53fc124a57ee3a49686586983d81fcef41057`
@@ -15,7 +15,7 @@ Diagnoses grid proxy distances against the configured IGN source-package boundar
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **diagnostic/profile stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -70,7 +70,7 @@ This file belongs to the **processing/policy stage** layer and the **grid/source
 CALCULATION_CRS = "EPSG:2154"
 ```
 
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value reference).
 
 #### `COVERAGE_SPATIAL_ROLE`
 
@@ -78,7 +78,7 @@ Coordinate-reference-system identity used for an explicit storage, validation, o
 COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` (value reference).
 
 #### `COVERAGE_STATUSES`
 
@@ -103,7 +103,7 @@ COVERAGE_POSITIONS = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value reference).
 
 #### `PARCEL_DIAGNOSTIC_COLUMNS`
 
@@ -117,7 +117,7 @@ PARCEL_DIAGNOSTIC_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value argument/reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value reference).
 
 #### `VOLTAGE_DIAGNOSTIC_COLUMNS`
 
@@ -128,7 +128,7 @@ VOLTAGE_DIAGNOSTIC_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value argument/reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value reference).
 
 #### `COVERAGE_LINEAGE_COLUMNS`
 
@@ -145,7 +145,7 @@ COVERAGE_LINEAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value argument/reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` (value reference), `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value reference).
 
 #### `_SOURCE_LINEAGE_COLUMNS`
 
@@ -162,7 +162,7 @@ _SOURCE_LINEAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` (value reference).
 
 #### `_IGN_PROVIDER_IDENTITIES`
 
@@ -175,7 +175,7 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` (value reference), `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` (value reference).
 
 #### `_SHA256_PATTERN`
 
@@ -183,7 +183,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -199,7 +199,7 @@ CoverageStatus = Literal[
 ]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. No statically owned repository consumer was proven; the declaration remains authoritative for its local runtime use.
 
 #### `CoveragePosition`
 
@@ -207,7 +207,7 @@ Closed Literal value domain shown exactly above; members are values, not frame c
 CoveragePosition = Literal["FULLY_COVERED", "OUTSIDE_OR_CROSSING_COVERAGE"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. No statically owned repository consumer was proven; the declaration remains authoritative for its local runtime use.
 
 
 ### C. Meaningful dunder contracts
@@ -235,7 +235,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -245,37 +245,37 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validated_lambert93` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_normalized_identity` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_strict_nonnegative_integer` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_proximity_source_identity` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_finite_nonnegative` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_preserves_original_frame` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `GridCoverageAssessmentError`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `GridCoverageAssessmentError`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `pytest.raises(GridCoverageAssessmentError, match='physical|configured')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `pytest.raises(GridCoverageAssessmentError)`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` via `pytest.raises(GridCoverageAssessmentError, match='parcels|GeoDataFrame')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `pytest.raises(GridCoverageAssessmentError, match=message)`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `pytest.raises(GridCoverageAssessmentError, match='lineage')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `pytest.raises(GridCoverageAssessmentError, match='provider|product|identity')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `pytest.raises(GridCoverageAssessmentError, match='selected|count')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `pytest.raises(GridCoverageAssessmentError, match='summary|column|dtype|schema')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `pytest.raises(GridCoverageAssessmentError, match='CRS|2154')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `pytest.raises(GridCoverageAssessmentError, match='geometry|summary')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `pytest.raises(GridCoverageAssessmentError, match='department')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `pytest.raises(GridCoverageAssessmentError, match='department|field')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `pytest.raises(GridCoverageAssessmentError, match='source|count')`.
-- callback/function object: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `pytest.raises(GridCoverageAssessmentError, match='layer|lineage')`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
     GridCoverageAssessmentError,
     profile_grid_coverage,
 )`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validated_lambert93` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_normalized_identity` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_strict_nonnegative_integer` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validate_proximity_source_identity` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_finite_nonnegative` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_preserves_original_frame` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `GridCoverageAssessmentError`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `GridCoverageAssessmentError`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `pytest.raises(GridCoverageAssessmentError, match='physical|configured')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `pytest.raises(GridCoverageAssessmentError)`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` via `pytest.raises(GridCoverageAssessmentError, match='parcels|GeoDataFrame')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `pytest.raises(GridCoverageAssessmentError, match=message)`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `pytest.raises(GridCoverageAssessmentError, match='lineage')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `pytest.raises(GridCoverageAssessmentError, match='provider|product|identity')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `pytest.raises(GridCoverageAssessmentError, match='selected|count')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `pytest.raises(GridCoverageAssessmentError, match='summary|column|dtype|schema')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `pytest.raises(GridCoverageAssessmentError, match='CRS|2154')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `pytest.raises(GridCoverageAssessmentError, match='geometry|summary')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `pytest.raises(GridCoverageAssessmentError, match='department')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `pytest.raises(GridCoverageAssessmentError, match='department|field')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `pytest.raises(GridCoverageAssessmentError, match='source|count')`.
+- expected exception type: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `pytest.raises(GridCoverageAssessmentError, match='layer|lineage')`.
 
 **Exact class source**
 
@@ -305,7 +305,7 @@ class GridCoverageAssessmentError(ValueError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -315,7 +315,11 @@ class GridCoverageAssessmentError(ValueError):
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `GridCoverageAssessmentResult`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `GridCoverageAssessmentResult`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `GridCoverageAssessmentResult`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `GridCoverageAssessmentResult`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `GridCoverageAssessmentResult`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `GridCoverageAssessmentResult`.
 
 **Exact class source**
 
@@ -343,22 +347,22 @@ class GridCoverageAssessmentResult:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `count` | `count: int` | Stores `BoundaryDistanceProfile`'s `count` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `minimum` | `minimum: float` | Stores `BoundaryDistanceProfile`'s `minimum` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p01` | `p01: float` | Stores `BoundaryDistanceProfile`'s `p01` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p05` | `p05: float` | Stores `BoundaryDistanceProfile`'s `p05` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p10` | `p10: float` | Stores `BoundaryDistanceProfile`'s `p10` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p25` | `p25: float` | Stores `BoundaryDistanceProfile`'s `p25` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p50` | `p50: float` | Stores `BoundaryDistanceProfile`'s `p50` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p75` | `p75: float` | Stores `BoundaryDistanceProfile`'s `p75` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p90` | `p90: float` | Stores `BoundaryDistanceProfile`'s `p90` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p95` | `p95: float` | Stores `BoundaryDistanceProfile`'s `p95` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `p99` | `p99: float` | Stores `BoundaryDistanceProfile`'s `p99` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `maximum` | `maximum: float` | Stores `BoundaryDistanceProfile`'s `maximum` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `count` | `count: int` | Number of observations included in this deterministic diagnostic profile. |
+| `minimum` | `minimum: float` | Minimum finite observed distance/metric in this diagnostic profile. |
+| `p01` | `p01: float` | First percentile of the finite diagnostic distance distribution. |
+| `p05` | `p05: float` | Fifth percentile of the finite diagnostic distance distribution. |
+| `p10` | `p10: float` | Tenth percentile of the finite diagnostic distance distribution. |
+| `p25` | `p25: float` | Twenty-fifth percentile of the finite diagnostic distance distribution. |
+| `p50` | `p50: float` | Median of the finite diagnostic distance distribution. |
+| `p75` | `p75: float` | Seventy-fifth percentile of the finite diagnostic distance distribution. |
+| `p90` | `p90: float` | Ninetieth percentile of the finite diagnostic distance distribution. |
+| `p95` | `p95: float` | Ninety-fifth percentile of the finite diagnostic distance distribution. |
+| `p99` | `p99: float` | Ninety-ninth percentile of the finite diagnostic distance distribution. |
+| `maximum` | `maximum: float` | Maximum finite observed distance/metric in this diagnostic profile. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -368,7 +372,9 @@ class GridCoverageAssessmentResult:
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `BoundaryDistanceProfile`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::GridCoverageProfile` via `BoundaryDistanceProfile`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `BoundaryDistanceProfile`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `BoundaryDistanceProfile`.
 
 **Exact class source**
 
@@ -402,14 +408,14 @@ class BoundaryDistanceProfile:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `not_boundary_limited` | `not_boundary_limited: int` | Stores `CoverageStatusCounts`'s `not boundary limited` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `boundary_limited` | `boundary_limited: int` | Stores `CoverageStatusCounts`'s `boundary limited` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `outside_or_crossing_coverage` | `outside_or_crossing_coverage: int` | Stores `CoverageStatusCounts`'s `outside or crossing coverage` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `no_match` | `no_match: int` | Stores `CoverageStatusCounts`'s `no match` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_boundary_limited` | `not_boundary_limited: int` | Count of matched rows whose source-proxy distance is strictly below the verified boundary margin. |
+| `boundary_limited` | `boundary_limited: int` | Count of matched rows whose source-proxy distance is at least the verified boundary margin. |
+| `outside_or_crossing_coverage` | `outside_or_crossing_coverage: int` | Count of rows whose full parcel geometry is outside, touching, or crossing the source-coverage boundary. |
+| `no_match` | `no_match: int` | Count of rows with no eligible source feature match. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -419,7 +425,10 @@ class BoundaryDistanceProfile:
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_status_counts` via `CoverageStatusCounts`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::VoltageCoverageStatusProfile` via `CoverageStatusCounts`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::GridCoverageProfile` via `CoverageStatusCounts`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::_status_counts` via `CoverageStatusCounts`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::_status_counts` via `CoverageStatusCounts`.
 
 **Exact class source**
 
@@ -445,13 +454,13 @@ class CoverageStatusCounts:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `voltage_kv` | `voltage_kv: float` | Stores `VoltageCoverageStatusProfile`'s `voltage kv` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `voltage_kv` | `voltage_kv: float` | Parsed or profiled voltage level in kilovolts. |
 | `parcel_count` | `parcel_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `statuses` | `statuses: CoverageStatusCounts` | Closed or validated `statuses` classification on `VoltageCoverageStatusProfile`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `statuses` | `statuses: CoverageStatusCounts` | `VoltageCoverageStatusProfile.statuses` represents the `statuses` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -461,7 +470,9 @@ class CoverageStatusCounts:
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `VoltageCoverageStatusProfile`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::GridCoverageProfile` via `VoltageCoverageStatusProfile`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `VoltageCoverageStatusProfile`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `VoltageCoverageStatusProfile`.
 
 **Exact class source**
 
@@ -489,15 +500,15 @@ class VoltageCoverageStatusProfile:
 | `parcel_count` | `parcel_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `fully_covered_count` | `fully_covered_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `outside_or_crossing_count` | `outside_or_crossing_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `boundary_distance` | `boundary_distance: BoundaryDistanceProfile` | Stores `GridCoverageProfile`'s `boundary distance` value under exact annotation `BoundaryDistanceProfile`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `nearest_line` | `nearest_line: CoverageStatusCounts` | Stores `GridCoverageProfile`'s `nearest line` value under exact annotation `CoverageStatusCounts`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `nearest_exact_line` | `nearest_exact_line: CoverageStatusCounts` | Stores `GridCoverageProfile`'s `nearest exact line` value under exact annotation `CoverageStatusCounts`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `nearest_post` | `nearest_post: CoverageStatusCounts` | Stores `GridCoverageProfile`'s `nearest post` value under exact annotation `CoverageStatusCounts`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `boundary_distance` | `boundary_distance: BoundaryDistanceProfile` | Parcel-to-source-coverage-boundary distance profile. |
+| `nearest_line` | `nearest_line: CoverageStatusCounts` | Diagnostic profile for nearest eligible electricity-line proxy distances. |
+| `nearest_exact_line` | `nearest_exact_line: CoverageStatusCounts` | Diagnostic profile for nearest exact-voltage electricity-line proxy distances. |
+| `nearest_post` | `nearest_post: CoverageStatusCounts` | Diagnostic profile for nearest transformation-post proxy distances. |
 | `voltage_levels` | `voltage_levels: tuple[VoltageCoverageStatusProfile, ...]` | Structured `voltage levels` collection owned by `GridCoverageProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -507,7 +518,8 @@ class VoltageCoverageStatusProfile:
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `GridCoverageProfile`.
+- type annotation: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `GridCoverageProfile`.
+- constructor call: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `GridCoverageProfile`.
 
 **Exact class source**
 
@@ -554,25 +566,19 @@ crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validated_lambert93`.
 
 **Complete source-ordered implementation**
 
@@ -621,22 +627,19 @@ Private `grid/source` helper for normalized identity; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_normalized_identity`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_normalized_identity`.
 
 **Complete source-ordered implementation**
 
@@ -685,31 +688,18 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
 
 **Complete source-ordered implementation**
 
@@ -768,19 +758,18 @@ Rejects malformed or inconsistent coverage summary; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(~selected_geometry.isna() & selected_geometry.is_empty).sum`, `(~selected_geometry.isna() & ~selected_geometry.is_empty & ~selected_geometry.is_valid).sum`, `selected_geometry.geom_type.dropna`, `selected_geometry.geom_type.dropna().unique`, `selected_geometry.isna`, `selected_geometry.isna().sum`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validate_coverage_summary`.
 
 **Complete source-ordered implementation**
 
@@ -970,21 +959,19 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.geom_type.dropna`, `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: `_SHA256_PATTERN.fullmatch`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_source_coverage`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_validate_source_coverage`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_source_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -1111,18 +1098,18 @@ Rejects malformed or inconsistent configured coverage identity; exact branches, 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_configured_coverage_identity`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_configured_coverage_identity`.
 
 **Complete source-ordered implementation**
 
@@ -1200,19 +1187,19 @@ Private `grid/source` helper for coverage lineage values; its complete implement
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_coverage_lineage_values`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_coverage_lineage_values`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_coverage_lineage_values`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_coverage_lineage_values`.
 
 **Complete source-ordered implementation**
 
@@ -1264,18 +1251,18 @@ Rejects malformed or inconsistent proximity source identity; exact branches, cal
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_proximity_source_identity`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_proximity_source_identity`.
 
 **Complete source-ordered implementation**
 
@@ -1357,21 +1344,19 @@ np.asarray(converted, dtype='float64')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `converted`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_match_rows` via `_finite_nonnegative`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_finite_nonnegative`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `_finite_nonnegative`.
 
 **Complete source-ordered implementation**
 
@@ -1428,20 +1413,19 @@ pd.Series(statuses, index=distances.index, dtype='object')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `distances.to_numpy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `statuses[internal & (numeric < boundary_distances)]`, `statuses[internal & (numeric >= boundary_distances)]`, `statuses[outside]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_coverage_statuses`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_coverage_statuses`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_expected_diagnostics` via `_coverage_statuses`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `_coverage_statuses`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_coverage_statuses`.
 
 **Complete source-ordered implementation**
 
@@ -1496,18 +1480,18 @@ Private `grid/source` helper for preserves original frame; its complete implemen
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_preserves_original_frame`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_preserves_original_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1563,20 +1547,19 @@ Rejects malformed or inconsistent assessment result; exact branches, calls, and 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `table['parcel_id'].map(boundary_by_id).astype`, `table['source_boundary_distance_m'].equals`, `table_boundary.to_numpy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_assessment_result`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_validate_assessment_result`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `_validate_assessment_result`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `_validate_assessment_result`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_validate_assessment_result`.
 
 **Complete source-ordered implementation**
 
@@ -1704,21 +1687,40 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(measured_boundary < 0).any`, `boundary`, `distance`, `force_2d`, `np.isfinite(measured_boundary).all`, `output_parcels.geometry.geom_equals_exact`, `output_parcels.geometry.geom_equals_exact(source_parcels.geometry, tolerance=0, align=False).all`, `output_table['parcel_id'].map(boundary_by_id).astype`, `output_table['source_boundary_distance_m'].to_numpy`, `source_parcels.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output_parcels['grid_source_boundary_distance_m']`, `output_parcels['grid_source_coverage_position']`, `output_parcels['nearest_exact_line_coverage_status']`, `output_parcels['nearest_line_coverage_status']`, `output_parcels['nearest_post_coverage_status']`, `output_parcels[column]`, `output_table['coverage_status']`, `output_table['source_boundary_distance_m']`, `output_table[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `_assess_grid_coverage_from_proximity`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     _assess_grid_coverage_from_proximity as assess_grid_coverage,
 )`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `_assess_grid_coverage_from_proximity`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_no_exact_match_uses_explicit_no_match_status` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_assessment_preserves_proximity_values_and_does_not_mutate_input` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `assess_grid_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -1881,18 +1883,18 @@ _assess_grid_coverage_from_proximity(proximity, coverage, source_config)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -1902,29 +1904,13 @@ _assess_grid_coverage_from_proximity(proximity, coverage, source_config)
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `assess_grid_coverage`.
-- property/attribute access: `tests/unit/test_assess_grid_coverage.py::test_clean_coverage_api_is_exported` via `stages.assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_no_exact_match_uses_explicit_no_match_status` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_assessment_preserves_proximity_values_and_does_not_mutate_input` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `assess_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `assess_grid_coverage`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
     assess_grid_coverage as public_assess_grid_coverage,
 )`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `public_assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `public_assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` via `public_assess_grid_coverage`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `public_assess_grid_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -2006,18 +1992,18 @@ CoverageStatusCounts(not_boundary_limited=int(counts.get('NOT_BOUNDARY_LIMITED',
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_status_counts`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_status_counts`.
 
 **Complete source-ordered implementation**
 
@@ -2065,18 +2051,18 @@ BoundaryDistanceProfile(count=len(series), minimum=float(series.min()), p01=floa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `BoundaryDistanceProfile`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_boundary_profile`.
+- direct call: `src/landscout/stages/assess_grid_coverage.py::profile_grid_coverage` via `_boundary_profile`.
 
 **Complete source-ordered implementation**
 
@@ -2137,18 +2123,18 @@ GridCoverageProfile(parcel_count=len(parcels), fully_covered_count=int(position_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_boundary_profile`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `voltage_profiles`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
     GridCoverageAssessmentError,
@@ -2158,12 +2144,11 @@ GridCoverageProfile(parcel_count=len(parcels), fully_covered_count=int(position_
     assess_grid_coverage,
     profile_grid_coverage,
 )`.
-- property/attribute access: `tests/unit/test_assess_grid_coverage.py::test_clean_coverage_api_is_exported` via `stages.profile_grid_coverage`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `profile_grid_coverage`.
-- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
+- import: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages import (
     GridCoverageAssessmentError,
     profile_grid_coverage,
 )`.
+- direct call: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `profile_grid_coverage`.
 
 **Complete source-ordered implementation**
 
@@ -2232,7 +2217,7 @@ PARCEL_DIAGNOSTIC_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `grid_source_boundary_distance_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 2 | `grid_source_coverage_position` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `grid_source_coverage_position` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `nearest_line_coverage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 4 | `nearest_exact_line_coverage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 5 | `nearest_post_coverage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
@@ -2268,14 +2253,14 @@ COVERAGE_LINEAGE_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `grid_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `grid_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `grid_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `grid_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `grid_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `grid_source_coverage_provider` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `grid_source_coverage_product` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `grid_source_coverage_department_code` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `grid_source_coverage_edition` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `grid_source_coverage_product_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `grid_source_coverage_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 7 | `grid_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `grid_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `grid_source_coverage_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `grid_source_coverage_spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `_SOURCE_LINEAGE_COLUMNS` — canonical or derived frame-column schema
 
@@ -2301,7 +2286,7 @@ _SOURCE_LINEAGE_COLUMNS = (
 | 5 | `source_product_version` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 6 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 7 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.

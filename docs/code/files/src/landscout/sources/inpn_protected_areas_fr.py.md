@@ -74,7 +74,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value argument/reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value argument/reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::_sha256` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value reference).
 
 #### `DOWNLOAD_METADATA_SCHEMA_VERSION`
 
@@ -82,7 +82,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DOWNLOAD_METADATA_SCHEMA_VERSION: Literal[1] = 1
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` (value argument/reference).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata._strict_schema_version` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` (value reference).
 
 #### `EXTRACTION_METADATA_SCHEMA_VERSION`
 
@@ -90,7 +90,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 EXTRACTION_METADATA_SCHEMA_VERSION: Literal[1] = 1
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` (value argument/reference).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractionMetadata._strict_schema_version` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` (value reference).
 
 #### `EXTRACTION_METADATA_FILENAME`
 
@@ -98,7 +98,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 EXTRACTION_METADATA_FILENAME = ".landscout-extraction.json"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_canonical_member_destination` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_validate_inventory_relative_path` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value reference).
 
 #### `OFFICIAL_REFERENCE_PAGE_URL`
 
@@ -109,7 +109,7 @@ OFFICIAL_REFERENCE_PAGE_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasSourceConfig._pinned_official_urls` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata._exact_reference_page` (value reference).
 
 #### `OFFICIAL_ARCHIVE_URL`
 
@@ -117,7 +117,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 OFFICIAL_ARCHIVE_URL = "https://assets.patrinat.fr/files/donnees/ep/EP.zip"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasSourceConfig._pinned_official_urls` (value reference), `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata._exact_archive_url` (value reference).
 
 #### `OFFICIAL_DATASET_NAME`
 
@@ -143,7 +143,7 @@ _WINDOWS_RESERVED_BASENAMES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/inpn_protected_areas_fr.py::_windows_component_key` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -157,7 +157,7 @@ CanonicalSha256 = Annotated[
 ]
 ```
 
-Strict lowercase 64-hex SHA256 string used by Pydantic/source-result validation. It is consumed by annotations or Pydantic validation in this module.
+Strict lowercase 64-hex SHA256 string used by Pydantic/source-result validation. Enforced/consumed by `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasSourceConfig` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractedFileMetadata` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractionMetadata` (type annotation).
 
 #### `DeclaredVersion`
 
@@ -168,7 +168,7 @@ DeclaredVersion = Annotated[
 ]
 ```
 
-Strict MM/YYYY protected-area snapshot version string. It is consumed by annotations or Pydantic validation in this module.
+Strict MM/YYYY protected-area snapshot version string. Enforced/consumed by `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasSourceConfig` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata` (type annotation).
 
 #### `StrictPositiveInt`
 
@@ -176,7 +176,7 @@ Strict MM/YYYY protected-area snapshot version string. It is consumed by annotat
 StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
 ```
 
-Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). It is consumed by annotations or Pydantic validation in this module.
+Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). Enforced/consumed by `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasSourceConfig` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata` (type annotation), `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractionMetadata` (type annotation).
 
 #### `StrictNonNegativeInt`
 
@@ -184,7 +184,7 @@ Strict integer greater than zero; Boolean and numeric coercions are rejected by 
 StrictNonNegativeInt = Annotated[int, Field(strict=True, ge=0)]
 ```
 
-Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractedFileMetadata` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -225,7 +225,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -235,48 +235,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_config` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::load_inpn_protected_areas_source_config` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_windows_component_key` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_canonical_member_destination` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `InpnProtectedAreasSourceError`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasSourceError`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_config_rejects_noncanonical_values` via `pytest.raises(InpnProtectedAreasSourceError)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_wrong_download_config_type_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='config|type')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `pytest.raises(InpnProtectedAreasSourceError, match='timeout')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_download_cache_setup_failure_is_controlled` via `pytest.raises(InpnProtectedAreasSourceError, match='download|cache')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_cold_download_must_match_configured_snapshot_before_publication` via `pytest.raises(InpnProtectedAreasSourceError, match='size|SHA|snapshot|integrity')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `pytest.raises(InpnProtectedAreasSourceError)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_http_and_payload_failures_are_controlled` via `pytest.raises(InpnProtectedAreasSourceError)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_unsupported_zip_compression_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='ZIP|archive')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='response|download')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='response|download')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `pytest.raises(InpnProtectedAreasSourceError, match='publication|download')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `pytest.raises(InpnProtectedAreasSourceError, match='rollback')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `pytest.raises(InpnProtectedAreasSourceError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_unsafe_zip_member_paths_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='ZIP|archive|member|path')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_duplicate_or_colliding_zip_destinations_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='duplicate|collid|archive')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_zip_links_and_special_files_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match=message)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_complete_zip_inventory_is_validated_before_member_copy` via `pytest.raises(InpnProtectedAreasSourceError)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `pytest.raises(InpnProtectedAreasSourceError)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `pytest.raises(InpnProtectedAreasSourceError, match='rollback')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `pytest.raises(InpnProtectedAreasSourceError, match='publication|stage')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `pytest.raises(InpnProtectedAreasSourceError, match='download|type')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `pytest.raises(InpnProtectedAreasSourceError, match='config|type')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `pytest.raises(InpnProtectedAreasSourceError, match='extract|cache')`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `pytest.raises(InpnProtectedAreasSourceError, match='SHA|size|archive|download')`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -286,6 +245,47 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_config` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::load_inpn_protected_areas_source_config` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_windows_component_key` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_canonical_member_destination` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `InpnProtectedAreasSourceError`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasSourceError`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_config_rejects_noncanonical_values` via `pytest.raises(InpnProtectedAreasSourceError)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_wrong_download_config_type_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='config|type')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `pytest.raises(InpnProtectedAreasSourceError, match='timeout')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_download_cache_setup_failure_is_controlled` via `pytest.raises(InpnProtectedAreasSourceError, match='download|cache')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_cold_download_must_match_configured_snapshot_before_publication` via `pytest.raises(InpnProtectedAreasSourceError, match='size|SHA|snapshot|integrity')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `pytest.raises(InpnProtectedAreasSourceError)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_http_and_payload_failures_are_controlled` via `pytest.raises(InpnProtectedAreasSourceError)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_unsupported_zip_compression_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='ZIP|archive')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='response|download')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `pytest.raises(InpnProtectedAreasSourceError, match='response|download')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `pytest.raises(InpnProtectedAreasSourceError, match='publication|download')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `pytest.raises(InpnProtectedAreasSourceError, match='rollback')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `pytest.raises(InpnProtectedAreasSourceError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_unsafe_zip_member_paths_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='ZIP|archive|member|path')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_duplicate_or_colliding_zip_destinations_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match='duplicate|collid|archive')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_zip_links_and_special_files_are_rejected` via `pytest.raises(InpnProtectedAreasSourceError, match=message)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_complete_zip_inventory_is_validated_before_member_copy` via `pytest.raises(InpnProtectedAreasSourceError)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `pytest.raises(InpnProtectedAreasSourceError)`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `pytest.raises(InpnProtectedAreasSourceError, match='publication')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `pytest.raises(InpnProtectedAreasSourceError, match='rollback')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `pytest.raises(InpnProtectedAreasSourceError, match='publication|stage')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `pytest.raises(InpnProtectedAreasSourceError, match='download|type')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `pytest.raises(InpnProtectedAreasSourceError, match='config|type')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `pytest.raises(InpnProtectedAreasSourceError, match='extract|cache')`.
+- expected exception type: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `pytest.raises(InpnProtectedAreasSourceError, match='SHA|size|archive|download')`.
 
 **Exact class source**
 
@@ -308,16 +308,16 @@ class InpnProtectedAreasSourceError(ValueError):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: Literal["PatriNat"]` | Stores `InpnProtectedAreasSourceConfig`'s `provider` value under exact annotation `Literal['PatriNat']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `authority` | `authority: Literal["MNHN"]` | Stores `InpnProtectedAreasSourceConfig`'s `authority` value under exact annotation `Literal['MNHN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `program` | `program: Literal["INPN"]` | Stores `InpnProtectedAreasSourceConfig`'s `program` value under exact annotation `Literal['INPN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: Literal["PatriNat"]` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `authority` | `authority: Literal["MNHN"]` | Publishing authority identity for the protected-area dataset snapshot. |
+| `program` | `program: Literal["INPN"]` | Official source program identity under which the protected-area dataset is published. |
 | `dataset_id` | `dataset_id: Literal["EP"]` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `dataset_name` | `dataset_name: Literal["Base de référence des espaces protégés français"]` | Stores `InpnProtectedAreasSourceConfig`'s `dataset name` value under exact annotation `Literal['Base de référence des espaces protégés français']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `declared_version` | `declared_version: DeclaredVersion` | Stores `InpnProtectedAreasSourceConfig`'s `declared version` value under exact annotation `DeclaredVersion`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `dataset_name` | `dataset_name: Literal["Base de référence des espaces protégés français"]` | Official human-readable dataset name fixed by the protected-area source configuration. |
+| `declared_version` | `declared_version: DeclaredVersion` | Pinned MM/YYYY protected-area source snapshot version. |
 | `reference_page_url` | `reference_page_url: HttpUrl` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `archive_url` | `archive_url: HttpUrl` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `archive_filename` | `archive_filename: Literal["EP.zip"]` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
-| `expected_archive_size_bytes` | `expected_archive_size_bytes: StrictPositiveInt` | Stores `InpnProtectedAreasSourceConfig`'s `expected archive size bytes` value under exact annotation `StrictPositiveInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `expected_archive_size_bytes` | `expected_archive_size_bytes: StrictPositiveInt` | Strict positive configured physical archive-size pin in bytes. |
 | `expected_archive_sha256` | `expected_archive_sha256: CanonicalSha256` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `cache_root` | `cache_root: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 
@@ -336,7 +336,7 @@ def _pinned_official_urls(self) -> Self:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -346,7 +346,7 @@ def _pinned_official_urls(self) -> Self:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -356,6 +356,19 @@ def _pinned_official_urls(self) -> Self:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_config` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::load_inpn_protected_areas_source_config` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_cache_directory` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_archive_path` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_config` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_session` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_download` via `InpnProtectedAreasSourceConfig`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `InpnProtectedAreasSourceConfig`.
 
 **Exact class source**
 
@@ -401,12 +414,12 @@ class InpnProtectedAreasSourceConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: str` | Stores `InpnProtectedAreasDownload`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `authority` | `authority: str` | Stores `InpnProtectedAreasDownload`'s `authority` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `program` | `program: str` | Stores `InpnProtectedAreasDownload`'s `program` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `authority` | `authority: str` | Publishing authority identity for the protected-area dataset snapshot. |
+| `program` | `program: str` | Official source program identity under which the protected-area dataset is published. |
 | `dataset_id` | `dataset_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `dataset_name` | `dataset_name: str` | Stores `InpnProtectedAreasDownload`'s `dataset name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `declared_version` | `declared_version: str` | Stores `InpnProtectedAreasDownload`'s `declared version` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `dataset_name` | `dataset_name: str` | Official human-readable dataset name fixed by the protected-area source configuration. |
+| `declared_version` | `declared_version: str` | Pinned MM/YYYY protected-area source snapshot version. |
 | `reference_page_url` | `reference_page_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `archive_url` | `archive_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
@@ -418,7 +431,7 @@ class InpnProtectedAreasSourceConfig(BaseModel):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -428,10 +441,7 @@ class InpnProtectedAreasSourceConfig(BaseModel):
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `InpnProtectedAreasDownload`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasDownload`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_result_schemas_are_factual_inventory_only` via `fields(InpnProtectedAreasDownload)`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -441,6 +451,20 @@ class InpnProtectedAreasSourceConfig(BaseModel):
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasExtraction` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `InpnProtectedAreasDownload`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasDownload`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasDownload`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasDownload`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_download` via `InpnProtectedAreasDownload`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `InpnProtectedAreasDownload`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_download_metadata_path` via `InpnProtectedAreasDownload`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_force_cache_miss` via `InpnProtectedAreasDownload`.
 
 **Exact class source**
 
@@ -482,7 +506,7 @@ class InpnProtectedAreasDownload:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -492,10 +516,7 @@ class InpnProtectedAreasDownload:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `InpnProtectedAreasExtractedFile`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasExtractedFile`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_result_schemas_are_factual_inventory_only` via `fields(InpnProtectedAreasExtractedFile)`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -505,6 +526,12 @@ class InpnProtectedAreasDownload:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::InpnProtectedAreasExtraction` via `InpnProtectedAreasExtractedFile`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `InpnProtectedAreasExtractedFile`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `InpnProtectedAreasExtractedFile`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `InpnProtectedAreasExtractedFile`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasExtractedFile`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `InpnProtectedAreasExtractedFile`.
 
 **Exact class source**
 
@@ -529,14 +556,14 @@ class InpnProtectedAreasExtractedFile:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `download` | `download: InpnProtectedAreasDownload` | Stores `InpnProtectedAreasExtraction`'s `download` value under exact annotation `InpnProtectedAreasDownload`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `download` | `download: InpnProtectedAreasDownload` | Verified download envelope that owns the bytes used by this extraction/result. |
 | `extraction_path` | `extraction_path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `files` | `files: tuple[InpnProtectedAreasExtractedFile, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 | `cache_hit` | `cache_hit: bool` | True only when already verified local cache state was reused. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -546,9 +573,7 @@ class InpnProtectedAreasExtractedFile:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasExtraction`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_result_schemas_are_factual_inventory_only` via `fields(InpnProtectedAreasExtraction)`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -558,6 +583,9 @@ class InpnProtectedAreasExtractedFile:
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasExtraction`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `InpnProtectedAreasExtraction`.
+- type annotation: `tests/unit/test_inpn_protected_areas_fr.py::_extraction_metadata_path` via `InpnProtectedAreasExtraction`.
 
 **Exact class source**
 
@@ -584,12 +612,12 @@ class InpnProtectedAreasExtraction:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `schema_version` | `schema_version: Literal[1]` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
-| `provider` | `provider: Literal["PatriNat"]` | Stores `_DownloadMetadata`'s `provider` value under exact annotation `Literal['PatriNat']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `authority` | `authority: Literal["MNHN"]` | Stores `_DownloadMetadata`'s `authority` value under exact annotation `Literal['MNHN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `program` | `program: Literal["INPN"]` | Stores `_DownloadMetadata`'s `program` value under exact annotation `Literal['INPN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: Literal["PatriNat"]` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `authority` | `authority: Literal["MNHN"]` | Publishing authority identity for the protected-area dataset snapshot. |
+| `program` | `program: Literal["INPN"]` | Official source program identity under which the protected-area dataset is published. |
 | `dataset_id` | `dataset_id: Literal["EP"]` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `dataset_name` | `dataset_name: Literal["Base de référence des espaces protégés français"]` | Stores `_DownloadMetadata`'s `dataset name` value under exact annotation `Literal['Base de référence des espaces protégés français']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `declared_version` | `declared_version: DeclaredVersion` | Stores `_DownloadMetadata`'s `declared version` value under exact annotation `DeclaredVersion`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `dataset_name` | `dataset_name: Literal["Base de référence des espaces protégés français"]` | Official human-readable dataset name fixed by the protected-area source configuration. |
+| `declared_version` | `declared_version: DeclaredVersion` | Pinned MM/YYYY protected-area source snapshot version. |
 | `reference_page_url` | `reference_page_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `archive_url` | `archive_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `filename` | `filename: Literal["EP.zip"]` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
@@ -636,7 +664,8 @@ def _aware_utc_timestamp(cls, value: str) -> str:
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` via `_DownloadMetadata`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` via `_DownloadMetadata`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_download_metadata` via `_DownloadMetadata`.
 
 **Exact class source**
 
@@ -716,7 +745,9 @@ def _canonical_path(cls, value: str) -> str:
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractedFileMetadata`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractionMetadata` via `_ExtractedFileMetadata`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractionMetadata._deterministic_files` via `_ExtractedFileMetadata`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractedFileMetadata`.
 
 **Exact class source**
 
@@ -779,8 +810,8 @@ def _deterministic_files(
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_ExtractionMetadata`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractionMetadata`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractionMetadata`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_extraction_metadata` via `_ExtractionMetadata`.
 
 **Exact class source**
 
@@ -825,13 +856,14 @@ class _ExtractionMetadata(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `info` | `info: zipfile.ZipInfo` | Stores `_ValidatedZipMember`'s `info` value under exact annotation `zipfile.ZipInfo`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `destination` | `destination: PurePosixPath` | Stores `_ValidatedZipMember`'s `destination` value under exact annotation `PurePosixPath`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `info` | `info: zipfile.ZipInfo` | Original ZipInfo record whose destination and file type were validated before extraction. |
+| `destination` | `destination: PurePosixPath` | Validated extraction destination path contained within the temporary extraction root. |
 | `is_directory` | `is_directory: bool` | Boolean `is directory` flag on `_ValidatedZipMember`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_ValidatedZipMember`.
+- type annotation: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_ValidatedZipMember`.
+- constructor call: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_ValidatedZipMember`.
 
 **Exact class source**
 
@@ -873,14 +905,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -928,14 +960,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -981,14 +1013,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1034,14 +1066,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1087,14 +1119,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1139,14 +1171,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1191,14 +1223,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1246,14 +1278,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1301,19 +1333,19 @@ Rejects malformed or inconsistent utc timestamp; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata._aware_utc_timestamp` via `_validate_utc_timestamp`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_validate_utc_timestamp`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_DownloadMetadata._aware_utc_timestamp` via `_validate_utc_timestamp`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_validate_utc_timestamp`.
 
 **Complete source-ordered implementation**
 
@@ -1360,23 +1392,19 @@ InpnProtectedAreasSourceConfig.model_validate(config.model_dump(mode='python'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceConfig.model_validate`, `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_validated_config`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validated_config`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `_validated_config`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `_validated_config`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `_validated_config`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `_validated_config`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_validated_config`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validated_config`.
 
 **Complete source-ordered implementation**
 
@@ -1430,18 +1458,18 @@ InpnProtectedAreasSourceConfig.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.open`.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceConfig.model_validate`, `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -1451,10 +1479,7 @@ InpnProtectedAreasSourceConfig.model_validate(payload)
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_checked_in_config_loads_with_exact_source_identity` via `load_inpn_protected_areas_source_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_config_rejects_noncanonical_values` via `load_inpn_protected_areas_source_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `load_inpn_protected_areas_source_config`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -1464,6 +1489,9 @@ InpnProtectedAreasSourceConfig.model_validate(payload)
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_checked_in_config_loads_with_exact_source_identity` via `load_inpn_protected_areas_source_config`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_config_rejects_noncanonical_values` via `load_inpn_protected_areas_source_config`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `load_inpn_protected_areas_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -1518,18 +1546,18 @@ config.cache_root / config.dataset_id / version
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_archive_path` via `_cache_directory`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_archive_path` via `_cache_directory`.
 
 **Complete source-ordered implementation**
 
@@ -1570,19 +1598,19 @@ _cache_directory(config) / config.archive_filename
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_archive_path`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_archive_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_archive_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_archive_path`.
 
 **Complete source-ordered implementation**
 
@@ -1622,34 +1650,18 @@ archive_path.with_name(f'{archive_path.name}.metadata.json')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `_metadata_path`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_metadata_path`.
 
 **Complete source-ordered implementation**
 
@@ -1689,21 +1701,21 @@ digest.hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_sha256_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_sha256_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_sha256_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_sha256_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_sha256_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_sha256_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_sha256_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_sha256_file`.
 
 **Complete source-ordered implementation**
 
@@ -1749,38 +1761,22 @@ True
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
 
 **Complete source-ordered implementation**
 
@@ -1823,21 +1819,21 @@ not _is_link_or_junction(path) and path.is_file()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_is_regular_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_is_regular_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_is_regular_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_is_regular_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_is_regular_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_is_regular_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_is_regular_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_is_regular_file`.
 
 **Complete source-ordered implementation**
 
@@ -1877,18 +1873,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result[key]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/sources/inpn_protected_areas_fr.py::_read_strict_json` via `json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_duplicate_rejecting_object)`.
+- function object argument: `src/landscout/sources/inpn_protected_areas_fr.py::_read_strict_json` via `json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_duplicate_rejecting_object)`.
 
 **Complete source-ordered implementation**
 
@@ -1933,19 +1929,19 @@ json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_duplicate_reject
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_read_strict_json`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_read_strict_json`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_read_strict_json`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_read_strict_json`.
 
 **Complete source-ordered implementation**
 
@@ -1989,18 +1985,18 @@ normalized.casefold()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_canonical_member_destination` via `_windows_component_key`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_canonical_member_destination` via `_windows_component_key`.
 
 **Complete source-ordered implementation**
 
@@ -2062,19 +2058,19 @@ Private `environment source` helper for canonical member destination; its comple
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_canonical_member_destination`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_inventory_relative_path` via `_canonical_member_destination`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validated_zip_members` via `_canonical_member_destination`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_inventory_relative_path` via `_canonical_member_destination`.
 
 **Complete source-ordered implementation**
 
@@ -2145,21 +2141,21 @@ tuple(validated)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`, `zipfile.ZipFile`, `zipfile.is_zipfile`.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: `info.is_dir`, `path.stat`.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `explicit[canonical]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `directories`, `explicit[canonical]`, `files`, `raw_names`, `validated`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_validated_zip_members`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_validated_zip_members`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_validated_zip_members`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validated_zip_members`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_load_cached_download` via `_validated_zip_members`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_validated_zip_members`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_download` via `_validated_zip_members`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validated_zip_members`.
 
 **Complete source-ordered implementation**
 
@@ -2292,18 +2288,18 @@ _DownloadMetadata(schema_version=DOWNLOAD_METADATA_SCHEMA_VERSION, provider=conf
 
 **Side effects**
 
-- Network I/O: `_DownloadMetadata`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_download_metadata`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_download_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -2372,22 +2368,18 @@ None
 
 **Side effects**
 
-- Network I/O: `InpnProtectedAreasDownload`, `_DownloadMetadata.model_validate`.
+- Network I/O: none.
 - Filesystem read: `archive_path.stat`.
-- Filesystem write: none directly visible.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasDownload`.
-- Hashing: `_sha256_file`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._load_cached_download`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
 
 **Complete source-ordered implementation**
 
@@ -2479,39 +2471,18 @@ Private `environment source` helper for replace file; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
 
 **Complete source-ordered implementation**
 
@@ -2553,34 +2524,18 @@ Private `environment source` helper for publish cache pair; its complete impleme
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`, `path.exists`.
 - Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink`.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
 
 **Complete source-ordered implementation**
 
@@ -2673,17 +2628,17 @@ Acquires, verifies, and records archive bytes; exact branches, calls, and return
 **Side effects**
 
 - Network I/O: `open_safe_https`.
-- Filesystem read: none directly visible.
+- Filesystem read: `destination.open`.
 - Filesystem write: `copyfileobj`.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_download_archive_bytes`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_download_archive_bytes`.
 
 **Complete source-ordered implementation**
 
@@ -2757,18 +2712,18 @@ result
 
 **Side effects**
 
-- Network I/O: `InpnProtectedAreasDownload`, `_download_archive_bytes`, `_download_metadata`, `_load_cached_download`.
+- Network I/O: `_download_archive_bytes`, `_download_metadata`.
 - Filesystem read: `temporary_archive.stat`.
 - Filesystem write: `archive_path.parent.mkdir`, `temporary_archive.unlink`, `temporary_metadata.unlink`, `temporary_metadata.write_text`, `temporary_path.unlink`.
 - CRS/geometry calculation: `InpnProtectedAreasDownload`, `InpnProtectedAreasSourceError`.
-- Hashing: `_sha256_file`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -2778,12 +2733,7 @@ result
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `download_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_wrong_download_config_type_has_controlled_error` via `download_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `download_inpn_protected_areas_archive`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_download_api_has_no_arbitrary_http_session_injection` via `inspect.signature(download_inpn_protected_areas_archive)`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `download_inpn_protected_areas_archive`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -2793,6 +2743,11 @@ result
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `download_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_wrong_download_config_type_has_controlled_error` via `download_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_download_timeout_is_strict_finite_positive` via `download_inpn_protected_areas_archive`.
+- function object argument: `tests/unit/test_inpn_protected_areas_fr.py::test_download_api_has_no_arbitrary_http_session_injection` via `inspect.signature(download_inpn_protected_areas_archive)`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `download_inpn_protected_areas_archive`.
 
 **Complete source-ordered implementation**
 
@@ -2930,19 +2885,18 @@ download
 
 **Side effects**
 
-- Network I/O: `download.path.stat`.
+- Network I/O: none.
 - Filesystem read: `download.path.stat`.
-- Filesystem write: none directly visible.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: `_sha256_file`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `_validate_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validate_download`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validate_download`.
 
 **Complete source-ordered implementation**
 
@@ -3028,19 +2982,19 @@ Rejects malformed or inconsistent inventory relative path; exact branches, calls
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractedFileMetadata._canonical_path` via `_validate_inventory_relative_path`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_validate_inventory_relative_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_ExtractedFileMetadata._canonical_path` via `_validate_inventory_relative_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_validate_inventory_relative_path`.
 
 **Complete source-ordered implementation**
 
@@ -3087,21 +3041,19 @@ tuple(files)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.is_dir`, `path.is_file`, `path.stat`, `root.is_dir`, `root.rglob`.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasExtractedFile`, `InpnProtectedAreasSourceError`.
-- Hashing: `_sha256_file`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `files`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_inventory`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_inventory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_inventory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_inventory`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_inventory`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -3183,18 +3135,18 @@ _ExtractionMetadata(schema_version=EXTRACTION_METADATA_SCHEMA_VERSION, archive_s
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_extraction_metadata`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_extraction_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -3254,18 +3206,18 @@ actual
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasExtractedFile`, `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validate_extraction_cache`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validate_extraction_cache`.
 
 **Complete source-ordered implementation**
 
@@ -3343,18 +3295,18 @@ path.exists() or path.is_symlink() or _is_link_or_junction(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_path_exists`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_path_exists`.
 
 **Complete source-ordered implementation**
 
@@ -3391,19 +3343,19 @@ Private `environment source` helper for remove path; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.rmdir`, `path.unlink`, `shutil.rmtree`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_remove_path`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_remove_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_remove_path`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_remove_path`.
 
 **Complete source-ordered implementation**
 
@@ -3445,23 +3397,18 @@ Private `environment source` helper for replace directory; its complete implemen
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_extraction_directory` via `_replace_directory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `inpn._replace_directory`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `inpn._replace_directory`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_extraction_directory` via `_replace_directory`.
 
 **Complete source-ordered implementation**
 
@@ -3499,20 +3446,18 @@ Private `environment source` helper for publish extraction directory; its comple
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_publish_extraction_directory`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_publish_extraction_directory`.
 
 **Complete source-ordered implementation**
 
@@ -3586,18 +3531,18 @@ InpnProtectedAreasExtraction(download=validated_download, extraction_path=root, 
 
 **Side effects**
 
-- Network I/O: `_validate_download`.
-- Filesystem read: `zipfile.ZipFile`.
+- Network I/O: none.
+- Filesystem read: `archive.open`, `root.is_dir`, `target.open`.
 - Filesystem write: `(temporary_root / EXTRACTION_METADATA_FILENAME).write_text`, `copyfileobj`, `root.parent.mkdir`, `target.mkdir`, `target.parent.mkdir`, `temporary_root.mkdir`.
 - CRS/geometry calculation: `InpnProtectedAreasExtraction`, `InpnProtectedAreasSourceError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -3607,23 +3552,7 @@ InpnProtectedAreasExtraction(download=validated_download, extraction_path=root, 
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_extraction_cache_is_reused` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_result_dataclasses_are_frozen` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_exact_file_inventory_does_not_omit_unknown_suffixes` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_archive_and_extraction_cache_reuse_are_independent` via `extract_inpn_protected_areas_archive`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_no_stale_parts_after_download_or_extraction_success` via `extract_inpn_protected_areas_archive`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
@@ -3633,6 +3562,22 @@ InpnProtectedAreasExtraction(download=validated_download, extraction_path=root, 
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
 )`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_extraction_cache_is_reused` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_result_dataclasses_are_frozen` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_exact_file_inventory_does_not_omit_unknown_suffixes` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_archive_and_extraction_cache_reuse_are_independent` via `extract_inpn_protected_areas_archive`.
+- direct call: `tests/unit/test_inpn_protected_areas_fr.py::test_no_stale_parts_after_download_or_extraction_success` via `extract_inpn_protected_areas_archive`.
 
 **Complete source-ordered implementation**
 
@@ -3724,14 +3669,14 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `InpnProtectedAreasDownload` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `InpnProtectedAreasExtractedFile` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `InpnProtectedAreasExtraction` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `InpnProtectedAreasSourceConfig` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `InpnProtectedAreasSourceError` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `download_inpn_protected_areas_archive` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `extract_inpn_protected_areas_archive` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
-| `load_inpn_protected_areas_source_config` | re-exported/defined Python symbol | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `InpnProtectedAreasDownload` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `InpnProtectedAreasExtractedFile` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `InpnProtectedAreasExtraction` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `InpnProtectedAreasSourceConfig` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `InpnProtectedAreasSourceError` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `download_inpn_protected_areas_archive` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `extract_inpn_protected_areas_archive` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
+| `load_inpn_protected_areas_source_config` | public symbol defined in this module | `defined in `src/landscout/sources/inpn_protected_areas_fr.py`` | yes |
 
 ## 9. Error handling
 

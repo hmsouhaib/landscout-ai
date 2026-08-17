@@ -70,7 +70,7 @@ COMMON_FEATURE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value reference).
 
 #### `SURFACE_FEATURE_COLUMNS`
 
@@ -78,7 +78,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 SURFACE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_area_m2")
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value reference).
 
 #### `LINE_FEATURE_COLUMNS`
 
@@ -86,7 +86,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 LINE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_length_m")
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value reference).
 
 #### `POINT_FEATURE_COLUMNS`
 
@@ -94,7 +94,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 POINT_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "point_member_count")
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value reference).
 
 #### `NORMALIZED_FEATURE_COLUMNS`
 
@@ -106,7 +106,7 @@ NORMALIZED_FEATURE_COLUMNS = {
 }
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::normalized_feature_dtypes` (value reference), `src/landscout/common/planning_feature_schema.py::feature_columns` (value reference), `src/landscout/stages/enrich_planning_features.py::_canonical_catalog_dtypes` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` (value reference).
 
 #### `RELATION_COLUMNS`
 
@@ -143,7 +143,7 @@ RELATION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export), `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_and_relation_prefixes_order_and_inputs_are_preserved` (value argument/reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::_canonical_relation_schema` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::<module>` (value reference), `src/landscout/common/planning_feature_schema.py::relation_columns` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` (value reference), `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value reference).
 
 #### `RELATION_FLOAT_COLUMNS`
 
@@ -161,7 +161,7 @@ RELATION_FLOAT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::<module>` (value reference), `src/landscout/stages/enrich_planning_features.py::_point_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` (value reference).
 
 #### `RELATION_COUNT_COLUMNS`
 
@@ -175,7 +175,7 @@ RELATION_COUNT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::<module>` (value reference), `src/landscout/stages/enrich_planning_features.py::_surface_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_line_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_relations` (value reference), `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` (value reference).
 
 #### `RELATION_STRING_COLUMNS`
 
@@ -185,7 +185,7 @@ RELATION_STRING_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` (value reference).
 
 #### `OFFICIAL_CODE_COLUMNS`
 
@@ -201,7 +201,7 @@ OFFICIAL_CODE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import/re-export), `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::<module>` (value reference), `src/landscout/common/planning_feature_schema.py::feature_columns` (value reference), `src/landscout/common/planning_feature_schema.py::relation_columns` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_coded_catalog` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` (value reference).
 
 #### `_COMMON_STR_DTYPES`
 
@@ -213,7 +213,7 @@ _COMMON_STR_DTYPES = {
 }
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema.
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/common/planning_feature_schema.py::<module>` (value reference).
 
 #### `NORMALIZED_FEATURE_DTYPES`
 
@@ -255,7 +255,7 @@ NORMALIZED_FEATURE_DTYPES: dict[GeometryKind, tuple[str, ...]] = {
 }
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::normalized_feature_dtypes` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value reference).
 
 #### `NORMALIZED_RELATION_DTYPES`
 
@@ -270,7 +270,7 @@ NORMALIZED_RELATION_DTYPES = tuple(
 )
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export), `tests/unit/test_resolve_planning_feature_codes.py::_canonical_relation_schema` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import), `src/landscout/common/planning_feature_schema.py::relation_dtypes` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::_canonical_relation_schema` (value reference).
 
 #### `OFFICIAL_CODE_DTYPES`
 
@@ -278,7 +278,7 @@ Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consume
 OFFICIAL_CODE_DTYPES = tuple("str" for _ in OFFICIAL_CODE_COLUMNS)
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema.
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/common/planning_feature_schema.py::feature_dtypes` (value reference), `src/landscout/common/planning_feature_schema.py::relation_dtypes` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -289,7 +289,7 @@ Canonical Pandas/GeoPandas dtype contract aligned with the named schema.
 GeometryKind = Literal["SURFACE", "LINE", "POINT"]
 ```
 
-Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (callback/function object), `src/landscout/common/bess_application_contract.py::<module>` (import/re-export), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (callback/function object), `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import/re-export).
+Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/common/bess_application_contract.py::<module>` (import), `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value reference), `src/landscout/common/planning_feature_schema.py::<module>` (type annotation), `src/landscout/common/planning_feature_schema.py::normalized_feature_dtypes` (type annotation), `src/landscout/common/planning_feature_schema.py::feature_columns` (type annotation), `src/landscout/common/planning_feature_schema.py::feature_dtypes` (type annotation), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (value reference).
 
 #### `IndexClass`
 
@@ -297,7 +297,7 @@ Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforce
 IndexClass = Literal["Index", "RangeIndex"]
 ```
 
-Portable frame-signature index-class domain: Index or RangeIndex. It is consumed by annotations or Pydantic validation in this module.
+Portable frame-signature index-class domain: Index or RangeIndex. Enforced/consumed by `src/landscout/common/planning_feature_schema.py::validate_canonical_frame_schema` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -347,21 +347,18 @@ tuple(dtypes)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `NORMALIZED_FEATURE_COLUMNS[geometry_kind].index`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `dtypes[position]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_feature_schema.py::feature_dtypes` via `normalized_feature_dtypes`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_canonical_catalog_dtypes` via `normalized_feature_dtypes`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `normalized_feature_dtypes`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_schema import (
     NORMALIZED_FEATURE_COLUMNS,
     NORMALIZED_FEATURE_DTYPES,
     NORMALIZED_RELATION_DTYPES,
@@ -372,6 +369,9 @@ tuple(dtypes)
     normalized_feature_dtypes,
     validate_canonical_frame_schema,
 )`.
+- direct call: `src/landscout/common/planning_feature_schema.py::feature_dtypes` via `normalized_feature_dtypes`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_canonical_catalog_dtypes` via `normalized_feature_dtypes`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `normalized_feature_dtypes`.
 
 **Complete source-ordered implementation**
 
@@ -429,19 +429,18 @@ Return one exact ordered feature schema with deterministic suffixes.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `feature_columns`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
     GeometryKind,
     feature_columns,
     feature_dtypes,
@@ -449,8 +448,7 @@ Return one exact ordered feature schema with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `feature_columns`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     OFFICIAL_CODE_COLUMNS,
     GeometryKind,
     feature_columns,
@@ -459,6 +457,8 @@ Return one exact ordered feature schema with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `feature_columns`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `feature_columns`.
 
 **Complete source-ordered implementation**
 
@@ -507,19 +507,18 @@ Return matching exact feature dtypes with deterministic suffixes.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `feature_dtypes`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
     GeometryKind,
     feature_columns,
     feature_dtypes,
@@ -527,8 +526,7 @@ Return matching exact feature dtypes with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `feature_dtypes`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     OFFICIAL_CODE_COLUMNS,
     GeometryKind,
     feature_columns,
@@ -537,12 +535,14 @@ Return matching exact feature dtypes with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `feature_dtypes`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     NORMALIZED_RELATION_DTYPES,
     feature_dtypes,
     relation_dtypes,
 )`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `feature_dtypes`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `feature_dtypes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `feature_dtypes`.
 
 **Complete source-ordered implementation**
 
@@ -592,19 +592,18 @@ Return one exact ordered relation schema with deterministic suffixes.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `relation_columns`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
     GeometryKind,
     feature_columns,
     feature_dtypes,
@@ -612,10 +611,7 @@ Return one exact ordered relation schema with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPrecheckResult(result_hash_schema_version=RESULT_HASH_SCHEMA_VERSION, policy_schema_version=policy.schema_version, policy_profile=policy.policy_profile, planning_precheck_scope=PLANNING_PRECHECK_SCOPE, review_scope=REVIEW_SCOPE, document_id=index.document_id, archive_sha256=index.archive_sha256, pdf_sha256=index.pdf_sha256, index_content_sha256=index.index_content_sha256, structure_result_content_sha256=structure.structure_result_content_sha256, structure_profile=structure.structure_profile, policy_config_sha256=policy_hash, factual_structure_content_sha256=_factual_structure_sha256(structure), zone_mapping_input_sha256=_zone_mapping_input_sha256(zone_copy, structure), zoning_relation_hash_columns=relation_columns, zoning_relations_input_sha256=_frame_sha256('landscout.bess_zoning.zoning_relations_input', relation_copy, relation_columns), evidence_catalog_content_sha256='', evidence_route_links_content_sha256='', route_assessments_content_sha256='', chapter_policy_content_sha256='', source_zone_policy_content_sha256='', parcel_zone_policy_content_sha256='', parcel_output_content_sha256='', complete_result_content_sha256='', touch_only_relation_count=int(relation_copy['relation_type'].eq('TOUCH_ONLY').sum()), evidence_catalog=evidence_catalog, evidence_route_links=evidence_route_links, route_assessments=route_assessments, chapter_policy=chapter_policy, source_zone_policy=source_policy, parcel_zone_interpretations=interpretations, parcels=parcel_output)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_frame_sha256('landscout.bess_zoning.zoning_relations_input', relation_copy, relation_columns)`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `relation_columns`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     OFFICIAL_CODE_COLUMNS,
     GeometryKind,
     feature_columns,
@@ -624,8 +620,10 @@ Return one exact ordered relation schema with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `relation_columns`.
-- import/re-export: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_feature_schema import relation_columns, relation_dtypes`.
+- import: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_feature_schema import relation_columns, relation_dtypes`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `relation_columns`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `relation_columns`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `relation_columns`.
 
 **Complete source-ordered implementation**
 
@@ -667,19 +665,18 @@ Return matching exact relation dtypes with deterministic suffixes.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `relation_dtypes`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
     GeometryKind,
     feature_columns,
     feature_dtypes,
@@ -687,8 +684,7 @@ Return matching exact relation dtypes with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `relation_dtypes`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     OFFICIAL_CODE_COLUMNS,
     GeometryKind,
     feature_columns,
@@ -697,14 +693,16 @@ Return matching exact relation dtypes with deterministic suffixes.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `relation_dtypes`.
-- import/re-export: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_feature_schema import relation_columns, relation_dtypes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `relation_dtypes`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_feature_schema import relation_columns, relation_dtypes`.
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     NORMALIZED_RELATION_DTYPES,
     feature_dtypes,
     relation_dtypes,
 )`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `relation_dtypes`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `relation_dtypes`.
+- direct call: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `relation_dtypes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `relation_dtypes`.
 
 **Complete source-ordered implementation**
 
@@ -760,20 +758,18 @@ Reject any deviation from one complete persisted frame-schema contract.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `validate_canonical_frame_schema`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_canonical_frame_schema`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_schema import (
     GeometryKind,
     feature_columns,
     feature_dtypes,
@@ -781,9 +777,7 @@ Reject any deviation from one complete persisted frame-schema contract.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `validate_canonical_frame_schema`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `validate_canonical_frame_schema`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_schema import (
     NORMALIZED_FEATURE_COLUMNS,
     NORMALIZED_FEATURE_DTYPES,
     NORMALIZED_RELATION_DTYPES,
@@ -794,8 +788,7 @@ Reject any deviation from one complete persisted frame-schema contract.
     normalized_feature_dtypes,
     validate_canonical_frame_schema,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `validate_canonical_frame_schema`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.common.planning_feature_schema import (
     OFFICIAL_CODE_COLUMNS,
     GeometryKind,
     feature_columns,
@@ -804,6 +797,11 @@ Reject any deviation from one complete persisted frame-schema contract.
     relation_dtypes,
     validate_canonical_frame_schema,
 )`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `validate_canonical_frame_schema`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_canonical_frame_schema`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `validate_canonical_frame_schema`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `validate_canonical_frame_schema`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `validate_canonical_frame_schema`.
 
 **Complete source-ordered implementation**
 
@@ -1042,9 +1040,9 @@ NORMALIZED_FEATURE_COLUMNS = {
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `SURFACE` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'float64') | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `LINE` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'object', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'float64') | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `POINT` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'object', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'int64') | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `SURFACE` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'float64') | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `LINE` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'object', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'float64') | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `POINT` | ('str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'object', 'object', 'object', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'geometry', 'int64') | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `RELATION_COLUMNS` — canonical or derived frame-column schema
 
@@ -1173,7 +1171,7 @@ RELATION_STRING_COLUMNS = (
 | 5 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 6 | `planning_feature_id` | Pandas nullable string dtype | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 7 | `regulation_filename_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 9 | `source_archive_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 10 | `source_document_id` | Pandas nullable string dtype | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 11 | `source_feature_id` | Pandas nullable string dtype | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |

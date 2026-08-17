@@ -77,7 +77,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 DOCUMENT_ID = "doc-1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::_summary` (value reference), `tests/unit/test_index_planning_regulation.py::_document` (value reference).
 
 #### `ARCHIVE_SHA`
 
@@ -85,7 +85,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ARCHIVE_SHA = "a" * 64
 ```
 
-Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_index_planning_regulation.py::_summary` (value reference), `tests/unit/test_index_planning_regulation.py::_document` (value reference).
 
 #### `DEFAULT_PDF`
 
@@ -93,7 +93,7 @@ Hash identity, algorithm, or canonical-content field used by the named integrity
 DEFAULT_PDF = "31395_reglement_20240215.pdf"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::_zone_frame` (value reference), `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` (value reference), `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` (value reference), `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` (value reference), `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` (value reference), `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` (value reference).
 
 #### `PDF_BYTES`
 
@@ -101,7 +101,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 PDF_BYTES = b"synthetic-pdf-bytes"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::_fixture_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` (value argument/reference), `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::_fixture_document` (value reference), `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -133,11 +133,11 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `result` | `self.result = result  # assigned in __init__` | Stores `_FakePage`'s `result` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `result` | `self.result = result  # assigned in __init__` | Deterministic test-double state `result` used by the reproduced network/source regression harness. |
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_FakeReader.__init__` via `_FakePage`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_FakeReader.__init__` via `_FakePage`.
 
 **Exact class source**
 
@@ -166,12 +166,12 @@ class _FakePage:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `pages` | `self.pages = [_FakePage(page) for page in pages]  # assigned in __init__` | Stores `_FakeReader`'s `pages` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `is_encrypted` | `self.is_encrypted = encrypted  # assigned in __init__` | Boolean `is encrypted` flag on `_FakeReader`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+| `pages` | `self.pages = [_FakePage(page) for page in pages]  # assigned in __init__` | Deterministically ordered regulation PDF page records. |
+| `is_encrypted` | `self.is_encrypted = encrypted  # assigned in __init__` | Deterministic test-double state `is_encrypted` used by the reproduced network/source regression harness. |
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_patch_reader` via `_FakeReader`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_patch_reader` via `_FakeReader`.
 
 **Exact class source**
 
@@ -209,19 +209,18 @@ Private `test` helper for init; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.result`.
-- Input mutation: `self.result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -261,19 +260,18 @@ self.result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `reader.pages[page_index].extract_text`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `reader.pages[page_index].extract_text`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -312,19 +310,18 @@ Private `test` helper for init; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.is_encrypted`, `self.pages`.
-- Input mutation: `self.is_encrypted`, `self.pages`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -367,27 +364,27 @@ Private `test` helper for patch reader; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_patch_reader`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_patch_reader`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_patch_reader`.
 
 **Complete source-ordered implementation**
 
@@ -440,29 +437,18 @@ GpuLayerSummary(source_document_id=DOCUMENT_ID, source_archive_sha256=ARCHIVE_SH
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.notna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
 
 **Complete source-ordered implementation**
 
@@ -531,18 +517,18 @@ gpd.GeoDataFrame(attributes, geometry=[Polygon([(index, 0), (index, 1), (index +
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `attributes['NOMFIC']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_zone_frame`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_zone_frame`.
 
 **Complete source-ordered implementation**
 
@@ -608,18 +594,18 @@ GpuExtractedFile(relative_path=relative_path, file_type='pdf', size_bytes=len(da
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(data).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_inventory_item`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_inventory_item`.
 
 **Complete source-ordered implementation**
 
@@ -665,18 +651,18 @@ GpuExtractedFile(relative_path=path.relative_to(root).as_posix(), file_type=path
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `path.read_bytes`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(data).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_spatial_inventory_item`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_spatial_inventory_item`.
 
 **Complete source-ordered implementation**
 
@@ -728,18 +714,18 @@ Serializes zoning source; exact branches, calls, and return construction are rep
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `gpd.read_file`.
+- Network I/O: none.
+- Filesystem read: `candidate.is_file`, `gpd.read_file`.
 - Filesystem write: `frame.to_file`, `spatial_root.mkdir`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_write_zoning_source`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_write_zoning_source`.
 
 **Complete source-ordered implementation**
 
@@ -821,26 +807,18 @@ GpuPlanningDocument(extraction=extraction, all_spatial_layers=(zoning.reference,
 
 **Side effects**
 
-- Network I/O: `GpuArchiveDownload`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `marker.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_discovery_success` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_document`.
 
 **Complete source-ordered implementation**
 
@@ -966,43 +944,43 @@ _document(root, tuple(inventory), zoning, zoning_filenames=zoning_filenames or [
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.parent.mkdir`, `path.write_bytes`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `inventory`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `_fixture_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `_fixture_document`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_fixture_document`.
 
 **Complete source-ordered implementation**
 
@@ -1079,29 +1057,29 @@ index_planning_regulation(document)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_valid_search_result` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `_one_page_index`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::_valid_search_result` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `_one_page_index`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `_one_page_index`.
 
 **Complete source-ordered implementation**
 
@@ -1124,7 +1102,7 @@ def _one_page_index(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public api exports immutable models and validators`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1161,7 +1139,7 @@ for name in (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public api exports immutable models and validators` through the exact asserted conditions: `name in stages.__all__`; `hasattr(stages, name)`.
 
 **Test boundary**
 
@@ -1188,7 +1166,7 @@ def test_public_api_exports_immutable_models_and_validators() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source nomfic resolves generic filename`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1216,7 +1194,7 @@ assert Path(result.pdf_relative_path).name == filename
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `source nomfic resolves generic filename` through the exact asserted conditions: `Path(result.pdf_relative_path).name == filename`.
 
 **Test boundary**
 
@@ -1241,7 +1219,7 @@ def test_source_nomfic_resolves_generic_filename(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `explicit source validated selection succeeds`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1276,7 +1254,7 @@ assert Path(result.pdf_relative_path).name == "b.pdf"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `explicit source validated selection succeeds` through the exact asserted conditions: `Path(result.pdf_relative_path).name == 'b.pdf'`.
 
 **Test boundary**
 
@@ -1307,7 +1285,7 @@ def test_explicit_source_validated_selection_succeeds(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unchanged zoning source is revalidated before selection`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1337,7 +1315,7 @@ assert fullmatch(r"[0-9a-f]{64}", result.source_selection_sha256)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unchanged zoning source is revalidated before selection` through the exact asserted conditions: `result.regulation_filename == DEFAULT_PDF`; `result.source_selection_method == 'ZONING_NOMFIC'`; `fullmatch('[0-9a-f]{64}', result.source_selection_sha256)`.
 
 **Test boundary**
 
@@ -1364,7 +1342,7 @@ def test_unchanged_zoning_source_is_revalidated_before_selection(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutated loaded nomfic is rejected before selection`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1395,7 +1373,7 @@ with pytest.raises(PlanningRegulationIndexError, match="zoning|source"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `mutated loaded nomfic is rejected before selection`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1417,7 +1395,7 @@ def test_mutated_loaded_nomfic_is_rejected_before_selection(tmp_path: Path) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutated loaded zoning geometry or order is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1490,7 +1468,7 @@ def test_mutated_loaded_zoning_geometry_or_order_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zoning source bytes changed after ingestion are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1520,7 +1498,7 @@ with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zoning source bytes changed after ingestion are rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1543,7 +1521,7 @@ def test_zoning_source_bytes_changed_after_ingestion_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zoning source inventory integrity mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1584,7 +1562,7 @@ with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zoning source inventory integrity mismatch is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1619,7 +1597,7 @@ def test_zoning_source_inventory_integrity_mismatch_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing nomfic field is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1647,7 +1625,7 @@ with pytest.raises(PlanningRegulationIndexError, match="missing NOMFIC"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing nomfic field is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1666,7 +1644,7 @@ def test_missing_nomfic_field_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null nomfic is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1713,7 +1691,7 @@ def test_null_nomfic_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `multiple nomfic values are ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1747,7 +1725,7 @@ with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `multiple nomfic values are ambiguous`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1772,7 +1750,7 @@ def test_multiple_nomfic_values_are_ambiguous(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe explicit filename is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1800,7 +1778,7 @@ with pytest.raises(PlanningRegulationIndexError, match="filename"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsafe explicit filename is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1819,7 +1797,7 @@ def test_unsafe_explicit_filename_is_rejected(tmp_path: Path, filename: str) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `explicit filename not referenced by zoning fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1847,7 +1825,7 @@ with pytest.raises(PlanningRegulationIndexError, match="not referenced"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `explicit filename not referenced by zoning fails`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1866,7 +1844,7 @@ def test_explicit_filename_not_referenced_by_zoning_fails(tmp_path: Path) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `filename absent from written files fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1894,7 +1872,7 @@ with pytest.raises(PlanningRegulationIndexError, match="written_files"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `filename absent from written files fails`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1913,7 +1891,7 @@ def test_filename_absent_from_written_files_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unrelated non pdf written file does not block selection`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1943,7 +1921,7 @@ assert index_planning_regulation(document).total_page_count == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unrelated non pdf written file does not block selection` through the exact asserted conditions: `index_planning_regulation(document).total_page_count == 1`.
 
 **Test boundary**
 
@@ -1968,7 +1946,7 @@ def test_unrelated_non_pdf_written_file_does_not_block_selection(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `filename absent from inventory fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2012,7 +1990,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `filename absent from inventory fails`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2047,7 +2025,7 @@ def test_filename_absent_from_inventory_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate inventory basename fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2077,7 +2055,7 @@ with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate inventory basename fails`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2098,7 +2076,7 @@ def test_duplicate_inventory_basename_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `path outside root is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2136,7 +2114,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `path outside root is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2165,7 +2143,7 @@ def test_path_outside_root_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `pdf inventory integrity mismatch fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2205,7 +2183,7 @@ with pytest.raises(PlanningRegulationIndexError, match="differs"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `pdf inventory integrity mismatch fails`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2236,7 +2214,7 @@ def test_pdf_inventory_integrity_mismatch_fails(tmp_path: Path, field: str) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `page states numbering and hashes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2274,7 +2252,7 @@ with pytest.raises(FrozenInstanceError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `page states numbering and hashes`: the reproduced adversarial input must raise `FrozenInstanceError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2308,7 +2286,7 @@ def test_page_states_numbering_and_hashes(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zero page pdf is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2337,7 +2315,7 @@ with pytest.raises(PlanningRegulationIndexError, match="at least one page"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zero page pdf is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2361,7 +2339,7 @@ def test_zero_page_pdf_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `pdf reader failure is controlled and chained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2395,7 +2373,7 @@ assert isinstance(caught.value.__cause__, RuntimeError)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `pdf reader failure is controlled and chained`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2446,18 +2424,18 @@ Private `test` helper for fail reader; its complete implementation below is the 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'PdfReader', fail_reader)`.
+- function object argument: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'PdfReader', fail_reader)`.
 
 **Complete source-ordered implementation**
 
@@ -2474,7 +2452,7 @@ def fail_reader(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `french literal normalization`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2501,7 +2479,7 @@ assert _normalize_search_text(source) == term
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `french literal normalization` through the exact asserted conditions: `_normalize_search_text(source) == term`.
 
 **Test boundary**
 
@@ -2518,7 +2496,7 @@ def test_french_literal_normalization(source: str, term: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `raw context preserves source typography`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2553,7 +2531,7 @@ assert index.pages.iloc[0]["raw_text"] == raw
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `raw context preserves source typography` through the exact asserted conditions: `hit['page_number'] == 1`; `hit['occurrence_count'] == 1`; `'Équipement d’intérêt collectif' in hit['raw_context']`; `"equipement d'interet collectif" in hit['normalized_context']`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2584,7 +2562,7 @@ def test_raw_context_preserves_source_typography(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zero context preserves complete raw unicode span`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2615,7 +2593,7 @@ assert index.pages.iloc[0]["raw_text"] == raw
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `zero context preserves complete raw unicode span` through the exact asserted conditions: `hit['raw_context'] == expected_raw`; `hit['normalized_context'] == expected_normalized`; `hit['raw_context'] in raw`; `index.pages.iloc[0]['raw_text'] == raw`.
 
 **Test boundary**
 
@@ -2646,7 +2624,7 @@ def test_zero_context_preserves_complete_raw_unicode_span(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `literal search does not add semantic synonyms`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2673,7 +2651,7 @@ assert result.hits.empty
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `literal search does not add semantic synonyms` through the exact asserted conditions: `result.hits.empty`.
 
 **Test boundary**
 
@@ -2696,7 +2674,7 @@ def test_literal_search_does_not_add_semantic_synonyms(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `version discovery failure is controlled and chained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2729,7 +2707,7 @@ assert isinstance(caught.value.__cause__, RuntimeError)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `version discovery failure is controlled and chained`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2779,18 +2757,18 @@ Private `test` helper for fail version; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'version', fail_version)`.
+- function object argument: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'version', fail_version)`.
 
 **Complete source-ordered implementation**
 
@@ -2807,7 +2785,7 @@ def fail_version(name: str) -> str:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated page mutation fails envelope hash`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2870,7 +2848,7 @@ def test_coordinated_page_mutation_fails_envelope_hash(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `index integrity mutations fail`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2946,7 +2924,7 @@ def test_index_integrity_mutations_fail(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `complete index envelope mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2999,7 +2977,7 @@ def test_complete_index_envelope_mutation_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported or malformed index hash schema is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3029,7 +3007,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported or malformed index hash schema is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3055,7 +3033,7 @@ def test_unsupported_or_malformed_index_hash_schema_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed page hash schema is rejected as controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3085,7 +3063,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed page hash schema is rejected as controlled error`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3137,23 +3115,23 @@ Private `test` helper for valid search result; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `_valid_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `_valid_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `_valid_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `_valid_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `_valid_search_result`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `_valid_search_result`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `_valid_search_result`.
 
 **Complete source-ordered implementation**
 
@@ -3181,7 +3159,7 @@ def _valid_search_result(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `search result envelope is valid and deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3215,7 +3193,7 @@ assert first.hits_content_sha256 == second.hits_content_sha256
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `search result envelope is valid and deterministic` through the exact asserted conditions: `tuple(first.hits.columns) == SEARCH_HIT_COLUMNS`; `first.search_normalization_profile == SEARCH_NORMALIZATION_PROFILE`; `first.index_content_sha256 == index.index_content_sha256`; `first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -3245,7 +3223,7 @@ def test_search_result_envelope_is_valid_and_deterministic(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `search index identity schema and terms are sealed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3276,7 +3254,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `search index identity schema and terms are sealed`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3304,7 +3282,7 @@ def test_search_index_identity_schema_and_terms_are_sealed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `search requested terms must be an immutable exact tuple`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3336,7 +3314,7 @@ with pytest.raises(PlanningRegulationIndexError, match="tuple"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `search requested terms must be an immutable exact tuple`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3363,7 +3341,7 @@ def test_search_requested_terms_must_be_an_immutable_exact_tuple(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `search result integrity mutations fail`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3438,7 +3416,7 @@ def test_search_result_integrity_mutations_fail(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `search hit lineage mutation fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3496,7 +3474,7 @@ def test_search_hit_lineage_mutation_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid search term is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3524,7 +3502,7 @@ with pytest.raises(PlanningRegulationIndexError, match="search term"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid search term is rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3548,7 +3526,7 @@ def test_invalid_search_term_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate normalized search terms are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3576,7 +3554,7 @@ with pytest.raises(PlanningRegulationIndexError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate normalized search terms are rejected`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3599,7 +3577,7 @@ def test_duplicate_normalized_search_terms_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty search result has stable schema and lineage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3631,7 +3609,7 @@ assert result.pdf_sha256 == index.pdf_sha256
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `empty search result has stable schema and lineage` through the exact asserted conditions: `result.hit_count == 0`; `result.hits.empty`; `tuple(result.hits.columns) == SEARCH_HIT_COLUMNS`; `result.document_id == index.document_id`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -3659,7 +3637,7 @@ def test_empty_search_result_has_stable_schema_and_lineage(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed page value raises controlled index error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3689,7 +3667,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed page value raises controlled index error`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3714,7 +3692,7 @@ def test_malformed_page_value_raises_controlled_index_error(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed hit value raises controlled index error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3748,7 +3726,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed hit value raises controlled index error`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3777,7 +3755,7 @@ def test_malformed_hit_value_raises_controlled_index_error(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `canonical hash serialization failure is controlled and chained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3809,7 +3787,7 @@ assert isinstance(caught.value.__cause__, TypeError)
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `canonical hash serialization failure is controlled and chained`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3832,7 +3810,7 @@ def test_canonical_hash_serialization_failure_is_controlled_and_chained() -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed source metadata raises controlled index error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3869,7 +3847,7 @@ with pytest.raises(PlanningRegulationIndexError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed source metadata raises controlled index error`: the reproduced adversarial input must raise `PlanningRegulationIndexError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3899,7 +3877,7 @@ def test_malformed_source_metadata_raises_controlled_index_error(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `extraction and search do not mutate inputs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3933,7 +3911,7 @@ assert document.extraction == extraction_before
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `extraction and search do not mutate inputs` through the exact asserted conditions: `document.extraction == extraction_before`.
 
 **Test boundary**
 

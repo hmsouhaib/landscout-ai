@@ -42,7 +42,7 @@ This file belongs to the **internal common contract** layer and the **common con
 _WINDOWS_FORBIDDEN_CHARACTERS = frozenset('<>:"/\\|?*')
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/artifact_paths.py::validate_portable_parquet_filename` (value reference).
 
 #### `_WINDOWS_RESERVED_BASENAMES`
 
@@ -56,7 +56,7 @@ _WINDOWS_RESERVED_BASENAMES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/artifact_paths.py::validate_portable_parquet_filename` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -110,25 +110,25 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::BessPlanningFeatureParcelAggregationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `validate_portable_parquet_filename`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_shared_filename_contract_rejects_superscript_windows_devices` via `validate_portable_parquet_filename`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- import: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- direct call: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::BessPlanningFeatureParcelAggregationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
+- direct call: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `validate_portable_parquet_filename`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_shared_filename_contract_rejects_superscript_windows_devices` via `validate_portable_parquet_filename`.
 
 **Complete source-ordered implementation**
 

@@ -54,7 +54,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 COMMUNE_CODE = "31395"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_download_timeout_is_strict_finite_positive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_cache_age_is_strict_finite_nonnegative` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_download_timeout_is_strict_finite_positive` (value reference), `tests/unit/test_cadastre_fr.py::test_cache_age_is_strict_finite_nonnegative` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` (value reference).
 
 #### `EXPECTED_URL`
 
@@ -65,7 +65,7 @@ EXPECTED_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value argument/reference).
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value reference).
 
 #### `ARCHIVE_CONTENT`
 
@@ -73,7 +73,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 ARCHIVE_CONTENT = gzip.compress(b'{"type":"FeatureCollection","features":[]}')
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_successful_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_valid_gzip_is_accepted` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network.record_network` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::<module>` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value reference), `tests/unit/test_cadastre_fr.py::test_valid_gzip_is_accepted` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network.record_network` (value reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value reference).
 
 #### `REFRESHED_ARCHIVE_CONTENT`
 
@@ -83,7 +83,7 @@ REFRESHED_ARCHIVE_CONTENT = gzip.compress(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value reference).
 
 #### `CORRUPTED_ARCHIVE_CONTENT`
 
@@ -91,7 +91,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 CORRUPTED_ARCHIVE_CONTENT = ARCHIVE_CONTENT[:-8]
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_truncated_gzip_is_rejected` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value argument/reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_truncated_gzip_is_rejected` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -137,24 +137,24 @@ Private `test` helper for set cache age; its complete implementation below is th
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `metadata_path.read_text`.
 - Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `metadata['download_timestamp']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `_set_cache_age`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `_set_cache_age`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_set_cache_age`.
 
 **Complete source-ordered implementation**
 
@@ -193,18 +193,18 @@ Private `test` helper for update metadata integrity; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `archive_path.read_bytes`, `metadata_path.read_text`.
 - Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(content).hexdigest`.
-- Environment/process effects: none directly visible.
+- Environment/process effects: none.
 - In-memory mutation: `metadata['file_size']`, `metadata['sha256']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` via `_update_metadata_integrity`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` via `_update_metadata_integrity`.
 
 **Complete source-ordered implementation**
 
@@ -225,7 +225,7 @@ def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `build cadastre parcelles url`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -252,7 +252,7 @@ assert build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `build cadastre parcelles url` through the exact asserted conditions: `build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL`.
 
 **Test boundary**
 
@@ -269,7 +269,7 @@ def test_build_cadastre_parcelles_url() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `successful download`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -336,7 +336,7 @@ def test_successful_download(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `fresh cache is reused`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -402,7 +402,7 @@ def test_fresh_cache_is_reused(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `expired cache is downloaded again`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -470,7 +470,7 @@ def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed refresh preserves cached archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -510,7 +510,7 @@ assert metadata_path.is_file()
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `failed refresh preserves cached archive`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -547,7 +547,7 @@ def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed http response`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -579,7 +579,7 @@ assert not list(tmp_path.glob("*"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `failed http response`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -606,7 +606,7 @@ def test_failed_http_response(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `checksum generation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -637,7 +637,7 @@ assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `checksum generation` through the exact asserted conditions: `result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()`.
 
 **Test boundary**
 
@@ -662,7 +662,7 @@ def test_checksum_generation(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid gzip is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -690,7 +690,7 @@ assert _is_valid_gzip(archive_path)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid gzip is accepted` through the exact asserted conditions: `_is_valid_gzip(archive_path)`.
 
 **Test boundary**
 
@@ -710,7 +710,7 @@ def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `truncated gzip is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -738,7 +738,7 @@ assert not _is_valid_gzip(archive_path)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `truncated gzip is rejected` through the exact asserted conditions: `not _is_valid_gzip(archive_path)`.
 
 **Test boundary**
 
@@ -758,7 +758,7 @@ def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted cached archive triggers fresh download`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -826,7 +826,7 @@ def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupted new download preserves existing archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -868,7 +868,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupted new download preserves existing archive`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -907,7 +907,7 @@ def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corsica cadastre urls are canonical`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -934,7 +934,7 @@ assert f"/{department}/{code}/cadastre-{code}-parcelles.json.gz" in url
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `corsica cadastre urls are canonical` through the exact asserted conditions: `f'/{department}/{code}/cadastre-{code}-parcelles.json.gz' in url`.
 
 **Test boundary**
 
@@ -953,7 +953,7 @@ def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `noncanonical commune code is controlled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -981,7 +981,7 @@ with pytest.raises((TypeError, ValueError), match="Commune code"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `noncanonical commune code is controlled`: the reproduced adversarial input must raise `(TypeError, ValueError)` before the prohibited success path.
 
 **Test boundary**
 
@@ -999,7 +999,7 @@ def test_noncanonical_commune_code_is_controlled(code: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `download timeout is strict finite positive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1031,7 +1031,7 @@ with pytest.raises(ValueError, match="timeout"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `download timeout is strict finite positive`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1056,7 +1056,7 @@ def test_download_timeout_is_strict_finite_positive(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cache age is strict finite nonnegative`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1088,7 +1088,7 @@ with pytest.raises(ValueError, match="max_cache_age_hours"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `cache age is strict finite nonnegative`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1113,7 +1113,7 @@ def test_cache_age_is_strict_finite_nonnegative(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed cached metadata triggers refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1154,7 +1154,7 @@ assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `malformed cached metadata triggers refresh` through the exact asserted conditions: `opener.call_count == 2`; `refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`.
 
 **Test boundary**
 
@@ -1192,7 +1192,7 @@ def test_malformed_cached_metadata_triggers_refresh(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `future cached timestamp triggers refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1231,7 +1231,7 @@ assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `future cached timestamp triggers refresh` through the exact asserted conditions: `opener.call_count == 2`; `refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`.
 
 **Test boundary**
 
@@ -1264,7 +1264,7 @@ def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata publication failure restores previous cache pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1322,7 +1322,7 @@ assert not list(tmp_path.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `metadata publication failure restores previous cache pair`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1399,21 +1399,18 @@ Private `test` helper for fail metadata publication; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
 
 **Complete source-ordered implementation**
 
@@ -1432,7 +1429,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `first metadata publication failure leaves no half pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1484,7 +1481,7 @@ assert not list(tmp_path.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `first metadata publication failure leaves no half pair`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1554,21 +1551,18 @@ Private `test` helper for fail metadata publication; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
 
 **Complete source-ordered implementation**
 
@@ -1587,7 +1581,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `publication and rollback failure preserves recovery backup`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1725,27 +1719,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -1768,7 +1753,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale recovery backup rejects cache before network and preserves bytes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1811,7 +1796,7 @@ assert first.path.read_bytes() == ARCHIVE_CONTENT
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale recovery backup rejects cache before network and preserves bytes`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1852,7 +1837,7 @@ def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `next run after double failure preserves recovery before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2016,27 +2001,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -2057,7 +2033,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `temporary link or junction cannot modify target before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2122,7 +2098,7 @@ assert sentinel.read_bytes() == sentinel_bytes
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `temporary link or junction cannot modify target before network`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2216,23 +2192,18 @@ link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
 **Complete source-ordered implementation**
 
@@ -2274,19 +2245,18 @@ link_kind == 'junction' and path == unsafe_path or original_is_junction(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
 
 **Complete source-ordered implementation**
 
@@ -2332,20 +2302,18 @@ original_open(sentinel, *args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
 
 **Complete source-ordered implementation**
 
@@ -2389,20 +2357,18 @@ io.BytesIO(ARCHIVE_CONTENT)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(gpu, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', record_network)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
 
 **Complete source-ordered implementation**
 
@@ -2421,7 +2387,7 @@ def record_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `broken recovery symlink is rejected before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2461,7 +2427,7 @@ assert network_calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `broken recovery symlink is rejected before network`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2526,23 +2492,18 @@ path == recovery_path or original_is_symlink(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
 **Complete source-ordered implementation**
 
@@ -2579,24 +2540,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -2615,7 +2570,7 @@ def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cleanup failure does not mask double failure recovery error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2762,27 +2717,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -2825,21 +2771,18 @@ Private `test` helper for fail temporary cleanup; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- function object argument: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
 
 **Complete source-ordered implementation**
 

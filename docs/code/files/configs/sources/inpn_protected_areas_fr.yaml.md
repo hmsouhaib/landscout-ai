@@ -25,18 +25,18 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 | Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
 |---|---|---|---|---|---|
-| `provider` | `"PatriNat"` | `str` | annotation `Literal['PatriNat']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `authority` | `"MNHN"` | `str` | annotation `Literal['MNHN']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured publishing/oversight authority retained as source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `program` | `"INPN"` | `str` | annotation `Literal['INPN']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the official source program retained as identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `dataset_id` | `"EP"` | `str` | annotation `Literal['EP']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `dataset_name` | `"Base de référence des espaces protégés français"` | `str` | annotation `Literal['Base de référence des espaces protégés français']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Records the exact human-readable external dataset name. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `declared_version` | `"07/2026"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=None, to_upper=None, to_lower=None, strict=True, min_length=None, max_length=None, pattern='^(?:0[1-9]|1[0-2])/\\d{4}$', ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the declared source snapshot version and contributes to cache/source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `reference_page_url` | `"https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353"` | `str` | annotation `<class 'pydantic.networks.HttpUrl'>`; required; no inline Field metadata; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Records the official reference-page provenance URL; it is not the archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `archive_url` | `"https://assets.patrinat.fr/files/donnees/ep/EP.zip"` | `str` | annotation `<class 'pydantic.networks.HttpUrl'>`; required; no inline Field metadata; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the official HTTPS archive location; transport safety and adapter origin/path checks still apply. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `archive_filename` | `"EP.zip"` | `str` | annotation `Literal['EP.zip']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the portable archive basename used by cache/source validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `expected_archive_size_bytes` | `99835011` | `int` | annotation `<class 'int'>`; required; Strict(strict=True), Gt(gt=0); strict positive integer; Boolean rejected; exact physical archive pin | Pins the exact approved archive byte length. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `expected_archive_sha256` | `"73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=None, to_upper=None, to_lower=None, strict=True, min_length=None, max_length=None, pattern='^[0-9a-f]{64}$', ascii_only=None); strict lowercase 64-character hexadecimal SHA256; exact physical archive pin | Pins the lowercase SHA256 of the approved archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `cache_root` | `".cache/landscout/inpn/protected_areas"` | `str` | annotation `<class 'pathlib.Path'>`; required; no inline Field metadata; required safe cache path under the owning adapter contract | Selects the repository-relative cache root; containment/link/recovery checks apply at runtime. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `provider` | `"PatriNat"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `authority` | `"MNHN"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured publishing/oversight authority retained as source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `program` | `"INPN"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the official source program retained as identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `dataset_id` | `"EP"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `dataset_name` | `"Base de référence des espaces protégés français"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Records the exact human-readable external dataset name. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `declared_version` | `"07/2026"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the declared source snapshot version and contributes to cache/source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `reference_page_url` | `"https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Records the official reference-page provenance URL; it is not the archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `archive_url` | `"https://assets.patrinat.fr/files/donnees/ep/EP.zip"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the official HTTPS archive location; transport safety and adapter origin/path checks still apply. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `archive_filename` | `"EP.zip"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the portable archive basename used by cache/source validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `expected_archive_size_bytes` | `99835011` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict positive integer; Boolean rejected; exact physical archive pin | Pins the exact approved archive byte length. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `expected_archive_sha256` | `"73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict lowercase 64-character hexadecimal SHA256; exact physical archive pin | Pins the lowercase SHA256 of the approved archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+| `cache_root` | `".cache/landscout/inpn/protected_areas"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required safe cache path under the owning adapter contract | Selects the repository-relative cache root; containment/link/recovery checks apply at runtime. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
 
 ## 5. Classes / models / dataclasses
 
@@ -154,7 +154,7 @@ class _ExtractionMetadata(BaseModel):
 
 ## 6. Functions and methods
 
-Loader: `landscout.sources.inpn_protected_areas_fr.load_inpn_protected_areas_source_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, byte hashing, and cross-field validation.
+Loader: `landscout.sources.inpn_protected_areas_fr.load_inpn_protected_areas_source_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, exact validation, and any hashing actually performed by that loader.
 
 ## 7. Data contracts
 
@@ -170,7 +170,7 @@ The owning Pydantic model rejects extra/missing/unsupported/coerced values accor
 
 ## 10. Side effects
 
-Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: loaders that expose config identity hash these exact bytes.
+Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: none; this loader parses/validates configuration values but does not hash this file's bytes.
 
 ## 11. Security / trust boundaries
 
@@ -182,7 +182,7 @@ Only explicit CRS fields impose GIS rules; configured storage/calculation CRS va
 
 ## 13. Provenance rules
 
-The file's SHA256 binds this exact policy/configuration snapshot. Source identities remain textual until the adapter validates physical bytes/content.
+The companion's Source SHA256 binds this checked-in file for documentation fidelity; that documentation digest is not attributed to the runtime loader. Source identities remain textual until the adapter validates physical bytes/content.
 
 ## 14. Business meaning
 
@@ -194,8 +194,8 @@ Thresholds and outcomes are policy/configuration values. They are never relabele
 
 ## 16. Tests
 
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior.
+The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
 
 ## 17. Change impact
 
-Any YAML byte/value change requires policy/source review, affected config/result hashes, consumer tests, generated artifacts where applicable, and this companion SHA update.
+Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.

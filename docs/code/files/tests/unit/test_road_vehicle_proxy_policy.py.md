@@ -51,7 +51,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 POLICY_PATH = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_pins_all_twelve_exact_muret_decisions` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` (value argument/reference), `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::_payload` (value reference), `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes` (value reference).
 
 #### `EXPECTED_POLICY_ID`
 
@@ -59,7 +59,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 EXPECTED_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v2"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_loads_with_exact_public_identity_and_reference` (value reference).
 
 #### `EXPECTED_SCOPE`
 
@@ -67,7 +67,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 EXPECTED_SCOPE = "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_loads_with_exact_public_identity_and_reference` (value reference).
 
 #### `EXPECTED_CLASSES`
 
@@ -82,7 +82,7 @@ EXPECTED_CLASSES = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_approved_class_vocabulary_has_no_heavy_or_legal_claim` (value reference).
 
 #### `EXPECTED_PRECEDENCE`
 
@@ -107,7 +107,7 @@ EXPECTED_PRECEDENCE = (
 )
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_and_rule_outcomes_are_approved` (value reference).
 
 #### `OBSERVED_NATURES`
 
@@ -126,7 +126,7 @@ OBSERVED_NATURES = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_natures_are_covered_exactly_once` (value reference).
 
 #### `OBSERVED_LIGHT_VEHICLE_ACCESS`
 
@@ -139,7 +139,7 @@ OBSERVED_LIGHT_VEHICLE_ACCESS = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_access_and_importance_vocabularies_are_compatible` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -188,74 +188,36 @@ payload
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `POLICY_PATH.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_policy_with_context_only_evidence` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_and_evidence_id_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_excerpt_cannot_be_reused_with_contradictory_directions` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_occurrence_in_different_compatible_routes_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_forbidden_or_invalid_final_status_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_confidence_and_unknown_field_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_old_policy_schema_versions_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_rule_text_at_distinct_offsets_has_distinct_identity` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_excerpt_hash_and_length_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_declared_status_must_equal_derived_route_status` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_condition_alone_cannot_create_conditional_review` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unrelated_positive_and_condition_do_not_create_conditional_review` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_context_only_unknown_succeeds` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_positive_condition_and_conflict_status_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_route_references_must_be_same_chapter_and_role_compatible` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_route_ids_are_globally_unique` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_difficulty_evidence_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_positive_and_condition_evidence_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_difficulty_and_positive_only_status_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_requires_unknown_low` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_exact_width_threshold_is_accepted` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_mutating_source_payload_cannot_affect_another_load` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_exact_width_threshold_is_accepted` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_mutating_source_payload_cannot_affect_another_load` via `_payload`.
 
 **Complete source-ordered implementation**
 
@@ -297,18 +259,18 @@ path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::_load_payload` via `_write_policy`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::_load_payload` via `_write_policy`.
 
 **Complete source-ordered implementation**
 
@@ -353,36 +315,36 @@ load_ign_road_vehicle_proxy_policy(_write_policy(tmp_path, payload))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_exact_width_threshold_is_accepted` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `_load_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_non_mapping_yaml_has_controlled_error` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_exact_width_threshold_is_accepted` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `_load_payload`.
+- direct call: `tests/unit/test_road_vehicle_proxy_policy.py::test_non_mapping_yaml_has_controlled_error` via `_load_payload`.
 
 **Complete source-ordered implementation**
 
@@ -399,7 +361,7 @@ def _load_payload(tmp_path: Path, payload: object) -> IgnRoadVehicleProxyPolicy:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `checked in policy loads with exact public identity and reference`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -445,7 +407,7 @@ assert policy.heavy_vehicle_access == "NOT_PROVEN"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `checked in policy loads with exact public identity and reference` through the exact asserted conditions: `type(policy) is IgnRoadVehicleProxyPolicy`; `policy.policy_id == EXPECTED_POLICY_ID`; `policy.schema_version == 2`; `policy.scope == EXPECTED_SCOPE`; plus 12 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -483,7 +445,7 @@ def test_checked_in_policy_loads_with_exact_public_identity_and_reference() -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `checked in policy hash binds exact file bytes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -512,7 +474,7 @@ assert policy.config_sha256 == policy.config_sha256.lower()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `checked in policy hash binds exact file bytes` through the exact asserted conditions: `policy.config_sha256 == sha256(POLICY_PATH.read_bytes()).hexdigest()`; `len(policy.config_sha256) == 64`; `policy.config_sha256 == policy.config_sha256.lower()`.
 
 **Test boundary**
 
@@ -533,7 +495,7 @@ def test_checked_in_policy_hash_binds_exact_file_bytes() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `repeat loading is deterministic and independent`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -563,7 +525,7 @@ assert first.nature is not second.nature
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `repeat loading is deterministic and independent` through the exact asserted conditions: `first == second`; `first is not second`; `first.nature is not second.nature`.
 
 **Test boundary**
 
@@ -585,7 +547,7 @@ def test_repeat_loading_is_deterministic_and_independent() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public api exports only stable policy symbols`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -620,7 +582,7 @@ assert not hasattr(stages, "_RoadNatureConfig")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public api exports only stable policy symbols` through the exact asserted conditions: `set(module.__all__) == expected`; `expected <= set(stages.__all__)`; `all((hasattr(stages, name) for name in expected))`; `not hasattr(stages, '_RoadNatureConfig')`.
 
 **Test boundary**
 
@@ -647,7 +609,7 @@ def test_public_api_exports_only_stable_policy_symbols() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid config structure is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -676,7 +638,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError, match=message):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid config structure is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -701,7 +663,7 @@ def test_invalid_config_structure_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported schema version is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -730,7 +692,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported schema version is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -753,7 +715,7 @@ def test_unsupported_schema_version_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong policy identity is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -785,7 +747,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong policy identity is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -813,7 +775,7 @@ def test_wrong_policy_identity_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `both evidence references are required`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -842,7 +804,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `both evidence references are required`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -865,7 +827,7 @@ def test_both_evidence_references_are_required(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `product reference document id is exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -894,7 +856,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `product reference document id is exact`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -915,7 +877,7 @@ def test_product_reference_document_id_is_exact(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown evidence reference is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -944,7 +906,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown evidence reference is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -965,7 +927,7 @@ def test_unknown_evidence_reference_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `asset state groups cover exact v2 domain`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1002,7 +964,7 @@ assert all(sum(value in group for group in groups) == 1 for value in set().union
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `asset state groups cover exact v2 domain` through the exact asserted conditions: `policy.asset_state.in_service == frozenset({'En service'})`; `policy.asset_state.project_geometry_not_significant == frozenset({'En projet'})`; `policy.asset_state.under_construction == frozenset({'En construction'})`; `set().union(*groups) == {'En service', 'En projet', 'En construction'}`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1032,7 +994,7 @@ def test_asset_state_groups_cover_exact_v2_domain() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `asset state group overlap is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1063,7 +1025,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `asset state group overlap is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1086,7 +1048,7 @@ def test_asset_state_group_overlap_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing known asset state is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1115,7 +1077,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing known asset state is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1139,7 +1101,7 @@ def test_missing_known_asset_state_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown additional asset state is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1168,7 +1130,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown additional asset state is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1189,7 +1151,7 @@ def test_unknown_additional_asset_state_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `semantic values must be exact non empty strings`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1218,7 +1180,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `semantic values must be exact non empty strings`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1241,7 +1203,7 @@ def test_semantic_values_must_be_exact_non_empty_strings(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate semantic value is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1273,7 +1235,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate semantic value is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1297,7 +1259,7 @@ def test_duplicate_semantic_value_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `semantic groups must be pairwise disjoint`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1327,7 +1289,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `semantic groups must be pairwise disjoint`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1354,7 +1316,7 @@ def test_semantic_groups_must_be_pairwise_disjoint(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate known restriction is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1384,7 +1346,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate known restriction is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1406,7 +1368,7 @@ def test_duplicate_known_restriction_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid width threshold is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1435,7 +1397,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid width threshold is rejected`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1456,7 +1418,7 @@ def test_invalid_width_threshold_is_rejected(tmp_path: Path, value: object) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact width threshold is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1484,7 +1446,7 @@ assert _load_payload(tmp_path, payload).width_below_m == 2.9
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact width threshold is accepted` through the exact asserted conditions: `_load_payload(tmp_path, payload).width_below_m == 2.9`.
 
 **Test boundary**
 
@@ -1504,7 +1466,7 @@ def test_exact_width_threshold_is_accepted(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `importance domains must be exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1545,7 +1507,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `importance domains must be exact`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1580,7 +1542,7 @@ def test_importance_domains_must_be_exact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `importance domains expose known without positive classification`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1610,7 +1572,7 @@ assert "7" not in policy.importance.known
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `importance domains expose known without positive classification` through the exact asserted conditions: `policy.importance.known == frozenset({'1', '2', '3', '4', '5', '6'})`; `policy.importance.limited == frozenset({'6'})`; `policy.importance.limited <= policy.importance.known`; `'7' not in policy.importance.known`.
 
 **Test boundary**
 
@@ -1632,7 +1594,7 @@ def test_importance_domains_expose_known_without_positive_classification() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `decision precedence must be exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1700,7 +1662,7 @@ def test_decision_precedence_must_be_exact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `decision precedence and rule outcomes are approved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1778,7 +1740,7 @@ def test_decision_precedence_and_rule_outcomes_are_approved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `project geometry rule has exact precedence position`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1835,7 +1797,7 @@ def test_project_geometry_rule_has_exact_precedence_position() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `output class vocabulary must be exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1870,7 +1832,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `output class vocabulary must be exact`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1899,7 +1861,7 @@ def test_output_class_vocabulary_must_be_exact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `approved class vocabulary has no heavy or legal claim`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1932,7 +1894,7 @@ assert all(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `approved class vocabulary has no heavy or legal claim` through the exact asserted conditions: `policy.classes.values == EXPECTED_CLASSES`; `policy.heavy_vehicle_access == 'NOT_PROVEN'`; `all((token not in value for value in policy.classes.values for token in forbidden))`.
 
 **Test boundary**
 
@@ -1958,7 +1920,7 @@ def test_approved_class_vocabulary_has_no_heavy_or_legal_claim() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `observed d031 natures are covered exactly once`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1991,7 +1953,7 @@ assert all(sum(value in group for group in groups) == 1 for value in OBSERVED_NA
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `observed d031 natures are covered exactly once` through the exact asserted conditions: `set().union(*groups) >= OBSERVED_NATURES`; `all((sum((value in group for group in groups)) == 1 for value in OBSERVED_NATURES))`.
 
 **Test boundary**
 
@@ -2017,7 +1979,7 @@ def test_observed_d031_natures_are_covered_exactly_once() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `observed d031 access and importance vocabularies are compatible`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2052,7 +2014,7 @@ assert policy.decision_outcomes.unknown == "UNKNOWN_REVIEW"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `observed d031 access and importance vocabularies are compatible` through the exact asserted conditions: `set().union(*access_groups) == OBSERVED_LIGHT_VEHICLE_ACCESS`; `policy.importance.known == frozenset({'1', '2', '3', '4', '5', '6'})`; `policy.importance.limited == frozenset({'6'})`; `policy.decision_outcomes.unknown == 'UNKNOWN_REVIEW'`.
 
 **Test boundary**
 
@@ -2080,7 +2042,7 @@ def test_observed_d031_access_and_importance_vocabularies_are_compatible() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `compiled policy structures are immutable`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2110,7 +2072,7 @@ with pytest.raises(AttributeError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `compiled policy structures are immutable`: the reproduced adversarial input must raise `FrozenInstanceError`, `AttributeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2132,7 +2094,7 @@ def test_compiled_policy_structures_are_immutable() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutating source payload cannot affect another load`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2162,7 +2124,7 @@ assert "Invented" not in second.nature.general_motor_road
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `mutating source payload cannot affect another load` through the exact asserted conditions: `first == second`; `'Invented' not in second.nature.general_motor_road`.
 
 **Test boundary**
 
@@ -2185,7 +2147,7 @@ def test_mutating_source_payload_cannot_affect_another_load() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed yaml has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2214,7 +2176,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed yaml has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2235,7 +2197,7 @@ def test_malformed_yaml_has_controlled_error(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non mapping yaml has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2263,7 +2225,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non mapping yaml has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2283,7 +2245,7 @@ def test_non_mapping_yaml_has_controlled_error(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing file has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2311,7 +2273,7 @@ with pytest.raises(IgnRoadVehicleProxyPolicyError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing file has controlled error`: the reproduced adversarial input must raise `IgnRoadVehicleProxyPolicyError` before the prohibited success path.
 
 **Test boundary**
 

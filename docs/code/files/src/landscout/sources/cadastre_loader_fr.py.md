@@ -46,7 +46,7 @@ This file belongs to the **source adapter** layer and the **cadastre** domain. I
 SUPPORTED_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -78,22 +78,22 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::_physical_integrity` via `CadastreLoadError`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `CadastreLoadError`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `CadastreLoadError`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `pytest.raises(CadastreLoadError, match='exist')`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `pytest.raises(CadastreLoadError)`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `pytest.raises(CadastreLoadError, match=message)`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_wrong_public_input_type_is_controlled` via `pytest.raises(CadastreLoadError, match='CadastreDownload')`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `pytest.raises(CadastreLoadError, match='SHA|checksum|gzip')`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `pytest.raises(CadastreLoadError, match='changed|SHA|size')`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
 )`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::_physical_integrity` via `CadastreLoadError`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `CadastreLoadError`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `CadastreLoadError`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `pytest.raises(CadastreLoadError, match='exist')`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `pytest.raises(CadastreLoadError)`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `pytest.raises(CadastreLoadError, match=message)`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_wrong_public_input_type_is_controlled` via `pytest.raises(CadastreLoadError, match='CadastreDownload')`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `pytest.raises(CadastreLoadError, match='SHA|checksum|gzip')`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `pytest.raises(CadastreLoadError, match='changed|SHA|size')`.
 
 **Exact class source**
 
@@ -116,15 +116,15 @@ class CadastreLoadError(RuntimeError):
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `EmptyCadastreDatasetError`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `pytest.raises(EmptyCadastreDatasetError)`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
 )`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `EmptyCadastreDatasetError`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `pytest.raises(EmptyCadastreDatasetError)`.
 
 **Exact class source**
 
@@ -147,15 +147,15 @@ class EmptyCadastreDatasetError(CadastreLoadError):
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `MissingGeometryColumnError`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `pytest.raises(MissingGeometryColumnError)`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
 )`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `MissingGeometryColumnError`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `pytest.raises(MissingGeometryColumnError)`.
 
 **Exact class source**
 
@@ -178,15 +178,15 @@ class MissingGeometryColumnError(CadastreLoadError):
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `UnsupportedGeometryTypeError`.
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `pytest.raises(UnsupportedGeometryTypeError, match='Point')`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
 )`.
+- constructor call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `UnsupportedGeometryTypeError`.
+- expected exception type: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `pytest.raises(UnsupportedGeometryTypeError, match='Point')`.
 
 **Exact class source**
 
@@ -225,19 +225,19 @@ Private `cadastre` helper for physical integrity; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.read_bytes`, `path.stat`, `sha256(path.read_bytes()).hexdigest`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.read_bytes`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(path.read_bytes()).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `_physical_integrity`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `_physical_integrity`.
+- direct call: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `_physical_integrity`.
+- direct call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `_physical_integrity`.
 
 **Complete source-ordered implementation**
 
@@ -290,19 +290,18 @@ download
 
 **Side effects**
 
-- Network I/O: `download.filename.strip`, `download.source_url.strip`.
-- Filesystem read: `gzip.open`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `gzip.open`, `path.is_file`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `_validate_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validate_download`.
+- direct call: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `_validate_download`.
 
 **Complete source-ordered implementation**
 
@@ -384,35 +383,35 @@ parcels
 
 **Side effects**
 
-- Network I/O: `_validate_download`.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
-- Filesystem write: none directly visible.
+- Filesystem write: none.
 - CRS/geometry calculation: `MissingGeometryColumnError`, `UnsupportedGeometryTypeError`, `parcels.geometry.geom_type.dropna`, `parcels.geometry.geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_wrong_public_input_type_is_controlled` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `load_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `load_cadastre_parcels`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
 )`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_wrong_public_input_type_is_controlled` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `load_cadastre_parcels`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `load_cadastre_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -459,6 +458,7 @@ def load_cadastre_parcels(download: CadastreDownload) -> gpd.GeoDataFrame:
 ### Frame-preservation and semantic notes
 
 - `load_cadastre_parcels` returns the columns parsed from the GeoJSON plus its active geometry. It adds no provider, URL, timestamp, size, SHA256, or other lineage column; those facts remain only in the validated `CadastreDownload` argument.
+- Under LandScout's trust terminology this loader provides byte/physical-integrity validation against a supplied CadastreDownload envelope; it is not equivalent to the stronger IGN source-complete revalidation boundary because it does not independently re-pin the official Cadastre source authority.
 
 No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 

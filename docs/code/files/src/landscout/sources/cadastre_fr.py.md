@@ -54,7 +54,7 @@ CADASTRE_BASE_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/sources/cadastre_fr.py::build_cadastre_parcelles_url` (value reference).
 
 #### `DEFAULT_CACHE_DIR`
 
@@ -70,7 +70,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 VALIDATION_CHUNK_SIZE = 1024 * 1024
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -102,35 +102,35 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownload,
     CadastreDownloadError,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `CadastreDownloadError`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `CadastreDownloadError`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_cleanup_temporary_cache_files` via `CadastreDownloadError`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `CadastreDownloadError`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `CadastreDownloadError`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `pytest.raises(CadastreDownloadError)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_failed_http_response` via `pytest.raises(CadastreDownloadError)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `pytest.raises(CadastreDownloadError)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `pytest.raises(CadastreDownloadError, match='publication')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `pytest.raises(CadastreDownloadError, match='publication')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `pytest.raises(CadastreDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `pytest.raises(CadastreDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `pytest.raises(CadastreDownloadError, match='temporary|link|cache')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(CadastreDownloadError, match='rollback')`.
-- import/re-export: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
+- import: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
     _is_valid_gzip,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `CadastreDownloadError`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `CadastreDownloadError`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::_cleanup_temporary_cache_files` via `CadastreDownloadError`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `CadastreDownloadError`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `CadastreDownloadError`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `pytest.raises(CadastreDownloadError)`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_failed_http_response` via `pytest.raises(CadastreDownloadError)`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `pytest.raises(CadastreDownloadError)`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `pytest.raises(CadastreDownloadError, match='publication')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `pytest.raises(CadastreDownloadError, match='publication')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `pytest.raises(CadastreDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `pytest.raises(CadastreDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `pytest.raises(CadastreDownloadError, match='temporary|link|cache')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `pytest.raises(CadastreDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(CadastreDownloadError, match='rollback')`.
 
 **Exact class source**
 
@@ -163,17 +163,22 @@ class CadastreDownloadError(RuntimeError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownload,
     CadastreDownloadError,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `CadastreDownload`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `CadastreDownload`.
-- import/re-export: `src/landscout/sources/cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_fr import CadastreDownload`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::_download` via `CadastreDownload`.
-- import/re-export: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_fr import CadastreDownload`.
+- import: `src/landscout/sources/cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_fr import CadastreDownload`.
+- import: `tests/unit/test_cadastre_loader_fr.py::<module>` via `from landscout.sources.cadastre_fr import CadastreDownload`.
+- type annotation: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `CadastreDownload`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `CadastreDownload`.
+- type annotation: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `CadastreDownload`.
+- constructor call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `CadastreDownload`.
+- type annotation: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `CadastreDownload`.
+- type annotation: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `CadastreDownload`.
+- type annotation: `tests/unit/test_cadastre_loader_fr.py::_download` via `CadastreDownload`.
+- constructor call: `tests/unit/test_cadastre_loader_fr.py::_download` via `CadastreDownload`.
 
 **Exact class source**
 
@@ -218,18 +223,18 @@ commune_code[:3] if commune_code.startswith(('97', '98')) else commune_code[:2]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::build_cadastre_parcelles_url` via `_department_code`.
+- direct call: `src/landscout/sources/cadastre_fr.py::build_cadastre_parcelles_url` via `_department_code`.
 
 **Complete source-ordered implementation**
 
@@ -270,33 +275,33 @@ f'{CADASTRE_BASE_URL}/{department}/{commune_code}/{filename}'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownload,
     CadastreDownloadError,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `build_cadastre_parcelles_url`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` via `build_cadastre_parcelles_url`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_corsica_cadastre_urls_are_canonical` via `build_cadastre_parcelles_url`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_noncanonical_commune_code_is_controlled` via `build_cadastre_parcelles_url`.
-- import/re-export: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
+- import: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
     _is_valid_gzip,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `build_cadastre_parcelles_url`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` via `build_cadastre_parcelles_url`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_corsica_cadastre_urls_are_canonical` via `build_cadastre_parcelles_url`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_noncanonical_commune_code_is_controlled` via `build_cadastre_parcelles_url`.
 
 **Complete source-ordered implementation**
 
@@ -342,31 +347,19 @@ digest.hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -414,27 +407,27 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `gzip.open`, `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `gzip.open`, `path.is_file`, `path.stat`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_is_valid_gzip`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_is_valid_gzip`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_valid_gzip_is_accepted` via `_is_valid_gzip`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_truncated_gzip_is_rejected` via `_is_valid_gzip`.
-- import/re-export: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
+- import: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
     _is_valid_gzip,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_is_valid_gzip`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_is_valid_gzip`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_valid_gzip_is_accepted` via `_is_valid_gzip`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_truncated_gzip_is_rejected` via `_is_valid_gzip`.
 
 **Complete source-ordered implementation**
 
@@ -499,22 +492,18 @@ None
 
 **Side effects**
 
-- Network I/O: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `CadastreDownload`, `downloaded_at.astimezone`.
-- Filesystem read: `archive_path.stat`, `metadata_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `archive_path.stat`, `metadata_path.is_file`, `metadata_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._load_cached_download`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
 
 **Complete source-ordered implementation**
 
@@ -600,39 +589,18 @@ Private `cadastre` helper for replace file; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
 
 **Complete source-ordered implementation**
 
@@ -674,38 +642,19 @@ True
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
 
 **Complete source-ordered implementation**
 
@@ -751,25 +700,19 @@ Private `cadastre` helper for cache recovery paths; its complete implementation 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
 
 **Complete source-ordered implementation**
 
@@ -815,25 +758,19 @@ Private `cadastre` helper for require no cache recovery material; its complete i
 
 **Side effects**
 
-- Network I/O: `CadastreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
 
 **Complete source-ordered implementation**
 
@@ -881,21 +818,18 @@ Private `cadastre` helper for prepare temporary cache file; its complete impleme
 
 **Side effects**
 
-- Network I/O: `CadastreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
 
 **Complete source-ordered implementation**
 
@@ -951,21 +885,18 @@ Private `cadastre` helper for cleanup temporary cache files; its complete implem
 
 **Side effects**
 
-- Network I/O: `CadastreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
 
 **Complete source-ordered implementation**
 
@@ -1019,34 +950,18 @@ Private `cadastre` helper for publish cache pair; its complete implementation be
 
 **Side effects**
 
-- Network I/O: `CadastreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`.
 - Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
 
 **Complete source-ordered implementation**
 
@@ -1140,49 +1055,49 @@ result
 
 **Side effects**
 
-- Network I/O: `CadastreDownload`, `CadastreDownloadError`, `_load_cached_download`, `open_safe_https`.
-- Filesystem read: `temporary_archive.stat`.
+- Network I/O: `open_safe_https`.
+- Filesystem read: `temporary_archive.open`, `temporary_archive.stat`, `temporary_metadata.open`.
 - Filesystem write: `cache_dir.mkdir`, `copyfileobj`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `metadata`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownload,
     CadastreDownloadError,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_successful_download` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_failed_http_response` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_checksum_generation` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_download_timeout_is_strict_finite_positive` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_cache_age_is_strict_finite_nonnegative` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `download_cadastre_parcelles`.
-- direct call or construction: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_cadastre_parcelles`.
-- import/re-export: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
+- import: `tests/unit/test_cadastre_fr.py::<module>` via `from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
     _is_valid_gzip,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_successful_download` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_failed_http_response` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_checksum_generation` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_download_timeout_is_strict_finite_positive` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_cache_age_is_strict_finite_nonnegative` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `download_cadastre_parcelles`.
+- direct call: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_cadastre_parcelles`.
 
 **Complete source-ordered implementation**
 

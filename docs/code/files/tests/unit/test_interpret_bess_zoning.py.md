@@ -123,53 +123,18 @@ replace(index, index_content_sha256=_index_content_sha256(index))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_index_content_sha256`, `_page_content_sha256`, `_pages_content_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `row['page_content_sha256']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `row['page_content_sha256']`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_index`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_index`.
 
 **Complete source-ordered implementation**
 
@@ -254,80 +219,18 @@ pd.DataFrame({'planning_zone_id': ['ZONE-U', 'ZONE-UA', 'ZONE-N'], 'source_zone_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_raw_zoning_values_are_preserved_exactly` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_intersection_table_references_only_known_parcels_and_zones` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_result_frames_are_independent_from_inputs` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `_zones`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_validate` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_zones`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_zones`.
 
 **Complete source-ordered implementation**
 
@@ -376,18 +279,18 @@ pd.DataFrame([{'parcel_id': parcel_id, 'planning_zone_id': planning_zone_id, 'so
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_relations`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_relations`.
 
 **Complete source-ordered implementation**
 
@@ -462,18 +365,18 @@ PlanningRegulationStructureConfig.model_validate({'schema_version': 2, 'structur
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_structure_config`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_structure_config`.
 
 **Complete source-ordered implementation**
 
@@ -549,117 +452,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_parcels`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -723,18 +527,18 @@ BessZoningPolicyConfig.model_validate({'schema_version': 5, 'policy_profile': 's
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(excerpt.encode()).hexdigest`, `sha256(source_rule.encode()).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_policy`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_policy`.
 
 **Complete source-ordered implementation**
 
@@ -933,34 +737,18 @@ Private `test` helper for evidence; its complete implementation below is the aut
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(excerpt.encode()).hexdigest`, `sha256(source_rule.encode()).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- property/attribute access: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` via `chapter.evidence`.
-- property/attribute access: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `chapter.evidence`.
-- property/attribute access: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `chapter.evidence`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_policy` via `evidence`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `interpret_module.PolicyEvidence.model_validate(evidence)`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_valid_exact_evidence_is_preserved` via `policy.chapters[0].evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_same_rule_text_at_distinct_offsets_has_distinct_identity` via `policy.chapters[0].evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames` via `by_label[label].evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames` via `chapter.evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_route_does_not_use_the_separate_icpe_condition` via `chapter.evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite` via `chapter.evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_and_aup_keep_icpe_applicability_as_context` via `chapter.evidence`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `policy.chapters[0].evidence`.
-- callback/function object: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `replace(result, topic_evidence=evidence)`.
-- callback/function object: `tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected` via `replace(result, topic_evidence=evidence)`.
-- callback/function object: `tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected` via `replace(result, topic_evidence=evidence)`.
-- callback/function object: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `replace(result, topic_evidence=evidence, sections_content_sha256='', zone_map_content_sha256='', topic_evidence_content_sha256='', structure_result_content_sha256='')`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_policy` via `evidence`.
 
 **Complete source-ordered implementation**
 
@@ -1081,74 +869,55 @@ policy.model_dump(mode='python')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_policy_with_context_only_evidence` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_and_evidence_id_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_excerpt_cannot_be_reused_with_contradictory_directions` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_occurrence_in_different_compatible_routes_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_forbidden_or_invalid_final_status_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_confidence_and_unknown_field_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_old_policy_schema_versions_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_rule_text_at_distinct_offsets_has_distinct_identity` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_excerpt_hash_and_length_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_declared_status_must_equal_derived_route_status` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_condition_alone_cannot_create_conditional_review` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unrelated_positive_and_condition_do_not_create_conditional_review` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_context_only_unknown_succeeds` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_positive_condition_and_conflict_status_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_route_references_must_be_same_chapter_and_role_compatible` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_route_ids_are_globally_unique` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_difficulty_evidence_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_positive_and_condition_evidence_are_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_difficulty_and_positive_only_status_routes` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_requires_unknown_low` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_exact_width_threshold_is_accepted` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `_payload`.
-- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_mutating_source_payload_cannot_affect_another_load` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::_policy_with_context_only_evidence` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_and_evidence_id_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_one_excerpt_cannot_be_reused_with_contradictory_directions` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_occurrence_in_different_compatible_routes_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_forbidden_or_invalid_final_status_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_invalid_confidence_and_unknown_field_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_old_policy_schema_versions_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_same_rule_text_at_distinct_offsets_has_distinct_identity` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_excerpt_hash_and_length_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_declared_status_must_equal_derived_route_status` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_condition_alone_cannot_create_conditional_review` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unrelated_positive_and_condition_do_not_create_conditional_review` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_context_only_unknown_succeeds` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_positive_condition_and_conflict_status_routes` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_route_references_must_be_same_chapter_and_role_compatible` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_route_ids_are_globally_unique` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_difficulty_evidence_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unlinked_positive_and_condition_evidence_are_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_difficulty_and_positive_only_status_routes` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_requires_unknown_low` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `_payload`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `_payload`.
 
 **Complete source-ordered implementation**
 
@@ -1190,19 +959,19 @@ BessZoningPolicyConfig.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `chapter['evidence'][1]['evidence_direction']`, `chapter['zoning_precheck_status']`, `route['condition_evidence_ids']`, `route['route_kind']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `_policy_with_context_only_evidence`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs` via `_policy_with_context_only_evidence`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_context_only_evidence_must_be_unlinked` via `_policy_with_context_only_evidence`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs` via `_policy_with_context_only_evidence`.
 
 **Complete source-ordered implementation**
 
@@ -1248,42 +1017,28 @@ Rejects malformed or inconsistent validate; exact branches, calls, and return co
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_readback_result_validates` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_result_config_schema_versions_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_section_hash_schema_versions_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_realistic_structure_is_deterministic_and_toc_heading_is_ignored` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_frame_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_lossless_partition_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_or_reordered_record_partition_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unsorted_section_pages_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_article_parent_semantics_are_enforced` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_mapping_contract_mutations_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_and_result_hash_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_interpret_bess_zoning.py::test_readback_result_validates` via `_validate`.
 
 **Complete source-ordered implementation**
 
@@ -1300,7 +1055,7 @@ def _validate(inputs, result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `package exports precheck api`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1337,7 +1092,7 @@ for name in (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `package exports precheck api` through the exact asserted conditions: `name in stages.__all__`.
 
 **Test boundary**
 
@@ -1364,7 +1119,7 @@ def test_package_exports_precheck_api() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid locked policy builds complete outputs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1417,7 +1172,7 @@ assert result.policy_profile == policy.policy_profile
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid locked policy builds complete outputs` through the exact asserted conditions: `tuple(result.chapter_policy.columns) == CHAPTER_POLICY_COLUMNS`; `tuple(result.route_assessments.columns) == ROUTE_ASSESSMENT_COLUMNS`; `tuple(result.evidence_route_links.columns) == EVIDENCE_ROUTE_LINK_COLUMNS`; `tuple(result.source_zone_policy.columns) == SOURCE_ZONE_POLICY_COLUMNS`; plus 19 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1461,7 +1216,7 @@ def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source lock mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1492,7 +1247,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from factual source")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `source lock mismatch is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1514,7 +1269,7 @@ def test_source_lock_mismatch_is_rejected(inputs, field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing and extra chapter are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1553,7 +1308,7 @@ with pytest.raises(BessZoningPrecheckError, match="extra=.*EXTRA"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing and extra chapter are rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1583,7 +1338,7 @@ def test_missing_and_extra_chapter_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `regulation zone chapter labels and ids must be unique`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1654,7 +1409,7 @@ with pytest.raises(BessZoningPrecheckError, match="section IDs must be unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `regulation zone chapter labels and ids must be unique`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1719,7 +1474,7 @@ def test_regulation_zone_chapter_labels_and_ids_must_be_unique(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete validator rejects later duplicate chapter`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1808,7 +1563,7 @@ def test_source_complete_validator_rejects_later_duplicate_chapter(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate chapter and evidence id are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1845,7 +1600,7 @@ with pytest.raises(ValueError, match="evidence IDs must be globally unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate chapter and evidence id are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1873,7 +1628,7 @@ def test_duplicate_chapter_and_evidence_id_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `one excerpt cannot be reused with contradictory directions`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1907,7 +1662,7 @@ with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `one excerpt cannot be reused with contradictory directions`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1932,7 +1687,7 @@ def test_one_excerpt_cannot_be_reused_with_contradictory_directions(inputs) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate chapter scoped occurrence in one route is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1969,7 +1724,7 @@ with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate chapter scoped occurrence in one route is rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1998,7 +1753,7 @@ def test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected(inputs) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate occurrence in different compatible routes is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2043,7 +1798,7 @@ with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate occurrence in different compatible routes is rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2082,7 +1837,7 @@ def test_duplicate_occurrence_in_different_compatible_routes_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `forbidden or invalid final status is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2111,7 +1866,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `forbidden or invalid final status is rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2131,7 +1886,7 @@ def test_forbidden_or_invalid_final_status_is_rejected(inputs, status: str) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid confidence and unknown field are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2164,7 +1919,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid confidence and unknown field are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2188,7 +1943,7 @@ def test_invalid_confidence_and_unknown_field_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate yaml key is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2220,7 +1975,7 @@ with pytest.raises(BessZoningPrecheckError, match="Duplicate YAML policy key"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate yaml key is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2243,7 +1998,7 @@ def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `old policy schema versions are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2272,7 +2027,7 @@ with pytest.raises(ValueError, match="unsupported BESS zoning policy schema"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `old policy schema versions are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2292,7 +2047,7 @@ def test_old_policy_schema_versions_are_rejected(inputs, version: int) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every evidence kind has an explicit direction matrix`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2451,7 +2206,7 @@ def test_every_evidence_kind_has_an_explicit_direction_matrix(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid exact evidence is preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2493,7 +2248,7 @@ assert row["source_rule_excerpt"][relative_start:relative_end] == excerpt
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid exact evidence is preserved` through the exact asserted conditions: `excerpt == 'Technical equipment is permitted'`; `policy.chapters[0].evidence[0].excerpt_sha256 == sha256(excerpt.encode()).hexdigest()`; `valid_result.chapter_policy.iloc[0]['evidence_ids'] == ('E-U-POSITIVE', 'E-U-CONDITION')`; `'only when' in row['source_rule_excerpt']`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2526,7 +2281,7 @@ def test_valid_exact_evidence_is_preserved(inputs, valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source rule identity and containment are strict`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2613,7 +2368,7 @@ def test_source_rule_identity_and_containment_are_strict(inputs, mutation: str) 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `same rule text at distinct offsets has distinct identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2666,7 +2421,7 @@ assert policy.chapters[0].evidence[-1].evidence_direction == "SUPPORTS_DIFFICULT
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `same rule text at distinct offsets has distinct identity` through the exact asserted conditions: `policy.chapters[0].evidence[-1].evidence_direction == 'SUPPORTS_DIFFICULTY'`.
 
 **Test boundary**
 
@@ -2710,7 +2465,7 @@ def test_same_rule_text_at_distinct_offsets_has_distinct_identity(inputs) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `real muret source rules preserve conditional and exception frames`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2773,7 +2528,7 @@ policy = load_bess_zoning_policy_config(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `real muret source rules preserve conditional and exception frames` through the exact asserted conditions: `'ne sont autorisées qu’à' in positive.source_rule_excerpt`; `'condition' in positive.source_rule_excerpt`; `positive.source_rule_excerpt.startswith('Toutes constructions')`; `'autres que celles' in positive.source_rule_excerpt`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2827,7 +2582,7 @@ def test_real_muret_source_rules_preserve_conditional_and_exception_frames() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `real muret up route does not use the separate icpe condition`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2949,7 +2704,7 @@ def test_real_muret_up_route_does_not_use_the_separate_icpe_condition() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `real muret aup route uses the general infrastructure prerequisite`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3016,7 +2771,7 @@ assert prerequisite.source_rule_sha256 == prerequisite.excerpt_sha256
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `real muret aup route uses the general infrastructure prerequisite` through the exact asserted conditions: `route.route_kind == 'CONDITIONAL_ROUTE'`; `route.positive_evidence_ids == ('MURET-AUP-PUBLIC-ROUTE-01',)`; `route.condition_evidence_ids == ('MURET-AUP-INFRASTRUCTURE-CONDITION-01',)`; `route.difficulty_evidence_ids == ()`; plus 14 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -3077,7 +2832,7 @@ def test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `real muret up and aup keep icpe applicability as context`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3169,7 +2924,7 @@ def test_real_muret_up_and_aup_keep_icpe_applicability_as_context() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `absent excerpt and section page mismatch are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3208,7 +2963,7 @@ with pytest.raises(BessZoningPrecheckError, match="section/page fragment"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `absent excerpt and section page mismatch are rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3238,7 +2993,7 @@ def test_absent_excerpt_and_section_page_mismatch_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `excerpt hash and length are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3275,7 +3030,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `excerpt hash and length are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3303,7 +3058,7 @@ def test_excerpt_hash_and_length_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `declared status must equal derived route status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3332,7 +3087,7 @@ with pytest.raises(ValueError, match="differs from coherent linked route"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `declared status must equal derived route status`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3352,7 +3107,7 @@ def test_declared_status_must_equal_derived_route_status(inputs, status: str) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `condition alone cannot create conditional review`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3385,7 +3140,7 @@ with pytest.raises(ValueError, match="coherent linked route"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `condition alone cannot create conditional review`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3409,7 +3164,7 @@ def test_condition_alone_cannot_create_conditional_review(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unrelated positive and condition do not create conditional review`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3449,7 +3204,7 @@ with pytest.raises(ValueError, match="coherent|linked route"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unrelated positive and condition do not create conditional review`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3482,7 +3237,7 @@ def test_unrelated_positive_and_condition_do_not_create_conditional_review(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unlinked context only unknown succeeds`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3516,7 +3271,7 @@ assert policy.chapters[0].zoning_precheck_status == "UNKNOWN"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unlinked context only unknown succeeds` through the exact asserted conditions: `policy.chapters[0].zoning_precheck_status == 'UNKNOWN'`.
 
 **Test boundary**
 
@@ -3541,7 +3296,7 @@ def test_unlinked_context_only_unknown_succeeds(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `positive condition and conflict status routes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3580,7 +3335,7 @@ assert policy.chapters[0].zoning_precheck_status == "CONDITIONAL_REVIEW"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `positive condition and conflict status routes` through the exact asserted conditions: `BessZoningPolicyConfig.model_validate(payload).chapters[0].zoning_precheck_status == 'CONDITIONAL_REVIEW'`; `policy.chapters[0].zoning_precheck_status == 'CONDITIONAL_REVIEW'`.
 
 **Test boundary**
 
@@ -3610,7 +3365,7 @@ def test_positive_condition_and_conflict_status_routes(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `route references must be same chapter and role compatible`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3656,7 +3411,7 @@ for mutation, message in (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `route references must be same chapter and role compatible`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3692,7 +3447,7 @@ def test_route_references_must_be_same_chapter_and_role_compatible(inputs) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `route ids are globally unique`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3723,7 +3478,7 @@ with pytest.raises(ValueError, match="route IDs must be globally unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `route ids are globally unique`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3745,7 +3500,7 @@ def test_route_ids_are_globally_unique(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unlinked difficulty evidence is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3787,7 +3542,7 @@ with pytest.raises(ValueError, match="decision evidence must be linked"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unlinked difficulty evidence is rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3821,7 +3576,7 @@ def test_unlinked_difficulty_evidence_is_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unlinked positive and condition evidence are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3868,7 +3623,7 @@ for direction, evidence_index in (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unlinked positive and condition evidence are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3905,7 +3660,7 @@ def test_unlinked_positive_and_condition_evidence_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `context only evidence must be unlinked`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3942,7 +3697,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `context only evidence must be unlinked`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3971,7 +3726,7 @@ def test_context_only_evidence_must_be_unlinked(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `one evidence may link to multiple compatible routes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4011,7 +3766,7 @@ assert evidence["linked_route_roles"] == ("DIFFICULTY", "DIFFICULTY")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `one evidence may link to multiple compatible routes` through the exact asserted conditions: `evidence['linked_route_ids'] == ('ROUTE-N-DIFFICULT', 'ROUTE-N-DIFFICULT-SECOND')`; `evidence['linked_route_roles'] == ('DIFFICULTY', 'DIFFICULTY')`.
 
 **Test boundary**
 
@@ -4043,7 +3798,7 @@ def test_one_evidence_may_link_to_multiple_compatible_routes(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `difficulty and positive only status routes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4103,7 +3858,7 @@ assert BessZoningPolicyConfig.model_validate(potential).chapters[
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `difficulty and positive only status routes` through the exact asserted conditions: `BessZoningPolicyConfig.model_validate(difficult).chapters[0].zoning_precheck_status == 'LIKELY_DIFFICULT'`; `BessZoningPolicyConfig.model_validate(potential).chapters[0].zoning_precheck_status == 'POTENTIALLY_COMPATIBLE'`.
 
 **Test boundary**
 
@@ -4154,7 +3909,7 @@ def test_difficulty_and_positive_only_status_routes(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `incomplete review requires unknown low`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4205,7 +3960,7 @@ for field, value in (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `incomplete review requires unknown low`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4247,7 +4002,7 @@ def test_incomplete_review_requires_unknown_low(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `incomplete review persists exact missing required sections`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4289,7 +4044,7 @@ assert row["zoning_precheck_confidence"] == "LOW"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `incomplete review persists exact missing required sections` through the exact asserted conditions: `row['reviewed_section_ids'] == ()`; `row['missing_required_section_ids'] == ('SECTION-0003',)`; `row['zoning_precheck_status'] == 'UNKNOWN'`; `row['zoning_precheck_confidence'] == 'LOW'`.
 
 **Test boundary**
 
@@ -4323,7 +4078,7 @@ def test_incomplete_review_persists_exact_missing_required_sections(inputs) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown is accepted when evidence is insufficient`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4356,7 +4111,7 @@ assert result.chapter_policy.iloc[0]["zoning_precheck_status"] == "UNKNOWN"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unknown is accepted when evidence is insufficient` through the exact asserted conditions: `result.chapter_policy.iloc[0]['zoning_precheck_status'] == 'UNKNOWN'`.
 
 **Test boundary**
 
@@ -4381,7 +4136,7 @@ def test_unknown_is_accepted_when_evidence_is_insufficient(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `reviewed sections cover required articles`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4420,7 +4175,7 @@ assert index.document_id == "doc-1"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `reviewed sections cover required articles`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4450,7 +4205,7 @@ def test_reviewed_sections_cover_required_articles(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `evidence must be inside reviewed sections`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4489,7 +4244,7 @@ with pytest.raises(BessZoningPrecheckError, match="outside reviewed sections"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `evidence must be inside reviewed sections`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4519,7 +4274,7 @@ def test_evidence_must_be_inside_reviewed_sections(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `review cannot claim another chapter section`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4557,7 +4312,7 @@ with pytest.raises(BessZoningPrecheckError, match="another chapter"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `review cannot claim another chapter section`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4586,7 +4341,7 @@ def test_review_cannot_claim_another_chapter_section(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `general section review is explicit and valid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4624,7 +4379,7 @@ assert general_id in reviewed
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `general section review is explicit and valid` through the exact asserted conditions: `general_id in reviewed`.
 
 **Test boundary**
 
@@ -4654,7 +4409,7 @@ def test_general_section_review_is_explicit_and_valid(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `same general occurrence may be scoped to different chapters`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4737,7 +4492,7 @@ assert len(scoped) == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `same general occurrence may be scoped to different chapters` through the exact asserted conditions: `set(scoped['resolved_zone_chapter_label']) == {'U', 'N'}`; `len(scoped) == 2`.
 
 **Test boundary**
 
@@ -4812,7 +4567,7 @@ def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact section page occurrence is auditable`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4849,7 +4604,7 @@ fragments = planning_regulation_section_page_fragments(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact section page occurrence is auditable` through the exact asserted conditions: `row['section_page_fragment_sha256'] == fragment['section_page_fragment_sha256']`; `fragment['raw_text'][row['excerpt_start']:row['excerpt_end']] == row['exact_raw_excerpt']`.
 
 **Test boundary**
 
@@ -4877,7 +4632,7 @@ def test_exact_section_page_occurrence_is_auditable(inputs, valid_result) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `repeated excerpt occurrence is bound to policy`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4921,7 +4676,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `repeated excerpt occurrence is bound to policy`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4958,7 +4713,7 @@ def test_repeated_excerpt_occurrence_is_bound_to_policy(inputs, valid_result) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong occurrence identity is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5033,7 +4788,7 @@ def test_wrong_occurrence_identity_is_rejected(inputs, mutation: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact and alias mappings are inherited without prefix logic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5065,7 +4820,7 @@ assert policies.loc["Ua", "zoning_precheck_status"] == policies.loc[
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact and alias mappings are inherited without prefix logic` through the exact asserted conditions: `policies.loc['U', 'mapping_status'] == 'EXACT'`; `policies.loc['Ua', 'mapping_status'] == 'CONFIG_ALIAS'`; `policies.loc['Ua', 'resolved_zone_chapter_label'] == 'U'`; `policies.loc['Ua', 'zoning_precheck_status'] == policies.loc['U', 'zoning_precheck_status']`.
 
 **Test boundary**
 
@@ -5088,7 +4843,7 @@ def test_exact_and_alias_mappings_are_inherited_without_prefix_logic(valid_resul
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unmapped dominant zone is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5143,7 +4898,7 @@ with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unmapped dominant zone is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5190,7 +4945,7 @@ def test_unmapped_dominant_zone_is_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `link table exactly reproduces routes and reverse links`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5231,7 +4986,7 @@ assert bool(catalog["decision_linked"].all())
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `link table exactly reproduces routes and reverse links` through the exact asserted conditions: `actual == expected`; `catalog.loc['E-U-POSITIVE', 'linked_route_ids'] == ('ROUTE-U-CONDITIONAL',)`; `catalog.loc['E-U-POSITIVE', 'linked_route_roles'] == ('POSITIVE',)`; `bool(catalog['decision_linked'].all())`.
 
 **Test boundary**
 
@@ -5263,7 +5018,7 @@ def test_link_table_exactly_reproduces_routes_and_reverse_links(valid_result) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `context evidence is separate from decision outputs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5310,7 +5065,7 @@ assert parcel["zoning_precheck_context_evidence_ids"] == ("E-U-CONDITION",)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `context evidence is separate from decision outputs` through the exact asserted conditions: `context['linked_route_ids'] == ()`; `context['linked_route_roles'] == ()`; `not bool(context['decision_linked'])`; `chapter['evidence_ids'] == ('E-U-POSITIVE', 'E-U-CONDITION')`; plus 8 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5349,7 +5104,7 @@ def test_context_evidence_is_separate_from_decision_outputs(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel aggregation preserves conflicts and touch only`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5389,7 +5144,7 @@ assert "P-4" not in set(valid_result.parcel_zone_interpretations["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `parcel aggregation preserves conflicts and touch only` through the exact asserted conditions: `parcels.loc['P-1', 'zoning_precheck_status'] == 'CONDITIONAL_REVIEW'`; `parcels.loc['P-1', 'positive_area_zone_count'] == 1`; `parcels.loc['P-2', 'zoning_precheck_status'] == 'CONDITIONAL_REVIEW'`; `parcels.loc['P-2', 'positive_area_zone_count'] == 2`; plus 10 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5420,7 +5175,7 @@ def test_parcel_aggregation_preserves_conflicts_and_touch_only(valid_result) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `prior parcel fields geometry order index and crs are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5491,7 +5246,7 @@ def test_prior_parcel_fields_geometry_order_index_and_crs_are_preserved(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `inputs are not mutated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5526,7 +5281,7 @@ interpret_bess_zoning(*inputs)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `inputs are not mutated` by requiring the reproduced call path `zones.copy`, `relations.copy`, `parcels.copy`, `structure.sections.copy` without an unasserted exception.
 
 **Test boundary**
 
@@ -5552,7 +5307,7 @@ def test_inputs_are_not_mutated(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy change after result creation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5582,7 +5337,7 @@ with pytest.raises(BessZoningPrecheckError, match="policy_config_sha256"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `policy change after result creation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5603,7 +5358,7 @@ def test_policy_change_after_result_creation_is_rejected(inputs, valid_result) -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `evidence change after result creation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5637,7 +5392,7 @@ with pytest.raises(BessZoningPrecheckError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `evidence change after result creation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5662,7 +5417,7 @@ def test_evidence_change_after_result_creation_is_rejected(inputs, valid_result)
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zoning relation and zone mapping changes are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5704,7 +5459,7 @@ with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zoning relation and zone mapping changes are rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5737,7 +5492,7 @@ def test_zoning_relation_and_zone_mapping_changes_are_rejected(inputs, valid_res
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `structure config and hierarchy changes are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5802,7 +5557,7 @@ with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `structure config and hierarchy changes are rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5859,7 +5614,7 @@ def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public source complete validator is invoked`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5950,38 +5705,18 @@ original(*args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -6000,7 +5735,7 @@ def counted(*args, **kwargs):
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `one precheck build performs one zoning source complete validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6089,38 +5824,18 @@ Private `test` helper for counted; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -6138,7 +5853,7 @@ def counted(*args) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid physical zoning fails before policy interpretation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6179,7 +5894,7 @@ assert policy_calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid physical zoning fails before policy interpretation`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6239,18 +5954,18 @@ Private `test` helper for invalid source; its complete implementation below is t
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', invalid_source)`.
+- function object argument: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', invalid_source)`.
 
 **Complete source-ordered implementation**
 
@@ -6290,18 +6005,18 @@ inputs[-1]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `monkeypatch.setattr(interpret_module, '_resolved_policy', counted_policy)`.
+- function object argument: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `monkeypatch.setattr(interpret_module, '_resolved_policy', counted_policy)`.
 
 **Complete source-ordered implementation**
 
@@ -6320,7 +6035,7 @@ def counted_policy(*args):
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `one build result performs one factual structure rebuild`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6358,7 +6073,7 @@ assert calls == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `one build result performs one factual structure rebuild` through the exact asserted conditions: `calls == 1`.
 
 **Test boundary**
 
@@ -6414,38 +6129,18 @@ original(*args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
-- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
-- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- function object argument: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
 **Complete source-ordered implementation**
 
@@ -6464,7 +6159,7 @@ def counted(*args, **kwargs):
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation area denominators are required`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6501,7 +6196,7 @@ with pytest.raises(BessZoningPrecheckError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation area denominators are required`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6529,7 +6224,7 @@ def test_relation_area_denominators_are_required(inputs, column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation percentages must match denominators`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6568,7 +6263,7 @@ with pytest.raises(BessZoningPrecheckError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation percentages must match denominators`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6598,7 +6293,7 @@ def test_relation_percentages_must_match_denominators(inputs, column: str) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `factual zone mapping counts are recomputed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6678,7 +6373,7 @@ with pytest.raises(BessZoningPrecheckError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `factual zone mapping counts are recomputed`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6750,7 +6445,7 @@ def test_factual_zone_mapping_counts_are_recomputed(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated result mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6779,7 +6474,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated result mutation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6800,7 +6495,7 @@ def test_coordinated_result_mutation_is_rejected(inputs, valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated evidence catalog mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6831,7 +6526,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated evidence catalog mutation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6854,7 +6549,7 @@ def test_coordinated_evidence_catalog_mutation_is_rejected(inputs, valid_result)
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated catalog occurrence duplicate is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6896,7 +6591,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated catalog occurrence duplicate is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6932,7 +6627,7 @@ def test_coordinated_catalog_occurrence_duplicate_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated route table mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6963,7 +6658,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated route table mutation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6986,7 +6681,7 @@ def test_coordinated_route_table_mutation_is_rejected(inputs, valid_result) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated evidence route link mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7017,7 +6712,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated evidence route link mutation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7042,7 +6737,7 @@ def test_coordinated_evidence_route_link_mutation_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated reverse link mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7071,7 +6766,7 @@ with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated reverse link mutation is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7092,7 +6787,7 @@ def test_coordinated_reverse_link_mutation_is_rejected(inputs, valid_result) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `evidence route link hash mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7145,7 +6840,7 @@ def test_evidence_route_link_hash_mutation_is_rejected(inputs, valid_result) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `old result hash schemas are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7173,7 +6868,7 @@ with pytest.raises(BessZoningPrecheckError, match="result_hash_schema_version"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `old result hash schemas are rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7193,7 +6888,7 @@ def test_old_result_hash_schemas_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation identity change is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7232,7 +6927,7 @@ with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation identity change is rejected`: the reproduced adversarial input must raise `BessZoningPrecheckError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7262,7 +6957,7 @@ def test_relation_identity_change_is_rejected(inputs) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `readback result validates`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7321,7 +7016,7 @@ assert not persisted.evidence_catalog.duplicated(occurrence_columns).any()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `readback result validates` through the exact asserted conditions: `not persisted.evidence_catalog.duplicated(occurrence_columns).any()`.
 
 **Test boundary**
 
@@ -7371,7 +7066,7 @@ def test_readback_result_validates(tmp_path: Path, inputs, valid_result) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `policy yaml roundtrip is strict`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7408,7 +7103,7 @@ assert load_bess_zoning_policy_config(path) == policy
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `policy yaml roundtrip is strict` through the exact asserted conditions: `load_bess_zoning_policy_config(path) == policy`.
 
 **Test boundary**
 

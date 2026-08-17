@@ -69,9 +69,9 @@ flowchart LR
 
 The planning chain is intentionally branched: zoning geometry, planning-feature relations, written regulation text/structure, CNIG feature meaning, written-zoning policy, and CNIG feature policy stay distinct until their explicitly coded application/aggregation stages.
 
-## Public source-complete boundaries
+## Public source and physical-integrity boundaries
 
-- Cadastre loading consumes an exact `CadastreDownload` and rechecks physical size/SHA/gzip before and after parsing.
+- Cadastre loading consumes an exact `CadastreDownload` and rechecks physical size/SHA/gzip before and after parsing. This is byte/physical-integrity validation against a supplied envelope, not the stronger source-complete boundary used by IGN: the loader does not independently re-pin the official Cadastre authority.
 - IGN grid/road normalizers consume source dataclasses plus `IgnBdTopoSourceConfig`, reproduce configured logical roles from the verified extraction, and exact-compare fresh physical frames/summaries.
 - Public grid/road proximity APIs accept source objects rather than arbitrary normalized frames or upstream result tables.
 - GPU planning stages consume `GpuPlanningDocument` and revalidate referenced spatial files/layers through their integrity envelopes.

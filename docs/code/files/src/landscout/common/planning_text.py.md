@@ -42,7 +42,7 @@ This file belongs to the **internal common contract** layer and the **planning**
 SEARCH_NORMALIZATION_PROFILE = "fr_literal_v1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/index_planning_regulation.py::<module>` (property/attribute access), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value argument/reference), `tests/unit/test_index_planning_regulation.py::<module>` (import/re-export), `tests/unit/test_interpret_bess_zoning.py::_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (value argument/reference), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below.
 
 #### `_APOSTROPHES`
 
@@ -50,7 +50,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _APOSTROPHES = frozenset("'’‘ʼ‛＇ꞌ")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/planning_text.py::normalize_planning_search_text_with_mapping` (value reference).
 
 #### `_DASHES`
 
@@ -58,7 +58,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _DASHES = frozenset("-‐‑‒–—―−﹘﹣－")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/planning_text.py::normalize_planning_search_text_with_mapping` (value reference).
 
 #### `_SPECIAL_EXPANSIONS`
 
@@ -66,7 +66,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _SPECIAL_EXPANSIONS = {"œ": "oe", "Œ": "oe", "æ": "ae", "Æ": "ae"}
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/planning_text.py::normalize_planning_search_text_with_mapping` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -117,24 +117,23 @@ Normalize literal-search text and map each output character to a raw span.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `raw_spans[-1]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `emitted`, `output`, `raw_spans`, `raw_spans[-1]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_text.py::normalize_planning_search_text` via `normalize_planning_search_text_with_mapping`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.normalize_planning_search_text_with_mapping`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
     raw_context_from_spans,
 )`.
+- direct call: `src/landscout/common/planning_text.py::normalize_planning_search_text` via `normalize_planning_search_text_with_mapping`.
 
 **Complete source-ordered implementation**
 
@@ -236,29 +235,29 @@ normalize_planning_search_text_with_mapping(value)[0]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.normalize_planning_search_text`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
     raw_context_from_spans,
 )`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
     normalize_planning_search_text as _normalize_search_text,
 )`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `normalize_planning_search_text`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy` via `normalize_planning_search_text`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import normalize_planning_search_text`.
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import normalize_planning_search_text`.
+- direct call: `tests/unit/test_index_planning_regulation.py::test_french_literal_normalization` via `_normalize_search_text`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `normalize_planning_search_text`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy` via `normalize_planning_search_text`.
 
 **Complete source-ordered implementation**
 
@@ -307,19 +306,18 @@ raw_text[raw_start:raw_end]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.raw_context_from_spans`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
     raw_context_from_spans,

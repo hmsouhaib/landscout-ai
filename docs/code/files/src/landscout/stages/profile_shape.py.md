@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/profile_shape.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: diagnostic/profile stage
 - Domain: cadastre
 - Responsibility: Profiles shape metrics and scenario evidence without making parcel suitability decisions.
 - Source SHA256: `1a5e1de1f7584e49abedf963282e4cc3b7c7ab3a724333bea75cdaa6f90a24c8`
@@ -15,7 +15,7 @@ Profiles shape metrics and scenario evidence without making parcel suitability d
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **diagnostic/profile stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -50,7 +50,7 @@ PROFILE_METRICS = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_profile_shape.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_profile_shape.py::<module>` (import), `src/landscout/stages/profile_shape.py::profile_shape_distribution` (value reference), `tests/unit/test_profile_shape.py::_with_error_row` (value reference).
 
 #### `REPRESENTATIVE_FIELDS`
 
@@ -67,7 +67,7 @@ REPRESENTATIVE_FIELDS = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/profile_shape.py::_records` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/profile_shape.py::<module>` (value reference), `src/landscout/stages/profile_shape.py::_records` (value reference).
 
 #### `REQUIRED_COLUMNS`
 
@@ -75,7 +75,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 REQUIRED_COLUMNS = frozenset({"parcel_id", "shape_status", *REPRESENTATIVE_FIELDS})
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/profile_shape.py::profile_shape_distribution` (value reference).
 
 #### `PERCENTILES`
 
@@ -95,7 +95,7 @@ PERCENTILES = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/profile_shape.py::profile_shape_distribution` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -127,29 +127,29 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
     ShapeDistributionProfile,
     ShapeProfileError,
     profile_shape_distribution,
 )`.
-- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeProfileError`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `pytest.raises(ShapeProfileError, match='width_m')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='null')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='unique')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `pytest.raises(ShapeProfileError, match='CRS')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `pytest.raises(ShapeProfileError, match='complete')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `pytest.raises(ShapeProfileError, match='Unexpected')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `pytest.raises(ShapeProfileError, match='finite')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `pytest.raises(ShapeProfileError, match='At least one VALID')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `pytest.raises(ShapeProfileError, match=message)`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `pytest.raises(ShapeProfileError, match='length_m must be at least width_m')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `pytest.raises(ShapeProfileError, match='must equal length_m / width_m')`.
-- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `pytest.raises(ShapeProfileError, match='numeric and finite')`.
-- import/re-export: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
+- import: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
     PROFILE_METRICS,
     ShapeProfileError,
     profile_shape_distribution,
 )`.
+- constructor call: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeProfileError`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `pytest.raises(ShapeProfileError, match='width_m')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='null')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='unique')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `pytest.raises(ShapeProfileError, match='CRS')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `pytest.raises(ShapeProfileError, match='complete')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `pytest.raises(ShapeProfileError, match='Unexpected')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `pytest.raises(ShapeProfileError, match='finite')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `pytest.raises(ShapeProfileError, match='At least one VALID')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `pytest.raises(ShapeProfileError, match=message)`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `pytest.raises(ShapeProfileError, match='length_m must be at least width_m')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `pytest.raises(ShapeProfileError, match='must equal length_m / width_m')`.
+- expected exception type: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `pytest.raises(ShapeProfileError, match='numeric and finite')`.
 
 **Exact class source**
 
@@ -173,11 +173,12 @@ class ShapeProfileError(ValueError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `retained_count` | `retained_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `retained_percentage` | `retained_percentage: float` | Stores `DiagnosticScenario`'s `retained percentage` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `retained_percentage` | `retained_percentage: float` | Percentage of profiled parcels retained by this diagnostic threshold scenario. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `DiagnosticScenario`.
+- type annotation: `src/landscout/stages/profile_shape.py::ShapeDistributionProfile` via `DiagnosticScenario`.
+- constructor call: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `DiagnosticScenario`.
 
 **Exact class source**
 
@@ -214,12 +215,13 @@ class DiagnosticScenario:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
     ShapeDistributionProfile,
     ShapeProfileError,
     profile_shape_distribution,
 )`.
-- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeDistributionProfile`.
+- type annotation: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeDistributionProfile`.
+- constructor call: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeDistributionProfile`.
 
 **Exact class source**
 
@@ -267,18 +269,18 @@ frame[list(REPRESENTATIVE_FIELDS)].to_dict(orient='records')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `_records`.
+- direct call: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `_records`.
 
 **Complete source-ordered implementation**
 
@@ -337,48 +339,48 @@ ShapeDistributionProfile(input_count=input_count, valid_count=valid_count, error
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `ShapeDistributionProfile`, `ShapeProfileError`, `error_shapes.sum`, `parcels.loc[valid_shapes, required_valid_metrics].isna`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any`, `parcels.loc[valid_shapes].copy`, `parcels['shape_status'].dropna`, `parcels['shape_status'].dropna().unique`, `parcels['shape_status'].isna`, `parcels['shape_status'].isna().any`, `valid_shapes.sum`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `working['_extreme_score']`, `working['_median_score']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
     ShapeDistributionProfile,
     ShapeProfileError,
     profile_shape_distribution,
 )`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_percentile_calculation` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_bucket_counts_sum_to_input_count` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_existing_all_valid_behavior_is_unchanged` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_diagnostic_scenario_counts` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_input_is_not_mutated` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `profile_shape_distribution`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `profile_shape_distribution`.
-- import/re-export: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
+- import: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
     PROFILE_METRICS,
     ShapeProfileError,
     profile_shape_distribution,
 )`.
+- direct call: `tests/unit/test_profile_shape.py::test_percentile_calculation` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_bucket_counts_sum_to_input_count` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_existing_all_valid_behavior_is_unchanged` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_diagnostic_scenario_counts` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_input_is_not_mutated` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `profile_shape_distribution`.
+- direct call: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `profile_shape_distribution`.
 
 **Complete source-ordered implementation**
 
@@ -610,11 +612,11 @@ REQUIRED_COLUMNS = frozenset({"parcel_id", "shape_status", *REPRESENTATIVE_FIELD
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 2 | `centroid_lat` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `centroid_lon` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `compactness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `centroid_lat` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `centroid_lon` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `compactness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 5 | `length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 6 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 7 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 8 | `shape_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 9 | `width_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |

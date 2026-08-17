@@ -54,7 +54,7 @@ This file belongs to the **internal common contract** layer and the **common con
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/common/safe_http.py::open_safe_https` (value reference).
 
 #### `_DEFAULT_MAX_REDIRECTS`
 
@@ -70,7 +70,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _NUMERIC_HOST_PATTERN = re.compile(r"^[0-9A-Fa-fxX.]+$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/common/safe_http.py::_strict_literal_address` (value reference).
 
 #### `_HEADER_NAME_PATTERN`
 
@@ -78,7 +78,7 @@ Compiled/text regular expression used by the named validation path; the fenced d
 _HEADER_NAME_PATTERN = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/common/safe_http.py::_request_parts` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -110,32 +110,32 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_strict_literal_address` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_canonical_hostname` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_validated_timeout` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_request_parts` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::_redirect_location` via `SafeHttpsError`.
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsError`.
-- import/re-export: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `SafeHttpsError`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `SafeHttpsError`.
-- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError`.
-- callback/function object: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|address')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|resolve')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.raises(SafeHttpsError, match='HTTPS|credential|localhost|host|URL')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.raises(SafeHttpsError, match='public|global|address|IP|URL')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `pytest.raises(SafeHttpsError, match='loop')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `pytest.raises(SafeHttpsError, match='redirect')`.
-- callback/function object: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.raises(SafeHttpsError, match='header|Host')`.
-- import/re-export: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- import: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- import: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError`.
+- import: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- constructor call: `src/landscout/common/safe_http.py::_strict_literal_address` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_canonical_hostname` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_resolve_destination` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_validated_timeout` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_request_parts` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_open_destination` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::_redirect_location` via `SafeHttpsError`.
+- constructor call: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsError`.
+- constructor call: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `SafeHttpsError`.
+- constructor call: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `SafeHttpsError`.
+- expected exception type: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|address')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|resolve')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.raises(SafeHttpsError, match='HTTPS|credential|localhost|host|URL')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.raises(SafeHttpsError, match='public|global|address|IP|URL')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `pytest.raises(SafeHttpsError, match='loop')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `pytest.raises(SafeHttpsError, match='redirect')`.
+- expected exception type: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.raises(SafeHttpsError, match='header|Host')`.
 
 **Exact class source**
 
@@ -164,8 +164,11 @@ class SafeHttpsError(OSError):
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_ResolvedAddress`.
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedAddress`.
+- type annotation: `src/landscout/common/safe_http.py::_ResolvedDestination` via `_ResolvedAddress`.
+- type annotation: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_ResolvedAddress`.
+- constructor call: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_ResolvedAddress`.
+- constructor call: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedAddress`.
+- type annotation: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `_ResolvedAddress`.
 
 **Exact class source**
 
@@ -199,15 +202,17 @@ class _ResolvedAddress:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `url` | `url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
-| `hostname` | `hostname: str` | Stores `_ResolvedDestination`'s `hostname` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `port` | `port: int` | Stores `_ResolvedDestination`'s `port` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `request_target` | `request_target: str` | Stores `_ResolvedDestination`'s `request target` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `addresses` | `addresses: tuple[_ResolvedAddress, ...]` | Structured `addresses` collection owned by `_ResolvedDestination`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `url` | `url: str` | Canonical validated HTTPS URL for this request hop, including its normalized origin, path, and query. |
+| `hostname` | `hostname: str` | Canonical original HTTPS hostname used for DNS identity, TLS/SNI and certificate identity, and HTTP Host construction. |
+| `port` | `port: int` | Validated destination TCP port; the default HTTPS port is 443 when the URL omits an explicit port. |
+| `request_target` | `request_target: str` | Origin-form request path and optional query sent over the bound HTTPS connection. |
+| `addresses` | `addresses: tuple[_ResolvedAddress, ...]` | Exact deterministic set of validated globally routable IP candidates obtained for this request hop. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedDestination`.
+- type annotation: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedDestination`.
+- constructor call: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedDestination`.
+- type annotation: `src/landscout/common/safe_http.py::_open_destination` via `_ResolvedDestination`.
 
 **Exact class source**
 
@@ -234,13 +239,16 @@ class _ResolvedDestination:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `_validated_address` | `self._validated_address = address  # assigned in __init__` | Stores `_BoundHTTPSConnection`'s ` validated address` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_tls_context` | `self._tls_context = context  # assigned in __init__` | `_BoundHTTPSConnection`'s ` tls context` evidence/text field; it retains the exact configured or source meaning under annotation `not explicitly annotated` and is not promoted to a legal conclusion. |
-| `sock` | `self.sock = self._tls_context.wrap_socket(raw_socket, server_hostname=self.host)  # assigned in connect` | Stores `_BoundHTTPSConnection`'s `sock` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_validated_address` | `self._validated_address = address  # assigned in __init__` | One validated numeric DNS-snapshot address to which this HTTPS connection binds its raw socket. |
+| `_tls_context` | `self._tls_context = context  # assigned in __init__` | ssl.SSLContext used to wrap the already-connected validated numeric socket with original-hostname verification. |
+| `sock` | `self.sock = self._tls_context.wrap_socket(raw_socket, server_hostname=self.host)  # assigned in connect` | TLS-wrapped socket connected to the validated numeric peer and retained by HTTPConnection for request/response I/O. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `_BoundHTTPSConnection`.
+- type annotation: `src/landscout/common/safe_http.py::SafeHttpsResponse.__init__` via `_BoundHTTPSConnection`.
+- type annotation: `src/landscout/common/safe_http.py::_open_destination` via `_BoundHTTPSConnection`.
+- constructor call: `src/landscout/common/safe_http.py::_open_destination` via `_BoundHTTPSConnection`.
+- type annotation: `src/landscout/common/safe_http.py::open_safe_https` via `_BoundHTTPSConnection`.
 
 **Exact class source**
 
@@ -302,17 +310,18 @@ class _BoundHTTPSConnection(http.client.HTTPSConnection):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `_response` | `self._response = response  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` response` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_connection` | `self._connection = connection  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` connection` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_response` | `self._response = response  # assigned in __init__` | Final validated 2xx HTTPResponse owned and streamed by this context-managed wrapper. |
+| `_connection` | `self._connection = connection  # assigned in __init__` | Bound HTTPS connection owned and closed together with the final response. |
 | `url` | `self.url = url  # assigned in __init__` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
-| `history` | `self.history = history  # assigned in __init__` | Stores `SafeHttpsResponse`'s `history` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `status` | `self.status = response.status  # assigned in __init__` | Closed or validated `status` classification on `SafeHttpsResponse`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `headers` | `self.headers = response.headers  # assigned in __init__` | Stores `SafeHttpsResponse`'s `headers` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_closed` | `self._closed = False  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` closed` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `history` | `self.history = history  # assigned in __init__` | Canonical tuple of validated redirect-hop URLs preceding the final URL. |
+| `status` | `self.status = response.status  # assigned in __init__` | `SafeHttpsResponse.status` represents the `status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `headers` | `self.headers = response.headers  # assigned in __init__` | Header mapping from the final validated 2xx HTTP response. |
+| `_closed` | `self._closed = False  # assigned in __init__` | Internal idempotent-close state preventing duplicate response/connection cleanup. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsResponse`.
+- type annotation: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsResponse`.
+- constructor call: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsResponse`.
 
 **Exact class source**
 
@@ -395,19 +404,18 @@ Private `common contract` helper for socket address; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/property argument: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.connect(self._validated_address.socket_address)`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `self._validated_address.socket_address`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -455,19 +463,19 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_is_globally_routable_address`.
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_is_globally_routable_address`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_is_globally_routable_address`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_destination` via `_is_globally_routable_address`.
 
 **Complete source-ordered implementation**
 
@@ -532,19 +540,19 @@ ipaddress.IPv4Address(int(hostname, base))
 
 **Side effects**
 
-- Network I/O: `socket.inet_aton`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_canonical_url` via `_strict_literal_address`.
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_strict_literal_address`.
+- direct call: `src/landscout/common/safe_http.py::_canonical_url` via `_strict_literal_address`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_destination` via `_strict_literal_address`.
 
 **Complete source-ordered implementation**
 
@@ -628,17 +636,17 @@ tuple((addresses[key] for key in sorted(addresses)))
 **Side effects**
 
 - Network I/O: `socket.getaddrinfo`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `addresses[address.version, int(address)]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_resolve_public_addresses`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_destination` via `_resolve_public_addresses`.
 
 **Complete source-ordered implementation**
 
@@ -750,18 +758,18 @@ canonical
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_hostname`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_hostname`.
 
 **Complete source-ordered implementation**
 
@@ -813,18 +821,18 @@ urlunsplit(('https', netloc, parsed.path or '/', parsed.query, ''))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_url`.
+- direct call: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_url`.
 
 **Complete source-ordered implementation**
 
@@ -873,18 +881,18 @@ _ResolvedDestination(url=_canonical_url(parsed, hostname, port), hostname=hostna
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_resolve_destination`.
+- direct call: `src/landscout/common/safe_http.py::open_safe_https` via `_resolve_destination`.
 
 **Complete source-ordered implementation**
 
@@ -973,17 +981,18 @@ Private `common contract` helper for init; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self._tls_context`, `self._validated_address`.
-- Input mutation: `self._tls_context`, `self._validated_address`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1032,17 +1041,18 @@ Private `common contract` helper for connect; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: `raw_socket.close`, `raw_socket.connect`, `raw_socket.getpeername`, `raw_socket.settimeout`, `self._tls_context.wrap_socket`, `socket.socket`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: `raw_socket.connect`, `socket.socket`.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.sock`.
-- Input mutation: `self.sock`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1109,19 +1119,18 @@ Private `common contract` helper for init; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self._closed`, `self._connection`, `self._response`, `self.headers`, `self.history`, `self.status`, `self.url`.
-- Input mutation: `self._closed`, `self._connection`, `self._response`, `self.headers`, `self.history`, `self.status`, `self.url`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1174,48 +1183,18 @@ self._response.read(amount)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `self._response.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_sha256` via `stream.read`.
-- property/attribute access: `src/landscout/sources/cadastre_fr.py::_sha256` via `stream.read`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` via `stream.read`.
-- property/attribute access: `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` via `stream.read`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `stream.read`.
-- property/attribute access: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `stream.read`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_request_json` via `response.read`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_request_json` via `response.read`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_sha256` via `stream.read`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_sha256` via `stream.read`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `stream.read`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `stream.read`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `stream.read`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `stream.read`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` via `stream.read`.
-- property/attribute access: `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` via `stream.read`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `response.read`.
-- property/attribute access: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `response.read`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_sha256` via `stream.read`.
-- property/attribute access: `src/landscout/sources/rte_odre_fr.py::_sha256` via `stream.read`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `stream.read`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `stream.read`.
-- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild` via `monkeypatch.setattr(module, '_read_verified_artifact', read)`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.iter_content` via `self.raw.read`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.iter_content` via `self.raw.read`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.read` via `self.raw.read`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.read` via `self.raw.read`.
-- direct call or construction: `tests/unit/test_safe_http.py::_read` via `response.read`.
-- property/attribute access: `tests/unit/test_safe_http.py::_read` via `response.read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `response.read`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `response.read`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1258,33 +1237,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self._closed`.
-- Input mutation: `self._closed`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
+- method call: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
 
 **Complete source-ordered implementation**
 
@@ -1330,14 +1294,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1383,14 +1347,14 @@ Private `common contract` helper for exit; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1440,18 +1404,18 @@ timeout
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_validated_timeout`.
+- direct call: `src/landscout/common/safe_http.py::open_safe_https` via `_validated_timeout`.
 
 **Complete source-ordered implementation**
 
@@ -1511,18 +1475,18 @@ Private `common contract` helper for request parts; its complete implementation 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `output['Connection']`, `output[name]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `combined`, `output['Connection']`, `output[name]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_request_parts`.
+- direct call: `src/landscout/common/safe_http.py::open_safe_https` via `_request_parts`.
 
 **Complete source-ordered implementation**
 
@@ -1599,17 +1563,17 @@ Private `common contract` helper for open destination; its complete implementati
 **Side effects**
 
 - Network I/O: `connection.getresponse`, `connection.request`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_open_destination`.
+- direct call: `src/landscout/common/safe_http.py::open_safe_https` via `_open_destination`.
 
 **Complete source-ordered implementation**
 
@@ -1681,18 +1645,18 @@ values[0]
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_redirect_location`.
+- direct call: `src/landscout/common/safe_http.py::open_safe_https` via `_redirect_location`.
 
 **Complete source-ordered implementation**
 
@@ -1745,33 +1709,33 @@ SafeHttpsResponse(response, connection, url=destination.url, history=tuple(histo
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `history`, `seen`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `open_safe_https`.
-- import/re-export: `src/landscout/sources/cadastre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_request_json` via `open_safe_https`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `open_safe_https`.
-- import/re-export: `src/landscout/sources/gpu_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `open_safe_https`.
-- import/re-export: `src/landscout/sources/ign_bdtopo_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` via `open_safe_https`.
-- import/re-export: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `open_safe_https`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `open_safe_https`.
-- import/re-export: `src/landscout/sources/rte_odre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
-- direct call or construction: `tests/unit/test_safe_http.py::_read` via `open_safe_https`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `open_safe_https`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `open_safe_https`.
-- import/re-export: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- import: `src/landscout/sources/cadastre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- import: `src/landscout/sources/gpu_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- import: `src/landscout/sources/ign_bdtopo_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- import: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- import: `src/landscout/sources/rte_odre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- import: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- direct call: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `open_safe_https`.
+- direct call: `src/landscout/sources/gpu_fr.py::_request_json` via `open_safe_https`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `open_safe_https`.
+- direct call: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `open_safe_https`.
+- direct call: `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` via `open_safe_https`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `open_safe_https`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `open_safe_https`.
+- direct call: `tests/unit/test_safe_http.py::_read` via `open_safe_https`.
+- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `open_safe_https`.
+- direct call: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `open_safe_https`.
 
 **Complete source-ordered implementation**
 

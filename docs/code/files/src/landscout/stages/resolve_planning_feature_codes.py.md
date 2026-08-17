@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/resolve_planning_feature_codes.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: artifact validation/loading stage
 - Domain: planning
 - Responsibility: Resolves normalized factual planning features against the checked-in CNIG PLU code dictionary.
 - Source SHA256: `57907fd137407beeceaf0dee2cd1419a7746945032577782bcfa209711d5c2ae`
@@ -15,7 +15,7 @@ Resolves normalized factual planning features against the checked-in CNIG PLU co
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **artifact validation/loading stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -72,7 +72,7 @@ This file belongs to the **processing/policy stage** layer and the **planning** 
 PROFILE_SCHEMA_VERSION = 2
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (value reference).
 
 #### `RESULT_HASH_SCHEMA_VERSION`
 
@@ -80,7 +80,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 RESULT_HASH_SCHEMA_VERSION = 5
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` (value argument/reference).
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (value reference).
 
 #### `STANDARD_MODEL`
 
@@ -88,7 +88,7 @@ Supported schema/hash/manifest compatibility version used by validators and cano
 STANDARD_MODEL = "CNIG PLU v2017"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (value reference).
 
 #### `OFFICIAL_TEXT_NORMALIZATION`
 
@@ -96,7 +96,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 OFFICIAL_TEXT_NORMALIZATION = "GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` (value reference).
 
 #### `PRESCRIPTION_OFFICIAL_SOURCE_URL`
 
@@ -107,7 +107,7 @@ PRESCRIPTION_OFFICIAL_SOURCE_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::OfficialSourceUrls._validate_urls` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` (value reference).
 
 #### `INFORMATION_OFFICIAL_SOURCE_URL`
 
@@ -118,7 +118,7 @@ INFORMATION_OFFICIAL_SOURCE_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::OfficialSourceUrls._validate_urls` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` (value reference).
 
 #### `CODE_DICTIONARY_COLUMNS`
 
@@ -137,7 +137,7 @@ CODE_DICTIONARY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (value argument/reference), `src/landscout/stages/resolve_planning_feature_codes.py::_dictionary` (value argument/reference), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import), `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_dictionary` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` (value reference).
 
 #### `CODE_DICTIONARY_DTYPES`
 
@@ -145,7 +145,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 CODE_DICTIONARY_DTYPES = tuple("str" for _ in CODE_DICTIONARY_COLUMNS)
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (value argument/reference).
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (value reference).
 
 #### `CODE_DICTIONARY_SCHEMA_SIGNATURE`
 
@@ -159,7 +159,7 @@ CODE_DICTIONARY_SCHEMA_SIGNATURE: dict[str, object] = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` (value reference).
 
 #### `_CODE_PATTERN`
 
@@ -167,7 +167,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _CODE_PATTERN = re.compile(r"[0-9]{2}")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validated_code_series` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` (value reference).
 
 #### `_SHA_PATTERN`
 
@@ -175,7 +175,7 @@ Compiled/text regular expression used by the named validation path; the fenced d
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` (value reference), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (value reference).
 
 #### `_NULL_REFERENCE_LITERALS`
 
@@ -183,7 +183,7 @@ Compiled/text regular expression used by the named validation path; the fenced d
 _NULL_REFERENCE_LITERALS = frozenset({"None", "nan", "<NA>"})
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -194,7 +194,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 ```
 
-Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is consumed by annotations or Pydantic validation in this module.
+Official planning-feature family domain: PRESCRIPTION or INFORMATION. Enforced/consumed by `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord` (type annotation).
 
 #### `OfficialCodeStatus`
 
@@ -202,7 +202,7 @@ Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is cons
 OfficialCodeStatus = Literal["RESOLVED_OFFICIAL", "UNKNOWN_CODE_PAIR"]
 ```
 
-CNIG resolution state: exact official pair resolved or unknown pair retained unresolved. It is consumed by annotations or Pydantic validation in this module.
+CNIG resolution state: exact official pair resolved or unknown pair retained unresolved. No statically owned repository consumer was proven; the declaration remains authoritative for its local runtime use.
 
 
 ### C. Meaningful dunder contracts
@@ -242,7 +242,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -251,80 +251,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_json_sha256` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_construct_unique_mapping` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validated_code_series` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_catalog_document_lineage` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_catalog_by_id` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_value` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_parcel_identity_input_sha256` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `PlanningFeatureCodeError`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `PlanningFeatureCodeError`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='profile|canonical')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='schema|profile')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|profile')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='Duplicate YAML')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='standard')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `pytest.raises(PlanningFeatureCodeError, match='normalized|schema|column')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='normalized|schema|column')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `pytest.raises(PlanningFeatureCodeError, match='identity|provenance|normalized')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `pytest.raises(PlanningFeatureCodeError, match='OGR|identity|provenance|normalized')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `pytest.raises(PlanningFeatureCodeError, match='source_feature_id|unique')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `pytest.raises(PlanningFeatureCodeError, match='EPSG:2154|CRS')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='metric|area|length|member')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `pytest.raises(PlanningFeatureCodeError, match='relation|schema|column')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='relation|schema')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `pytest.raises(PlanningFeatureCodeError, match='shared factual contract marker')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `pytest.raises(PlanningFeatureCodeError, match='catalog|metric|normalized|feature share')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='relation|metric|finite|percentage')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='relation|length|catalog')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|columns')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='CRS')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='CRS')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='geometry')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `pytest.raises(PlanningFeatureCodeError, match=message)`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `pytest.raises(PlanningFeatureCodeError, match=message)`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `pytest.raises(PlanningFeatureCodeError, match='exact string|non-empty')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `pytest.raises(PlanningFeatureCodeError, match='geometry|type')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeatureCodeError, match='unique|catalog|deterministic')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='catalog')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|columns')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `pytest.raises(PlanningFeatureCodeError, match='relation|exact string')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='unique|duplicate')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='unknown')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `pytest.raises(PlanningFeatureCodeError, match='[Rr]elation type|geometry')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='rebuilt|meaning|dictionary')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `pytest.raises(PlanningFeatureCodeError, match='schema version')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='hash|rebuilt|source')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='parcel|source|rebuilt')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='document|source|rebuilt')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `pytest.raises(PlanningFeatureCodeError, match='normalized|source|rebuilt')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='[Rr]elation|source|rebuilt')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_coding_api_rejects_relation_set_not_rebuilt_from_geometry` via `pytest.raises(PlanningFeatureCodeError, match='relation|parcel|source|rebuilt|normalized')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `pytest.raises(PlanningFeatureCodeError, match='hash|invalid')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|empty|record')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `pytest.raises(PlanningFeatureCodeError)`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|DataFrame')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|schema|dtype|index')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|pair|code|family|URL|profile|order')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `pytest.raises(PlanningFeatureCodeError, match='standard|SHA|sha|lineage')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `pytest.raises(PlanningFeatureCodeError, match='official|meaning|UNKNOWN|relation|feature')`.
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `pytest.raises(PlanningFeatureCodeError, match='type|result')`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
     CnigFeatureCodeProfile,
@@ -333,6 +260,79 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     _result_with_hashes,
     load_cnig_feature_code_profile,
 )`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_json_sha256` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_construct_unique_mapping` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validated_code_series` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_catalog_document_lineage` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_catalog_by_id` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_value` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_parcel_identity_input_sha256` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `PlanningFeatureCodeError`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `PlanningFeatureCodeError`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='profile|canonical')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='schema|profile')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|profile')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='Duplicate YAML')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='standard')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `pytest.raises(PlanningFeatureCodeError, match='normalized|schema|column')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='normalized|schema|column')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `pytest.raises(PlanningFeatureCodeError, match='identity|provenance|normalized')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `pytest.raises(PlanningFeatureCodeError, match='OGR|identity|provenance|normalized')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `pytest.raises(PlanningFeatureCodeError, match='source_feature_id|unique')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `pytest.raises(PlanningFeatureCodeError, match='EPSG:2154|CRS')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='metric|area|length|member')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `pytest.raises(PlanningFeatureCodeError, match='relation|schema|column')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='relation|schema')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `pytest.raises(PlanningFeatureCodeError, match='shared factual contract marker')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `pytest.raises(PlanningFeatureCodeError, match='catalog|metric|normalized|feature share')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='relation|metric|finite|percentage')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `pytest.raises(PlanningFeatureCodeError, match='relation|length|catalog')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|columns')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='CRS')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='CRS')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='geometry')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `pytest.raises(PlanningFeatureCodeError, match=message)`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `pytest.raises(PlanningFeatureCodeError, match=message)`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `pytest.raises(PlanningFeatureCodeError, match='exact string|non-empty')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `pytest.raises(PlanningFeatureCodeError, match='geometry|type')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeatureCodeError, match='unique|catalog|deterministic')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='catalog')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `pytest.raises(PlanningFeatureCodeError, match='duplicate|columns')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `pytest.raises(PlanningFeatureCodeError, match='relation|exact string')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='unique|duplicate')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='unknown')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `pytest.raises(PlanningFeatureCodeError, match='[Rr]elation type|geometry')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='rebuilt|meaning|dictionary')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `pytest.raises(PlanningFeatureCodeError, match='schema version')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `pytest.raises(PlanningFeatureCodeError, match='hash|rebuilt|source')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='parcel|source|rebuilt')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='document|source|rebuilt')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `pytest.raises(PlanningFeatureCodeError, match='normalized|source|rebuilt')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `pytest.raises(PlanningFeatureCodeError, match='[Rr]elation|source|rebuilt')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_coding_api_rejects_relation_set_not_rebuilt_from_geometry` via `pytest.raises(PlanningFeatureCodeError, match='relation|parcel|source|rebuilt|normalized')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `pytest.raises(PlanningFeatureCodeError, match='hash|invalid')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|empty|record')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `pytest.raises(PlanningFeatureCodeError)`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|DataFrame')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|schema|dtype|index')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `pytest.raises(PlanningFeatureCodeError, match='dictionary|pair|code|family|URL|profile|order')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `pytest.raises(PlanningFeatureCodeError, match='standard|SHA|sha|lineage')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `pytest.raises(PlanningFeatureCodeError, match='official|meaning|UNKNOWN|relation|feature')`.
+- expected exception type: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `pytest.raises(PlanningFeatureCodeError, match='type|result')`.
 
 **Exact class source**
 
@@ -378,8 +378,8 @@ class _StrictModel(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `prescription` | `prescription: StrictStr` | Stores `OfficialSourceUrls`'s `prescription` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `information` | `information: StrictStr` | Closed or validated `information` classification on `OfficialSourceUrls`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `prescription` | `prescription: StrictStr` | Official CNIG prescription-family source URL. |
+| `information` | `information: StrictStr` | `OfficialSourceUrls.information` represents the `information` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Validators (exact source)**
 
@@ -400,7 +400,8 @@ def _validate_urls(self) -> OfficialSourceUrls:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::OfficialSourceUrls._validate_urls` via `OfficialSourceUrls`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile` via `OfficialSourceUrls`.
 
 **Exact class source**
 
@@ -436,12 +437,12 @@ class OfficialSourceUrls(_StrictModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `feature_family` | `feature_family: FeatureFamily` | Closed or validated `feature family` classification on `CnigFeatureCodeRecord`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `type_code` | `type_code: StrictStr` | Closed or validated `type code` classification on `CnigFeatureCodeRecord`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `subtype_code` | `subtype_code: StrictStr` | Closed or validated `subtype code` classification on `CnigFeatureCodeRecord`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `official_label` | `official_label: StrictStr` | `CnigFeatureCodeRecord`'s `official label` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
-| `legal_reference` | `legal_reference: StrictStr \| None` | `CnigFeatureCodeRecord`'s `legal reference` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr | None` and is not promoted to a legal conclusion. |
-| `regulation_or_annex_reference` | `regulation_or_annex_reference: StrictStr \| None` | `CnigFeatureCodeRecord`'s `regulation or annex reference` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr | None` and is not promoted to a legal conclusion. |
+| `feature_family` | `feature_family: FeatureFamily` | `CnigFeatureCodeRecord.feature_family` represents the `feature_family` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `type_code` | `type_code: StrictStr` | `CnigFeatureCodeRecord.type_code` represents the `type_code` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `subtype_code` | `subtype_code: StrictStr` | `CnigFeatureCodeRecord.subtype_code` represents the `subtype_code` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `official_label` | `official_label: StrictStr` | `CnigFeatureCodeRecord.official_label` carries the official label used by the reproduced constructors and validators; its declared type is `StrictStr` and no legal meaning is inferred beyond that owner. |
+| `legal_reference` | `legal_reference: StrictStr \| None` | `CnigFeatureCodeRecord.legal_reference` carries the legal reference used by the reproduced constructors and validators; its declared type is `StrictStr | None` and no legal meaning is inferred beyond that owner. |
+| `regulation_or_annex_reference` | `regulation_or_annex_reference: StrictStr \| None` | `CnigFeatureCodeRecord.regulation_or_annex_reference` carries the regulation or annex reference used by the reproduced constructors and validators; its declared type is `StrictStr | None` and no legal meaning is inferred beyond that owner. |
 | `official_source_url` | `official_source_url: StrictStr` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 
 **Validators (exact source)**
@@ -474,7 +475,11 @@ def _validate_record(self) -> CnigFeatureCodeRecord:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` via `CnigFeatureCodeRecord`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_record_payload` via `CnigFeatureCodeRecord`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `CnigFeatureCodeRecord`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile` via `CnigFeatureCodeRecord`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_lookup` via `CnigFeatureCodeRecord`.
 
 **Exact class source**
 
@@ -529,9 +534,9 @@ class CnigFeatureCodeRecord(_StrictModel):
 | `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
 | `profile` | `profile: StrictStr = Field(min_length=1)` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
 | `standard_model` | `standard_model: Literal["CNIG PLU v2017"]` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
-| `official_text_normalization` | `official_text_normalization: Literal["GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"]` | `CnigFeatureCodeProfile`'s `official text normalization` evidence/text field; it retains the exact configured or source meaning under annotation `Literal['GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1']` and is not promoted to a legal conclusion. |
-| `official_sources` | `official_sources: OfficialSourceUrls` | Stores `CnigFeatureCodeProfile`'s `official sources` value under exact annotation `OfficialSourceUrls`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `retrieval_date` | `retrieval_date: date` | Stores `CnigFeatureCodeProfile`'s `retrieval date` value under exact annotation `date`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `official_text_normalization` | `official_text_normalization: Literal["GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"]` | `CnigFeatureCodeProfile.official_text_normalization` carries the official text normalization used by the reproduced constructors and validators; its declared type is `Literal['GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1']` and no legal meaning is inferred beyond that owner. |
+| `official_sources` | `official_sources: OfficialSourceUrls` | Family-specific official CNIG HTTPS reference URLs. |
+| `retrieval_date` | `retrieval_date: date` | Declared date on which the official CNIG source references were retrieved for this profile. |
 | `canonical_records_sha256` | `canonical_records_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `records` | `records: tuple[CnigFeatureCodeRecord, ...] = Field(min_length=1)` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 
@@ -563,7 +568,7 @@ def _validate_profile(self) -> CnigFeatureCodeProfile:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -572,22 +577,21 @@ def _validate_profile(self) -> CnigFeatureCodeProfile:
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
 )`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result_envelope,
 )`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result,
 )`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `isinstance(profile, CnigFeatureCodeProfile)`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
     CnigFeatureCodeProfile,
@@ -596,6 +600,31 @@ def _validate_profile(self) -> CnigFeatureCodeProfile:
     _result_with_hashes,
     load_cnig_feature_code_profile,
 )`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_source` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_policy_source` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_profile_sha256` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_dictionary` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_lookup` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_catalog` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `CnigFeatureCodeProfile`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_profile` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_mutated_profile` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_inputs` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `CnigFeatureCodeProfile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `CnigFeatureCodeProfile`.
 
 **Exact class source**
 
@@ -648,11 +677,7 @@ class CnigFeatureCodeProfile(_StrictModel):
 
 **Interface consumers**
 
-- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`.
-- callback/function object: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `yaml.load(config_path.read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- No repository construction/import/property/decorator reference was found; the exact declaration is retained because it participates in the module's runtime/framework namespace.
 
 **Exact class source**
 
@@ -694,15 +719,15 @@ class _UniqueKeyLoader(yaml.SafeLoader):
 | `point_features_content_sha256` | `point_features_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `relations_content_sha256` | `relations_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `complete_result_content_sha256` | `complete_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `code_dictionary` | `code_dictionary: pd.DataFrame` | Stores `PlanningFeatureCodeResult`'s `code dictionary` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `surface_features` | `surface_features: gpd.GeoDataFrame` | Stores `PlanningFeatureCodeResult`'s `surface features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `line_features` | `line_features: gpd.GeoDataFrame` | Stores `PlanningFeatureCodeResult`'s `line features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `point_features` | `point_features: gpd.GeoDataFrame` | Stores `PlanningFeatureCodeResult`'s `point features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `code_dictionary` | `code_dictionary: pd.DataFrame` | Canonical official CNIG code-pair dictionary carried by the coded result. |
+| `surface_features` | `surface_features: gpd.GeoDataFrame` | Canonical surface planning-feature catalog in this result envelope. |
+| `line_features` | `line_features: gpd.GeoDataFrame` | Canonical line planning-feature catalog in this result envelope. |
+| `point_features` | `point_features: gpd.GeoDataFrame` | Canonical point planning-feature catalog in this result envelope. |
 | `relations` | `relations: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -711,22 +736,21 @@ class _UniqueKeyLoader(yaml.SafeLoader):
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
 )`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result_envelope,
 )`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureCodeResult`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
     CnigFeatureCodeProfile,
@@ -735,6 +759,40 @@ class _UniqueKeyLoader(yaml.SafeLoader):
     _result_with_hashes,
     load_cnig_feature_code_profile,
 )`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_source` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_coded_policy_compatibility` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_source_locks` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_policy_source` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_validate_source_lock` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_dictionary_by_pair` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_component_metadata` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureCodeResult`.
+- constructor call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `PlanningFeatureCodeResult`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `PlanningFeatureCodeResult`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `PlanningFeatureCodeResult`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `PlanningFeatureCodeResult`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `PlanningFeatureCodeResult`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `PlanningFeatureCodeResult`.
 
 **Exact class source**
 
@@ -798,39 +856,20 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
 
 **Complete source-ordered implementation**
 
@@ -872,18 +911,18 @@ Private `planning` helper for canonical official text; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_canonical_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_canonical_official_text`.
 
 **Complete source-ordered implementation**
 
@@ -923,21 +962,21 @@ text
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_optional_official_text` via `_validate_official_text`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` via `_validate_official_text`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `_validate_official_text`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `_validate_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_optional_official_text` via `_validate_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` via `_validate_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `_validate_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `_validate_official_text`.
 
 **Complete source-ordered implementation**
 
@@ -984,18 +1023,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` via `_validate_optional_official_text`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeRecord._validate_record` via `_validate_optional_official_text`.
 
 **Complete source-ordered implementation**
 
@@ -1038,14 +1077,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1098,14 +1137,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1168,19 +1207,19 @@ Private `planning` helper for record payload; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `_record_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_dictionary` via `_record_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `_record_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_dictionary` via `_record_payload`.
 
 **Complete source-ordered implementation**
 
@@ -1228,30 +1267,24 @@ sha256(encoded).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(encoded).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_complete_result_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_entries_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_complete_result_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_profile_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_canonical_json_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_profile_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_canonical_json_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_canonical_json_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -1303,18 +1336,18 @@ _canonical_json_sha256([_record_payload(record) for record in records])
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_records_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_records_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -1358,14 +1391,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_SHA_PATTERN.fullmatch`, `_records_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `_records_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1430,22 +1463,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result[key]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-- callback/function object: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- function object argument: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
 
 **Complete source-ordered implementation**
 
@@ -1495,18 +1524,18 @@ CnigFeatureCodeProfile.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `Path(path).read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -1515,16 +1544,11 @@ CnigFeatureCodeProfile.model_validate(payload)
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `load_cnig_feature_code_profile`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `load_cnig_feature_code_profile`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     load_cnig_feature_code_profile,
     resolve_planning_feature_codes,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_yaml_key_is_rejected` via `load_cnig_feature_code_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `load_cnig_feature_code_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` via `load_cnig_feature_code_profile`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
     CnigFeatureCodeProfile,
@@ -1533,6 +1557,11 @@ CnigFeatureCodeProfile.model_validate(payload)
     _result_with_hashes,
     load_cnig_feature_code_profile,
 )`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_resolved_profile` via `load_cnig_feature_code_profile`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `load_cnig_feature_code_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_yaml_key_is_rejected` via `load_cnig_feature_code_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `load_cnig_feature_code_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` via `load_cnig_feature_code_profile`.
 
 **Complete source-ordered implementation**
 
@@ -1592,19 +1621,19 @@ CnigFeatureCodeProfile.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_resolved_profile`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_resolved_profile`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_resolved_profile`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_resolved_profile`.
 
 **Complete source-ordered implementation**
 
@@ -1654,18 +1683,18 @@ _canonical_json_sha256(profile.model_dump(mode='json'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_profile_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_profile_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -1705,55 +1734,22 @@ _exact_string(value, label)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
 
 **Complete source-ordered implementation**
 
@@ -1797,19 +1793,19 @@ _strict_string(distinct[0], 'planning document standard')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `models`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_planning_standard`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_planning_standard`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_planning_standard`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_planning_standard`.
 
 **Complete source-ordered implementation**
 
@@ -1859,18 +1855,18 @@ Checks and returns canonical code series; exact branches, calls, and return cons
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_catalog_document_lineage` via `_validated_code_series`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_catalog_document_lineage` via `_validated_code_series`.
 
 **Complete source-ordered implementation**
 
@@ -1918,20 +1914,20 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_null_safe_equal` via `_is_true_null`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `_is_true_null`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_is_true_null`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_null_safe_equal` via `_is_true_null`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_nullable_official_value` via `_is_true_null`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_is_true_null`.
 
 **Complete source-ordered implementation**
 
@@ -1979,25 +1975,18 @@ left_null and right_null
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_relations` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_coded_policy_compatibility` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_selected_evidence` via `_null_safe_equal`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_null_safe_equal`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_null_safe_equal`.
 
 **Complete source-ordered implementation**
 
@@ -2041,18 +2030,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `_validate_nullable_official_value`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_code_dictionary` via `_validate_nullable_official_value`.
 
 **Complete source-ordered implementation**
 
@@ -2109,18 +2098,18 @@ records
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `records[key]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `ordered_keys`, `records[key]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_validate_code_dictionary`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_validate_code_dictionary`.
 
 **Complete source-ordered implementation**
 
@@ -2238,18 +2227,18 @@ Rejects malformed or inconsistent coded meaning rows; exact branches, calls, and
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `features[identifier]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_validate_coded_meaning_rows`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_validate_coded_meaning_rows`.
 
 **Complete source-ordered implementation**
 
@@ -2381,18 +2370,18 @@ frame.copy(deep=True)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `frame['source_archive_sha256'].eq`, `frame['source_archive_sha256'].eq(document.extraction.archive.sha256).all`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_validate_catalog_document_lineage`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_validate_catalog_document_lineage`.
 
 **Complete source-ordered implementation**
 
@@ -2449,20 +2438,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output.index`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_dictionary`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `cnig_module._dictionary`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `cnig_module._dictionary`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_dictionary`.
 
 **Complete source-ordered implementation**
 
@@ -2520,18 +2507,18 @@ Private `planning` helper for lookup; its complete implementation below is the a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_catalog` via `_lookup`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_catalog` via `_lookup`.
 
 **Complete source-ordered implementation**
 
@@ -2580,18 +2567,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `columns['official_code_profile_sha256'].append`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `output.index`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `columns['official_code_label']`, `columns['official_code_profile']`, `columns['official_code_profile_sha256']`, `columns['official_code_source_url']`, `columns['official_code_status']`, `columns['official_legal_reference']`, `columns['official_regulation_reference']`, `output.index`, `output[column]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_coded_catalog`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_coded_catalog`.
 
 **Complete source-ordered implementation**
 
@@ -2663,18 +2650,18 @@ records
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `records[identifier]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_catalog_by_id`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_catalog_by_id`.
 
 **Complete source-ordered implementation**
 
@@ -2728,18 +2715,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `output.index`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `appended[column]`, `output.index`, `output[column]`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_coded_relations`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_coded_relations`.
 
 **Complete source-ordered implementation**
 
@@ -2818,33 +2805,19 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_value` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `_canonical_value`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_frame_rows` via `_canonical_value`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `_canonical_value`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_canonical_value`.
 
 **Complete source-ordered implementation**
 
@@ -2917,33 +2890,21 @@ payload
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_frame_payload`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_frame_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_frame_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_frame_payload`.
 
 **Complete source-ordered implementation**
 
@@ -2991,20 +2952,20 @@ _canonical_json_sha256({'domain': domain, 'result_hash_schema_version': RESULT_H
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_source_frame_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_parcel_identity_input_sha256` via `_source_frame_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_relations_input_sha256` via `_source_frame_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_source_frame_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_parcel_identity_input_sha256` via `_source_frame_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_relations_input_sha256` via `_source_frame_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3050,18 +3011,18 @@ Private `planning` helper for inspected layer payload; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_source_frame_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_inspected_layer_payload`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_inspected_layer_payload`.
 
 **Complete source-ordered implementation**
 
@@ -3122,18 +3083,18 @@ _canonical_json_sha256({'domain': 'landscout.cnig_feature_codes.planning_documen
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_planning_document_context_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_planning_document_context_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3215,18 +3176,18 @@ _source_frame_sha256('landscout.cnig_feature_codes.parcel_identity_input', ident
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `parcels[['parcel_id', 'geometry']].copy`.
 - Hashing: `_source_frame_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_parcel_identity_input_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_parcel_identity_input_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3282,18 +3243,18 @@ _canonical_json_sha256({'domain': 'landscout.cnig_feature_codes.normalized_catal
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_normalized_catalogs_input_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_normalized_catalogs_input_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3345,18 +3306,18 @@ _source_frame_sha256('landscout.cnig_feature_codes.normalized_relations_input', 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_source_frame_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_normalized_relations_input_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_normalized_relations_input_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3398,24 +3359,19 @@ Private `planning` helper for component metadata; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_complete_result_sha256` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_complete_result_sha256` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_component_metadata`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_component_metadata`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_component_metadata`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_component_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -3473,26 +3429,18 @@ _canonical_json_sha256({'domain': domain, **_component_metadata(result), 'frame'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_source_locks` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_frame_sha256`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_frame_sha256`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_frame_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3542,18 +3490,18 @@ _canonical_json_sha256({'domain': 'landscout.cnig_feature_codes.result', **_comp
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_canonical_json_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_complete_sha256`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_complete_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -3603,117 +3551,35 @@ replace(component, complete_result_content_sha256=_complete_sha256(component))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_complete_sha256`, `_frame_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_result_with_hashes`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_compatible_policy_mutation` via `module._result_with_hashes`.
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+    CODE_DICTIONARY_COLUMNS,
+    OFFICIAL_CODE_COLUMNS,
+    CnigFeatureCodeProfile,
+    PlanningFeatureCodeError,
+    PlanningFeatureCodeResult,
+    _result_with_hashes,
+    load_cnig_feature_code_profile,
+)`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_result_with_hashes`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_binding_hashes_bind_every_component_hash` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_canonical_empty_coded_result` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `_result_with_hashes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `_result_with_hashes`.
 
 **Complete source-ordered implementation**
 
@@ -3783,45 +3649,19 @@ _result_with_hashes(result)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_normalized_catalogs_input_sha256`, `_normalized_relations_input_sha256`, `_parcel_identity_input_sha256`, `_planning_document_context_sha256`, `_profile_sha256`, `_result_with_hashes`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `_normalized_catalogs_input_sha256`, `_normalized_relations_input_sha256`, `_parcel_identity_input_sha256`, `_planning_document_context_sha256`, `_profile_sha256`.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_build_result`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_build_result`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_build_result`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_build_result`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_build_result`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_build_result`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module._build_result`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module._build_result`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_build_result`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_build_result`.
 
 **Complete source-ordered implementation**
 
@@ -3941,117 +3781,20 @@ Rejects malformed or inconsistent result envelope; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_SHA_PATTERN.fullmatch`, `_result_with_hashes`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result_envelope` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result_envelope` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_validate_result_envelope`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_m_and_zm_application_geometries_are_rejected` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_m_and_zm_application_geometries_are_rejected` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_feature_id_is_exact_and_portable` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_feature_id_is_exact_and_portable` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_invalid_policy_domains_fail_local_validation` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_invalid_policy_domains_fail_local_validation` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_literal_null_replacements_are_rejected` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_literal_null_replacements_are_rejected` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_self_consistent_wrong_policy_suffix_dtype_is_rejected` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_self_consistent_wrong_policy_suffix_dtype_is_rejected` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_any_true_row_boundary_flag_is_rejected` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_any_true_row_boundary_flag_is_rejected` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_accepts_only_current_policy_and_cnig_source_schemas` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_accepts_only_current_policy_and_cnig_source_schemas` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_referenced_row_lineage_cannot_bypass_envelope` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_referenced_row_lineage_cannot_bypass_envelope` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_resolved_official_row_requires_label_and_envelope_profile` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_resolved_official_row_requires_label_and_envelope_profile` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_official_row_rejects_invented_label_or_url` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_official_row_rejects_invented_label_or_url` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_feature_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_feature_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_application_loader_rejects_locally_valid_rationale_change` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_application_loader_rejects_locally_valid_rationale_change` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._validate_result_envelope`.
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._validate_result_envelope`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._validate_result_envelope`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `_validate_result_envelope`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_validate_result_envelope`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_validate_result_envelope`.
 
 **Complete source-ordered implementation**
 
@@ -4157,18 +3900,18 @@ Validate one coded-result envelope without rebuilding factual sources.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -4177,33 +3920,12 @@ Validate one coded-result envelope without rebuilding factual sources.
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `validate_planning_feature_code_result_envelope`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result_envelope,
 )`.
-- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `module.validate_planning_feature_code_result_envelope`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `module.validate_planning_feature_code_result_envelope`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `module.validate_planning_feature_code_result_envelope`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `validate_planning_feature_code_result_envelope`.
 
 **Complete source-ordered implementation**
 
@@ -4251,23 +3973,18 @@ Private `planning` helper for compare frame; its complete implementation below i
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_compare_frame`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_compare_frame`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_compare_frame`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_compare_frame`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_compare_frame`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_compare_frame`.
+- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_compare_frame`.
 
 **Complete source-ordered implementation**
 
@@ -4316,18 +4033,18 @@ Rebuild and validate a coded result from every factual source input.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -4336,22 +4053,24 @@ Rebuild and validate a coded result from every factual source input.
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `validate_planning_feature_code_result`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
     validate_planning_feature_code_result,
 )`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `module.validate_planning_feature_code_result`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.validate_planning_feature_code_result`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.validate_planning_feature_code_result`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     validate_planning_feature_code_result as _public_validate_planning_feature_code_result,
 )`.
+- direct call: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_3_1_output_integrates_with_public_coding_api` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `_public_validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_parquet_readback_preserves_source_hash_envelope` via `_public_validate_planning_feature_code_result`.
+- function object argument: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_public_api_signatures_remain_source_complete` via `inspect.signature(_public_validate_planning_feature_code_result)`.
 
 **Complete source-ordered implementation**
 
@@ -4460,18 +4179,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
     PlanningFeatureCodeResult,
@@ -4480,70 +4199,44 @@ result
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `resolve_planning_feature_codes`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     load_cnig_feature_code_profile,
     resolve_planning_feature_codes,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_exact_family_pair_resolution_and_leading_zeros` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.resolve_planning_feature_codes`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `resolve_planning_feature_codes`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
     resolve_planning_feature_codes as _public_resolve_planning_feature_codes,
 )`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_3_1_output_integrates_with_public_coding_api` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coded_result_persists_all_source_input_hashes` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_binding_hashes_bind_every_component_hash` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coding_api_rejects_relation_set_not_rebuilt_from_geometry` via `_public_resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_parquet_readback_preserves_source_hash_envelope` via `_public_resolve_planning_feature_codes`.
+- function object argument: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_public_api_signatures_remain_source_complete` via `inspect.signature(_public_resolve_planning_feature_codes)`.
 
 **Complete source-ordered implementation**
 
@@ -4656,11 +4349,11 @@ CODE_DICTIONARY_SCHEMA_SIGNATURE: dict[str, object] = {
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `columns` | ['feature_family', 'type_code', 'subtype_code', 'official_label', 'legal_reference', 'regulation_or_annex_reference', 'official_source_url', 'profile', 'profile_sha256', 'standard_model'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `dtypes` | ['str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `columns` | ['feature_family', 'type_code', 'subtype_code', 'official_label', 'legal_reference', 'regulation_or_annex_reference', 'official_source_url', 'profile', 'profile_sha256', 'standard_model'] | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `dtypes` | ['str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'str'] | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `index_class` | pandas.Index | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `index_names` | [None] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `index_level_dtypes` | ['int64'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `index_names` | [None] | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `index_level_dtypes` | ['int64'] | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
@@ -4671,13 +4364,13 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `CnigFeatureCodeProfile` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `PlanningFeatureCodeError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `PlanningFeatureCodeResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `load_cnig_feature_code_profile` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `resolve_planning_feature_codes` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `validate_planning_feature_code_result` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
-| `validate_planning_feature_code_result_envelope` | re-exported/defined Python symbol | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `CnigFeatureCodeProfile` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `PlanningFeatureCodeError` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `PlanningFeatureCodeResult` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `load_cnig_feature_code_profile` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `resolve_planning_feature_codes` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `validate_planning_feature_code_result` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
+| `validate_planning_feature_code_result_envelope` | public symbol defined in this module | `defined in `src/landscout/stages/resolve_planning_feature_codes.py`` | yes |
 
 ## 9. Error handling
 

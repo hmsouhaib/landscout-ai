@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/filter_parcels.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: filter/screening stage
 - Domain: cadastre
 - Responsibility: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
 - Source SHA256: `aa2071fc0df4ae843ded9df394df0b9d2f151d84eb5ac6edee1a41c3d6e2f439`
@@ -15,7 +15,7 @@ Applies configured factual parcel-area bounds and records explicit keep/reject f
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **filter/screening stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -46,7 +46,7 @@ AREA_REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` (value reference).
 
 #### `SHAPE_REQUIRED_COLUMNS`
 
@@ -56,7 +56,7 @@ SHAPE_REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` (value reference).
 
 #### `ALLOWED_SHAPE_STATUSES`
 
@@ -64,7 +64,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 ALLOWED_SHAPE_STATUSES = frozenset({"VALID", "ERROR"})
 ```
 
-Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -96,46 +96,46 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
     ParcelFilterError,
     filter_parcels_by_area,
     filter_parcels_by_shape,
 )`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_spatial_frame` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_missing_columns` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_exact_parcel_ids` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_partition` via `ParcelFilterError`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `ParcelFilterError`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='null')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='unique')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `pytest.raises(ParcelFilterError, match='strict positive finite numeric')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `pytest.raises(ParcelFilterError, match='exact non-empty strings')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `pytest.raises(ParcelFilterError, match='geometry|CRS')`.
-- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `pytest.raises(ParcelFilterError, match='geometry_status')`.
-- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `pytest.raises(ParcelFilterError, match='Missing required shape columns')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must not be null')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must be unique')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `pytest.raises(ParcelFilterError, match='known CRS')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `pytest.raises(ParcelFilterError, match='Unexpected shape_status')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `pytest.raises(ParcelFilterError, match='numeric and finite')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `pytest.raises(ParcelFilterError, match='width_m must be (numeric and finite|greater than zero)')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be (numeric and finite|at least one)')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be at least one')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `pytest.raises(ParcelFilterError, match='complete|must not be null')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `pytest.raises(ParcelFilterError, match='complete')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
-- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `pytest.raises(ParcelFilterError, match='CRS')`.
-- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
+- import: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
+- import: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
     ParcelFilterError,
     filter_parcels_by_shape,
 )`.
+- constructor call: `src/landscout/stages/filter_parcels.py::_validate_spatial_frame` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::_missing_columns` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::_validate_exact_parcel_ids` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::_validate_shape_partition` via `ParcelFilterError`.
+- constructor call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `ParcelFilterError`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='null')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='unique')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `pytest.raises(ParcelFilterError, match='strict positive finite numeric')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `pytest.raises(ParcelFilterError, match='exact non-empty strings')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `pytest.raises(ParcelFilterError, match='geometry|CRS')`.
+- expected exception type: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `pytest.raises(ParcelFilterError, match='geometry_status')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `pytest.raises(ParcelFilterError, match='Missing required shape columns')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must not be null')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must be unique')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `pytest.raises(ParcelFilterError, match='known CRS')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `pytest.raises(ParcelFilterError, match='Unexpected shape_status')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `pytest.raises(ParcelFilterError, match='numeric and finite')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `pytest.raises(ParcelFilterError, match='width_m must be (numeric and finite|greater than zero)')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be (numeric and finite|at least one)')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be at least one')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `pytest.raises(ParcelFilterError, match='complete|must not be null')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `pytest.raises(ParcelFilterError, match='complete')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
+- expected exception type: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `pytest.raises(ParcelFilterError, match='CRS')`.
 
 **Exact class source**
 
@@ -177,19 +177,19 @@ parcels
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_spatial_frame`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_spatial_frame`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_spatial_frame`.
+- direct call: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_spatial_frame`.
 
 **Complete source-ordered implementation**
 
@@ -249,19 +249,19 @@ required - set(parcels.columns)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_missing_columns`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_missing_columns`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_missing_columns`.
+- direct call: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_missing_columns`.
 
 **Complete source-ordered implementation**
 
@@ -307,19 +307,19 @@ Rejects malformed or inconsistent exact parcel ids; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_exact_parcel_ids`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_exact_parcel_ids`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_exact_parcel_ids`.
+- direct call: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_exact_parcel_ids`.
 
 **Complete source-ordered implementation**
 
@@ -370,19 +370,19 @@ isinstance(value, Real) and (not isinstance(value, bool)) and isfinite(float(val
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_is_strict_finite_number`.
-- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_is_strict_finite_number`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_is_strict_finite_number`.
+- direct call: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_is_strict_finite_number`.
 
 **Complete source-ordered implementation**
 
@@ -433,39 +433,39 @@ Partitions normalized parcels into candidates and rejected rows using configured
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `parcels['area_m2'].between`, `parcels['area_m2'].notna`, `parcels['geometry_status'].tolist`, `rejected['area_m2'].notna`, `validate_cadastre_geometry_statuses`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] < area_config.min_area_m2), 'rejection_reason']`, `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] > area_config.max_area_m2), 'rejection_reason']`, `rejected.loc[~rejected_valid_geometry, 'rejection_reason']`, `rejected['rejection_reason']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
     ParcelFilterError,
     filter_parcels_by_area,
     filter_parcels_by_shape,
 )`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_minimum_boundary_is_included` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_maximum_boundary_is_included` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_rejected_parcel_has_expected_reason` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_no_parcel_disappears` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_candidate_and_rejected_ids_do_not_overlap` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_exact_parcel_ids_are_preserved` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `filter_parcels_by_area`.
-- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `filter_parcels_by_area`.
-- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
+- import: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_minimum_boundary_is_included` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_maximum_boundary_is_included` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_rejected_parcel_has_expected_reason` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_no_parcel_disappears` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_candidate_and_rejected_ids_do_not_overlap` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_exact_parcel_ids_are_preserved` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `filter_parcels_by_area`.
+- direct call: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `filter_parcels_by_area`.
 
 **Complete source-ordered implementation**
 
@@ -569,18 +569,18 @@ Rejects malformed or inconsistent shape filter input; exact branches, calls, and
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_filter_input`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_filter_input`.
 
 **Complete source-ordered implementation**
 
@@ -660,18 +660,18 @@ Rejects malformed or inconsistent shape partition; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_partition`.
+- direct call: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_partition`.
 
 **Complete source-ordered implementation**
 
@@ -732,49 +732,49 @@ Partition shape-enriched parcels using an explicit screening policy.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_validate_shape_filter_input`, `_validate_shape_partition`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['shape_policy_max_ratio']`, `output['shape_policy_min_width_m']`, `output['shape_policy_version']`, `rejected.loc[rejected_valid & (rejected_width < min_width_m), 'shape_rejection_reason']`, `rejected.loc[~rejected_valid, 'shape_rejection_reason']`, `rejected['shape_rejection_reason']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
     ParcelFilterError,
     filter_parcels_by_area,
     filter_parcels_by_shape,
 )`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_exact_width_and_ratio_boundaries_are_retained` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_rejected_parcel_has_expected_primary_reason` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_rejection_reason_precedence_is_deterministic` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_error_precedence_does_not_inspect_metrics` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_enabled_outputs_record_active_policy_metadata` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_enabled_partition_preserves_exact_ids_and_crs` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_filter_does_not_mutate_input` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `filter_parcels_by_shape`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `filter_parcels_by_shape`.
-- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
+- import: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
     ParcelFilterError,
     filter_parcels_by_shape,
 )`.
+- direct call: `tests/unit/test_filter_shape.py::test_exact_width_and_ratio_boundaries_are_retained` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_rejected_parcel_has_expected_primary_reason` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_rejection_reason_precedence_is_deterministic` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_shape_error_precedence_does_not_inspect_metrics` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_enabled_outputs_record_active_policy_metadata` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_enabled_partition_preserves_exact_ids_and_crs` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_filter_does_not_mutate_input` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `filter_parcels_by_shape`.
+- direct call: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `filter_parcels_by_shape`.
 
 **Complete source-ordered implementation**
 
@@ -897,7 +897,7 @@ SHAPE_REQUIRED_COLUMNS = frozenset(
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 2 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 | 4 | `shape_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 5 | `width_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |

@@ -68,7 +68,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 ROAD_LAYER = "troncon_de_route"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value reference), `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` (value reference), `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value reference), `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` (value reference).
 
 #### `ALTERNATE_ROAD_LAYER`
 
@@ -76,7 +76,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ALTERNATE_ROAD_LAYER = "voie_secondaire"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` (value reference).
 
 #### `ARCHIVE_SHA256`
 
@@ -84,7 +84,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ARCHIVE_SHA256 = "a" * 64
 ```
 
-Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_road_proximity_coverage.py::_archive` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value reference), `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value reference).
 
 #### `SOURCE_URL`
 
@@ -92,7 +92,7 @@ Hash identity, algorithm, or canonical-content field used by the named integrity
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value reference), `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value reference).
 
 #### `_FIXTURE_ROOT`
 
@@ -100,7 +100,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-road-ign-"))
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value reference).
 
 #### `SOURCE_CONFIG`
 
@@ -108,7 +108,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SOURCE_CONFIG = load_ign_bdtopo_source_config()
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` (value reference), `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` (value reference), `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value reference), `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` (value reference), `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` (value reference), `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` (value reference), `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` (value reference), `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` (value reference), `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` (value reference), `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` (value reference), `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` (value reference), `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` (value reference).
 
 #### `OUTPUT_COLUMNS`
 
@@ -161,7 +161,7 @@ OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` (value reference).
 
 #### `RAW_FIELD_MAPPING`
 
@@ -199,7 +199,7 @@ RAW_FIELD_MAPPING = (
 )
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately.
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -254,29 +254,29 @@ gpd.GeoDataFrame(values, geometry=source_geometries, crs=crs, index=source_index
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `_road_frame`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::_source` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::_with_alternate_road_layer` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `_road_frame`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `_road_frame`.
 
 **Complete source-ordered implementation**
 
@@ -367,29 +367,19 @@ IgnBdTopoLayerSummary(logical_name='road_segments', source_layer_name=layer, crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
+- direct call: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
 
 **Complete source-ordered implementation**
 
@@ -453,63 +443,45 @@ IgnBdTopoRoadData(extraction=extraction, road_segments=road_frame, road_segments
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownload`.
+- Network I/O: none.
 - Filesystem read: `geopackage_path.read_bytes`, `gpd.read_file`.
 - Filesystem write: `(extraction_path / '.landscout-extraction.json').write_text`, `extraction_path.mkdir`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `_source`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_enrich` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_parcel_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_source_config_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_policy_path_type_has_controlled_error` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_failure_stops_proximity` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_malformed_policy_stops_before_application` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_wrong_application_result_type_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `_source`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `_source`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_source`.
 
 **Complete source-ordered implementation**
 
@@ -635,18 +607,18 @@ Private `test` helper for with alternate road layer; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `geopackage_path.read_bytes`, `marker_path.read_text`.
 - Filesystem write: `marker_path.write_text`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `alternate_config_payload['access']['road_segments']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `alternate_config_payload['access']['road_segments']`, `marker`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `_with_alternate_road_layer`.
+- direct call: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `_with_alternate_road_layer`.
 
 **Complete source-ordered implementation**
 
@@ -704,7 +676,7 @@ def _with_alternate_road_layer(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road normalization reproduces configured logical layer`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -734,7 +706,7 @@ with pytest.raises(IgnRoadNormalizationError, match="source|configured|physical"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road normalization reproduces configured logical layer`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -758,7 +730,7 @@ def test_road_normalization_reproduces_configured_logical_layer() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public api exports only stable road normalization symbols`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -793,7 +765,7 @@ assert not hasattr(stages, "_validate_road_source")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public api exports only stable road normalization symbols` through the exact asserted conditions: `set(access_normalization.__all__) == expected`; `expected <= set(stages.__all__)`; `all((hasattr(stages, name) for name in expected))`; `not hasattr(stages, '_validate_road_source')`.
 
 **Test boundary**
 
@@ -820,7 +792,7 @@ def test_public_api_exports_only_stable_road_normalization_symbols() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid linestring normalization has exact schema identity and lineage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -905,7 +877,7 @@ def test_valid_linestring_normalization_has_exact_schema_identity_and_lineage() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid multilinestring is preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -938,7 +910,7 @@ assert roads.geometry.iloc[0].geom_type == "MultiLineString"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid multilinestring is preserved` through the exact asserted conditions: `roads.iloc[0]['geometry_status'] == 'VALID'`; `roads.geometry.iloc[0].equals_exact(geometry, tolerance=0)`; `roads.geometry.iloc[0].geom_type == 'MultiLineString'`.
 
 **Test boundary**
 
@@ -965,7 +937,7 @@ def test_valid_multilinestring_is_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `z coordinates are preserved exactly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -995,7 +967,7 @@ assert roads.geometry.iloc[0].wkb == geometry.wkb
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `z coordinates are preserved exactly` through the exact asserted conditions: `roads.geometry.iloc[0].has_z`; `roads.geometry.iloc[0].wkb == geometry.wkb`.
 
 **Test boundary**
 
@@ -1019,7 +991,7 @@ def test_z_coordinates_are_preserved_exactly() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `row count order geometry and range index are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1063,7 +1035,7 @@ assert roads.geometry.to_wkb().tolist() == [value.wkb for value in geometries]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `row count order geometry and range index are preserved` through the exact asserted conditions: `len(roads) == 2`; `roads['source_feature_id'].tolist() == ['SECOND', 'FIRST']`; `roads['road_feature_id'].tolist() == ['IGN_BDTOPO:ROAD_SEGMENT:SECOND', 'IGN_BDTOPO:ROAD_SEGMENT:FIRST']`; `isinstance(roads.index, pd.RangeIndex)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1101,7 +1073,7 @@ def test_row_count_order_geometry_and_range_index_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `raw access and restriction values are copied without interpretation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1137,7 +1109,7 @@ assert pd.isna(row["restriction_nature_raw"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `raw access and restriction values are copied without interpretation` through the exact asserted conditions: `row['importance_raw'] == '00'`; `row['private_raw'] == 'Valeur IGN non interprétée'`; `row['light_vehicle_access_raw'] == 'Inconnu'`; `row['restriction_total_weight_raw'] == 19.75`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1167,7 +1139,7 @@ def test_raw_access_and_restriction_values_are_copied_without_interpretation() -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every raw field preserves source values nulls and dtype`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1228,7 +1200,7 @@ def test_every_raw_field_preserves_source_values_nulls_and_dtype() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing required source field is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1280,7 +1252,7 @@ def test_missing_required_source_field_is_rejected(column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null or empty cleabs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1330,7 +1302,7 @@ def test_null_or_empty_cleabs_is_rejected(identifier: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe cleabs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1360,7 +1332,7 @@ with pytest.raises(IgnRoadNormalizationError, match="cleabs"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsafe cleabs is rejected`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1380,7 +1352,7 @@ def test_unsafe_cleabs_is_rejected(identifier: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate cleabs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1411,7 +1383,7 @@ with pytest.raises(IgnRoadNormalizationError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate cleabs is rejected`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1434,7 +1406,7 @@ def test_duplicate_cleabs_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong or missing road crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1480,7 +1452,7 @@ def test_wrong_or_missing_road_crs_is_rejected(crs: str | None) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong archive identity is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1510,7 +1482,7 @@ with pytest.raises(IgnRoadNormalizationError, match=message):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong archive identity is rejected`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1536,7 +1508,7 @@ def test_wrong_archive_identity_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong source spatial role is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1624,7 +1596,7 @@ def test_wrong_source_spatial_role_is_rejected(component: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `summary row count mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1655,7 +1627,7 @@ with pytest.raises(IgnRoadNormalizationError, match="row count"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `summary row count mismatch is rejected`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1678,7 +1650,7 @@ def test_summary_row_count_mismatch_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road summary requires strict structural types`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1734,7 +1706,7 @@ def test_road_summary_requires_strict_structural_types(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road archive sha256 requires canonical lowercase`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1766,7 +1738,7 @@ with pytest.raises(IgnRoadNormalizationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road archive sha256 requires canonical lowercase`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1790,7 +1762,7 @@ def test_road_archive_sha256_requires_canonical_lowercase(value: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `summary crs mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1844,7 +1816,7 @@ def test_summary_crs_mismatch_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `forged ordered summary schema is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1918,7 +1890,7 @@ def test_forged_ordered_summary_schema_is_rejected(mutation: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road source rejects physical role collision`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1958,7 +1930,7 @@ with pytest.raises(IgnRoadNormalizationError, match="same layer|distinct|role"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road source rejects physical role collision`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1989,7 +1961,7 @@ def test_road_source_rejects_physical_role_collision(role: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `road source rejects duplicate layer inventory`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2021,7 +1993,7 @@ with pytest.raises(IgnRoadNormalizationError, match="inventory|duplicate"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `road source rejects duplicate layer inventory`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2045,7 +2017,7 @@ def test_road_source_rejects_duplicate_layer_inventory() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `summary geometry facts mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2102,7 +2074,7 @@ def test_summary_geometry_facts_mismatch_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `summary layer must exist in extraction inventory`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2131,7 +2103,7 @@ with pytest.raises(IgnRoadNormalizationError, match="layer inventory"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `summary layer must exist in extraction inventory`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2152,7 +2124,7 @@ def test_summary_layer_must_exist_in_extraction_inventory() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `summary layer and logical name must be exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2191,7 +2163,7 @@ with pytest.raises(IgnRoadNormalizationError, match="logical name"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `summary layer and logical name must be exact`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2222,7 +2194,7 @@ def test_summary_layer_and_logical_name_must_be_exact() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid unsupported geometry type is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2250,7 +2222,7 @@ with pytest.raises(IgnRoadNormalizationError, match="geometry types"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid unsupported geometry type is rejected`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2268,7 +2240,7 @@ def test_valid_unsupported_geometry_type_is_rejected(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null empty and invalid geometry are preserved with status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2330,7 +2302,7 @@ def test_null_empty_and_invalid_geometry_are_preserved_with_status() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalization does not mutate input`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2359,7 +2331,7 @@ normalize_ign_roads(source, SOURCE_CONFIG)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `normalization does not mutate input` by requiring the reproduced call path `_source`, `deepcopy`, `normalize_ign_roads`, `assert_geodataframe_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -2381,7 +2353,7 @@ def test_normalization_does_not_mutate_input() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects coordinated road frame and summary forgery`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2419,7 +2391,7 @@ with pytest.raises(IgnRoadNormalizationError, match="physical|fresh|source"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects coordinated road frame and summary forgery`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2449,7 +2421,7 @@ def test_high_level_rejects_coordinated_road_frame_and_summary_forgery() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed public input has controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2477,7 +2449,7 @@ with pytest.raises(IgnRoadNormalizationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed public input has controlled error`: the reproduced adversarial input must raise `IgnRoadNormalizationError` before the prohibited success path.
 
 **Test boundary**
 

@@ -85,7 +85,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 OVERFLOWING_INTEGER = 10**10000
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below.
 
 #### `SOURCE_CONFIG`
 
@@ -93,7 +93,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SOURCE_CONFIG = load_ign_bdtopo_source_config()
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` (value reference), `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -148,22 +148,19 @@ Private `test` helper for geometry status; its complete implementation below is 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_lines` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_posts` via `_geometry_status`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_lines` via `_geometry_status`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_posts` via `_geometry_status`.
 
 **Complete source-ordered implementation**
 
@@ -215,117 +212,57 @@ gpd.GeoDataFrame({'parcel_id': ids, 'source_value': list(range(count))}, geometr
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_proximity` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_parcels`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_parcels`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -392,57 +329,54 @@ gpd.GeoDataFrame({'grid_feature_id': ids, 'grid_feature_type': feature_types or 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_status`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `_lines`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_lines`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_lines`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_lines`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_lines`.
 
 **Complete source-ordered implementation**
 
@@ -529,56 +463,53 @@ gpd.GeoDataFrame({'grid_feature_id': ids, 'grid_feature_type': feature_types or 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_status`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_electricity_source` via `_posts`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_posts`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_posts`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_electricity_source` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_posts`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_posts`.
 
 **Complete source-ordered implementation**
 
@@ -652,23 +583,20 @@ IgnBdTopoElectricityData(extraction=cast(Any, None), electric_lines=lines if lin
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_electricity_source`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_electricity_source`.
-- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_electricity_source`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_electricity_source`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_electricity_source`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_electricity_source`.
 
 **Complete source-ordered implementation**
 
@@ -720,18 +648,18 @@ gpd.GeoDataFrame({'cleabs': [identifier], 'voltage': ['225 kV'], 'gestionnaire':
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_line_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_line_source`.
 
 **Complete source-ordered implementation**
 
@@ -794,18 +722,18 @@ gpd.GeoDataFrame({'cleabs': [identifier], 'toponyme': ['Test post'], 'statut_du_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_post_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_post_source`.
 
 **Complete source-ordered implementation**
 
@@ -870,18 +798,18 @@ IgnBdTopoLayerSummary(logical_name=cast(Any, logical_name), source_layer_name=la
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_summary`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_physical_electricity_source` via `_physical_summary`.
 
 **Complete source-ordered implementation**
 
@@ -952,19 +880,19 @@ IgnBdTopoElectricityData(extraction=extraction, electric_lines=selected_lines, t
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownload`.
+- Network I/O: none.
 - Filesystem read: `geopackage_path.read_bytes`, `gpd.read_file`.
 - Filesystem write: `(extraction_path / '.landscout-extraction.json').write_text`, `extraction_path.mkdir`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_alternate_role_electricity_source` via `_physical_electricity_source`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_configured_role_electricity_source` via `_physical_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_alternate_role_electricity_source` via `_physical_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::_configured_role_electricity_source` via `_physical_electricity_source`.
 
 **Complete source-ordered implementation**
 
@@ -1150,18 +1078,18 @@ _physical_electricity_source(tmp_path, alternate_roles=True)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_alternate_role_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_alternate_role_electricity_source`.
 
 **Complete source-ordered implementation**
 
@@ -1205,18 +1133,18 @@ _physical_electricity_source(tmp_path, alternate_roles=False)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_configured_role_electricity_source`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_configured_role_electricity_source`.
 
 **Complete source-ordered implementation**
 
@@ -1258,39 +1186,39 @@ enrich_parcel_grid_proximity(parcels, lines, _posts())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_voltage_table_is_exact_ordered_cartesian_product` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_voltage_cartesian_row` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_duplicate_parcel_voltage_pair` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_voltage_rows_out_of_parcel_order` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_required_proximity_column` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nondeterministic_or_duplicate_coverage` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `_two_parcel_two_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_voltage_table_is_exact_ordered_cartesian_product` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_voltage_cartesian_row` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_duplicate_parcel_voltage_pair` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_voltage_rows_out_of_parcel_order` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_required_proximity_column` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nondeterministic_or_duplicate_coverage` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `_two_parcel_two_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `_two_parcel_two_voltage_result`.
 
 **Complete source-ordered implementation**
 
@@ -1350,27 +1278,27 @@ replace(result, parcels=parcels)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `parcels.at[0, column]`, `parcels[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `_mutate_parcel_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `_mutate_parcel_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_mutate_parcel_result`.
 
 **Complete source-ordered implementation**
 
@@ -1421,22 +1349,22 @@ replace(result, voltage_level_proximity=table)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `table.at[0, column]`, `table[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `_mutate_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `_mutate_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `_mutate_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `_mutate_voltage_result`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `_mutate_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `_mutate_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `_mutate_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `_mutate_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `_mutate_voltage_result`.
+- direct call: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `_mutate_voltage_result`.
 
 **Complete source-ordered implementation**
 
@@ -1460,7 +1388,7 @@ def _mutate_voltage_result(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `clean high level api is exported`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1493,7 +1421,7 @@ assert "profile_grid_proximity" in stages.__all__
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `clean high level api is exported` through the exact asserted conditions: `stages.enrich_parcel_grid_proximity is public_enrich_parcel_grid_proximity`; `stages.profile_grid_proximity is profile_grid_proximity`; `'enrich_parcel_grid_proximity' in stages.__all__`; `'profile_grid_proximity' in stages.__all__`.
 
 **Test boundary**
 
@@ -1516,7 +1444,7 @@ def test_clean_high_level_api_is_exported() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public proximity normalizes verified source exactly once`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1556,7 +1484,7 @@ assert result.parcels.loc[0, "nearest_post_grid_feature_id"] == "POST-1"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `public proximity normalizes verified source exactly once` through the exact asserted conditions: `result.parcels.loc[0, 'nearest_line_grid_feature_id'] == 'LINE-1'`; `result.parcels.loc[0, 'nearest_post_grid_feature_id'] == 'POST-1'`.
 
 **Test boundary**
 
@@ -1590,7 +1518,7 @@ def test_public_proximity_normalizes_verified_source_exactly_once() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public proximity rejects wrong source boundary types`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1627,7 +1555,7 @@ with patch(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `public proximity rejects wrong source boundary types`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1659,7 +1587,7 @@ def test_public_proximity_rejects_wrong_source_boundary_types(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `caller crafted normalized grid frame is not a public source`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1705,7 +1633,7 @@ with patch(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `caller crafted normalized grid frame is not a public source`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1745,7 +1673,7 @@ def test_caller_crafted_normalized_grid_frame_is_not_a_public_source() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public proximity reproduces configured electricity roles`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1778,7 +1706,7 @@ with pytest.raises(GridProximityError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `public proximity reproduces configured electricity roles`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1805,7 +1733,7 @@ def test_public_proximity_reproduces_configured_electricity_roles(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public proximity rejects archive lineage differing from config`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1876,7 +1804,7 @@ def test_public_proximity_rejects_archive_lineage_differing_from_config(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source normalization failure stops grid computation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1911,7 +1839,7 @@ with patch(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `source normalization failure stops grid computation`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1939,7 +1867,7 @@ def test_source_normalization_failure_stops_grid_computation() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `separated distance uses parcel edge not centroid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1971,7 +1899,7 @@ assert result.parcels.loc[0, "nearest_post_proxy_distance_m"] == pytest.approx(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `separated distance uses parcel edge not centroid` through the exact asserted conditions: `result.parcels.loc[0, 'nearest_line_proxy_distance_m'] == pytest.approx(100.0)`; `result.parcels.loc[0, 'nearest_post_proxy_distance_m'] == pytest.approx(100.0)`.
 
 **Test boundary**
 
@@ -1995,7 +1923,7 @@ def test_separated_distance_uses_parcel_edge_not_centroid() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `touching line has zero distance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2022,7 +1950,7 @@ assert result.parcels.loc[0, "nearest_line_proxy_distance_m"] == 0.0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `touching line has zero distance` through the exact asserted conditions: `result.parcels.loc[0, 'nearest_line_proxy_distance_m'] == 0.0`.
 
 **Test boundary**
 
@@ -2043,7 +1971,7 @@ def test_touching_line_has_zero_distance() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `post distance uses parcel and post polygons`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2074,7 +2002,7 @@ assert result.parcels.loc[0, "nearest_post_proxy_distance_m"] == pytest.approx(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `post distance uses parcel and post polygons` through the exact asserted conditions: `result.parcels.loc[0, 'nearest_post_proxy_distance_m'] == pytest.approx(50.0)`.
 
 **Test boundary**
 
@@ -2099,7 +2027,7 @@ def test_post_distance_uses_parcel_and_post_polygons() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `epsg4326 input is calculated in lambert93 and preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2163,7 +2091,7 @@ def test_epsg4326_input_is_calculated_in_lambert93_and_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `epsg2154 parcel input remains epsg2154`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2211,7 +2139,7 @@ def test_epsg2154_parcel_input_remains_epsg2154() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid parcel id is preserved exactly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2240,7 +2168,7 @@ assert result.parcels["parcel_id"].tolist() == ["FR-31-VALID-ID"]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid parcel id is preserved exactly` through the exact asserted conditions: `result.parcels['parcel_id'].tolist() == ['FR-31-VALID-ID']`.
 
 **Test boundary**
 
@@ -2261,7 +2189,7 @@ def test_valid_parcel_id_is_preserved_exactly() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid parcel id hygiene is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2291,7 +2219,7 @@ with pytest.raises(GridProximityError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid parcel id hygiene is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2311,7 +2239,7 @@ def test_invalid_parcel_id_hygiene_is_rejected(identifier: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `supported parcel polygon geometry is preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2339,7 +2267,7 @@ assert result.parcels.geometry.iloc[0].has_z == geometry.has_z
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `supported parcel polygon geometry is preserved` through the exact asserted conditions: `result.parcels.geometry.iloc[0].equals_exact(geometry, tolerance=0)`; `result.parcels.geometry.iloc[0].has_z == geometry.has_z`.
 
 **Test boundary**
 
@@ -2359,7 +2287,7 @@ def test_supported_parcel_polygon_geometry_is_preserved(geometry: object) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `semantically wrong parcel geometry is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2387,7 +2315,7 @@ with pytest.raises(GridProximityError, match="Polygon|MultiPolygon"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `semantically wrong parcel geometry is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2405,7 +2333,7 @@ def test_semantically_wrong_parcel_geometry_is_rejected(geometry: object) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2457,7 +2385,7 @@ def test_missing_crs_is_rejected(kind: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong grid crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2507,7 +2435,7 @@ def test_wrong_grid_crs_is_rejected(kind: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `z line has same horizontal distance as xy line`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2539,7 +2467,7 @@ assert xyz_result.parcels.loc[
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `z line has same horizontal distance as xy line` through the exact asserted conditions: `xyz.geometry.iloc[0].has_z`; `xyz_result.parcels.loc[0, 'nearest_line_proxy_distance_m'] == pytest.approx(xy_result.parcels.loc[0, 'nearest_line_proxy_distance_m'])`.
 
 **Test boundary**
 
@@ -2565,7 +2493,7 @@ def test_z_line_has_same_horizontal_distance_as_xy_line() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line tie is counted and lexical feature id wins`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2611,7 +2539,7 @@ assert len(result.parcels) == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `line tie is counted and lexical feature id wins` through the exact asserted conditions: `row['nearest_line_proxy_distance_m'] == pytest.approx(100.0)`; `row['nearest_line_tie_count'] == 2`; `row['nearest_line_grid_feature_id'] == 'A-LINE'`; `row['nearest_exact_line_tie_count'] == 2`; plus 4 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2651,7 +2579,7 @@ def test_line_tie_is_counted_and_lexical_feature_id_wins() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cross voltage tie uses lexical global feature id`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2696,7 +2624,7 @@ assert profile.nearest_exact_line.tie_count == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `cross voltage tie uses lexical global feature id` through the exact asserted conditions: `row['nearest_exact_line_proxy_distance_m'] == pytest.approx(100.0)`; `row['nearest_exact_line_grid_feature_id'] == 'A-LINE-275'`; `row['nearest_exact_line_voltage_kv'] == 275.0`; `row['nearest_exact_line_tie_count'] == 2`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2735,7 +2663,7 @@ def test_cross_voltage_tie_uses_lexical_global_feature_id() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `nonvalid grid geometries are excluded without row loss`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2797,7 +2725,7 @@ def test_nonvalid_grid_geometries_are_excluded_without_row_loss() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong grid feature type is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2826,7 +2754,7 @@ with pytest.raises(GridProximityError, match="grid_feature_type"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong grid feature type is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2847,7 +2775,7 @@ def test_wrong_grid_feature_type_is_rejected(kind: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate grid feature id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2889,7 +2817,7 @@ with pytest.raises(GridProximityError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate grid feature id is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2923,7 +2851,7 @@ def test_duplicate_grid_feature_id_is_rejected(kind: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong spatial role is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2952,7 +2880,7 @@ with pytest.raises(GridProximityError, match="PROXY_GEOMETRY"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong spatial role is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2973,7 +2901,7 @@ def test_wrong_spatial_role_is_rejected(kind: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported valid grid geometry type is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3002,7 +2930,7 @@ with pytest.raises(GridProximityError, match="geometry types"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported valid grid geometry type is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3025,7 +2953,7 @@ def test_unsupported_valid_grid_geometry_type_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `supported multi geometries are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3065,7 +2993,7 @@ assert len(result.parcels) == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `supported multi geometries are accepted` through the exact asserted conditions: `len(result.parcels) == 1`.
 
 **Test boundary**
 
@@ -3099,7 +3027,7 @@ def test_supported_multi_geometries_are_accepted() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `nearest any line preserves every voltage status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3127,7 +3055,7 @@ assert result.parcels.loc[0, "nearest_line_voltage_status"] == status
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `nearest any line preserves every voltage status` through the exact asserted conditions: `result.parcels.loc[0, 'nearest_line_voltage_status'] == status`.
 
 **Test boundary**
 
@@ -3149,7 +3077,7 @@ def test_nearest_any_line_preserves_every_voltage_status(status: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `nearest exact and voltage table exclude nonexact lines`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3193,7 +3121,7 @@ assert list(result.voltage_level_proximity.columns) == list(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `nearest exact and voltage table exclude nonexact lines` through the exact asserted conditions: `row['nearest_line_grid_feature_id'] == 'BELOW'`; `row['nearest_exact_line_grid_feature_id'] == 'EXACT-110'`; `row['nearest_exact_line_voltage_kv'] == 110.0`; `result.voltage_level_proximity['voltage_kv'].tolist() == [110.0, 275.0]`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -3231,7 +3159,7 @@ def test_nearest_exact_and_voltage_table_exclude_nonexact_lines() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `voltage table is exact ordered cartesian product`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3270,7 +3198,7 @@ assert not result.voltage_level_proximity.duplicated(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `voltage table is exact ordered cartesian product` through the exact asserted conditions: `tuple((item.voltage_kv for item in result.voltage_level_coverage)) == (110.0, 275.0)`; `len(result.voltage_level_proximity) == 4`; `not result.voltage_level_proximity.duplicated(['parcel_id', 'voltage_kv']).any()`; `rows['parcel_id'].tolist() == ['PARCEL-2', 'PARCEL-1']`.
 
 **Test boundary**
 
@@ -3301,7 +3229,7 @@ def test_voltage_table_is_exact_ordered_cartesian_product() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid exact voltage values are not used as exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3334,7 +3262,7 @@ assert result.voltage_level_proximity.empty
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `invalid exact voltage values are not used as exact` through the exact asserted conditions: `result.parcels['nearest_exact_line_proxy_distance_m'].isna().all()`; `result.voltage_level_proximity.empty`.
 
 **Test boundary**
 
@@ -3361,7 +3289,7 @@ def test_invalid_exact_voltage_values_are_not_used_as_exact() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no exact voltage preserves parcels and returns empty long table`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3451,7 +3379,7 @@ def test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing parcel column is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3479,7 +3407,7 @@ with pytest.raises(GridProximityError, match=column):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing parcel column is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3499,7 +3427,7 @@ def test_missing_parcel_column_is_rejected(column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null parcel id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3549,7 +3477,7 @@ def test_null_parcel_id_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3583,7 +3511,7 @@ with pytest.raises(GridProximityError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3609,7 +3537,7 @@ def test_duplicate_parcel_id_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `bad parcel geometry is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3659,7 +3587,7 @@ def test_bad_parcel_geometry_is_rejected(geometry: object, message: str) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `inputs are not mutated and parcel order and ids are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3705,7 +3633,7 @@ assert isinstance(result.parcels.index, pd.RangeIndex)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `inputs are not mutated and parcel order and ids are preserved` through the exact asserted conditions: `result.parcels['parcel_id'].tolist() == ['SECOND-SPATIAL', 'FIRST-SPATIAL']`; `isinstance(result.parcels.index, pd.RangeIndex)`.
 
 **Test boundary**
 
@@ -3745,7 +3673,7 @@ def test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `distance profile is threshold free and tracks ties`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3794,7 +3722,7 @@ assert profile.voltage_levels[0].parcel_proximity_count == 2
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `distance profile is threshold free and tracks ties` through the exact asserted conditions: `profile.parcel_count == 2`; `profile.nearest_line.count == 2`; `profile.nearest_line.missing_count == 0`; `profile.nearest_line.minimum == pytest.approx(50.0)`; plus 6 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -3837,7 +3765,7 @@ def test_distance_profile_is_threshold_free_and_tracks_ties() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects missing voltage cartesian row`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3866,7 +3794,7 @@ with pytest.raises(GridProximityError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects missing voltage cartesian row`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3887,7 +3815,7 @@ def test_profile_rejects_missing_voltage_cartesian_row() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects unknown voltage parcel with same total count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3916,7 +3844,7 @@ with pytest.raises(GridProximityError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects unknown voltage parcel with same total count`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3937,7 +3865,7 @@ def test_profile_rejects_unknown_voltage_parcel_with_same_total_count() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects duplicate parcel voltage pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3967,7 +3895,7 @@ with pytest.raises(GridProximityError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects duplicate parcel voltage pair`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3989,7 +3917,7 @@ def test_profile_rejects_duplicate_parcel_voltage_pair() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects voltage rows out of parcel order`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4018,7 +3946,7 @@ with pytest.raises(GridProximityError, match="exact parcel set"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects voltage rows out of parcel order`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4039,7 +3967,7 @@ def test_profile_rejects_voltage_rows_out_of_parcel_order() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects inconsistent global exact distance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4073,7 +4001,7 @@ with pytest.raises(GridProximityError, match="exact-line distance"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects inconsistent global exact distance`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4099,7 +4027,7 @@ def test_profile_rejects_inconsistent_global_exact_distance() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects inconsistent global exact identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4127,7 +4055,7 @@ with pytest.raises(GridProximityError, match="inconsistent"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects inconsistent global exact identity`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4150,7 +4078,7 @@ def test_profile_rejects_inconsistent_global_exact_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects inconsistent global exact metadata`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4178,7 +4106,7 @@ with pytest.raises(GridProximityError, match="inconsistent"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects inconsistent global exact metadata`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4201,7 +4129,7 @@ def test_profile_rejects_inconsistent_global_exact_metadata(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects inconsistent global exact tie count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4231,7 +4159,7 @@ with pytest.raises(GridProximityError, match="tie count"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects inconsistent global exact tie count`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4253,7 +4181,7 @@ def test_profile_rejects_inconsistent_global_exact_tie_count() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad required match tie count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4281,7 +4209,7 @@ with pytest.raises(GridProximityError, match="tie_count|match"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad required match tie count`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4303,7 +4231,7 @@ def test_profile_rejects_bad_required_match_tie_count(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad long table tie count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4331,7 +4259,7 @@ with pytest.raises(GridProximityError, match="tie_count|match"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad long table tie count`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4351,7 +4279,7 @@ def test_profile_rejects_bad_long_table_tie_count(value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects missing main match feature id`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4379,7 +4307,7 @@ with pytest.raises(GridProximityError, match="require"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects missing main match feature id`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4399,7 +4327,7 @@ def test_profile_rejects_missing_main_match_feature_id(column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad required match distance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4427,7 +4355,7 @@ with pytest.raises(GridProximityError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad required match distance`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4449,7 +4377,7 @@ def test_profile_rejects_bad_required_match_distance(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad exact match voltage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4479,7 +4407,7 @@ with pytest.raises(GridProximityError, match="voltage|match"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad exact match voltage`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4501,7 +4429,7 @@ def test_profile_rejects_bad_exact_match_voltage(value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad result parcel id`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4529,7 +4457,7 @@ with pytest.raises(GridProximityError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad result parcel id`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4549,7 +4477,7 @@ def test_profile_rejects_bad_result_parcel_id() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects missing required proximity column`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4578,7 +4506,7 @@ with pytest.raises(GridProximityError, match="Missing proximity"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects missing required proximity column`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4599,7 +4527,7 @@ def test_profile_rejects_missing_required_proximity_column() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects nondeterministic or duplicate coverage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4631,7 +4559,7 @@ with pytest.raises(GridProximityError, match="coverage"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects nondeterministic or duplicate coverage`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4657,7 +4585,7 @@ def test_profile_rejects_nondeterministic_or_duplicate_coverage(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects invalid voltage coverage level`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4687,7 +4615,7 @@ with pytest.raises(GridProximityError, match="coverage"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects invalid voltage coverage level`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4710,7 +4638,7 @@ def test_profile_rejects_invalid_voltage_coverage_level(voltage_kv: object) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects invalid voltage coverage feature count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4740,7 +4668,7 @@ with pytest.raises(GridProximityError, match="line_feature_count"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects invalid voltage coverage feature count`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4765,7 +4693,7 @@ def test_profile_rejects_invalid_voltage_coverage_feature_count(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects invalid long table voltage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4793,7 +4721,7 @@ with pytest.raises(GridProximityError, match="Voltage proximity"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects invalid long table voltage`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4813,7 +4741,7 @@ def test_profile_rejects_invalid_long_table_voltage(value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects missing long table match lineage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4841,7 +4769,7 @@ with pytest.raises(GridProximityError, match="require"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects missing long table match lineage`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4861,7 +4789,7 @@ def test_profile_rejects_missing_long_table_match_lineage(column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects bad long table distance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4893,7 +4821,7 @@ with pytest.raises(GridProximityError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `profile rejects bad long table distance`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4917,7 +4845,7 @@ def test_profile_rejects_bad_long_table_distance(value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile allows consistent missing manager and asset status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4951,7 +4879,7 @@ assert result.voltage_level_proximity["asset_status_raw"].isna().all()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `profile allows consistent missing manager and asset status` through the exact asserted conditions: `profile.parcel_count == 1`; `result.parcels['nearest_exact_line_manager_name'].isna().all()`; `result.parcels['nearest_exact_line_asset_status_raw'].isna().all()`; `result.voltage_level_proximity['manager_name'].isna().all()`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -4979,7 +4907,7 @@ def test_profile_allows_consistent_missing_manager_and_asset_status() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile rejects nonnull exact field without exact coverage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5037,7 +4965,7 @@ def test_profile_rejects_nonnull_exact_field_without_exact_coverage(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no valid required grid feature is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5066,7 +4994,7 @@ with pytest.raises(GridProximityError, match="No VALID"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `no valid required grid feature is rejected`: the reproduced adversarial input must raise `GridProximityError` before the prohibited success path.
 
 **Test boundary**
 

@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/enrich_shape.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: processing stage
 - Domain: cadastre
 - Responsibility: Adds parcel shape metrics and diagnostics for valid cadastral geometries.
 - Source SHA256: `2cc39475e1c0e5d90ea0a4623c37a0448a4de6bd27bbc43995d1445c481b6b0f`
@@ -15,7 +15,7 @@ Adds parcel shape metrics and diagnostics for valid cadastral geometries.
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **processing stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -47,7 +47,7 @@ REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value reference).
 
 #### `DERIVED_METRIC_COLUMNS`
 
@@ -62,7 +62,7 @@ DERIVED_METRIC_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference), `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` (value argument/reference), `tests/unit/test_enrich_shape.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_enrich_shape.py::<module>` (import), `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value reference), `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` (value reference).
 
 #### `SUPPORTED_GEOMETRY_TYPES`
 
@@ -70,7 +70,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 SUPPORTED_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -102,20 +102,20 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes`.
-- direct call or construction: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `ShapeEnrichmentError`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `pytest.raises(ShapeEnrichmentError, match='CRS')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='null')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='unique')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `pytest.raises(ShapeEnrichmentError, match='exact non-empty strings')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `pytest.raises(ShapeEnrichmentError, match='strict positive finite numeric')`.
-- callback/function object: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `pytest.raises(ShapeEnrichmentError, match='geometry_status')`.
-- import/re-export: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.stages.enrich_shape import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes`.
+- import: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.stages.enrich_shape import (
     DERIVED_METRIC_COLUMNS,
     ShapeEnrichmentError,
     enrich_parcel_shapes,
 )`.
+- constructor call: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `ShapeEnrichmentError`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `pytest.raises(ShapeEnrichmentError, match='CRS')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='null')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ShapeEnrichmentError, match='unique')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `pytest.raises(ShapeEnrichmentError, match='exact non-empty strings')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `pytest.raises(ShapeEnrichmentError, match='strict positive finite numeric')`.
+- expected exception type: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `pytest.raises(ShapeEnrichmentError, match='geometry_status')`.
 
 **Exact class source**
 
@@ -164,39 +164,39 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `gpd.GeoSeries(projected_centroids, index=projected.index, crs=LAMBERT93).to_crs`, `output.geometry.geom_type.isin`, `output.geometry.isna`, `output.loc[measurable].to_crs`, `parcels['geometry_status'].tolist`, `projected.geometry.items`, `validate_cadastre_geometry_statuses`.
-- Hashing: `ShapeEnrichmentError`, `parcel_shape_metrics_m`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output.loc[index, 'shape_status']`, `output.loc[index, column]`, `output['shape_status']`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_square_metrics` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_rectangle_metrics` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_rotated_rectangle_metrics` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_elongated_parcel` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_output_geometry_remains_wgs84` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_exact_parcel_ids_are_preserved` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `enrich_parcel_shapes`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `enrich_parcel_shapes`.
-- import/re-export: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.stages.enrich_shape import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes`.
+- import: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.stages.enrich_shape import (
     DERIVED_METRIC_COLUMNS,
     ShapeEnrichmentError,
     enrich_parcel_shapes,
 )`.
+- direct call: `tests/unit/test_enrich_shape.py::test_square_metrics` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_rectangle_metrics` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_rotated_rectangle_metrics` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_elongated_parcel` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_output_geometry_remains_wgs84` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_exact_parcel_ids_are_preserved` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `enrich_parcel_shapes`.
+- direct call: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `enrich_parcel_shapes`.
 
 **Complete source-ordered implementation**
 
@@ -353,10 +353,10 @@ DERIVED_METRIC_COLUMNS = (
 |---:|---|---|---|---|---|
 | 1 | `length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 2 | `width_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 3 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `compactness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `centroid_lat` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `centroid_lon` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `compactness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `centroid_lat` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `centroid_lon` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.

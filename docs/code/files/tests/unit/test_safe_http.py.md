@@ -46,7 +46,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 PUBLIC_IPV4 = "93.184.216.34"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` (value reference), `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` (value reference), `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` (value reference), `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` (value reference), `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket.resolve` (value reference), `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` (value reference), `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` (value reference), `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` (value reference), `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` (value reference), `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` (value reference), `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` (value reference), `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` (value reference).
 
 #### `PUBLIC_IPV6`
 
@@ -86,17 +86,20 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `family` | `self.family = family  # assigned in __init__` | Closed or validated `family` classification on `_FakeSocket`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `_response_bytes` | `self._response_bytes = response_bytes  # assigned in __init__` | Stores `_FakeSocket`'s ` response bytes` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_connected` | `self._connected = connected  # assigned in __init__` | Stores `_FakeSocket`'s ` connected` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_sent` | `self._sent = sent  # assigned in __init__` | Stores `_FakeSocket`'s ` sent` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `_endpoint` | `self._endpoint = None  # assigned in __init__` | Stores `_FakeSocket`'s ` endpoint` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `closed` | `self.closed = False  # assigned in __init__` | Stores `_FakeSocket`'s `closed` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `timeout` | `self.timeout = None  # assigned in __init__` | Stores `_FakeSocket`'s `timeout` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `family` | `self.family = family  # assigned in __init__` | Deterministic test-double state `family` used by the reproduced network/source regression harness. |
+| `_response_bytes` | `self._response_bytes = response_bytes  # assigned in __init__` | Deterministic test-double state `_response_bytes` used by the reproduced network/source regression harness. |
+| `_connected` | `self._connected = connected  # assigned in __init__` | Deterministic test-double state `_connected` used by the reproduced network/source regression harness. |
+| `_sent` | `self._sent = sent  # assigned in __init__` | Deterministic test-double state `_sent` used by the reproduced network/source regression harness. |
+| `_endpoint` | `self._endpoint = None  # assigned in __init__` | Deterministic test-double state `_endpoint` used by the reproduced network/source regression harness. |
+| `closed` | `self.closed = False  # assigned in __init__` | Deterministic test-double state `closed` used by the reproduced network/source regression harness. |
+| `timeout` | `self.timeout = None  # assigned in __init__` | Deterministic test-double state `timeout` used by the reproduced network/source regression harness. |
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::_NetworkHarness.socket` via `_FakeSocket`.
+- type annotation: `tests/unit/test_safe_http.py::_FakeTlsContext.wrap_socket` via `_FakeSocket`.
+- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.__init__` via `_FakeSocket`.
+- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.socket` via `_FakeSocket`.
+- constructor call: `tests/unit/test_safe_http.py::_NetworkHarness.socket` via `_FakeSocket`.
 
 **Exact class source**
 
@@ -155,11 +158,13 @@ class _FakeSocket:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `_server_names` | `self._server_names = server_names  # assigned in __init__` | Stores `_FakeTlsContext`'s ` server names` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_server_names` | `self._server_names = server_names  # assigned in __init__` | Deterministic test-double state `_server_names` used by the reproduced network/source regression harness. |
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::_NetworkHarness.context` via `_FakeTlsContext`.
+- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.__init__` via `_FakeTlsContext`.
+- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.context` via `_FakeTlsContext`.
+- constructor call: `tests/unit/test_safe_http.py::_NetworkHarness.context` via `_FakeTlsContext`.
 
 **Exact class source**
 
@@ -190,16 +195,17 @@ class _FakeTlsContext:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `responses` | `self.responses = list(responses)  # assigned in __init__` | Stores `_NetworkHarness`'s `responses` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `connected` | `self.connected = []  # assigned in __init__` | Stores `_NetworkHarness`'s `connected` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `sent` | `self.sent = []  # assigned in __init__` | Stores `_NetworkHarness`'s `sent` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `server_names` | `self.server_names = []  # assigned in __init__` | Stores `_NetworkHarness`'s `server names` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `contexts` | `self.contexts = []  # assigned in __init__` | `_NetworkHarness`'s `contexts` evidence/text field; it retains the exact configured or source meaning under annotation `not explicitly annotated` and is not promoted to a legal conclusion. |
-| `sockets` | `self.sockets = []  # assigned in __init__` | Stores `_NetworkHarness`'s `sockets` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `responses` | `self.responses = list(responses)  # assigned in __init__` | Deterministic test-double state `responses` used by the reproduced network/source regression harness. |
+| `connected` | `self.connected = []  # assigned in __init__` | Deterministic test-double state `connected` used by the reproduced network/source regression harness. |
+| `sent` | `self.sent = []  # assigned in __init__` | Deterministic test-double state `sent` used by the reproduced network/source regression harness. |
+| `server_names` | `self.server_names = []  # assigned in __init__` | Deterministic test-double state `server_names` used by the reproduced network/source regression harness. |
+| `contexts` | `self.contexts = []  # assigned in __init__` | Deterministic test-double state `contexts` used by the reproduced network/source regression harness. |
+| `sockets` | `self.sockets = []  # assigned in __init__` | Deterministic test-double state `sockets` used by the reproduced network/source regression harness. |
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::_install_network` via `_NetworkHarness`.
+- type annotation: `tests/unit/test_safe_http.py::_install_network` via `_NetworkHarness`.
+- constructor call: `tests/unit/test_safe_http.py::_install_network` via `_NetworkHarness`.
 
 **Exact class source**
 
@@ -274,22 +280,22 @@ f'HTTP/1.1 {status} {reason}\r\n{header_bytes}\r\n'.encode() + body
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::_install_network` via `_http_response`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_http_response`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_http_response`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_http_response`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_http_response`.
+- direct call: `tests/unit/test_safe_http.py::_install_network` via `_http_response`.
+- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_http_response`.
+- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_http_response`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_http_response`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_http_response`.
 
 **Complete source-ordered implementation**
 
@@ -347,20 +353,20 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::_install_dns.resolve` via `_dns_records`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket.resolve` via `_dns_records`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` via `_dns_records`.
+- direct call: `tests/unit/test_safe_http.py::_install_dns.resolve` via `_dns_records`.
+- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket.resolve` via `_dns_records`.
+- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` via `_dns_records`.
 
 **Complete source-ordered implementation**
 
@@ -428,19 +434,18 @@ Private `test` helper for init; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self._connected`, `self._response_bytes`, `self._sent`, `self.closed`, `self.family`.
-- Input mutation: `self._connected`, `self._endpoint`, `self._response_bytes`, `self._sent`, `self.closed`, `self.family`, `self.timeout`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -489,19 +494,18 @@ Private `test` helper for settimeout; its complete implementation below is the a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.timeout`.
-- Input mutation: `self.timeout`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.settimeout`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.settimeout`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -538,19 +542,18 @@ Private `test` helper for connect; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `self._endpoint`.
-- Input mutation: `self._endpoint`.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `self._connected`, `self._endpoint`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.connect`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.connect`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -591,19 +594,18 @@ self._endpoint
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.getpeername`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.getpeername`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -641,14 +643,14 @@ Private `test` helper for sendall; its complete implementation below is the auth
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `self._sent`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -692,14 +694,14 @@ io.BytesIO(self._response_bytes)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -743,14 +745,14 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -791,37 +793,18 @@ Private `test` helper for close; its complete implementation below is the author
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.closed`.
-- Input mutation: `self.closed`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._response.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._response.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._connection.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._connection.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
-- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
-- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -858,19 +841,18 @@ Private `test` helper for init; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self._server_names`.
-- Input mutation: `self._server_names`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -910,19 +892,18 @@ sock
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `self._server_names`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `self._tls_context.wrap_socket`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `self._tls_context.wrap_socket`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -960,19 +941,18 @@ Private `test` helper for init; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `self.responses`.
-- Input mutation: `self.connected`, `self.contexts`, `self.responses`, `self.sent`, `self.server_names`, `self.sockets`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1023,48 +1003,18 @@ result
 
 **Side effects**
 
-- Network I/O: `_FakeSocket`, `self.sockets.append`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `self.responses`, `self.sockets`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `socket.socket`.
-- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `socket.socket`.
-- callback/property argument: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail_dns)`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.socket, 'socket', harness.socket)`.
-- property/attribute access: `tests/unit/test_safe_http.py::_install_network` via `safe_http.socket`.
-- property/attribute access: `tests/unit/test_safe_http.py::_install_network` via `harness.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::_install_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
-- property/attribute access: `tests/unit/test_safe_http.py::_install_dns` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', lambda *args, **kwargs: records)`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `monkeypatch.setattr(safe_http.socket, 'socket', lambda *args, **kwargs: pytest.fail('socket used after invalid DNS'))`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `monkeypatch.setattr(safe_http.socket, 'socket', lambda *args, **kwargs: pytest.fail('socket used after unsafe DNS'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `monkeypatch.setattr(safe_http.socket, 'socket', lambda *args, **kwargs: pytest.fail('socket used after mixed DNS'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail)`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'socket', lambda *args, **kwargs: pytest.fail('socket used after DNS failure'))`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', lambda *args, **kwargs: pytest.fail('DNS used for lexically unsafe URL'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', lambda *args, **kwargs: pytest.fail('literal address unexpectedly used DNS'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', lambda *args, **kwargs: pytest.fail('public literal unexpectedly used DNS'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', rebind)`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `safe_http.socket`.
-- callback/property argument: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', lambda *args, **kwargs: pytest.fail('DNS used after malformed header name'))`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `safe_http.socket`.
+- function object argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.socket, 'socket', harness.socket)`.
 
 **Complete source-ordered implementation**
 
@@ -1121,47 +1071,18 @@ context
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `self.contexts`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__(hostname, port=port, timeout=timeout, context=context)`.
-- callback/function object: `src/landscout/common/safe_http.py::_open_destination` via `_BoundHTTPSConnection(destination.hostname, destination.port, address, timeout=timeout, context=context)`.
-- callback/function object: `src/landscout/sources/ign_bdtopo_fr.py::_read_verified_layer_frames` via `_verify_unchanged_extraction(context)`.
-- callback/function object: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_electricity` via `_read_verified_layer_frames(context, (configured_selection.electric_lines_layer, configured_selection.transformation_posts_layer))`.
-- callback/function object: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_roads` via `_read_verified_layer_frames(context, (layer_name,))`.
-- callback/function object: `src/landscout/sources/ign_bdtopo_fr.py::load_ign_bdtopo_department_coverage` via `_read_verified_layer_frames(context, (layer_name,))`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary(layer, context)`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_normalize_layer(fresh_layer, LAYER_SPECS[logical], context, source)`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_attach_parcel_summaries(source_parcels, metric_parcels, surface_work, line_work, point_work, context)`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_attach_parcel_summaries(parcels, metric, surface_work, line_work, point_work, context)`.
-- callback/function object: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_normalize_zones(source_zones, context)`.
-- callback/function object: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_parcel_summary(parcels, metric_parcels, zones, work, context)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_build_hits(index, validated_terms, context)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `PlanningRegulationSearchResult(document_id=index.document_id, archive_sha256=index.archive_sha256, pdf_sha256=index.pdf_sha256, search_normalization_profile=index.search_normalization_profile, search_hash_schema_version=SEARCH_HASH_SCHEMA_VERSION, index_content_sha256=index.index_content_sha256, requested_terms=requested, context_characters=context, hit_count=len(hits), hits_content_sha256=_hits_content_sha256(index, requested, context, hits), hits=hits)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_hits_content_sha256(index, requested, context, hits)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_hits_content_sha256(index, requested, context, result.hits, search_schema)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_build_hits(index, validated_terms, context)`.
-- callback/function object: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_context(context)`.
-- callback/function object: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_normalize_road_frame(source.road_segments, context)`.
-- callback/function object: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_source_context(context)`.
-- callback/function object: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_base_output(working, feature_type='ELECTRIC_LINE', context=context)`.
-- callback/function object: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_source_context(context)`.
-- callback/function object: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_base_output(working, feature_type='TRANSFORMATION_POST', context=context)`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `pytest.MonkeyPatch.context`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_download_with_session` via `pytest.MonkeyPatch.context`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context(context)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `normalize_ign_electric_lines(_line_source(), context)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context(context)`.
-- callback/property argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.ssl, 'create_default_context', harness.context)`.
-- property/attribute access: `tests/unit/test_safe_http.py::_install_network` via `harness.context`.
+- function object argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.ssl, 'create_default_context', harness.context)`.
 
 **Complete source-ordered implementation**
 
@@ -1207,27 +1128,27 @@ harness
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_network`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_network`.
+- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_network`.
 
 **Complete source-ordered implementation**
 
@@ -1279,26 +1200,26 @@ _dns_records(addresses, port)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `calls`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_dns`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_dns`.
+- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_dns`.
 
 **Complete source-ordered implementation**
 
@@ -1349,69 +1270,18 @@ _dns_records(addresses, port)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `calls`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/config.py::_resolve_profile_path` via `scan_path.resolve`.
-- property/attribute access: `src/landscout/config.py::_resolve_profile_path` via `scan_path.resolve`.
-- direct call or construction: `src/landscout/config.py::load_scan_config` via `path.resolve`.
-- property/attribute access: `src/landscout/config.py::load_scan_config` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_inventory` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_inventory` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `item.dataset_path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `item.dataset_path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `candidate.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `candidate.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `candidate.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `candidate.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `expected_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `expected_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discovered_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discovered_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `extraction.geopackage_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `extraction.geopackage_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `geopackage_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `geopackage_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discovered_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discovered_path.resolve`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `root.resolve`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `root.resolve`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `path.resolve`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `path.resolve`.
-- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `Path(__file__).resolve`.
-- property/attribute access: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `Path(__file__).resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `reference.dataset_path.resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `reference.dataset_path.resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `layer.reference.dataset_path.resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::_planning_document` via `layer.reference.dataset_path.resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_common_planning_contracts_import_without_initializing_stages` via `Path(__file__).resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_common_planning_contracts_import_without_initializing_stages` via `Path(__file__).resolve`.
-- callback/function object: `tests/unit/test_safe_http.py::_install_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
-- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
+- function object argument: `tests/unit/test_safe_http.py::_install_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
 
 **Complete source-ordered implementation**
 
@@ -1454,31 +1324,31 @@ response.read()
 **Side effects**
 
 - Network I/O: `open_safe_https`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: `response.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_read`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_read`.
+- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_read`.
 
 **Complete source-ordered implementation**
 
@@ -1496,7 +1366,7 @@ def _read(url: str = "https://source.example/archive.zip") -> bytes:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public dns answers are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1552,7 +1422,7 @@ def test_public_dns_answers_are_accepted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed or unusable dns results fail before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1613,7 +1483,7 @@ def test_malformed_or_unusable_dns_results_fail_before_socket(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `any nonpublic dns answer fails before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1674,7 +1544,7 @@ def test_any_nonpublic_dns_answer_fails_before_socket(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mixed public private dns answer fails closed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1734,7 +1604,7 @@ def test_mixed_public_private_dns_answer_fails_closed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `dns errors are controlled before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1820,43 +1690,18 @@ Private `test` helper for fail; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network.fail_network` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network.fail_network` via `pytest.fail`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `monkeypatch.setattr(gpu, 'open_safe_https', fail)`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.fail`.
-- callback/function object: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail)`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.fail`.
+- function object argument: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail)`.
 
 **Complete source-ordered implementation**
 
@@ -1873,7 +1718,7 @@ def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe url identity fails before dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1932,7 +1777,7 @@ def test_unsafe_url_identity_fails_before_dns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `literal and malformed numeric ip rejection never uses dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1991,7 +1836,7 @@ def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `public literal ip uses exact socket without dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2052,7 +1897,7 @@ def test_public_literal_ip_uses_exact_socket_without_dns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `explicit https port is resolved and connected exactly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2111,7 +1956,7 @@ def test_explicit_https_port_is_resolved_and_connected_exactly(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `safe https redirect is manually revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2201,7 +2046,7 @@ def test_safe_https_redirect_is_manually_revalidated(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe redirect is rejected before target socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2304,69 +2149,18 @@ _dns_records((address,), port)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/config.py::_resolve_profile_path` via `scan_path.resolve`.
-- property/attribute access: `src/landscout/config.py::_resolve_profile_path` via `scan_path.resolve`.
-- direct call or construction: `src/landscout/config.py::load_scan_config` via `path.resolve`.
-- property/attribute access: `src/landscout/config.py::load_scan_config` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/cadastre_loader_fr.py::load_cadastre_parcels` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_inventory` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_inventory` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `item.dataset_path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `item.dataset_path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `candidate.resolve`.
-- property/attribute access: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `candidate.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_safe_relative_path` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `candidate.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `candidate.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `root.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_resolve_relative_path` via `root.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `expected_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `expected_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discovered_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `discovered_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `extraction.geopackage_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_validate_extraction_envelope` via `extraction.geopackage_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `geopackage_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `geopackage_path.resolve`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discovered_path.resolve`.
-- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_load_cached_extraction` via `discovered_path.resolve`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `root.resolve`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `root.resolve`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `path.resolve`.
-- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `path.resolve`.
-- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `Path(__file__).resolve`.
-- property/attribute access: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `Path(__file__).resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `reference.dataset_path.resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `reference.dataset_path.resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `layer.reference.dataset_path.resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::_planning_document` via `layer.reference.dataset_path.resolve`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_common_planning_contracts_import_without_initializing_stages` via `Path(__file__).resolve`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_common_planning_contracts_import_without_initializing_stages` via `Path(__file__).resolve`.
-- callback/function object: `tests/unit/test_safe_http.py::_install_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
-- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
+- function object argument: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
 
 **Complete source-ordered implementation**
 
@@ -2384,7 +2178,7 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `redirect loop is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2447,7 +2241,7 @@ def test_redirect_loop_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `redirect limit is enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2508,7 +2302,7 @@ def test_redirect_limit_is_enforced(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `validated dns snapshot binds actual socket and preserves tls host`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2608,18 +2402,18 @@ _dns_records((address,), port)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', rebind)`.
+- function object argument: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', rebind)`.
 
 **Complete source-ordered implementation**
 
@@ -2639,7 +2433,7 @@ def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `environment proxy does not change bound destination`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2698,7 +2492,7 @@ def test_environment_proxy_does_not_change_bound_destination(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed header name is rejected before dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2766,7 +2560,7 @@ def test_malformed_header_name_is_rejected_before_dns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `tls context keeps hostname verification enabled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

@@ -92,33 +92,33 @@ gpd.GeoDataFrame({'parcel_id': [f'parcel-{index}' for index in range(len(geometr
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `projected.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_square_metrics` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_rectangle_metrics` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_rotated_rectangle_metrics` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_elongated_parcel` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_output_geometry_remains_wgs84` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_exact_parcel_ids_are_preserved` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `_candidate_frame`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_square_metrics` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_rectangle_metrics` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_rotated_rectangle_metrics` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_elongated_parcel` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_output_geometry_remains_wgs84` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_exact_parcel_ids_are_preserved` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `_candidate_frame`.
+- direct call: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `_candidate_frame`.
 
 **Complete source-ordered implementation**
 
@@ -160,7 +160,7 @@ def square() -> Polygon:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `square metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -191,7 +191,7 @@ assert row["compactness"] == pytest.approx(0.785398)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `square metrics` through the exact asserted conditions: `row['shape_status'] == 'VALID'`; `row['length_m'] == pytest.approx(10.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(1.0, abs=0.001)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -215,7 +215,7 @@ def test_square_metrics(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rectangle metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -246,7 +246,7 @@ assert row["length_width_ratio"] == pytest.approx(2.0, abs=0.001)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `rectangle metrics` through the exact asserted conditions: `row['length_m'] == pytest.approx(20.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(2.0, abs=0.001)`.
 
 **Test boundary**
 
@@ -270,7 +270,7 @@ def test_rectangle_metrics() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rotated rectangle metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -302,7 +302,7 @@ assert row["length_width_ratio"] == pytest.approx(3.0, abs=0.001)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `rotated rectangle metrics` through the exact asserted conditions: `row['length_m'] == pytest.approx(30.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(3.0, abs=0.001)`.
 
 **Test boundary**
 
@@ -327,7 +327,7 @@ def test_rotated_rectangle_metrics() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `elongated parcel`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -358,7 +358,7 @@ assert 0 <= row["compactness"] <= 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `elongated parcel` through the exact asserted conditions: `row['length_width_ratio'] == pytest.approx(50.0, abs=0.01)`; `row['length_m'] >= row['width_m']`; `0 <= row['compactness'] <= 1`.
 
 **Test boundary**
 
@@ -382,7 +382,7 @@ def test_elongated_parcel() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centroid coordinates`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -432,7 +432,7 @@ def test_centroid_coordinates(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `output geometry remains wgs84`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -484,7 +484,7 @@ def test_output_geometry_remains_wgs84(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -532,7 +532,7 @@ def test_missing_crs_fails(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -560,7 +560,7 @@ with pytest.raises(ShapeEnrichmentError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing parcel id fails`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
 
 **Test boundary**
 
@@ -580,7 +580,7 @@ def test_missing_parcel_id_fails(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -630,7 +630,7 @@ def test_null_parcel_id_fails(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -659,7 +659,7 @@ with pytest.raises(ShapeEnrichmentError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
 
 **Test boundary**
 
@@ -680,7 +680,7 @@ def test_duplicate_parcel_id_fails(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enrichment requires exact non empty parcel ids`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -710,7 +710,7 @@ with pytest.raises(ShapeEnrichmentError, match="exact non-empty strings"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `enrichment requires exact non empty parcel ids`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
 
 **Test boundary**
 
@@ -735,7 +735,7 @@ def test_enrichment_requires_exact_non_empty_parcel_ids(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid candidate area requires strict positive finite number`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -765,7 +765,7 @@ with pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid candidate area requires strict positive finite number`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
 
 **Test boundary**
 
@@ -790,7 +790,7 @@ def test_valid_candidate_area_requires_strict_positive_finite_number(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed geometry does not remove other rows`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -819,7 +819,7 @@ assert enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `failed geometry does not remove other rows` through the exact asserted conditions: `list(enriched['shape_status']) == ['VALID', 'ERROR']`; `enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()`.
 
 **Test boundary**
 
@@ -842,7 +842,7 @@ def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact parcel ids are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -871,7 +871,7 @@ assert set(enriched["parcel_id"]) == set(source["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact parcel ids are preserved` through the exact asserted conditions: `len(enriched) == len(source)`; `set(enriched['parcel_id']) == set(source['parcel_id'])`.
 
 **Test boundary**
 
@@ -894,7 +894,7 @@ def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enrichment matches centralized shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -952,7 +952,7 @@ def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape enrichment rejects noncanonical geometry status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -982,7 +982,7 @@ with pytest.raises(ShapeEnrichmentError, match="geometry_status"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shape enrichment rejects noncanonical geometry status`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
 
 **Test boundary**
 

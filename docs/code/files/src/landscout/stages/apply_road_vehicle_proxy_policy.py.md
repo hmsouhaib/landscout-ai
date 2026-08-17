@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/apply_road_vehicle_proxy_policy.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: policy application/precheck stage
 - Domain: road
 - Responsibility: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 - Source SHA256: `b51c6465f7e2ae3ca455724ffaad0c6cd0472950cbca70d14c8e4cff5d50e076`
@@ -15,7 +15,7 @@ Applies the compiled IGN road evidence policy with strict scalar parsing, preced
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **policy application/precheck stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -64,7 +64,7 @@ This file belongs to the **processing/policy stage** layer and the **road** doma
 _GEOMETRY_STATUSES = frozenset({"VALID", "NULL", "EMPTY", "INVALID"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` (value reference).
 
 #### `_TECHNICAL_GEOMETRY_RULE`
 
@@ -72,7 +72,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 _TECHNICAL_GEOMETRY_RULE = "SOURCE_GEOMETRY_NOT_VALID"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
 
 #### `_CRITICAL_FIELDS`
 
@@ -87,7 +87,7 @@ _CRITICAL_FIELDS = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` (value reference).
 
 #### `_UNKNOWN_FIELD_ORDER`
 
@@ -100,7 +100,7 @@ _UNKNOWN_FIELD_ORDER = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` (value reference), `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
 
 #### `_REQUIRED_COLUMNS`
 
@@ -114,7 +114,7 @@ _REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` (value reference).
 
 #### `_APPLICATION_COLUMNS`
 
@@ -135,7 +135,7 @@ _APPLICATION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -175,33 +175,33 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` via `IgnRoadVehicleProxyApplicationError`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `IgnRoadVehicleProxyApplicationError`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- callback/function object: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_failure_stops_proximity` via `IgnRoadVehicleProxyApplicationError`.
-- import/re-export: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
 )`.
+- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` via `IgnRoadVehicleProxyApplicationError`.
+- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `IgnRoadVehicleProxyApplicationError`.
+- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
+- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
+- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_failure_stops_proximity` via `IgnRoadVehicleProxyApplicationError`.
 
 **Exact class source**
 
@@ -228,28 +228,31 @@ class IgnRoadVehicleProxyApplicationError(ValueError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
-- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_enrich` via `IgnRoadVehicleProxyApplicationResult`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `IgnRoadVehicleProxyApplicationResult`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `IgnRoadVehicleProxyApplicationResult`.
-- import/re-export: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
 )`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
+- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
+- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
+- type annotation: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `IgnRoadVehicleProxyApplicationResult`.
+- constructor call: `tests/unit/test_enrich_road_proximity.py::_enrich` via `IgnRoadVehicleProxyApplicationResult`.
+- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `IgnRoadVehicleProxyApplicationResult`.
+- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `IgnRoadVehicleProxyApplicationResult`.
 
 **Exact class source**
 
@@ -290,23 +293,23 @@ pd.Series(False, index=index, dtype='bool')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_false_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_false_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_exact_string_mask` via `_false_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_false_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_json_array_from_masks` via `_false_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_exact_string_mask` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_json_array_from_masks` via `_false_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_false_mask`.
 
 **Complete source-ordered implementation**
 
@@ -349,20 +352,20 @@ pd.Series(np.asarray(values, dtype=bool), index=series.index)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_object_scalar_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_object_scalar_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask`.
 
 **Complete source-ordered implementation**
 
@@ -409,19 +412,19 @@ type(value) in {int, float} or (isinstance(value, (np.integer, np.floating)) and
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_binary_numeric` via `_is_strict_numeric_scalar`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_positive_numeric` via `_is_strict_numeric_scalar`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_binary_numeric` via `_is_strict_numeric_scalar`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_positive_numeric` via `_is_strict_numeric_scalar`.
 
 **Complete source-ordered implementation**
 
@@ -466,18 +469,18 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask(series, _is_strict_binary_numeric)`.
+- function object argument: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask(series, _is_strict_binary_numeric)`.
 
 **Complete source-ordered implementation**
 
@@ -522,18 +525,18 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask(series, _is_strict_positive_numeric)`.
+- function object argument: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask(series, _is_strict_positive_numeric)`.
 
 **Complete source-ordered implementation**
 
@@ -582,18 +585,18 @@ Private `road` helper for strict boolean masks; its complete implementation belo
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_boolean_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_boolean_masks`.
 
 **Complete source-ordered implementation**
 
@@ -659,18 +662,18 @@ Private `road` helper for strict private masks; its complete implementation belo
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_private_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_private_masks`.
 
 **Complete source-ordered implementation**
 
@@ -742,19 +745,19 @@ _false_mask(series.index)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_known_string_masks` via `_exact_string_mask`.
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_optional_exact_string_masks` via `_exact_string_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_known_string_masks` via `_exact_string_mask`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_optional_exact_string_masks` via `_exact_string_mask`.
 
 **Complete source-ordered implementation**
 
@@ -800,18 +803,18 @@ Private `road` helper for known string masks; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_known_string_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_known_string_masks`.
 
 **Complete source-ordered implementation**
 
@@ -858,18 +861,18 @@ Private `road` helper for optional exact string masks; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_optional_exact_string_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_optional_exact_string_masks`.
 
 **Complete source-ordered implementation**
 
@@ -921,18 +924,18 @@ Private `road` helper for width masks; its complete implementation below is the 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_width_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_width_masks`.
 
 **Complete source-ordered implementation**
 
@@ -998,18 +1001,18 @@ output + ']'
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_json_array_from_masks`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_json_array_from_masks`.
 
 **Complete source-ordered implementation**
 
@@ -1060,18 +1063,18 @@ Private `road` helper for rule outcomes; its complete implementation below is th
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_rule_outcomes`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_rule_outcomes`.
 
 **Complete source-ordered implementation**
 
@@ -1136,18 +1139,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_validate_normalized_frame`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_validate_normalized_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1221,18 +1224,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `output['geometry_status'].eq`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['road_proxy_class']`, `output['road_proxy_heavy_vehicle_access']`, `output['road_proxy_policy_config_sha256']`, `output['road_proxy_policy_evidence_checked_on']`, `output['road_proxy_policy_id']`, `output['road_proxy_policy_schema_version']`, `output['road_proxy_policy_scope']`, `output['road_proxy_primary_rule']`, `output['road_proxy_rule_trace_json']`, `output['road_proxy_toll_evidence']`, `output['road_proxy_unknown_fields_json']`, `output['road_proxy_vehicle_scope']`, `primary.loc[first]`, `primary.loc[technical_geometry]`, `proxy_class.loc[first]`, `proxy_class.loc[technical_geometry]`, `rule_masks['OPEN_OR_TOLL']`, `rule_masks['UNKNOWN']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `_classify_road_frame`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `_classify_road_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1474,18 +1477,18 @@ IgnRoadVehicleProxyApplicationResult(roads=_classify_road_frame(normalized.road_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `_apply_ign_road_vehicle_proxy_policy`.
+- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `_apply_ign_road_vehicle_proxy_policy`.
 
 **Complete source-ordered implementation**
 
@@ -1547,42 +1550,42 @@ _apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `apply_ign_road_vehicle_proxy_policy`.
-- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `apply_ign_road_vehicle_proxy_policy`.
-- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
 )`.
+- direct call: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `apply_ign_road_vehicle_proxy_policy`.
+- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `apply_ign_road_vehicle_proxy_policy`.
 
 **Complete source-ordered implementation**
 
@@ -1675,15 +1678,15 @@ _APPLICATION_COLUMNS = (
 | 1 | `road_proxy_primary_rule` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 2 | `road_proxy_class` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 3 | `road_proxy_rule_trace_json` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `road_proxy_unknown_fields_json` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `road_proxy_toll_evidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `road_proxy_unknown_fields_json` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `road_proxy_toll_evidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `road_proxy_policy_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 7 | `road_proxy_policy_schema_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `road_proxy_policy_schema_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `road_proxy_policy_config_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 9 | `road_proxy_policy_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `road_proxy_policy_evidence_checked_on` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `road_proxy_vehicle_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `road_proxy_heavy_vehicle_access` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `road_proxy_policy_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `road_proxy_policy_evidence_checked_on` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `road_proxy_vehicle_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `road_proxy_heavy_vehicle_access` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
@@ -1694,9 +1697,9 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `IgnRoadVehicleProxyApplicationError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
-| `IgnRoadVehicleProxyApplicationResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
-| `apply_ign_road_vehicle_proxy_policy` | re-exported/defined Python symbol | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
+| `IgnRoadVehicleProxyApplicationError` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
+| `IgnRoadVehicleProxyApplicationResult` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
+| `apply_ign_road_vehicle_proxy_policy` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
 
 ## 9. Error handling
 

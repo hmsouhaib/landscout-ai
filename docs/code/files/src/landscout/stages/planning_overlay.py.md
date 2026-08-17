@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/planning_overlay.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: processing stage
 - Domain: planning
 - Responsibility: Preserves the historical stage import path by re-exporting the shared common-layer technical overlay tolerance constants and function without adding behavior.
 - Source SHA256: `7ba1e577956408550871aa0e817472e9b9443f900b48ed0fa28f09351951cf0b`
@@ -15,7 +15,7 @@ Preserves the historical stage import path by re-exporting the shared common-lay
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **processing stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -82,9 +82,9 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `ABSOLUTE_OVERLAY_TOLERANCE` | re-exported/defined Python symbol | `landscout.common.planning_overlay.ABSOLUTE_OVERLAY_TOLERANCE` | yes |
-| `RELATIVE_OVERLAY_TOLERANCE` | re-exported/defined Python symbol | `landscout.common.planning_overlay.RELATIVE_OVERLAY_TOLERANCE` | yes |
-| `technical_overlay_tolerance` | re-exported/defined Python symbol | `landscout.common.planning_overlay.technical_overlay_tolerance` | yes |
+| `ABSOLUTE_OVERLAY_TOLERANCE` | public re-export imported from its declaring module | `landscout.common.planning_overlay.ABSOLUTE_OVERLAY_TOLERANCE` | yes |
+| `RELATIVE_OVERLAY_TOLERANCE` | public re-export imported from its declaring module | `landscout.common.planning_overlay.RELATIVE_OVERLAY_TOLERANCE` | yes |
+| `technical_overlay_tolerance` | public re-export imported from its declaring module | `landscout.common.planning_overlay.technical_overlay_tolerance` | yes |
 
 ## 9. Error handling
 

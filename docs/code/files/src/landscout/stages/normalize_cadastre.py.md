@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/normalize_cadastre.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: factual/source normalization stage
 - Domain: cadastre
 - Responsibility: Projects raw cadastral facts into the stable parcel schema while preserving source geometry and classifying geometry quality.
 - Source SHA256: `53d7e407793c3e7fd9cef659f483b83acf612a95dd06dac21ff7182c9a06e679`
@@ -15,7 +15,7 @@ Projects raw cadastral facts into the stable parcel schema while preserving sour
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **factual/source normalization stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -53,7 +53,7 @@ FIELD_MAPPING = {
 }
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value argument/reference).
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value reference).
 
 #### `REQUIRED_IDENTITY_COLUMNS`
 
@@ -63,7 +63,7 @@ REQUIRED_IDENTITY_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value reference).
 
 #### `CANONICAL_COMMUNE_PATTERN`
 
@@ -71,7 +71,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 CANONICAL_COMMUNE_PATTERN = re.compile(r"^(?:\d{5}|2[AB]\d{3})$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -103,24 +103,24 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_cadastre import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` via `CadastreNormalizationError`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `pytest.raises(CadastreNormalizationError, match='CRS')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `pytest.raises(CadastreNormalizationError, match='unique')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_non_geodataframe_is_rejected_safely` via `pytest.raises(CadastreNormalizationError, match='GeoDataFrame')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `pytest.raises(CadastreNormalizationError, match='columns.*unique')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `pytest.raises(CadastreNormalizationError, match='4326')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `pytest.raises(CadastreNormalizationError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `pytest.raises(CadastreNormalizationError, match='Polygon')`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `pytest.raises(CadastreNormalizationError, match=column)`.
-- callback/function object: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `pytest.raises(CadastreNormalizationError, match='commune')`.
-- import/re-export: `tests/unit/test_normalize_cadastre.py::<module>` via `from landscout.stages.normalize_cadastre import (
+- import: `tests/unit/test_normalize_cadastre.py::<module>` via `from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
 )`.
+- constructor call: `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` via `CadastreNormalizationError`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `pytest.raises(CadastreNormalizationError, match='CRS')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `pytest.raises(CadastreNormalizationError, match='unique')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_non_geodataframe_is_rejected_safely` via `pytest.raises(CadastreNormalizationError, match='GeoDataFrame')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `pytest.raises(CadastreNormalizationError, match='columns.*unique')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `pytest.raises(CadastreNormalizationError, match='4326')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `pytest.raises(CadastreNormalizationError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `pytest.raises(CadastreNormalizationError, match='Polygon')`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `pytest.raises(CadastreNormalizationError, match=column)`.
+- expected exception type: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `pytest.raises(CadastreNormalizationError, match='commune')`.
 
 **Exact class source**
 
@@ -169,42 +169,42 @@ gpd.GeoDataFrame(normalized[output_columns], geometry=geometry_column, crs=parce
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(valid_areas <= 0).any`, `non_null_geometry.geom_type.dropna`, `normalized.geometry.isna`, `normalized.loc[valid_geometry, 'area_m2'].to_numpy`, `normalized.loc[valid_geometry].to_crs`, `np.isfinite(valid_areas).all`, `parcels.geometry.dropna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `normalized.loc[valid_geometry, 'area_m2']`, `normalized.loc[valid_geometry, 'geometry_status']`, `normalized['area_m2']`, `normalized['geometry_status']`, `normalized[output_column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_cadastre import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
 )`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_field_normalization` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_non_geodataframe_is_rejected_safely` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `normalize_cadastre_parcels`.
-- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity` via `normalize_cadastre_parcels`.
-- import/re-export: `tests/unit/test_normalize_cadastre.py::<module>` via `from landscout.stages.normalize_cadastre import (
+- import: `tests/unit/test_normalize_cadastre.py::<module>` via `from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
 )`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_field_normalization` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_non_geodataframe_is_rejected_safely` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `normalize_cadastre_parcels`.
+- direct call: `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity` via `normalize_cadastre_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -309,6 +309,7 @@ def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 - Raw Etalab input names and normalized output names are distinct contracts; `FIELD_MAPPING` below is the complete rename map.
 - The exact output order is `parcel_id`, `commune_code`, `section_prefix`, `section`, `parcel_number`, `source_contenance`, `source_arpente`, `source_created_at`, `source_updated_at`, `geometry_status`, `area_m2`, `geometry`.
+- `REQUIRED_IDENTITY_COLUMNS` is enforced together with row-value guards: each identity value must be an exact non-empty string without edge whitespace, parcel_id must be unique, and commune_code must satisfy the canonical French commune-code contract.
 - `geometry_status` is non-null and restricted to `VALID` or `INVALID`. `area_m2` is finite and positive for VALID rows and null/NaN for INVALID rows.
 - The nine renamed source columns preserve their source Pandas values/dtypes; the stage does not invent download/provider/hash lineage.
 
@@ -369,11 +370,11 @@ REQUIRED_IDENTITY_COLUMNS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `commune` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `id` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `numero` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `prefixe` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `section` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `commune` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `id` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `numero` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `prefixe` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `section` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.

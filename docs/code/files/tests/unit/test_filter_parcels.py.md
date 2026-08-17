@@ -114,7 +114,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `minimum boundary is included`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -141,7 +141,7 @@ assert "at-minimum" in set(candidates["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `minimum boundary is included` through the exact asserted conditions: `'at-minimum' in set(candidates['parcel_id'])`.
 
 **Test boundary**
 
@@ -162,7 +162,7 @@ def test_minimum_boundary_is_included(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `maximum boundary is included`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -189,7 +189,7 @@ assert "at-maximum" in set(candidates["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `maximum boundary is included` through the exact asserted conditions: `'at-maximum' in set(candidates['parcel_id'])`.
 
 **Test boundary**
 
@@ -210,7 +210,7 @@ def test_maximum_boundary_is_included(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rejected parcel has expected reason`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -237,7 +237,7 @@ assert row["rejection_reason"] == expected_reason
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `rejected parcel has expected reason` through the exact asserted conditions: `row['rejection_reason'] == expected_reason`.
 
 **Test boundary**
 
@@ -262,7 +262,7 @@ def test_rejected_parcel_has_expected_reason(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no parcel disappears`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -320,7 +320,7 @@ def test_no_parcel_disappears(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `thresholds come from config`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -348,7 +348,7 @@ assert set(candidates["parcel_id"]) == {"below-minimum", "at-minimum"}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `thresholds come from config` through the exact asserted conditions: `set(candidates['parcel_id']) == {'below-minimum', 'at-minimum'}`.
 
 **Test boundary**
 
@@ -369,7 +369,7 @@ def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -397,7 +397,7 @@ with pytest.raises(ParcelFilterError, match="parcel_id"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing parcel id fails`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -419,7 +419,7 @@ def test_missing_parcel_id_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -471,7 +471,7 @@ def test_null_parcel_id_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -500,7 +500,7 @@ with pytest.raises(ParcelFilterError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -523,7 +523,7 @@ def test_duplicate_parcel_id_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `candidate and rejected ids do not overlap`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -550,7 +550,7 @@ assert set(candidates["parcel_id"]).isdisjoint(set(rejected["parcel_id"]))
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `candidate and rejected ids do not overlap` through the exact asserted conditions: `set(candidates['parcel_id']).isdisjoint(set(rejected['parcel_id']))`.
 
 **Test boundary**
 
@@ -571,7 +571,7 @@ def test_candidate_and_rejected_ids_do_not_overlap(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact parcel ids are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -599,7 +599,7 @@ assert set(output_ids) == set(parcels["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact parcel ids are preserved` through the exact asserted conditions: `len(output_ids) == len(set(output_ids))`; `set(output_ids) == set(parcels['parcel_id'])`.
 
 **Test boundary**
 
@@ -622,7 +622,7 @@ def test_exact_parcel_ids_are_preserved(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid geometry requires strict positive finite area`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -652,7 +652,7 @@ with pytest.raises(ParcelFilterError, match="strict positive finite numeric"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid geometry requires strict positive finite area`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -678,7 +678,7 @@ def test_valid_geometry_requires_strict_positive_finite_area(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area filter requires exact non empty parcel ids`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -708,7 +708,7 @@ with pytest.raises(ParcelFilterError, match="exact non-empty strings"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `area filter requires exact non empty parcel ids`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -734,7 +734,7 @@ def test_area_filter_requires_exact_non_empty_parcel_ids(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area filter rejects plain dataframe`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -762,7 +762,7 @@ with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `area filter rejects plain dataframe`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -784,7 +784,7 @@ def test_area_filter_rejects_plain_dataframe(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area filter rejects duplicate columns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -842,7 +842,7 @@ def test_area_filter_rejects_duplicate_columns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area filter rejects malformed spatial envelope`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -906,7 +906,7 @@ def test_area_filter_rejects_malformed_spatial_envelope(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area filter rejects noncanonical geometry status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -936,7 +936,7 @@ with pytest.raises(ParcelFilterError, match="geometry_status"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `area filter rejects noncanonical geometry status`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 

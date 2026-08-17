@@ -54,7 +54,7 @@ RELATION_FLOAT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_contract.py::<module>` (value reference), `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` (value reference).
 
 #### `RELATION_COUNT_COLUMNS`
 
@@ -68,7 +68,7 @@ RELATION_COUNT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_contract.py::<module>` (value reference), `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` (value reference).
 
 #### `REQUIRED_RELATION_COLUMNS`
 
@@ -78,7 +78,7 @@ REQUIRED_RELATION_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` (value reference).
 
 #### `RELATION_TYPES_BY_GEOMETRY_KIND`
 
@@ -90,7 +90,7 @@ RELATION_TYPES_BY_GEOMETRY_KIND = {
 }
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -141,20 +141,20 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::_number` via `_missing`.
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::_count` via `_missing`.
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::_require_null` via `_missing`.
+- direct call: `src/landscout/common/planning_feature_contract.py::_number` via `_missing`.
+- direct call: `src/landscout/common/planning_feature_contract.py::_count` via `_missing`.
+- direct call: `src/landscout/common/planning_feature_contract.py::_require_null` via `_missing`.
 
 **Complete source-ordered implementation**
 
@@ -203,18 +203,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_number`.
+- direct call: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_number`.
 
 **Complete source-ordered implementation**
 
@@ -267,18 +267,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_count`.
+- direct call: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_count`.
 
 **Complete source-ordered implementation**
 
@@ -321,18 +321,18 @@ Private `planning` helper for require null; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_require_null`.
+- direct call: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_require_null`.
 
 **Complete source-ordered implementation**
 
@@ -389,29 +389,29 @@ Validate stored relation types, metrics, nulls, and count semantics locally.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `RELATION_TYPES_BY_GEOMETRY_KIND.get`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_intrinsic_planning_feature_relations`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_contract import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `validate_intrinsic_planning_feature_relations`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case` via `validate_intrinsic_planning_feature_relations`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
 )`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_intrinsic_planning_feature_relations`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `validate_intrinsic_planning_feature_relations`.
+- direct call: `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case` via `validate_intrinsic_planning_feature_relations`.
 
 **Complete source-ordered implementation**
 
@@ -630,7 +630,7 @@ REQUIRED_RELATION_COLUMNS = frozenset(
 |---:|---|---|---|---|---|
 | 1 | `feature_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
 | 2 | `feature_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 3 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 4 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
 | 5 | `intersection_length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 6 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
@@ -638,7 +638,7 @@ REQUIRED_RELATION_COLUMNS = frozenset(
 | 8 | `point_member_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 9 | `point_members_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 10 | `point_members_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 12 | `source_line_length_m` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 
 

@@ -96,19 +96,19 @@ ShapeScreeningConfig(enabled=True, min_width_m=min_width_m, max_length_width_rat
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `ShapeCalibrationConfig`, `ShapeScreeningConfig`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_filter_shape.py::shape_config` via `_shape_config`.
-- direct call or construction: `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels` via `_shape_config`.
+- direct call: `tests/unit/test_filter_shape.py::shape_config` via `_shape_config`.
+- direct call: `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels` via `_shape_config`.
 
 **Complete source-ordered implementation**
 
@@ -215,7 +215,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact width and ratio boundaries are retained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -242,7 +242,7 @@ assert "at-boundaries" in set(retained["parcel_id"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact width and ratio boundaries are retained` through the exact asserted conditions: `'at-boundaries' in set(retained['parcel_id'])`.
 
 **Test boundary**
 
@@ -263,7 +263,7 @@ def test_exact_width_and_ratio_boundaries_are_retained(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rejected parcel has expected primary reason`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -290,7 +290,7 @@ assert row["shape_rejection_reason"] == expected_reason
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `rejected parcel has expected primary reason` through the exact asserted conditions: `row['shape_rejection_reason'] == expected_reason`.
 
 **Test boundary**
 
@@ -315,7 +315,7 @@ def test_rejected_parcel_has_expected_primary_reason(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rejection reason precedence is deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -367,7 +367,7 @@ def test_rejection_reason_precedence_is_deterministic(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape error precedence does not inspect metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -437,7 +437,7 @@ def test_shape_error_precedence_does_not_inspect_metrics(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enabled outputs record active policy metadata`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -467,7 +467,7 @@ assert "shape_rejection_reason" not in retained.columns
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `enabled outputs record active policy metadata` through the exact asserted conditions: `'shape_rejection_reason' not in retained.columns`; `set(output['shape_policy_version']) == {'test_policy_v1'}`; `set(output['shape_policy_min_width_m']) == {15.0}`; `set(output['shape_policy_max_ratio']) == {10.0}`.
 
 **Test boundary**
 
@@ -492,7 +492,7 @@ def test_enabled_outputs_record_active_policy_metadata(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enabled partition preserves exact ids and crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -559,7 +559,7 @@ def test_enabled_partition_preserves_exact_ids_and_crs(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `filter does not mutate input`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -587,7 +587,7 @@ filter_parcels_by_shape(parcels, shape_config)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `filter does not mutate input` by requiring the reproduced call path `parcels.copy`, `filter_parcels_by_shape`, `assert_geodataframe_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -610,7 +610,7 @@ def test_filter_does_not_mutate_input(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing required column fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -638,7 +638,7 @@ with pytest.raises(ParcelFilterError, match="Missing required shape columns"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing required column fails`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -662,7 +662,7 @@ def test_missing_required_column_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -714,7 +714,7 @@ def test_null_parcel_id_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -743,7 +743,7 @@ with pytest.raises(ParcelFilterError, match="must be unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -766,7 +766,7 @@ def test_duplicate_parcel_id_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -816,7 +816,7 @@ def test_unknown_crs_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unexpected or null shape status fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -870,7 +870,7 @@ def test_unexpected_or_null_shape_status_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non finite known metric on valid row fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -899,7 +899,7 @@ with pytest.raises(ParcelFilterError, match="numeric and finite"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non finite known metric on valid row fails`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -924,7 +924,7 @@ def test_non_finite_known_metric_on_valid_row_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape requires strict positive width`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -957,7 +957,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape requires strict positive width`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -986,7 +986,7 @@ def test_valid_shape_requires_strict_positive_width(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape requires ratio at least one`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1019,7 +1019,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape requires ratio at least one`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1048,7 +1048,7 @@ def test_valid_shape_requires_ratio_at_least_one(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `negative ratio cannot pass permissive thresholds`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1078,7 +1078,7 @@ with pytest.raises(ParcelFilterError, match="length_width_ratio must be at least
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `negative ratio cannot pass permissive thresholds`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1103,7 +1103,7 @@ def test_negative_ratio_cannot_pass_permissive_thresholds(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `disabled policy is an exact passthrough`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1140,7 +1140,7 @@ retained, rejected = filter_parcels_by_shape(parcels, disabled)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `disabled policy is an exact passthrough` through the exact asserted conditions: `column not in retained.columns`; `column not in rejected.columns`.
 
 **Test boundary**
 
@@ -1170,7 +1170,7 @@ def test_disabled_policy_is_an_exact_passthrough(parcels: gpd.GeoDataFrame) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `different configs change results for same parcels`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1214,7 +1214,7 @@ assert set(restrictive_retained["parcel_id"]) == {"passing"}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `different configs change results for same parcels` through the exact asserted conditions: `set(permissive_retained['parcel_id']) == {'at-boundaries', 'passing', 'width-below', 'ratio-above', 'both-thresholds-fail'}`; `set(restrictive_retained['parcel_id']) == {'passing'}`.
 
 **Test boundary**
 
@@ -1254,7 +1254,7 @@ def test_different_configs_change_results_for_same_parcels(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape requires complete metrics even when screening disabled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1307,7 +1307,7 @@ def test_valid_shape_requires_complete_metrics_even_when_screening_disabled(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape rejects every incomplete metric form`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1337,7 +1337,7 @@ with pytest.raises(ParcelFilterError, match="complete"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape rejects every incomplete metric form`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1364,7 +1364,7 @@ def test_valid_shape_rejects_every_incomplete_metric_form(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape filter rejects plain dataframe`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1395,7 +1395,7 @@ with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shape filter rejects plain dataframe`: the reproduced adversarial input must raise `ParcelFilterError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1418,7 +1418,7 @@ def test_shape_filter_rejects_plain_dataframe(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape filter rejects duplicate columns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1476,7 +1476,7 @@ def test_shape_filter_rejects_duplicate_columns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape filter rejects unreadable crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

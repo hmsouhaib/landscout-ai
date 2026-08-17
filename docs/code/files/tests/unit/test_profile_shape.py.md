@@ -90,21 +90,21 @@ mixed
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `mixed.loc[9, 'shape_status']`, `mixed.loc[9, column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `_with_error_row`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `_with_error_row`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `_with_error_row`.
-- direct call or construction: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `_with_error_row`.
+- direct call: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `_with_error_row`.
+- direct call: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `_with_error_row`.
+- direct call: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `_with_error_row`.
+- direct call: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `_with_error_row`.
 
 **Complete source-ordered implementation**
 
@@ -153,7 +153,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `percentile calculation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -195,7 +195,7 @@ assert set(area) == {
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `percentile calculation` through the exact asserted conditions: `area['min'] == pytest.approx(100.0)`; `area['p50'] == pytest.approx(550.0)`; `area['max'] == pytest.approx(1000.0)`; `set(area) == {'min', 'p01', 'p05', 'p10', 'p25', 'p50', 'p75', 'p90', 'p95', 'p99', 'max'}`.
 
 **Test boundary**
 
@@ -230,7 +230,7 @@ def test_percentile_calculation(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `bucket counts sum to input count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -259,7 +259,7 @@ assert sum(profile.compactness_buckets.values()) == len(parcels)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `bucket counts sum to input count` through the exact asserted conditions: `sum(profile.width_buckets.values()) == len(parcels)`; `sum(profile.ratio_buckets.values()) == len(parcels)`; `sum(profile.compactness_buckets.values()) == len(parcels)`.
 
 **Test boundary**
 
@@ -280,7 +280,7 @@ def test_bucket_counts_sum_to_input_count(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `existing all valid behavior is unchanged`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -310,7 +310,7 @@ assert profile.distributions["area_m2"]["max"] == pytest.approx(1000.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `existing all valid behavior is unchanged` through the exact asserted conditions: `profile.input_count == 10`; `profile.valid_count == 10`; `profile.error_count == 0`; `profile.distributions['area_m2']['max'] == pytest.approx(1000.0)`.
 
 **Test boundary**
 
@@ -332,7 +332,7 @@ def test_existing_all_valid_behavior_is_unchanged(parcels: gpd.GeoDataFrame) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `diagnostic scenario counts`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -364,7 +364,7 @@ assert profile.scenarios["F"].retained_count == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `diagnostic scenario counts` through the exact asserted conditions: `profile.scenarios['A'].retained_count == 8`; `profile.scenarios['B'].retained_count == 7`; `profile.scenarios['C'].retained_count == 6`; `profile.scenarios['D'].retained_count == 4`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -388,7 +388,7 @@ def test_diagnostic_scenario_counts(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `input is not mutated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -416,7 +416,7 @@ profile_shape_distribution(parcels)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `input is not mutated` by requiring the reproduced call path `parcels.copy`, `profile_shape_distribution`, `pd.testing.assert_frame_equal` without an unasserted exception.
 
 **Test boundary**
 
@@ -437,7 +437,7 @@ def test_input_is_not_mutated(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing metric fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -465,7 +465,7 @@ with pytest.raises(ShapeProfileError, match="width_m"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing metric fails`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -485,7 +485,7 @@ def test_missing_metric_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -535,7 +535,7 @@ def test_null_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -564,7 +564,7 @@ with pytest.raises(ShapeProfileError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -585,7 +585,7 @@ def test_duplicate_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -633,7 +633,7 @@ def test_missing_crs_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null metric on valid shape fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -683,7 +683,7 @@ def test_null_metric_on_valid_shape_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mixed valid and error rows are counted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -713,7 +713,7 @@ assert profile.input_count == profile.valid_count + profile.error_count
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `mixed valid and error rows are counted` through the exact asserted conditions: `profile.input_count == 10`; `profile.valid_count == 9`; `profile.error_count == 1`; `profile.input_count == profile.valid_count + profile.error_count`.
 
 **Test boundary**
 
@@ -735,7 +735,7 @@ def test_mixed_valid_and_error_rows_are_counted(parcels: gpd.GeoDataFrame) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `error rows are excluded from percentiles`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -762,7 +762,7 @@ assert profile.distributions["area_m2"]["max"] == pytest.approx(900.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `error rows are excluded from percentiles` through the exact asserted conditions: `profile.distributions['area_m2']['max'] == pytest.approx(900.0)`.
 
 **Test boundary**
 
@@ -781,7 +781,7 @@ def test_error_rows_are_excluded_from_percentiles(parcels: gpd.GeoDataFrame) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `error rows are excluded from buckets`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -810,7 +810,7 @@ assert sum(profile.compactness_buckets.values()) == profile.valid_count
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `error rows are excluded from buckets` through the exact asserted conditions: `sum(profile.width_buckets.values()) == profile.valid_count == 9`; `sum(profile.ratio_buckets.values()) == profile.valid_count`; `sum(profile.compactness_buckets.values()) == profile.valid_count`.
 
 **Test boundary**
 
@@ -831,7 +831,7 @@ def test_error_rows_are_excluded_from_buckets(parcels: gpd.GeoDataFrame) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `scenario percentages use valid count`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -859,7 +859,7 @@ assert profile.scenarios["A"].retained_percentage == pytest.approx(7 / 9 * 100)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `scenario percentages use valid count` through the exact asserted conditions: `profile.scenarios['A'].retained_count == 7`; `profile.scenarios['A'].retained_percentage == pytest.approx(7 / 9 * 100)`.
 
 **Test boundary**
 
@@ -879,7 +879,7 @@ def test_scenario_percentages_use_valid_count(parcels: gpd.GeoDataFrame) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unexpected shape status fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -908,7 +908,7 @@ with pytest.raises(ShapeProfileError, match="Unexpected"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unexpected shape status fails`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -929,7 +929,7 @@ def test_unexpected_shape_status_fails(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non finite metric on valid row fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -958,7 +958,7 @@ with pytest.raises(ShapeProfileError, match="finite"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non finite metric on valid row fails`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -979,7 +979,7 @@ def test_non_finite_metric_on_valid_row_fails(parcels: gpd.GeoDataFrame) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zero valid rows fails clearly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1008,7 +1008,7 @@ with pytest.raises(ShapeProfileError, match="At least one VALID"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zero valid rows fails clearly`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1029,7 +1029,7 @@ def test_zero_valid_rows_fails_clearly(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape metrics require physical domains`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1058,7 +1058,7 @@ with pytest.raises(ShapeProfileError, match=message):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape metrics require physical domains`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1084,7 +1084,7 @@ def test_valid_shape_metrics_require_physical_domains(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape length must not be less than width`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1113,7 +1113,7 @@ with pytest.raises(ShapeProfileError, match="length_m must be at least width_m")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape length must not be less than width`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1136,7 +1136,7 @@ def test_valid_shape_length_must_not_be_less_than_width(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape ratio must match length divided by width`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1165,7 +1165,7 @@ with pytest.raises(ShapeProfileError, match="must equal length_m / width_m"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape ratio must match length divided by width`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1188,7 +1188,7 @@ def test_valid_shape_ratio_must_match_length_divided_by_width(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid shape metrics reject bool and numeric strings`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1218,7 +1218,7 @@ with pytest.raises(ShapeProfileError, match="numeric and finite"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid shape metrics reject bool and numeric strings`: the reproduced adversarial input must raise `ShapeProfileError` before the prohibited success path.
 
 **Test boundary**
 

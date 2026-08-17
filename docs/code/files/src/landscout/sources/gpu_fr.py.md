@@ -87,7 +87,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value argument/reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value argument/reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::_sha256` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value reference).
 
 #### `USER_AGENT`
 
@@ -95,7 +95,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 USER_AGENT = "LandScout-AI/0.1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_request_json` (value reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value reference).
 
 #### `EXTRACTION_MANIFEST_NAME`
 
@@ -103,7 +103,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 EXTRACTION_MANIFEST_NAME = ".landscout-gpu-extraction.json"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::<module>` (import/re-export), `tests/unit/test_enrich_planning_zoning.py::<module>` (import/re-export), `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` (property/attribute access), `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` (property/attribute access), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::<module>` (import), `tests/unit/test_enrich_planning_zoning.py::<module>` (import), `tests/unit/test_resolve_planning_feature_codes.py::<module>` (import), `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` (value reference), `src/landscout/sources/gpu_fr.py::_inventory` (value reference), `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` (value reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value reference), `tests/unit/test_enrich_planning_features.py::_physical_inventory` (value reference), `tests/unit/test_enrich_planning_features.py::_write_extraction_manifest` (value reference), `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::_physical_inventory` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::_write_extraction_manifest` (value reference).
 
 #### `EXTRACTION_MANIFEST_SCHEMA_VERSION`
 
@@ -111,7 +111,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 EXTRACTION_MANIFEST_SCHEMA_VERSION = 2
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/sources/gpu_fr.py::_manifest_payload` (value reference), `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` (value reference).
 
 #### `_WINDOWS_RESERVED_BASENAMES`
 
@@ -126,7 +126,7 @@ _WINDOWS_RESERVED_BASENAMES = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_safe_gpu_archive_filename` (value reference), `src/landscout/sources/gpu_fr.py::_windows_member_component` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -137,7 +137,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 ```
 
-String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+String constrained non-empty after the exact StringConstraints behavior in the declaration. Enforced/consumed by `src/landscout/sources/gpu_fr.py::GpuDownloadConfig` (type annotation), `src/landscout/sources/gpu_fr.py::GpuLogicalLayerConfig` (type annotation), `src/landscout/sources/gpu_fr.py::GpuSourceConfig` (type annotation).
 
 #### `CommuneCode`
 
@@ -148,7 +148,7 @@ CommuneCode = Annotated[
 ]
 ```
 
-Canonical French commune identity constrained by the exact regex in the declaration. It is consumed by annotations or Pydantic validation in this module.
+Canonical French commune identity constrained by the exact regex in the declaration. Enforced/consumed by `src/landscout/sources/gpu_fr.py::GpuPilotConfig` (type annotation).
 
 #### `DownloadStrategy`
 
@@ -156,7 +156,7 @@ Canonical French commune identity constrained by the exact regex in the declarat
 DownloadStrategy = Literal["partition"]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/gpu_fr.py::GpuDownloadConfig` (type annotation).
 
 #### `LogicalLayerName`
 
@@ -172,7 +172,7 @@ LogicalLayerName = Literal[
 ]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/gpu_fr.py::GpuInspectedLayer` (type annotation), `src/landscout/sources/gpu_fr.py::GpuValidatedSpatialLayerSource` (type annotation), `src/landscout/sources/gpu_fr.py::_layer_config` (type annotation), `src/landscout/sources/gpu_fr.py::_discover_logical_layer` (type annotation), `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` (type annotation).
 
 #### `FileCategory`
 
@@ -182,7 +182,7 @@ FileCategory = Literal[
 ]
 ```
 
-Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/sources/gpu_fr.py::GpuExtractedFile` (type annotation), `src/landscout/sources/gpu_fr.py::_classify_file` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -236,7 +236,7 @@ def _official_api(cls, value: HttpUrl) -> HttpUrl:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSourceConfig` via `GpuApiConfig`.
 
 **Exact class source**
 
@@ -279,8 +279,8 @@ class GpuApiConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `strategy` | `strategy: DownloadStrategy` | Stores `GpuDownloadConfig`'s `strategy` value under exact annotation `DownloadStrategy`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `partition_template` | `partition_template: NonEmptyString` | Stores `GpuDownloadConfig`'s `partition template` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `strategy` | `strategy: DownloadStrategy` | Configured GPU archive-discovery/download strategy identifier. |
+| `partition_template` | `partition_template: NonEmptyString` | GPU partition template formatted with the canonical commune code. |
 
 **Validators (exact source)**
 
@@ -303,7 +303,7 @@ def _valid_partition_template(cls, value: str) -> str:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSourceConfig` via `GpuDownloadConfig`.
 
 **Exact class source**
 
@@ -344,11 +344,11 @@ class GpuDownloadConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `max_age_hours` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Stores `GpuCacheConfig`'s `max age hours` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `max_age_hours` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Configured maximum cache age in hours; zero requires immediate refresh. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSourceConfig` via `GpuCacheConfig`.
 
 **Exact class source**
 
@@ -373,11 +373,11 @@ class GpuCacheConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `commune_code` | `commune_code: CommuneCode` | Stores `GpuPilotConfig`'s `commune code` value under exact annotation `CommuneCode`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `commune_code` | `commune_code: CommuneCode` | Canonical five-character French commune identity attached to this source/configuration context. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSourceConfig` via `GpuPilotConfig`.
 
 **Exact class source**
 
@@ -402,7 +402,7 @@ class GpuPilotConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `class_label` | `class_label: NonEmptyString` | Closed or validated `class label` classification on `GpuLogicalLayerConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `class_label` | `class_label: NonEmptyString` | `GpuLogicalLayerConfig.class_label` represents the `class_label` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `match_tokens` | `match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)` | Structured `match tokens` collection owned by `GpuLogicalLayerConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
 **Validators (exact source)**
@@ -421,7 +421,8 @@ def _unique_tokens(cls, values: tuple[str, ...]) -> tuple[str, ...]:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSpatialLayersConfig` via `GpuLogicalLayerConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_layer_config` via `GpuLogicalLayerConfig`.
 
 **Exact class source**
 
@@ -457,17 +458,17 @@ class GpuLogicalLayerConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `zoning` | `zoning: GpuLogicalLayerConfig` | Stores `GpuSpatialLayersConfig`'s `zoning` value under exact annotation `GpuLogicalLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `prescription_surface` | `prescription_surface: GpuLogicalLayerConfig` | Stores `GpuSpatialLayersConfig`'s `prescription surface` value under exact annotation `GpuLogicalLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `prescription_line` | `prescription_line: GpuLogicalLayerConfig` | Stores `GpuSpatialLayersConfig`'s `prescription line` value under exact annotation `GpuLogicalLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `prescription_point` | `prescription_point: GpuLogicalLayerConfig` | Stores `GpuSpatialLayersConfig`'s `prescription point` value under exact annotation `GpuLogicalLayerConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `information_surface` | `information_surface: GpuLogicalLayerConfig` | Closed or validated `information surface` classification on `GpuSpatialLayersConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `information_line` | `information_line: GpuLogicalLayerConfig` | Closed or validated `information line` classification on `GpuSpatialLayersConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `information_point` | `information_point: GpuLogicalLayerConfig` | Closed or validated `information point` classification on `GpuSpatialLayersConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `zoning` | `zoning: GpuLogicalLayerConfig` | Validated zoning-layer data/configuration owned by this GPU planning source. |
+| `prescription_surface` | `prescription_surface: GpuLogicalLayerConfig` | Configured GPU surface-prescription logical-layer match rule. |
+| `prescription_line` | `prescription_line: GpuLogicalLayerConfig` | Configured GPU line-prescription logical-layer match rule. |
+| `prescription_point` | `prescription_point: GpuLogicalLayerConfig` | Configured GPU point-prescription logical-layer match rule. |
+| `information_surface` | `information_surface: GpuLogicalLayerConfig` | `GpuSpatialLayersConfig.information_surface` represents the `information_surface` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `information_line` | `information_line: GpuLogicalLayerConfig` | `GpuSpatialLayersConfig.information_line` represents the `information_line` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `information_point` | `information_point: GpuLogicalLayerConfig` | `GpuSpatialLayersConfig.information_point` represents the `information_point` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuSourceConfig` via `GpuSpatialLayersConfig`.
 
 **Exact class source**
 
@@ -498,18 +499,18 @@ class GpuSpatialLayersConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: NonEmptyString` | Stores `GpuSourceConfig`'s `provider` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: NonEmptyString` | Stores `GpuSourceConfig`'s `portal` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `country` | `country: Literal["FR"]` | Stores `GpuSourceConfig`'s `country` value under exact annotation `Literal['FR']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `api` | `api: GpuApiConfig` | Stores `GpuSourceConfig`'s `api` value under exact annotation `GpuApiConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `download` | `download: GpuDownloadConfig` | Stores `GpuSourceConfig`'s `download` value under exact annotation `GpuDownloadConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `cache` | `cache: GpuCacheConfig` | Stores `GpuSourceConfig`'s `cache` value under exact annotation `GpuCacheConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `pilot` | `pilot: GpuPilotConfig` | Stores `GpuSourceConfig`'s `pilot` value under exact annotation `GpuPilotConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `spatial_layers` | `spatial_layers: GpuSpatialLayersConfig` | Stores `GpuSourceConfig`'s `spatial layers` value under exact annotation `GpuSpatialLayersConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: NonEmptyString` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: NonEmptyString` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
+| `country` | `country: Literal["FR"]` | Country identity used by the owning source/profile contract. |
+| `api` | `api: GpuApiConfig` | Nested official API-origin/path configuration. |
+| `download` | `download: GpuDownloadConfig` | Verified download envelope that owns the bytes used by this extraction/result. |
+| `cache` | `cache: GpuCacheConfig` | Nested cache-path and freshness configuration. |
+| `pilot` | `pilot: GpuPilotConfig` | Nested GPU pilot commune/document-type identity. |
+| `spatial_layers` | `spatial_layers: GpuSpatialLayersConfig` | Nested GPU logical-layer match configuration. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -542,7 +543,7 @@ class GpuSpatialLayersConfig(BaseModel):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -561,6 +562,21 @@ class GpuSpatialLayersConfig(BaseModel):
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::load_gpu_source_config` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validated_source_config` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_api_url` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_layer_config` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuSourceConfig`.
+- type annotation: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `GpuSourceConfig`.
+- type annotation: `tests/unit/test_gpu_fr.py::_config` via `GpuSourceConfig`.
 
 **Exact class source**
 
@@ -594,7 +610,7 @@ class GpuSourceConfig(BaseModel):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -649,7 +665,7 @@ class GpuError(RuntimeError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -682,9 +698,9 @@ class GpuError(RuntimeError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::load_gpu_source_config` via `GpuConfigError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_source_config` via `GpuConfigError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `GpuConfigError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::load_gpu_source_config` via `GpuConfigError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validated_source_config` via `GpuConfigError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `GpuConfigError`.
 
 **Exact class source**
 
@@ -707,7 +723,7 @@ class GpuConfigError(GpuError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -740,21 +756,7 @@ class GpuConfigError(GpuError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_request_json` via `GpuDiscoveryError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_required_string` via `GpuDiscoveryError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_optional_string` via `GpuDiscoveryError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuDiscoveryError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuDiscoveryError`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `pytest.raises(GpuDiscoveryError, match='config|official|origin')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `pytest.raises(GpuDiscoveryError, match='written material URL')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `pytest.raises(GpuDiscoveryError, match='archive URL')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `pytest.raises(GpuDiscoveryError, match='No current')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `pytest.raises(GpuDiscoveryError, match='Ambiguous')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `pytest.raises(GpuDiscoveryError, match='missing')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `pytest.raises(GpuDiscoveryError, match='match|changed|current')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `pytest.raises(GpuDiscoveryError, match='match')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `pytest.raises(GpuDiscoveryError, match='archive name|safe')`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -773,6 +775,20 @@ class GpuConfigError(GpuError):
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_request_json` via `GpuDiscoveryError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_required_string` via `GpuDiscoveryError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_optional_string` via `GpuDiscoveryError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuDiscoveryError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuDiscoveryError`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `pytest.raises(GpuDiscoveryError, match='config|official|origin')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `pytest.raises(GpuDiscoveryError, match='written material URL')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `pytest.raises(GpuDiscoveryError, match='archive URL')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `pytest.raises(GpuDiscoveryError, match='No current')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `pytest.raises(GpuDiscoveryError, match='Ambiguous')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `pytest.raises(GpuDiscoveryError, match='missing')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `pytest.raises(GpuDiscoveryError, match='match|changed|current')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `pytest.raises(GpuDiscoveryError, match='match')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `pytest.raises(GpuDiscoveryError, match='archive name|safe')`.
 
 **Exact class source**
 
@@ -795,7 +811,7 @@ class GpuDiscoveryError(GpuError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -828,25 +844,7 @@ class GpuDiscoveryError(GpuError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_safe_gpu_archive_filename` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_cleanup_temporary_cache_files` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `GpuDownloadError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuDownloadError`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.raises(GpuDownloadError, match='document|identity|config')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `pytest.raises(GpuDownloadError, match='written|document|source|URL')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.raises(GpuDownloadError, match='archive name|archive filename|safe')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `pytest.raises(GpuDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `pytest.raises(GpuDownloadError)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `pytest.raises(GpuDownloadError)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `pytest.raises(GpuDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(GpuDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `pytest.raises(GpuDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `pytest.raises(GpuDownloadError)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `pytest.raises(GpuDownloadError)`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -865,6 +863,24 @@ class GpuDiscoveryError(GpuError):
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_safe_gpu_archive_filename` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_cleanup_temporary_cache_files` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `GpuDownloadError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuDownloadError`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.raises(GpuDownloadError, match='document|identity|config')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `pytest.raises(GpuDownloadError, match='written|document|source|URL')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.raises(GpuDownloadError, match='archive name|archive filename|safe')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `pytest.raises(GpuDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `pytest.raises(GpuDownloadError)`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `pytest.raises(GpuDownloadError)`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `pytest.raises(GpuDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(GpuDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `pytest.raises(GpuDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `pytest.raises(GpuDownloadError)`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `pytest.raises(GpuDownloadError)`.
 
 **Exact class source**
 
@@ -887,7 +903,7 @@ class GpuDownloadError(GpuError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -920,23 +936,7 @@ class GpuDownloadError(GpuError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_windows_member_component` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::validate_gpu_archive` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `GpuArchiveError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `GpuArchiveError`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `isinstance(error, GpuArchiveError)`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuArchiveError`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `pytest.raises(GpuArchiveError, match='Unsafe')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_archive_symlink_is_rejected` via `pytest.raises(GpuArchiveError, match='Symbolic')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `pytest.raises(GpuArchiveError, match='(?i)duplicate|collid')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `pytest.raises(GpuArchiveError, match='collision|target')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `pytest.raises(GpuArchiveError, match='manifest')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `pytest.raises(GpuArchiveError, match='checksum|SHA|stale|metadata')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `pytest.raises(GpuArchiveError, match='archive|metadata|checksum|size')`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -955,6 +955,21 @@ class GpuDownloadError(GpuError):
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_windows_member_component` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::validate_gpu_archive` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_inventory` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `GpuArchiveError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuArchiveError`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `pytest.raises(GpuArchiveError, match='Unsafe')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_archive_symlink_is_rejected` via `pytest.raises(GpuArchiveError, match='Symbolic')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `pytest.raises(GpuArchiveError, match='(?i)duplicate|collid')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `pytest.raises(GpuArchiveError, match='collision|target')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `pytest.raises(GpuArchiveError, match='manifest')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `pytest.raises(GpuArchiveError, match='checksum|SHA|stale|metadata')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `pytest.raises(GpuArchiveError, match='archive|metadata|checksum|size')`.
 
 **Exact class source**
 
@@ -977,7 +992,7 @@ class GpuArchiveError(GpuError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1010,35 +1025,19 @@ class GpuArchiveError(GpuError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_reference` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_inventory_path` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_same_spatial_crs` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_compare_inspected_spatial_layer` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuSpatialInspectionError`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::finite_numeric_vocabulary` via `GpuSpatialInspectionError`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- import/re-export: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1048,15 +1047,7 @@ class GpuArchiveError(GpuError):
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- callback/property argument: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `pytest.raises(gpu_source_module.GpuSpatialInspectionError)`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `gpu_source_module.GpuSpatialInspectionError`.
-- callback/property argument: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_planning_document` via `pytest.raises(gpu_source_module.GpuSpatialInspectionError)`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_planning_document` via `gpu_source_module.GpuSpatialInspectionError`.
-- callback/property argument: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `pytest.raises(gpu_source_module.GpuSpatialInspectionError, match='duplicate')`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `gpu_source_module.GpuSpatialInspectionError`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `pytest.raises(GpuSpatialInspectionError, match='zoning')`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `pytest.raises(GpuSpatialInspectionError, match='found 2')`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -1075,6 +1066,24 @@ class GpuArchiveError(GpuError):
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- constructor call: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_load_reference` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validated_inventory_path` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_same_spatial_crs` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_compare_inspected_spatial_layer` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuSpatialInspectionError`.
+- constructor call: `src/landscout/sources/gpu_fr.py::finite_numeric_vocabulary` via `GpuSpatialInspectionError`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `pytest.raises(GpuSpatialInspectionError, match='zoning')`.
+- expected exception type: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `pytest.raises(GpuSpatialInspectionError, match='found 2')`.
 
 **Exact class source**
 
@@ -1098,13 +1107,13 @@ class GpuSpatialInspectionError(GpuError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
-| `title` | `title: str \| None` | `GpuWrittenFile`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `str | None` and is not promoted to a legal conclusion. |
+| `title` | `title: str \| None` | `GpuWrittenFile.title` carries the title used by the reproduced constructors and validators; its declared type is `str | None` and no legal meaning is inferred beyond that owner. |
 | `document_path` | `document_path: str \| None` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `source_url` | `source_url: str \| None` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1137,10 +1146,7 @@ class GpuSpatialInspectionError(GpuError):
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuWrittenFile`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuWrittenFile`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `isinstance(item, GpuWrittenFile)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1150,8 +1156,7 @@ class GpuSpatialInspectionError(GpuError):
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_document` via `GpuWrittenFile`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1162,6 +1167,15 @@ class GpuSpatialInspectionError(GpuError):
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuDocumentMetadata` via `GpuWrittenFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuWrittenFile`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_written_files` via `GpuWrittenFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuWrittenFile`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuWrittenFile`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `GpuWrittenFile`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `GpuWrittenFile`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `GpuWrittenFile`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_document` via `GpuWrittenFile`.
 
 **Exact class source**
 
@@ -1187,32 +1201,32 @@ class GpuWrittenFile:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: str` | Stores `GpuDocumentMetadata`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: str` | Stores `GpuDocumentMetadata`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `commune_code` | `commune_code: str` | Stores `GpuDocumentMetadata`'s `commune code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `partition` | `partition: str` | Stores `GpuDocumentMetadata`'s `partition` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
+| `commune_code` | `commune_code: str` | Canonical five-character French commune identity attached to this source/configuration context. |
+| `partition` | `partition: str` | Exact GPU partition identity used to discover this document. |
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `document_family` | `document_family: str` | Closed or validated `document family` classification on `GpuDocumentMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `document_type` | `document_type: str` | Closed or validated `document type` classification on `GpuDocumentMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `document_title` | `document_title: str \| None` | `GpuDocumentMetadata`'s `document title` evidence/text field; it retains the exact configured or source meaning under annotation `str | None` and is not promoted to a legal conclusion. |
-| `status` | `status: str` | Closed or validated `status` classification on `GpuDocumentMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `legal_status` | `legal_status: str` | Closed or validated `legal status` classification on `GpuDocumentMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `effective_status` | `effective_status: str` | Closed or validated `effective status` classification on `GpuDocumentMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `version` | `version: str \| None` | Stores `GpuDocumentMetadata`'s `version` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `archive_name` | `archive_name: str` | Stores `GpuDocumentMetadata`'s `archive name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document_family` | `document_family: str` | `GpuDocumentMetadata.document_family` represents the `document_family` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `document_type` | `document_type: str` | `GpuDocumentMetadata.document_type` represents the `document_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `document_title` | `document_title: str \| None` | `GpuDocumentMetadata.document_title` carries the document title used by the reproduced constructors and validators; its declared type is `str | None` and no legal meaning is inferred beyond that owner. |
+| `status` | `status: str` | `GpuDocumentMetadata.status` represents the `status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `legal_status` | `legal_status: str` | `GpuDocumentMetadata.legal_status` represents the `legal_status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `effective_status` | `effective_status: str` | `GpuDocumentMetadata.effective_status` represents the `effective_status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `version` | `version: str \| None` | Source-reported GPU document version retained in current-document identity. |
+| `archive_name` | `archive_name: str` | Portable physical source-archive basename retained in lineage. |
 | `publication_timestamp` | `publication_timestamp: str \| None` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `update_timestamp` | `update_timestamp: str \| None` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
-| `revision_date` | `revision_date: str \| None` | Stores `GpuDocumentMetadata`'s `revision date` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `producer` | `producer: str \| None` | Stores `GpuDocumentMetadata`'s `producer` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `revision_date` | `revision_date: str \| None` | Source-reported GPU document revision date. |
+| `producer` | `producer: str \| None` | Source-reported producer of the GPU planning document. |
 | `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
-| `projection` | `projection: str \| None` | Stores `GpuDocumentMetadata`'s `projection` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `metadata_identifier` | `metadata_identifier: str \| None` | Stores `GpuDocumentMetadata`'s `metadata identifier` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `projection` | `projection: str \| None` | Declared source-package projection identity checked by the owning adapter. |
+| `metadata_identifier` | `metadata_identifier: str \| None` | Source-reported GPU metadata record identifier. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 | `written_files` | `written_files: tuple[GpuWrittenFile, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1245,12 +1259,7 @@ class GpuWrittenFile:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuDocumentMetadata`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `isinstance(document, GpuDocumentMetadata)`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `isinstance(download.document, GpuDocumentMetadata)`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuDocumentMetadata`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `isinstance(archive.document, GpuDocumentMetadata)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1260,8 +1269,7 @@ class GpuWrittenFile:
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuDocumentMetadata`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1272,8 +1280,7 @@ class GpuWrittenFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuDocumentMetadata`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1284,10 +1291,7 @@ class GpuWrittenFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu.GpuDocumentMetadata`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu.GpuDocumentMetadata`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_document` via `GpuDocumentMetadata`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1298,8 +1302,7 @@ class GpuWrittenFile:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuDocumentMetadata`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1310,6 +1313,20 @@ class GpuWrittenFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuArchiveDownload` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuDocumentMetadata`.
+- constructor call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_document_identity` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuDocumentMetadata`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `GpuDocumentMetadata`.
+- type annotation: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuDocumentMetadata`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuDocumentMetadata`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuDocumentMetadata`.
+- constructor call: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu.GpuDocumentMetadata`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_document` via `GpuDocumentMetadata`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuDocumentMetadata`.
 
 **Exact class source**
 
@@ -1353,10 +1370,10 @@ class GpuDocumentMetadata:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `document` | `document: GpuDocumentMetadata` | Stores `GpuArchiveDownload`'s `document` value under exact annotation `GpuDocumentMetadata`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document` | `document: GpuDocumentMetadata` | Validated GPU document metadata that owns this archive download. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
-| `archive_format` | `archive_format: str` | Closed or validated `archive format` classification on `GpuArchiveDownload`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `archive_format` | `archive_format: str` | `GpuArchiveDownload.archive_format` represents the `archive_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `path` | `path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
@@ -1364,7 +1381,7 @@ class GpuDocumentMetadata:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1397,11 +1414,7 @@ class GpuDocumentMetadata:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `isinstance(download, GpuArchiveDownload)`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `GpuArchiveDownload`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuArchiveDownload`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `isinstance(archive, GpuArchiveDownload)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1411,8 +1424,7 @@ class GpuDocumentMetadata:
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuArchiveDownload`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1423,8 +1435,7 @@ class GpuDocumentMetadata:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuArchiveDownload`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1435,8 +1446,7 @@ class GpuDocumentMetadata:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `GpuArchiveDownload`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -1455,8 +1465,7 @@ class GpuDocumentMetadata:
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_document` via `GpuArchiveDownload`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1467,8 +1476,7 @@ class GpuDocumentMetadata:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuArchiveDownload`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1479,6 +1487,21 @@ class GpuDocumentMetadata:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuExtraction` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `GpuArchiveDownload`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuArchiveDownload`.
+- constructor call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_manifest_payload` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `GpuArchiveDownload`.
+- type annotation: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuArchiveDownload`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuArchiveDownload`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuArchiveDownload`.
+- type annotation: `tests/unit/test_gpu_fr.py::_download` via `GpuArchiveDownload`.
+- constructor call: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `GpuArchiveDownload`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_document` via `GpuArchiveDownload`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuArchiveDownload`.
 
 **Exact class source**
 
@@ -1509,14 +1532,14 @@ class GpuArchiveDownload:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `relative_path` | `relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
-| `file_type` | `file_type: str` | Closed or validated `file type` classification on `GpuExtractedFile`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `size_bytes` | `size_bytes: int` | Stores `GpuExtractedFile`'s `size bytes` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `file_type` | `file_type: str` | `GpuExtractedFile.file_type` represents the `file_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `size_bytes` | `size_bytes: int` | Measured physical file size in bytes for this artifact or extracted source member. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `category` | `category: FileCategory` | Stores `GpuExtractedFile`'s `category` value under exact annotation `FileCategory`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `category` | `category: FileCategory` | Deterministic extracted-file category assigned by the owning archive inventory contract. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1549,10 +1572,7 @@ class GpuArchiveDownload:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `GpuExtractedFile`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `isinstance(item, GpuExtractedFile)`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `isinstance(item, GpuExtractedFile)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1562,8 +1582,7 @@ class GpuArchiveDownload:
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_physical_inventory` via `GpuExtractedFile`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1574,8 +1593,7 @@ class GpuArchiveDownload:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `GpuExtractedFile`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1586,9 +1604,7 @@ class GpuArchiveDownload:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_inventory_item` via `GpuExtractedFile`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_spatial_inventory_item` via `GpuExtractedFile`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1599,8 +1615,7 @@ class GpuArchiveDownload:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_physical_inventory` via `GpuExtractedFile`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1611,6 +1626,29 @@ class GpuArchiveDownload:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuExtraction` via `GpuExtractedFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_inventory` via `GpuExtractedFile`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_inventory` via `GpuExtractedFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_manifest_payload` via `GpuExtractedFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `GpuExtractedFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `GpuExtractedFile`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `GpuExtractedFile`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `GpuExtractedFile`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_physical_inventory` via `GpuExtractedFile`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_physical_inventory` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_write_extraction_manifest` via `GpuExtractedFile`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_inventory_item` via `GpuExtractedFile`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_inventory_item` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_spatial_inventory_item` via `GpuExtractedFile`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_spatial_inventory_item` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_document` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_physical_inventory` via `GpuExtractedFile`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_physical_inventory` via `GpuExtractedFile`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_write_extraction_manifest` via `GpuExtractedFile`.
 
 **Exact class source**
 
@@ -1637,7 +1675,7 @@ class GpuExtractedFile:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `archive` | `archive: GpuArchiveDownload` | Stores `GpuExtraction`'s `archive` value under exact annotation `GpuArchiveDownload`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `archive` | `archive: GpuArchiveDownload` | Verified archive/download envelope from which this extraction or source object was built. |
 | `extraction_root` | `extraction_root: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `files` | `files: tuple[GpuExtractedFile, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 | `standard_models` | `standard_models: tuple[str, ...]` | Structured `standard models` collection owned by `GpuExtraction`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
@@ -1645,7 +1683,7 @@ class GpuExtractedFile:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1678,9 +1716,7 @@ class GpuExtractedFile:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuExtraction`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `isinstance(extraction, GpuExtraction)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1690,8 +1726,7 @@ class GpuExtractedFile:
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuExtraction`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1702,8 +1737,7 @@ class GpuExtractedFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuExtraction`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1714,7 +1748,7 @@ class GpuExtractedFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -1733,8 +1767,7 @@ class GpuExtractedFile:
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_document` via `GpuExtraction`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1745,8 +1778,7 @@ class GpuExtractedFile:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuExtraction`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1757,6 +1789,20 @@ class GpuExtractedFile:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuPlanningDocument` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuExtraction`.
+- constructor call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuExtraction`.
+- type annotation: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuExtraction`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuExtraction`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuExtraction`.
+- type annotation: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `GpuExtraction`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_document` via `GpuExtraction`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuExtraction`.
 
 **Exact class source**
 
@@ -1785,11 +1831,11 @@ class GpuExtraction:
 |---|---|---|
 | `dataset_path` | `dataset_path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `driver` | `driver: str` | Stores `GpuSpatialLayerReference`'s `driver` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `driver` | `driver: str` | Physical GIS driver reported for the inspected source file/layer. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1822,12 +1868,7 @@ class GpuExtraction:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuSpatialLayerReference`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `GpuSpatialLayerReference`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuSpatialLayerReference`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `GpuSpatialLayerReference`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `GpuSpatialLayerReference`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1838,8 +1879,7 @@ class GpuExtraction:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuSpatialLayerReference`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1850,8 +1890,7 @@ class GpuExtraction:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuSpatialLayerReference`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1862,9 +1901,7 @@ class GpuExtraction:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuSpatialLayerReference`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuSpatialLayerReference`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1875,6 +1912,25 @@ class GpuExtraction:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuInspectedLayer` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuPlanningDocument` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuSpatialLayerReference`.
+- constructor call: `src/landscout/sources/gpu_fr.py::discover_gpu_spatial_layers` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_load_reference` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `GpuSpatialLayerReference`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_inspected` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuSpatialLayerReference`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_replace_layer_reference` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuSpatialLayerReference`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuSpatialLayerReference`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots.relocated_reference` via `GpuSpatialLayerReference`.
 
 **Exact class source**
 
@@ -1905,16 +1961,16 @@ class GpuSpatialLayerReference:
 | `crs` | `crs: str` | Coordinate reference system identity; exact accepted/storage/calculation behavior is enforced by the owning CRS validator. |
 | `feature_count` | `feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `columns` | `columns: tuple[str, ...]` | Structured `columns` collection owned by `GpuLayerSummary`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | Closed or validated `dtypes` classification on `GpuLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `dtypes` | `dtypes: tuple[tuple[str, str], ...]` | `GpuLayerSummary.dtypes` represents the `dtypes` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `null_counts` | `null_counts: tuple[tuple[str, int], ...]` | Structured `null counts` collection owned by `GpuLayerSummary`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `geometry_types` | `geometry_types: tuple[tuple[str, int], ...]` | Closed or validated `geometry types` classification on `GpuLayerSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `geometry_types` | `geometry_types: tuple[tuple[str, int], ...]` | `GpuLayerSummary.geometry_types` represents the `geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `null_geometry_count` | `null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `empty_geometry_count` | `empty_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `invalid_geometry_count` | `invalid_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -1947,9 +2003,7 @@ class GpuSpatialLayerReference:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuLayerSummary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_summary` via `GpuLayerSummary`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1960,8 +2014,7 @@ class GpuSpatialLayerReference:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuLayerSummary`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1972,8 +2025,7 @@ class GpuSpatialLayerReference:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_summary` via `GpuLayerSummary`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -1984,9 +2036,7 @@ class GpuSpatialLayerReference:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_layer_summary` via `GpuLayerSummary`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuLayerSummary`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -1997,6 +2047,17 @@ class GpuSpatialLayerReference:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuInspectedLayer` via `GpuLayerSummary`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuLayerSummary`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `GpuLayerSummary`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_summary` via `GpuLayerSummary`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_summary` via `GpuLayerSummary`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuLayerSummary`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_summary` via `GpuLayerSummary`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_summary` via `GpuLayerSummary`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_layer_summary` via `GpuLayerSummary`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_layer_summary` via `GpuLayerSummary`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuLayerSummary`.
 
 **Exact class source**
 
@@ -2030,14 +2091,14 @@ class GpuLayerSummary:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `logical_name` | `logical_name: LogicalLayerName` | Stores `GpuInspectedLayer`'s `logical name` value under exact annotation `LogicalLayerName`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `reference` | `reference: GpuSpatialLayerReference` | `GpuInspectedLayer`'s `reference` evidence/text field; it retains the exact configured or source meaning under annotation `GpuSpatialLayerReference` and is not promoted to a legal conclusion. |
-| `data` | `data: gpd.GeoDataFrame` | Stores `GpuInspectedLayer`'s `data` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `summary` | `summary: GpuLayerSummary` | Stores `GpuInspectedLayer`'s `summary` value under exact annotation `GpuLayerSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `logical_name` | `logical_name: LogicalLayerName` | LandScout logical dataset/layer role bound to the selected physical source. |
+| `reference` | `reference: GpuSpatialLayerReference` | `GpuInspectedLayer.reference` carries the reference used by the reproduced constructors and validators; its declared type is `GpuSpatialLayerReference` and no legal meaning is inferred beyond that owner. |
+| `data` | `data: gpd.GeoDataFrame` | GeoDataFrame loaded for this exact inspected logical/physical layer. |
+| `summary` | `summary: GpuLayerSummary` | Validated immutable summary of the owning physical frame/layer. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2070,20 +2131,15 @@ class GpuLayerSummary:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `isinstance(inspected_layer, GpuInspectedLayer)`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `isinstance(layer, GpuInspectedLayer)`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuInspectedLayer`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `GpuInspectedLayer`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuInspectedLayer`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument`.
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2094,8 +2150,7 @@ class GpuLayerSummary:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuInspectedLayer`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2106,8 +2161,7 @@ class GpuLayerSummary:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuInspectedLayer`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -2118,9 +2172,7 @@ class GpuLayerSummary:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuInspectedLayer`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuInspectedLayer`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2131,6 +2183,35 @@ class GpuLayerSummary:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuPlanningDocument` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_compare_inspected_spatial_layer` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_source` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `GpuInspectedLayer`.
+- constructor call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `GpuInspectedLayer`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_inspected` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_inspected` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_run` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_document` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuInspectedLayer`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_layer` via `GpuInspectedLayer`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `GpuInspectedLayer`.
 
 **Exact class source**
 
@@ -2157,14 +2238,14 @@ class GpuInspectedLayer:
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `relative_path` | `relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
-| `file_type` | `file_type: str` | Closed or validated `file type` classification on `GpuSpatialSourceFileIntegrity`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `size_bytes` | `size_bytes: int` | Stores `GpuSpatialSourceFileIntegrity`'s `size bytes` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `file_type` | `file_type: str` | `GpuSpatialSourceFileIntegrity.file_type` represents the `file_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `size_bytes` | `size_bytes: int` | Measured physical file size in bytes for this artifact or extracted source member. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `category` | `category: str` | Stores `GpuSpatialSourceFileIntegrity`'s `category` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `category` | `category: str` | Deterministic extracted-file category assigned by the owning archive inventory contract. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2197,7 +2278,8 @@ class GpuInspectedLayer:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuSpatialSourceFileIntegrity`.
+- type annotation: `src/landscout/sources/gpu_fr.py::GpuValidatedSpatialLayerSource` via `GpuSpatialSourceFileIntegrity`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuSpatialSourceFileIntegrity`.
 
 **Exact class source**
 
@@ -2226,19 +2308,19 @@ class GpuSpatialSourceFileIntegrity:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `logical_name` | `logical_name: LogicalLayerName` | Stores `GpuValidatedSpatialLayerSource`'s `logical name` value under exact annotation `LogicalLayerName`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `logical_name` | `logical_name: LogicalLayerName` | LandScout logical dataset/layer role bound to the selected physical source. |
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `driver` | `driver: str` | Stores `GpuValidatedSpatialLayerSource`'s `driver` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `driver` | `driver: str` | Physical GIS driver reported for the inspected source file/layer. |
 | `dataset_relative_path` | `dataset_relative_path: str` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `source_crs` | `source_crs: str` | Coordinate reference system identity; exact accepted/storage/calculation behavior is enforced by the owning CRS validator. |
 | `feature_count` | `feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `files` | `files: tuple[GpuSpatialSourceFileIntegrity, ...]` | Ordered collection of the named source/configuration records; member type, uniqueness, order, and identity are validated by the owning model/source boundary. |
 | `ogr_fids` | `ogr_fids: tuple[int, ...]` | Structured `ogr fids` collection owned by `GpuValidatedSpatialLayerSource`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `data` | `data: gpd.GeoDataFrame` | Stores `GpuValidatedSpatialLayerSource`'s `data` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `data` | `data: gpd.GeoDataFrame` | GeoDataFrame loaded for this exact inspected logical/physical layer. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2271,14 +2353,22 @@ class GpuSpatialSourceFileIntegrity:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuValidatedSpatialLayerSource`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuValidatedSpatialLayerSource`.
+- constructor call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_source` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `GpuValidatedSpatialLayerSource`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `GpuValidatedSpatialLayerSource`.
 
 **Exact class source**
 
@@ -2311,14 +2401,14 @@ class GpuValidatedSpatialLayerSource:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `extraction` | `extraction: GpuExtraction` | `GpuPlanningDocument`'s `extraction` evidence/text field; it retains the exact configured or source meaning under annotation `GpuExtraction` and is not promoted to a legal conclusion. |
+| `extraction` | `extraction: GpuExtraction` | `GpuPlanningDocument.extraction` carries the extraction used by the reproduced constructors and validators; its declared type is `GpuExtraction` and no legal meaning is inferred beyond that owner. |
 | `all_spatial_layers` | `all_spatial_layers: tuple[GpuSpatialLayerReference, ...]` | Structured `all spatial layers` collection owned by `GpuPlanningDocument`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `zoning` | `zoning: GpuInspectedLayer` | Stores `GpuPlanningDocument`'s `zoning` value under exact annotation `GpuInspectedLayer`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `zoning` | `zoning: GpuInspectedLayer` | Validated zoning-layer data/configuration owned by this GPU planning source. |
 | `related_layers` | `related_layers: tuple[GpuInspectedLayer, ...]` | Structured `related layers` collection owned by `GpuPlanningDocument`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2351,28 +2441,22 @@ class GpuValidatedSpatialLayerSource:
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `isinstance(planning_document, GpuPlanningDocument)`.
-- callback/function object: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `isinstance(planning_document, GpuPlanningDocument)`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuPlanningDocument`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
-- callback/function object: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `isinstance(document, GpuPlanningDocument)`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
+- import: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- callback/function object: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `isinstance(planning_document, GpuPlanningDocument)`.
-- import/re-export: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- callback/function object: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `isinstance(planning_document, GpuPlanningDocument)`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -2382,11 +2466,9 @@ class GpuValidatedSpatialLayerSource:
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
-- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `isinstance(document, GpuPlanningDocument)`.
-- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuPlanningDocument`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.sources.gpu_fr import GpuPlanningDocument`.
+- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument`.
+- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2397,8 +2479,7 @@ class GpuValidatedSpatialLayerSource:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuPlanningDocument`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2409,8 +2490,7 @@ class GpuValidatedSpatialLayerSource:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_document` via `GpuPlanningDocument`.
-- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -2421,8 +2501,7 @@ class GpuValidatedSpatialLayerSource:
     GpuSpatialLayerReference,
     GpuWrittenFile,
 )`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuPlanningDocument`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -2433,6 +2512,73 @@ class GpuValidatedSpatialLayerSource:
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuPlanningDocument`.
+- constructor call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_policy_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_resolve_regulation_filename` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/index_planning_regulation.py::index_planning_regulation` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_catalog_document_lineage` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `GpuPlanningDocument`.
+- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuPlanningDocument`.
+- constructor call: `tests/unit/test_enrich_planning_features.py::_planning_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_contract_result` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_without_related_layer` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_replace_layer_reference` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuPlanningDocument`.
+- constructor call: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_document` via `GpuPlanningDocument`.
+- constructor call: `tests/unit/test_index_planning_regulation.py::_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuPlanningDocument`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::_inputs` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `GpuPlanningDocument`.
+- type annotation: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `GpuPlanningDocument`.
 
 **Exact class source**
 
@@ -2474,14 +2620,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2539,14 +2685,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2601,14 +2747,14 @@ values
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -2657,22 +2803,19 @@ Projects validated source facts into words; exact branches, calls, and return co
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::GpuLogicalLayerConfig._unique_tokens` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayerConfig._unique_tokens` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::IgnBdTopoLogicalLayersConfig._different_token_sets` via `_normalize_words`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_matching_layers` via `_normalize_words`.
+- direct call: `src/landscout/sources/gpu_fr.py::GpuLogicalLayerConfig._unique_tokens` via `_normalize_words`.
+- direct call: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `_normalize_words`.
 
 **Complete source-ordered implementation**
 
@@ -2715,18 +2858,18 @@ GpuSourceConfig.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2759,8 +2902,7 @@ GpuSourceConfig.model_validate(payload)
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_config` via `load_gpu_source_config`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -2779,6 +2921,7 @@ GpuSourceConfig.model_validate(payload)
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `tests/unit/test_gpu_fr.py::_config` via `load_gpu_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -2828,26 +2971,22 @@ GpuSourceConfig.model_validate(config.model_dump(mode='python'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validated_source_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `_validated_source_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_validated_source_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_validated_source_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_validated_source_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validated_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -2894,18 +3033,18 @@ validated_config.download.partition_template.format(code_insee=code)
 
 **Side effects**
 
-- Network I/O: `validated_config.download.partition_template.format`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -2938,12 +3077,7 @@ validated_config.download.partition_template.format(code_insee=code)
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `build_gpu_partition`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `build_gpu_partition`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_partition`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `build_gpu_partition`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_partition`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -2962,6 +3096,11 @@ validated_config.download.partition_template.format(code_insee=code)
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `build_gpu_partition`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `build_gpu_partition`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_partition`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `build_gpu_partition`.
+- direct call: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_partition`.
 
 **Complete source-ordered implementation**
 
@@ -3005,22 +3144,22 @@ urljoin(f"{str(config.api.base_url).rstrip('/')}/", path.lstrip('/'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_api_url`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_api_url`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `_api_url`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_api_url`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `_api_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_api_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_api_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::_written_files` via `_api_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_api_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `_api_url`.
 
 **Complete source-ordered implementation**
 
@@ -3062,18 +3201,18 @@ f"{_api_url(validated_config, 'document')}?{query}"
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -3106,9 +3245,7 @@ f"{_api_url(validated_config, 'document')}?{query}"
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_document_list_url`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_document_list_url`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -3127,6 +3264,8 @@ f"{_api_url(validated_config, 'document')}?{query}"
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_document_list_url`.
+- direct call: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_document_list_url`.
 
 **Complete source-ordered implementation**
 
@@ -3178,18 +3317,18 @@ _api_url(validated_config, f'document/download-by-partition/{partition}')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -3222,10 +3361,7 @@ _api_url(validated_config, f'document/download-by-partition/{partition}')
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_partition_download_url`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `build_gpu_partition_download_url`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_partition_download_url`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -3244,6 +3380,9 @@ _api_url(validated_config, f'document/download-by-partition/{partition}')
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `build_gpu_partition_download_url`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `build_gpu_partition_download_url`.
+- direct call: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `build_gpu_partition_download_url`.
 
 **Complete source-ordered implementation**
 
@@ -3290,17 +3429,17 @@ json.loads(response.read().decode('utf-8'))
 **Side effects**
 
 - Network I/O: `open_safe_https`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: `response.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_request_json`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_request_json`.
 
 **Complete source-ordered implementation**
 
@@ -3348,19 +3487,19 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `_required_string`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_required_string`.
+- direct call: `src/landscout/sources/gpu_fr.py::_written_files` via `_required_string`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_required_string`.
 
 **Complete source-ordered implementation**
 
@@ -3405,20 +3544,19 @@ text
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `_optional_string`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_optional_string`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_optional_string`.
+- direct call: `src/landscout/sources/gpu_fr.py::_written_files` via `_optional_string`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_optional_string`.
 
 **Complete source-ordered implementation**
 
@@ -3475,18 +3613,18 @@ tuple(sorted(result, key=lambda item: item.filename.casefold()))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `result`, `seen`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_written_files`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_written_files`.
 
 **Complete source-ordered implementation**
 
@@ -3573,18 +3711,18 @@ GpuDocumentMetadata(provider=validated_config.provider, portal=validated_config.
 
 **Side effects**
 
-- Network I/O: `build_gpu_partition_download_url`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `current`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -3617,18 +3755,7 @@ GpuDocumentMetadata(provider=validated_config.provider, portal=validated_config.
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `discover_current_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `discover_current_gpu_document`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -3647,6 +3774,17 @@ GpuDocumentMetadata(provider=validated_config.provider, portal=validated_config.
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `discover_current_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `discover_current_gpu_document`.
 
 **Complete source-ordered implementation**
 
@@ -3810,22 +3948,21 @@ filename
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_safe_gpu_archive_filename`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `_safe_gpu_archive_filename`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_safe_gpu_archive_filename`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `gpu._safe_gpu_archive_filename`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `gpu._safe_gpu_archive_filename`.
+- direct call: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_safe_gpu_archive_filename`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_document_for_config` via `_safe_gpu_archive_filename`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_safe_gpu_archive_filename`.
+- direct call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `gpu._safe_gpu_archive_filename`.
 
 **Complete source-ordered implementation**
 
@@ -3920,18 +4057,18 @@ _safe_gpu_archive_filename(document.archive_name)
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`, `build_gpu_partition_download_url`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `written_filenames`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validate_gpu_document_for_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validate_gpu_document_for_config`.
 
 **Complete source-ordered implementation**
 
@@ -4051,31 +4188,24 @@ digest.hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
+- direct call: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
 
 **Complete source-ordered implementation**
 
@@ -4119,38 +4249,27 @@ path.is_symlink() or path.is_junction()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
 
 **Complete source-ordered implementation**
 
@@ -4201,18 +4320,18 @@ validate_gpu_archive(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validate_gpu_archive_download`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validate_gpu_archive_download`.
 
 **Complete source-ordered implementation**
 
@@ -4293,19 +4412,19 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `_safe_archive_member`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_safe_archive_member`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `_safe_archive_member`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_safe_archive_member`.
 
 **Complete source-ordered implementation**
 
@@ -4355,18 +4474,18 @@ normalized.casefold()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `_windows_member_component`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validated_zip_destinations` via `_windows_member_component`.
 
 **Complete source-ordered implementation**
 
@@ -4430,19 +4549,19 @@ tuple(result)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `explicit_destinations[canonical]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `member.is_dir`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `directory_destinations`, `explicit_destinations[canonical]`, `file_destinations`, `raw_names`, `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::validate_gpu_archive` via `_validated_zip_destinations`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validated_zip_destinations`.
+- direct call: `src/landscout/sources/gpu_fr.py::validate_gpu_archive` via `_validated_zip_destinations`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validated_zip_destinations`.
 
 **Complete source-ordered implementation**
 
@@ -4547,18 +4666,18 @@ tuple(sorted((destination.as_posix() for _, destination in destinations), key=st
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`, `zipfile.ZipFile`, `zipfile.is_zipfile`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -4591,15 +4710,7 @@ tuple(sorted((destination.as_posix() for _, destination in destinations), key=st
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `validate_gpu_archive`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `validate_gpu_archive`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `validate_gpu_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `validate_gpu_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_symlink_is_rejected` via `validate_gpu_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `validate_gpu_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `validate_gpu_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `validate_gpu_archive`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -4618,6 +4729,14 @@ tuple(sorted((destination.as_posix() for _, destination in destinations), key=st
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `validate_gpu_archive`.
+- direct call: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `validate_gpu_archive`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `validate_gpu_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `validate_gpu_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_symlink_is_rejected` via `validate_gpu_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `validate_gpu_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `validate_gpu_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `validate_gpu_archive`.
 
 **Complete source-ordered implementation**
 
@@ -4678,18 +4797,18 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `result['written_files']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_document_identity`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_document_identity`.
 
 **Complete source-ordered implementation**
 
@@ -4733,18 +4852,18 @@ GpuDocumentMetadata(**values, written_files=tuple(written))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `values`, `written`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_document_from_dict`.
+- direct call: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_document_from_dict`.
 
 **Complete source-ordered implementation**
 
@@ -4792,39 +4911,18 @@ Private `planning` helper for replace file; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
+- direct call: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
 
 **Complete source-ordered implementation**
 
@@ -4867,25 +4965,19 @@ Private `planning` helper for cache recovery paths; its complete implementation 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
 
 **Complete source-ordered implementation**
 
@@ -4931,25 +5023,19 @@ Private `planning` helper for require no cache recovery material; its complete i
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
 
 **Complete source-ordered implementation**
 
@@ -4998,21 +5084,18 @@ Private `planning` helper for prepare temporary cache file; its complete impleme
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
 
 **Complete source-ordered implementation**
 
@@ -5068,21 +5151,18 @@ Private `planning` helper for cleanup temporary cache files; its complete implem
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
 
 **Complete source-ordered implementation**
 
@@ -5136,34 +5216,20 @@ Private `planning` helper for publish cache pair; its complete implementation be
 
 **Side effects**
 
-- Network I/O: `GpuDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`.
 - Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
+- direct call: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
 
 **Complete source-ordered implementation**
 
@@ -5266,18 +5332,18 @@ None
 
 **Side effects**
 
-- Network I/O: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `GpuArchiveDownload`, `downloaded_at.astimezone`, `downloaded_at.utcoffset`.
-- Filesystem read: `archive_path.stat`, `metadata_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `archive_path.stat`, `metadata_path.is_file`, `metadata_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_load_cached_archive`.
+- direct call: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_load_cached_archive`.
 
 **Complete source-ordered implementation**
 
@@ -5374,18 +5440,18 @@ result
 
 **Side effects**
 
-- Network I/O: `GpuArchiveDownload`, `GpuDownloadError`, `open_safe_https`.
-- Filesystem read: `temporary_archive.stat`.
+- Network I/O: `open_safe_https`.
+- Filesystem read: `temporary_archive.open`, `temporary_archive.stat`.
 - Filesystem write: `cache_dir.mkdir`, `copyfileobj`, `temporary_metadata.write_text`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -5418,23 +5484,7 @@ result
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `download_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `download_gpu_document`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -5453,6 +5503,22 @@ result
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::_download` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `download_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `download_gpu_document`.
 
 **Complete source-ordered implementation**
 
@@ -5572,18 +5638,18 @@ Private `planning` helper for classify file; its complete implementation below i
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_classify_file`.
+- direct call: `src/landscout/sources/gpu_fr.py::_inventory` via `_classify_file`.
 
 **Complete source-ordered implementation**
 
@@ -5643,21 +5709,19 @@ tuple(files)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `item.is_file`, `path.stat`, `root.is_dir`, `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `files`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_inventory`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_inventory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_validate_extraction_cache` via `_inventory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_inventory`.
+- direct call: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_inventory`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -5725,18 +5789,18 @@ Private `planning` helper for manifest payload; its complete implementation belo
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_manifest_payload`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_manifest_payload`.
 
 **Complete source-ordered implementation**
 
@@ -5799,20 +5863,20 @@ actual_files
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `marker.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `marker.is_file`, `marker.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `expected`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validate_extraction_manifest`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_validate_extraction_manifest`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_validate_extraction_manifest`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_validate_extraction_manifest`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_validate_extraction_manifest`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_validate_extraction_manifest`.
 
 **Complete source-ordered implementation**
 
@@ -5912,19 +5976,19 @@ Private `planning` helper for remove extraction path; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.rmdir`, `path.unlink`, `shutil.rmtree`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_remove_extraction_path`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_remove_extraction_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_remove_extraction_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_remove_extraction_path`.
 
 **Complete source-ordered implementation**
 
@@ -5966,20 +6030,18 @@ Private `planning` helper for publish extraction directory; its complete impleme
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `root.exists`.
 - Filesystem write: `shutil.move`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::extract_ign_bdtopo_archive` via `_publish_extraction_directory`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_publish_extraction_directory`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_publish_extraction_directory`.
 
 **Complete source-ordered implementation**
 
@@ -6038,18 +6100,18 @@ tuple(sorted(models, key=str.casefold))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `models`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_discover_standard_models`.
+- direct call: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_discover_standard_models`.
 
 **Complete source-ordered implementation**
 
@@ -6103,18 +6165,18 @@ GpuExtraction(archive=download, extraction_root=root, files=files, standard_mode
 
 **Side effects**
 
-- Network I/O: `_validate_gpu_archive_download`.
-- Filesystem read: `zipfile.ZipFile`.
+- Network I/O: none.
+- Filesystem read: `archive.open`, `member.is_dir`, `root.is_dir`, `target.open`.
 - Filesystem write: `copyfileobj`, `marker.write_text`, `root.parent.mkdir`, `target.mkdir`, `target.parent.mkdir`, `temporary_root.mkdir`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -6147,13 +6209,7 @@ GpuExtraction(archive=download, extraction_root=root, files=files, standard_mode
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `extract_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `extract_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `extract_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `extract_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `extract_gpu_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `extract_gpu_document`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -6172,6 +6228,12 @@ GpuExtraction(archive=download, extraction_root=root, files=files, standard_mode
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `extract_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `extract_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `extract_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `extract_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `extract_gpu_document`.
+- direct call: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `extract_gpu_document`.
 
 **Complete source-ordered implementation**
 
@@ -6272,18 +6334,18 @@ tuple(sorted(references, key=lambda item: (str(item.dataset_path), item.source_l
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `references`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -6316,9 +6378,7 @@ tuple(sorted(references, key=lambda item: (str(item.dataset_path), item.source_l
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `discover_gpu_spatial_layers`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `discover_gpu_spatial_layers`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -6337,6 +6397,8 @@ tuple(sorted(references, key=lambda item: (str(item.dataset_path), item.source_l
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `discover_gpu_spatial_layers`.
+- direct call: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `discover_gpu_spatial_layers`.
 
 **Complete source-ordered implementation**
 
@@ -6407,18 +6469,18 @@ getattr(config.spatial_layers, logical_name)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `_layer_config`.
+- direct call: `src/landscout/sources/gpu_fr.py::_discover_logical_layer` via `_layer_config`.
 
 **Complete source-ordered implementation**
 
@@ -6468,18 +6530,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `matches`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_discover_logical_layer`.
+- direct call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_discover_logical_layer`.
 
 **Complete source-ordered implementation**
 
@@ -6541,18 +6603,18 @@ gpd.read_file(reference.dataset_path, layer=reference.source_layer, engine='pyog
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_load_reference`.
+- direct call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_load_reference`.
 
 **Complete source-ordered implementation**
 
@@ -6603,20 +6665,20 @@ relative
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `_validated_inventory_path`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_validated_inventory_path`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_validated_inventory_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_inventory` via `_validated_inventory_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_validated_inventory_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_validated_inventory_path`.
 
 **Complete source-ordered implementation**
 
@@ -6670,20 +6732,20 @@ Checks and returns canonical spatial root; exact branches, calls, and return con
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `root.is_dir`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_validated_spatial_root`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_validated_spatial_root`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_validated_spatial_root`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_validated_spatial_root`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_validated_spatial_root`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_validated_spatial_root`.
 
 **Complete source-ordered implementation**
 
@@ -6743,18 +6805,18 @@ inventory
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `inventory[relative]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_spatial_inventory`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_spatial_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -6815,18 +6877,18 @@ path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.is_file`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_contained_spatial_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_contained_spatial_path`.
 
 **Complete source-ordered implementation**
 
@@ -6895,18 +6957,18 @@ _validated_inventory_path(relative.as_posix()).as_posix()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_spatial_dataset_relative_path`.
+- direct call: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_spatial_dataset_relative_path`.
 
 **Complete source-ordered implementation**
 
@@ -6974,18 +7036,18 @@ Private `planning` helper for spatial source family; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `Path(f'{reference.dataset_path}{suffix}').exists`, `parent.iterdir`, `path.stat`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `verified`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_spatial_source_family`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_spatial_source_family`.
 
 **Complete source-ordered implementation**
 
@@ -7147,18 +7209,18 @@ bool(CRS.from_user_input(left).equals(CRS.from_user_input(right)))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_compare_inspected_spatial_layer` via `_same_spatial_crs`.
+- direct call: `src/landscout/sources/gpu_fr.py::_compare_inspected_spatial_layer` via `_same_spatial_crs`.
 
 **Complete source-ordered implementation**
 
@@ -7210,18 +7272,18 @@ Private `planning` helper for compare inspected spatial layer; its complete impl
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `loaded.geometry.to_wkb`, `loaded.geometry.to_wkb().tolist`, `reread.geometry.to_wkb`, `reread.geometry.to_wkb().tolist`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_compare_inspected_spatial_layer`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_compare_inspected_spatial_layer`.
 
 **Complete source-ordered implementation**
 
@@ -7326,19 +7388,19 @@ GpuValidatedSpatialLayerSource(logical_name=inspected_layer.logical_name, source
 
 **Side effects**
 
-- Network I/O: none directly visible.
+- Network I/O: none.
 - Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_source` via `_revalidate_gpu_spatial_layer_source`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_revalidate_gpu_spatial_layer_source`.
+- direct call: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_source` via `_revalidate_gpu_spatial_layer_source`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_sources` via `_revalidate_gpu_spatial_layer_source`.
 
 **Complete source-ordered implementation**
 
@@ -7499,18 +7561,18 @@ _revalidate_gpu_spatial_layer_source(planning_document, inspected_layer, verify_
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -7543,8 +7605,7 @@ _revalidate_gpu_spatial_layer_source(planning_document, inspected_layer, verify_
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `revalidate_gpu_spatial_layer_source`.
-- import/re-export: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/index_planning_regulation.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
     GpuExtractedFile,
@@ -7554,6 +7615,7 @@ _revalidate_gpu_spatial_layer_source(planning_document, inspected_layer, verify_
     GpuWrittenFile,
     revalidate_gpu_spatial_layer_source,
 )`.
+- direct call: `src/landscout/stages/index_planning_regulation.py::_revalidate_zoning_source` via `revalidate_gpu_spatial_layer_source`.
 
 **Complete source-ordered implementation**
 
@@ -7609,18 +7671,18 @@ tuple((_revalidate_gpu_spatial_layer_source(planning_document, layer, verify_ext
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `_revalidate_gpu_spatial_layer_sources`.
+- direct call: `src/landscout/sources/gpu_fr.py::revalidate_gpu_spatial_layer_sources` via `_revalidate_gpu_spatial_layer_sources`.
 
 **Complete source-ordered implementation**
 
@@ -7704,18 +7766,18 @@ _revalidate_gpu_spatial_layer_sources(planning_document, inspected_layers)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -7748,28 +7810,20 @@ _revalidate_gpu_spatial_layer_sources(planning_document, inspected_layers)
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `revalidate_gpu_spatial_layer_sources`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `revalidate_gpu_spatial_layer_sources`.
-- import/re-export: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     revalidate_gpu_spatial_layer_sources,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_layer_items` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_planning_document` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_malformed_planning_document` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_batch_gpu_revalidation_rejects_duplicate_logical_name` via `gpu_source_module.revalidate_gpu_spatial_layer_sources`.
-- property/attribute access: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `module.revalidate_gpu_spatial_layer_sources`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `enrich_module.revalidate_gpu_spatial_layer_sources`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `revalidate_gpu_spatial_layer_sources`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `revalidate_gpu_spatial_layer_sources`.
 
 **Complete source-ordered implementation**
 
@@ -7825,18 +7879,18 @@ f'{authority[0]}:{authority[1]}' if authority else frame.crs.to_string()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `_crs_text`.
+- direct call: `src/landscout/sources/gpu_fr.py::_summarize_layer` via `_crs_text`.
 
 **Complete source-ordered implementation**
 
@@ -7883,19 +7937,19 @@ GpuLayerSummary(source_document_id=extraction.archive.document.document_id, sour
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_null & geometry.is_empty).sum`, `geometry.notna`, `geometry[non_null].geom_type.value_counts`, `geometry[non_null].geom_type.value_counts().sort_index`, `geometry[non_null].geom_type.value_counts().sort_index().items`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_summarize_layer`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_summarize_layer`.
+- direct call: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_summarize_layer`.
+- direct call: `src/landscout/sources/gpu_fr.py::inspect_gpu_planning_document` via `_summarize_layer`.
 
 **Complete source-ordered implementation**
 
@@ -7968,18 +8022,18 @@ GpuPlanningDocument(extraction=extraction, all_spatial_layers=references, zoning
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `related`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -8012,11 +8066,7 @@ GpuPlanningDocument(extraction=extraction, all_spatial_layers=references, zoning
     revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `inspect_gpu_planning_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `inspect_gpu_planning_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `inspect_gpu_planning_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `inspect_gpu_planning_document`.
-- import/re-export: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
+- import: `tests/unit/test_gpu_fr.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuDiscoveryError,
@@ -8035,6 +8085,10 @@ GpuPlanningDocument(extraction=extraction, all_spatial_layers=references, zoning
     load_gpu_source_config,
     validate_gpu_archive,
 )`.
+- direct call: `src/landscout/sources/gpu_fr.py::ingest_gpu_planning_document` via `inspect_gpu_planning_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `inspect_gpu_planning_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `inspect_gpu_planning_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `inspect_gpu_planning_document`.
 
 **Complete source-ordered implementation**
 
@@ -8124,17 +8178,17 @@ inspect_gpu_planning_document(extraction, config)
 **Side effects**
 
 - Network I/O: `download_gpu_document`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuArchiveError,
     GpuConfigError,
@@ -8217,14 +8271,14 @@ tuple(sorted(result, key=lambda item: item[0]))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 

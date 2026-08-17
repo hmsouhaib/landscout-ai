@@ -42,7 +42,7 @@ This file belongs to the **internal common contract** layer and the **planning**
 ABSOLUTE_OVERLAY_TOLERANCE = 1e-6
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/planning_overlay.py::technical_overlay_tolerance` (value argument/reference), `src/landscout/stages/planning_overlay.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/planning_overlay.py::<module>` (re-export), `src/landscout/common/planning_overlay.py::technical_overlay_tolerance` (value reference).
 
 #### `RELATIVE_OVERLAY_TOLERANCE`
 
@@ -50,7 +50,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 RELATIVE_OVERLAY_TOLERANCE = 1e-12
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/planning_overlay.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/planning_overlay.py::<module>` (re-export), `src/landscout/common/planning_overlay.py::technical_overlay_tolerance` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -99,44 +99,44 @@ max(ABSOLUTE_OVERLAY_TOLERANCE, reference_value * RELATIVE_OVERLAY_TOLERANCE)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_feature_metric` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/common/planning_feature_contract.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_relation_parcel_areas` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_technical_tolerance` via `technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_require_close` via `technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_technical_area_tolerance` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/planning_overlay.py::<module>` via `from landscout.common.planning_overlay import (
+- import: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/common/planning_feature_contract.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- re-export: `src/landscout/stages/planning_overlay.py::<module>` via `from landscout.common.planning_overlay import (
     ABSOLUTE_OVERLAY_TOLERANCE,
     RELATIVE_OVERLAY_TOLERANCE,
     technical_overlay_tolerance,
 )`.
-- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_zoning_inputs` via `technical_overlay_tolerance`.
-- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `technical_overlay_tolerance`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `technical_overlay_tolerance`.
-- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.planning_overlay import technical_overlay_tolerance`.
+- direct call: `src/landscout/common/bess_application_contract.py::_feature_metric` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_relation_parcel_areas` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_technical_tolerance` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_require_close` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_technical_area_tolerance` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `technical_overlay_tolerance`.
+- direct call: `src/landscout/stages/structure_planning_regulation.py::_validated_zoning_inputs` via `technical_overlay_tolerance`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `technical_overlay_tolerance`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `technical_overlay_tolerance`.
 
 **Complete source-ordered implementation**
 

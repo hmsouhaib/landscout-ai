@@ -17,7 +17,7 @@ commune code + cache root
   -> filter_parcels_by_shape / profile_shape_distribution
 ```
 
-`download_cadastre_parcelles` constructs the official commune archive URL, safely streams gzip bytes, and publishes a byte/hash/timestamp sidecar transactionally. `load_cadastre_parcels` validates the supplied download envelope and the current gzip bytes before and after parsing, but returns only the parsed GeoJSON attributes plus geometry: it does **not** append provider, URL, timestamp, size, or SHA lineage columns. Normalization preserves WGS84 geometry, classifies `geometry_status`, and uses EPSG:2154 only to calculate `area_m2`. Area and shape filters create explicit screening results rather than a ranking.
+`download_cadastre_parcelles` constructs the official commune archive URL, safely streams gzip bytes, and publishes a byte/hash/timestamp sidecar transactionally. `load_cadastre_parcels` validates the supplied download envelope and the current gzip bytes before and after parsing, but returns only the parsed GeoJSON attributes plus geometry: it does **not** append provider, URL, timestamp, size, or SHA lineage columns. The loader does not independently re-pin the official Cadastre host, so this step is byte/physical-integrity validation against the supplied envelope rather than IGN-equivalent source-complete revalidation. Normalization preserves WGS84 geometry, classifies `geometry_status`, and uses EPSG:2154 only to calculate `area_m2`. Area and shape filters create explicit screening results rather than a ranking.
 
 ## Grid
 

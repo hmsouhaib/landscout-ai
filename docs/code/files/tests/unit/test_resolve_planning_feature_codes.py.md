@@ -95,7 +95,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 P_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_resolve_planning_feature_codes.py::_record` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` (value reference).
 
 #### `I_URL`
 
@@ -103,7 +103,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 I_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_resolve_planning_feature_codes.py::_record` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` (value reference).
 
 #### `TEXT_NORMALIZATION`
 
@@ -111,7 +111,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 TEXT_NORMALIZATION = "GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` (value reference), `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -143,7 +143,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `DerivedPlanningFeatureCodeResult`.
+- constructor call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `DerivedPlanningFeatureCodeResult`.
 
 **Exact class source**
 
@@ -182,19 +182,19 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output.index`, `output[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `_canonical_relation_schema`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `_canonical_relation_schema`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `_canonical_relation_schema`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `_canonical_relation_schema`.
 
 **Complete source-ordered implementation**
 
@@ -240,21 +240,21 @@ sha256(payload).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` via `_records_hash`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_records_hash`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_official_family_endpoints_require_exact_identity` via `_records_hash`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_official_text_must_already_be_canonical` via `_records_hash`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` via `_records_hash`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_records_hash`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_official_family_endpoints_require_exact_identity` via `_records_hash`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_official_text_must_already_be_canonical` via `_records_hash`.
 
 **Complete source-ordered implementation**
 
@@ -305,18 +305,18 @@ sha256(encoded).hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(encoded).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` via `_payload_hash`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs` via `_payload_hash`.
 
 **Complete source-ordered implementation**
 
@@ -369,18 +369,18 @@ Private `test` helper for record; its complete implementation below is the autho
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` via `_record`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_profile_payload` via `_record`.
 
 **Complete source-ordered implementation**
 
@@ -433,26 +433,26 @@ Computes non-decisional summary statistics for payload; exact branches, calls, a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_records_hash`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_profile` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_official_family_endpoints_require_exact_identity` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_official_text_must_already_be_canonical` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_malformed_code_is_rejected` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_pair_and_profile_hash_mutation_are_rejected` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_official_host_and_unknown_field_are_rejected` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_record_order_must_be_deterministic` via `_profile_payload`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_profile` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_official_family_endpoints_require_exact_identity` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_official_text_must_already_be_canonical` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_malformed_code_is_rejected` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_pair_and_profile_hash_mutation_are_rejected` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_official_host_and_unknown_field_are_rejected` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_record_order_must_be_deterministic` via `_profile_payload`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `_profile_payload`.
 
 **Complete source-ordered implementation**
 
@@ -510,24 +510,24 @@ CnigFeatureCodeProfile.model_validate(_profile_payload())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_mutated_profile` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_profile`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_mutated_profile` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_yaml_snapshot_loads_strictly` via `_profile`.
 
 **Complete source-ordered implementation**
 
@@ -567,20 +567,18 @@ tuple((GpuExtractedFile(relative_path=path.relative_to(root).as_posix(), file_ty
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `path.read_bytes`, `path.stat`, `sha256(path.read_bytes()).hexdigest`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `item.is_file`, `path.read_bytes`, `path.stat`, `root.rglob`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(path.read_bytes()).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_physical_inventory`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_physical_inventory`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_physical_inventory`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_physical_inventory`.
 
 **Complete source-ordered implementation**
 
@@ -633,20 +631,18 @@ Serializes extraction manifest; exact branches, calls, and return construction a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `(root / EXTRACTION_MANIFEST_NAME).write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_write_extraction_manifest`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_refresh_extraction_inventory` via `_write_extraction_manifest`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_write_extraction_manifest`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_write_extraction_manifest`.
 
 **Complete source-ordered implementation**
 
@@ -708,18 +704,18 @@ GpuLayerSummary(source_document_id='doc-1', source_archive_sha256='a' * 64, sour
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.isna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_layer_summary`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_planning_document` via `_layer_summary`.
 
 **Complete source-ordered implementation**
 
@@ -785,36 +781,22 @@ GpuPlanningDocument(extraction, (reference, *(layer.reference for layer in relat
 
 **Side effects**
 
-- Network I/O: `GpuArchiveDownload`.
+- Network I/O: none.
 - Filesystem read: `gpd.read_file`.
 - Filesystem write: `layer.data.to_file`, `zoning_data.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `physical_layers`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `_planning_document`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_planning_document`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_planning_document`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_planning_document`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_planning_document`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `_planning_document`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_planning_document`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_planning_document`.
 
 **Complete source-ordered implementation**
 
@@ -958,19 +940,18 @@ Private `test` helper for base row; its complete implementation below is the aut
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_roads` via `_base_row`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_base_row`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_legacy_inputs` via `_base_row`.
 
 **Complete source-ordered implementation**
 
@@ -1046,14 +1027,14 @@ Private `test` helper for legacy inputs; its complete implementation below is th
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `line['feature_length_m']`, `point['point_member_count']`, `surface['feature_area_m2']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -1237,18 +1218,18 @@ profile.model_copy(update=updates)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `_mutated_profile`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `_mutated_profile`.
 
 **Complete source-ordered implementation**
 
@@ -1291,18 +1272,18 @@ template.iloc[0:0].copy()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_empty_catalog`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
 **Complete source-ordered implementation**
 
@@ -1352,19 +1333,19 @@ gpd.GeoDataFrame({'LIBELLE': [f'Label {identifier}' for identifier in source_ids
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_source_frame`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_source_frame`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_source_frame`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_source_frame`.
 
 **Complete source-ordered implementation**
 
@@ -1428,20 +1409,20 @@ GpuInspectedLayer(logical_layer, reference, frame, summary)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.isna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_layer`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_integration_layer`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_layer`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_layer`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_integration_layer`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_layer`.
 
 **Complete source-ordered implementation**
 
@@ -1520,48 +1501,32 @@ Private `test` helper for integration inputs; its complete implementation below 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `_integration_inputs`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from test_resolve_planning_feature_codes import _integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_inputs` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_3_1_output_integrates_with_public_coding_api` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coded_result_persists_all_source_input_hashes` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_source_binding_hashes_bind_every_component_hash` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coding_api_rejects_relation_set_not_rebuilt_from_geometry` via `_integration_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_parquet_readback_preserves_source_hash_envelope` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_inputs` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_3_1_output_integrates_with_public_coding_api` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coded_result_persists_all_source_input_hashes` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_input_hash_mutation_is_rejected` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_binding_hashes_bind_every_component_hash` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parcel_source_change_invalidates_coded_result` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_document_context_change_invalidates_coded_result` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_catalog_change_invalidates_coded_result_even_when_coherent` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_normalized_relation_change_invalidates_coded_result` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coding_api_rejects_relation_set_not_rebuilt_from_geometry` via `_integration_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_parquet_readback_preserves_source_hash_envelope` via `_integration_inputs`.
 
 **Complete source-ordered implementation**
 
@@ -1664,21 +1629,21 @@ gpd.GeoDataFrame({'parcel_id': ['PARCEL-1'], 'existing_fact': [7]}, geometry=[Po
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_parcels`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_integration_parcels`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_integration_parcels`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_parcels`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `_integration_parcels`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_integration_parcels`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_integration_parcels`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `_integration_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -1730,58 +1695,58 @@ Private `test` helper for inputs; its complete implementation below is the autho
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_empty_catalog` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_exact_family_pair_resolution_and_leading_zeros` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `_inputs`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_empty_catalog` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_exact_family_pair_resolution_and_leading_zeros` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `_inputs`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `_inputs`.
 
 **Complete source-ordered implementation**
 
@@ -1836,90 +1801,57 @@ _public_resolve_planning_feature_codes(planning_document, _integration_parcels()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeError,
-    PlanningFeatureCodeResult,
-    load_cnig_feature_code_profile,
-    resolve_planning_feature_codes,
-    validate_planning_feature_code_result,
-    validate_planning_feature_code_result_envelope,
-)`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `resolve_planning_feature_codes`.
-- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    load_cnig_feature_code_profile,
-    resolve_planning_feature_codes,
-)`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_exact_family_pair_resolution_and_leading_zeros` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.resolve_planning_feature_codes`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `resolve_planning_feature_codes`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `resolve_planning_feature_codes`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    resolve_planning_feature_codes as _public_resolve_planning_feature_codes,
-)`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_exact_family_pair_resolution_and_leading_zeros` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_wrong_planning_standard_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalogs_and_relations_are_preserved_and_inputs_immutable` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_normalized_catalog_schema_is_required` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_catalog_column_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_identity_provenance_is_exact` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_ogr_fid_provenance_is_restricted` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_source_feature_id_is_unique_inside_logical_layer` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_crs_must_be_canonical_epsg_2154` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_geometry_metrics_are_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_schema_is_required` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unexpected_factual_relation_column_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_complete_relation_catalog_agreement_is_required` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_line_relation_metrics_are_revalidated` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_catalog_columns_are_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_missing_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unparseable_catalog_crs_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_inactive_or_wrong_geometry_column_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_surface_geometry_contract_is_enforced` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_catalog_semantic_and_string_contracts_are_enforced` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_every_required_catalog_identity_is_an_exact_non_null_string` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_line_and_point_geometry_types_are_enforced` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_planning_feature_ids_are_globally_unique_across_catalogs` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_catalog_code_mismatch_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_relation_columns_are_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_identity_must_be_an_exact_non_null_string` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_duplicate_parcel_feature_relation_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_unknown_relation_feature_id_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_relation_type_must_match_catalog_geometry_kind` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator` via `resolve_planning_feature_codes`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_schema_v5_envelope_result` via `resolve_planning_feature_codes`.
 
 **Complete source-ordered implementation**
 
@@ -1981,42 +1913,20 @@ Rejects malformed or inconsistent planning feature code result; exact branches, 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeError,
-    PlanningFeatureCodeResult,
-    load_cnig_feature_code_profile,
-    resolve_planning_feature_codes,
-    validate_planning_feature_code_result,
-    validate_planning_feature_code_result_envelope,
-)`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `validate_planning_feature_code_result`.
-- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeResult,
-    validate_planning_feature_code_result,
-)`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `module.validate_planning_feature_code_result`.
-- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `validate_planning_feature_code_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.validate_planning_feature_code_result`.
-- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `coding_module.validate_planning_feature_code_result`.
-- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    validate_planning_feature_code_result as _public_validate_planning_feature_code_result,
-)`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_coordinated_output_hash_mutation_is_rejected` via `validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_parquet_readback_passes_source_complete_validation` via `validate_planning_feature_code_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_result_schema_versions_are_strict` via `validate_planning_feature_code_result`.
 
 **Complete source-ordered implementation**
 
@@ -2050,7 +1960,7 @@ def validate_planning_feature_code_result(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact family pair resolution and leading zeros`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2092,7 +2002,7 @@ assert set(surface["official_code_status"]) == {"RESOLVED_OFFICIAL"}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact family pair resolution and leading zeros` through the exact asserted conditions: `surface.loc['GPU:doc-1:prescription_surface:P-1', 'official_code_label'] == 'Prescription seven'`; `surface.loc['GPU:doc-1:information_surface:I-1', 'official_code_label'] == 'Information two'`; `result.line_features.iloc[0]['official_code_label'] == 'Prescription seven subtype four'`; `result.line_features.iloc[0]['type_code_raw'] == '07'`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2125,7 +2035,7 @@ def test_exact_family_pair_resolution_and_leading_zeros() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no type only or cross family fallback and unknown is retained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2170,7 +2080,7 @@ assert len(result.point_features) == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `no type only or cross family fallback and unknown is retained` through the exact asserted conditions: `result.line_features.iloc[0]['official_code_status'] == 'UNKNOWN_CODE_PAIR'`; `pd.isna(result.line_features.iloc[0]['official_code_label'])`; `result.point_features.iloc[0]['official_code_status'] == 'UNKNOWN_CODE_PAIR'`; `len(result.line_features) == 1`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2206,7 +2116,7 @@ def test_no_type_only_or_cross_family_fallback_and_unknown_is_retained() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `in memory profile model copy with wrong hash is revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2235,7 +2145,7 @@ with pytest.raises(PlanningFeatureCodeError, match="profile|canonical"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `in memory profile model copy with wrong hash is revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2255,7 +2165,7 @@ def test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `in memory profile model construct with invalid schema is revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2288,7 +2198,7 @@ with pytest.raises(PlanningFeatureCodeError, match="schema|profile"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `in memory profile model construct with invalid schema is revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2312,7 +2222,7 @@ def test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `in memory profile model construct with duplicate pair is revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2348,7 +2258,7 @@ with pytest.raises(PlanningFeatureCodeError, match="duplicate|profile"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `in memory profile model construct with duplicate pair is revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2375,7 +2285,7 @@ def test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `official family endpoints require exact identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2409,7 +2319,7 @@ with pytest.raises(ValueError, match="official|source|URL"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `official family endpoints require exact identity`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2436,7 +2346,7 @@ def test_official_family_endpoints_require_exact_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `official text must already be canonical`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2469,7 +2379,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `official text must already be canonical`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2493,7 +2403,7 @@ def test_official_text_must_already_be_canonical(field: str, value: str) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed code is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2522,7 +2432,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed code is rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2542,7 +2452,7 @@ def test_malformed_code_is_rejected(code: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate pair and profile hash mutation are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2599,7 +2509,7 @@ def test_duplicate_pair_and_profile_hash_mutation_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong official host and unknown field are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2632,7 +2542,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong official host and unknown field are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2656,7 +2566,7 @@ def test_wrong_official_host_and_unknown_field_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate yaml key is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2685,7 +2595,7 @@ with pytest.raises(PlanningFeatureCodeError, match="Duplicate YAML"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate yaml key is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2705,7 +2615,7 @@ def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong planning standard is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2734,7 +2644,7 @@ with pytest.raises(PlanningFeatureCodeError, match="standard"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong planning standard is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2754,7 +2664,7 @@ def test_wrong_planning_standard_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `catalogs and relations are preserved and inputs immutable`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2797,7 +2707,7 @@ assert result.relations.index.equals(inputs[4].index)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `catalogs and relations are preserved and inputs immutable` through the exact asserted conditions: `tuple(result.code_dictionary.columns) == CODE_DICTIONARY_COLUMNS`; `result.relations.index.equals(inputs[4].index)`; `tuple(coded.columns[-len(OFFICIAL_CODE_COLUMNS):]) == OFFICIAL_CODE_COLUMNS`.
 
 **Test boundary**
 
@@ -2831,7 +2741,7 @@ def test_catalogs_and_relations_are_preserved_and_inputs_immutable() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `complete normalized catalog schema is required`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2883,7 +2793,7 @@ def test_complete_normalized_catalog_schema_is_required(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unexpected factual catalog column is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2914,7 +2824,7 @@ with pytest.raises(PlanningFeatureCodeError, match="normalized|schema|column"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unexpected factual catalog column is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2936,7 +2846,7 @@ def test_unexpected_factual_catalog_column_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cnig identity provenance is exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2969,7 +2879,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `cnig identity provenance is exact`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2993,7 +2903,7 @@ def test_cnig_identity_provenance_is_exact(column: str, value: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ogr fid provenance is restricted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3031,7 +2941,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `ogr fid provenance is restricted`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3064,7 +2974,7 @@ def test_ogr_fid_provenance_is_restricted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source feature id is unique inside logical layer`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3102,7 +3012,7 @@ with pytest.raises(PlanningFeatureCodeError, match="source_feature_id|unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `source feature id is unique inside logical layer`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3131,7 +3041,7 @@ def test_source_feature_id_is_unique_inside_logical_layer() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `catalog crs must be canonical epsg 2154`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3180,7 +3090,7 @@ def test_catalog_crs_must_be_canonical_epsg_2154() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `catalog geometry metrics are revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3211,7 +3121,7 @@ with pytest.raises(PlanningFeatureCodeError, match="metric|area|length|member"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `catalog geometry metrics are revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3237,7 +3147,7 @@ def test_catalog_geometry_metrics_are_revalidated(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `complete relation schema is required`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3266,7 +3176,7 @@ with pytest.raises(PlanningFeatureCodeError, match="relation|schema|column"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `complete relation schema is required`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3286,7 +3196,7 @@ def test_complete_relation_schema_is_required() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unexpected factual relation column is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3317,7 +3227,7 @@ with pytest.raises(PlanningFeatureCodeError, match="relation|schema"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unexpected factual relation column is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3339,7 +3249,7 @@ def test_unexpected_factual_relation_column_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cnig resolver invokes shared factual contract`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3382,7 +3292,7 @@ assert calls == 1
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `cnig resolver invokes shared factual contract`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3440,18 +3350,18 @@ Private `test` helper for reject shared contract; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `monkeypatch.setattr(coding_module, 'validate_normalized_planning_feature_inputs', reject_shared_contract)`.
+- function object argument: `tests/unit/test_resolve_planning_feature_codes.py::test_cnig_resolver_invokes_shared_factual_contract` via `monkeypatch.setattr(coding_module, 'validate_normalized_planning_feature_inputs', reject_shared_contract)`.
 
 **Complete source-ordered implementation**
 
@@ -3470,7 +3380,7 @@ def reject_shared_contract(*args: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `complete relation catalog agreement is required`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3503,7 +3413,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `complete relation catalog agreement is required`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3530,7 +3440,7 @@ def test_complete_relation_catalog_agreement_is_required(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `surface relation metrics are revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3563,7 +3473,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `surface relation metrics are revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3587,7 +3497,7 @@ def test_surface_relation_metrics_are_revalidated(column: str, value: object) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line relation metrics are revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3619,7 +3529,7 @@ with pytest.raises(PlanningFeatureCodeError, match="relation|length|catalog"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `line relation metrics are revalidated`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3642,7 +3552,7 @@ def test_line_relation_metrics_are_revalidated(column: str, value: object) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate catalog columns are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3697,7 +3607,7 @@ def test_duplicate_catalog_columns_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing catalog crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3750,7 +3660,7 @@ def test_missing_catalog_crs_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unparseable catalog crs is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3805,7 +3715,7 @@ def test_unparseable_catalog_crs_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `inactive or wrong geometry column is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3838,7 +3748,7 @@ with pytest.raises(PlanningFeatureCodeError, match="geometry"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `inactive or wrong geometry column is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3862,7 +3772,7 @@ def test_inactive_or_wrong_geometry_column_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `surface geometry contract is enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3920,7 +3830,7 @@ def test_surface_geometry_contract_is_enforced(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid multi geometries are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3970,7 +3880,7 @@ assert getattr(result, f"{catalog_name}_features").geometry.iloc[0].equals(geome
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid multi geometries are accepted` through the exact asserted conditions: `getattr(result, f'{catalog_name}_features').geometry.iloc[0].equals(geometry)`.
 
 **Test boundary**
 
@@ -4014,7 +3924,7 @@ def test_valid_multi_geometries_are_accepted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `catalog semantic and string contracts are enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4046,7 +3956,7 @@ with pytest.raises(PlanningFeatureCodeError, match=message):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `catalog semantic and string contracts are enforced`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4073,7 +3983,7 @@ def test_catalog_semantic_and_string_contracts_are_enforced(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `every required catalog identity is an exact non null string`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4142,7 +4052,7 @@ def test_every_required_catalog_identity_is_an_exact_non_null_string(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line and point geometry types are enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4181,7 +4091,7 @@ with pytest.raises(PlanningFeatureCodeError, match="geometry|type"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `line and point geometry types are enforced`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4214,7 +4124,7 @@ def test_line_and_point_geometry_types_are_enforced(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `planning feature ids are globally unique across catalogs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4248,7 +4158,7 @@ with pytest.raises(PlanningFeatureCodeError, match="unique|catalog|deterministic
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `planning feature ids are globally unique across catalogs`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4273,7 +4183,7 @@ def test_planning_feature_ids_are_globally_unique_across_catalogs() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid empty optional catalogs preserve schema and crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4368,7 +4278,7 @@ def test_valid_empty_optional_catalogs_preserve_schema_and_crs() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation catalog code mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4404,7 +4314,7 @@ with pytest.raises(PlanningFeatureCodeError, match="catalog"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation catalog code mismatch is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4431,7 +4341,7 @@ def test_relation_catalog_code_mismatch_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate relation columns are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4462,7 +4372,7 @@ with pytest.raises(PlanningFeatureCodeError, match="duplicate|columns"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate relation columns are rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4484,7 +4394,7 @@ def test_duplicate_relation_columns_are_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation identity must be an exact non null string`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4542,7 +4452,7 @@ def test_relation_identity_must_be_an_exact_non_null_string(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate parcel feature relation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4574,7 +4484,7 @@ with pytest.raises(PlanningFeatureCodeError, match="unique|duplicate"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate parcel feature relation is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4597,7 +4507,7 @@ def test_duplicate_parcel_feature_relation_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown relation feature id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4629,7 +4539,7 @@ with pytest.raises(PlanningFeatureCodeError, match="unknown"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown relation feature id is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4652,7 +4562,7 @@ def test_unknown_relation_feature_id_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `relation type must match catalog geometry kind`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4735,7 +4645,7 @@ with pytest.raises(PlanningFeatureCodeError, match="[Rr]elation type|geometry"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `relation type must match catalog geometry kind`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4812,7 +4722,7 @@ def test_relation_type_must_match_catalog_geometry_kind(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid relation types are retained`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4874,7 +4784,7 @@ assert result.relations["relation_type"].tolist() == [relation_type]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid relation types are retained` through the exact asserted conditions: `result.relations['relation_type'].tolist() == [relation_type]`.
 
 **Test boundary**
 
@@ -4931,7 +4841,7 @@ def test_valid_relation_types_are_retained(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated output hash mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4962,7 +4872,7 @@ with pytest.raises(PlanningFeatureCodeError, match="rebuilt|meaning|dictionary")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `coordinated output hash mutation is rejected`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4985,7 +4895,7 @@ def test_coordinated_output_hash_mutation_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parquet readback passes source complete validation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5073,7 +4983,7 @@ def test_parquet_readback_passes_source_complete_validation(tmp_path: Path) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `record order must be deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5102,7 +5012,7 @@ with pytest.raises(ValueError, match="deterministic order"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `record order must be deterministic`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5122,7 +5032,7 @@ def test_record_order_must_be_deterministic() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `yaml snapshot loads strictly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5151,7 +5061,7 @@ assert load_cnig_feature_code_profile(path) == _profile()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `yaml snapshot loads strictly` through the exact asserted conditions: `load_cnig_feature_code_profile(path) == _profile()`.
 
 **Test boundary**
 
@@ -5171,7 +5081,7 @@ def test_yaml_snapshot_loads_strictly(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stable public api is exported from module and stage package`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5222,7 +5132,7 @@ assert low_level.isdisjoint(stages.__all__)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `stable public api is exported from module and stage package` through the exact asserted conditions: `required.issubset(set(coding_module.__all__))`; `required.issubset(set(stages.__all__))`; `low_level.isdisjoint(coding_module.__all__)`; `low_level.isdisjoint(stages.__all__)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5266,7 +5176,7 @@ def test_stable_public_api_is_exported_from_module_and_stage_package() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `checked in official snapshot is complete for observed muret pairs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5430,7 +5340,7 @@ assert actual_records == expected_records
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `checked in official snapshot is complete for observed muret pairs` through the exact asserted conditions: `profile.schema_version == 2`; `profile.profile == 'cnig_plu_2017_muret_observed_pairs_v2'`; `profile.standard_model == 'CNIG PLU v2017'`; `profile.official_text_normalization == TEXT_NORMALIZATION`; plus 6 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5586,7 +5496,7 @@ def test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `result schema versions are strict`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5617,7 +5527,7 @@ with pytest.raises(PlanningFeatureCodeError, match="schema version"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `result schema versions are strict`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5639,7 +5549,7 @@ def test_result_schema_versions_are_strict(field: str, value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `step 7d 3 1 output integrates with public coding api`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5673,7 +5583,7 @@ assert set(result.surface_features["official_code_status"]) == {"RESOLVED_OFFICI
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `step 7d 3 1 output integrates with public coding api` through the exact asserted conditions: `result.result_hash_schema_version == 5`; `result.profile_schema_version == 2`; `len(result.surface_features) == 2`; `len(result.line_features) == 1`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5699,7 +5609,7 @@ def test_step_7d_3_1_output_integrates_with_public_coding_api() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `resolver runs heavy factual validation once and public validator repeats`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5746,7 +5656,7 @@ assert calls == {"physical": 2, "relations": 2}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `resolver runs heavy factual validation once and public validator repeats` through the exact asserted conditions: `calls == {'physical': 1, 'relations': 1}`; `calls == {'physical': 2, 'relations': 2}`.
 
 **Test boundary**
 
@@ -5814,18 +5724,18 @@ actual_physical(*args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `monkeypatch.setattr(enrich_module, 'revalidate_gpu_spatial_layer_sources', counted_physical)`.
+- function object argument: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `monkeypatch.setattr(enrich_module, 'revalidate_gpu_spatial_layer_sources', counted_physical)`.
 
 **Complete source-ordered implementation**
 
@@ -5866,18 +5776,18 @@ actual_relations(*args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `monkeypatch.setattr(enrich_module, '_build_relation_tables', counted_relations)`.
+- function object argument: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `monkeypatch.setattr(enrich_module, '_build_relation_tables', counted_relations)`.
 
 **Complete source-ordered implementation**
 
@@ -5895,7 +5805,7 @@ def counted_relations(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coded result persists all source input hashes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5933,7 +5843,7 @@ result = _public_resolve_planning_feature_codes(*_integration_inputs())
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `coded result persists all source input hashes` through the exact asserted conditions: `isinstance(value, str)`; `len(value) == 64`.
 
 **Test boundary**
 
@@ -5962,7 +5872,7 @@ def test_coded_result_persists_all_source_input_hashes() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source input hash mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6014,7 +5924,7 @@ def test_source_input_hash_mutation_is_rejected(field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `gpu related source hash is deterministic across cache roots`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6076,7 +5986,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `gpu related source hash is deterministic across cache roots` through the exact asserted conditions: `first.gpu_related_source_files_sha256 == second.gpu_related_source_files_sha256`.
 
 **Test boundary**
 
@@ -6159,18 +6069,18 @@ replace(reference, dataset_path=relocated_root / relative)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots` via `relocated_reference`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_gpu_related_source_hash_is_deterministic_across_cache_roots` via `relocated_reference`.
 
 **Complete source-ordered implementation**
 
@@ -6190,7 +6100,7 @@ def relocated_reference(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source binding hashes bind every component hash`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6226,7 +6136,7 @@ changed = _result_with_hashes(replace(result, **{field: "f" * 64}))
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `source binding hashes bind every component hash` through the exact asserted conditions: `getattr(changed, hash_field) != getattr(result, hash_field)`.
 
 **Test boundary**
 
@@ -6253,7 +6163,7 @@ def test_source_binding_hashes_bind_every_component_hash(field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel source change invalidates coded result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6284,7 +6194,7 @@ with pytest.raises(PlanningFeatureCodeError, match="parcel|source|rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `parcel source change invalidates coded result`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6307,7 +6217,7 @@ def test_parcel_source_change_invalidates_coded_result() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `gpu document context change invalidates coded result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6345,7 +6255,7 @@ with pytest.raises(PlanningFeatureCodeError, match="document|source|rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `gpu document context change invalidates coded result`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6375,7 +6285,7 @@ def test_gpu_document_context_change_invalidates_coded_result() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalized catalog change invalidates coded result even when coherent`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6412,7 +6322,7 @@ with pytest.raises(PlanningFeatureCodeError, match="normalized|source|rebuilt"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `normalized catalog change invalidates coded result even when coherent`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6443,7 +6353,7 @@ def test_normalized_catalog_change_invalidates_coded_result_even_when_coherent()
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalized relation change invalidates coded result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6475,7 +6385,7 @@ with pytest.raises(PlanningFeatureCodeError, match="[Rr]elation|source|rebuilt")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `normalized relation change invalidates coded result`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6499,7 +6409,7 @@ def test_normalized_relation_change_invalidates_coded_result() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coding api rejects relation set not rebuilt from geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6580,7 +6490,7 @@ def test_coding_api_rejects_relation_set_not_rebuilt_from_geometry(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 parquet readback preserves source hash envelope`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6628,7 +6538,7 @@ _public_validate_planning_feature_code_result(*inputs, persisted)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `schema v5 parquet readback preserves source hash envelope` by requiring the reproduced call path `_integration_inputs`, `_public_resolve_planning_feature_codes`, `paths.items`, `replace` without an unasserted exception.
 
 **Test boundary**
 
@@ -6669,7 +6579,7 @@ def test_schema_v5_parquet_readback_preserves_source_hash_envelope(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 public api signatures remain source complete`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6757,7 +6667,7 @@ def test_schema_v5_public_api_signatures_remain_source_complete() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `step 7d 5b 2b 5 exposes lightweight coded result validator`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6791,7 +6701,7 @@ with pytest.raises(PlanningFeatureCodeError, match="hash|invalid"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `step 7d 5b 2b 5 exposes lightweight coded result validator`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -6839,26 +6749,26 @@ resolve_planning_feature_codes(*_inputs())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `_schema_v5_envelope_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_controls_malformed_dictionary_type` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_geospatial_code_dictionary` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_schema_is_explicit` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_dictionary_rows_are_intrinsically_validated` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_scalar_lineage_contracts_are_intrinsic` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic` via `_schema_v5_envelope_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result` via `_schema_v5_envelope_result`.
 
 **Complete source-ordered implementation**
 
@@ -6902,21 +6812,19 @@ _result_with_hashes(replace(result, code_dictionary=dictionary, relations=relati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_result_with_hashes`.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `catalogs[field]`, `dictionary.index`, `output.index`, `output[column]`, `relations.index`, `relations[column]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild` via `_canonical_empty_coded_result`.
-- import/re-export: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from test_resolve_planning_feature_codes import _canonical_empty_coded_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `_canonical_empty_coded_result`.
-- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `_canonical_empty_coded_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_rejects_canonical_empty_code_dictionary` via `_canonical_empty_coded_result`.
+- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs` via `_canonical_empty_coded_result`.
 
 **Complete source-ordered implementation**
 
@@ -6964,7 +6872,7 @@ def _canonical_empty_coded_result(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 envelope rejects canonical empty code dictionary`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -6995,7 +6903,7 @@ with pytest.raises(PlanningFeatureCodeError, match="dictionary|empty|record"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 envelope rejects canonical empty code dictionary`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7017,7 +6925,7 @@ def test_schema_v5_envelope_rejects_canonical_empty_code_dictionary() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 envelope accepts nonempty dictionary with empty outputs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7060,7 +6968,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `schema v5 envelope accepts nonempty dictionary with empty outputs` through the exact asserted conditions: `len(result.code_dictionary) >= 1`; `sum((len(frame) for frame in (result.surface_features, result.line_features, result.point_features, result.relations))) == 0`.
 
 **Test boundary**
 
@@ -7094,7 +7002,7 @@ def test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs() -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 envelope controls malformed dictionary type`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7125,7 +7033,7 @@ with pytest.raises(PlanningFeatureCodeError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 envelope controls malformed dictionary type`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7149,7 +7057,7 @@ def test_schema_v5_envelope_controls_malformed_dictionary_type(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 envelope rejects geospatial code dictionary`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7181,7 +7089,7 @@ with pytest.raises(PlanningFeatureCodeError, match="dictionary|DataFrame"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 envelope rejects geospatial code dictionary`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7204,7 +7112,7 @@ def test_schema_v5_envelope_rejects_geospatial_code_dictionary() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 dictionary schema is explicit`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7272,7 +7180,7 @@ def test_schema_v5_dictionary_schema_is_explicit(mutation: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 dictionary rows are intrinsically validated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7376,7 +7284,7 @@ def test_schema_v5_dictionary_rows_are_intrinsically_validated(mutation: str) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 scalar lineage contracts are intrinsic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7411,7 +7319,7 @@ for changed in (changed_standard, malformed_sha):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 scalar lineage contracts are intrinsic`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7438,7 +7346,7 @@ def test_schema_v5_scalar_lineage_contracts_are_intrinsic() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 official rows and relation feature agreement are intrinsic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7479,7 +7387,7 @@ for changed in (missing_meaning, invented_unknown, mismatched_relation):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 official rows and relation feature agreement are intrinsic`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -7515,7 +7423,7 @@ def test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic() 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `schema v5 envelope requires exact result type and accepts valid result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -7548,7 +7456,7 @@ with pytest.raises(PlanningFeatureCodeError, match="type|result"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `schema v5 envelope requires exact result type and accepts valid result`: the reproduced adversarial input must raise `PlanningFeatureCodeError` before the prohibited success path.
 
 **Test boundary**
 

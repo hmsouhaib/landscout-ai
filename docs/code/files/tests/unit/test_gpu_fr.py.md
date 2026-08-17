@@ -89,7 +89,7 @@ _UNSAFE_ARCHIVE_NAMES = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` (value argument/reference), `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below.
 
 
 ### B. Type aliases and closed domains
@@ -121,19 +121,20 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_patch_json_responses.opener` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_Response`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_Response`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_session` via `_Response`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `_Response`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `_Response`.
+- type annotation: `tests/unit/test_gpu_fr.py::_patch_json_responses.opener` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::_patch_json_responses.opener` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::_download` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_Response`.
+- type annotation: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network.fail_network` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_Response`.
+- type annotation: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache.fail` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_Response`.
+- type annotation: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_Response`.
+- constructor call: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_Response`.
 
 **Exact class source**
 
@@ -176,14 +177,14 @@ self
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -224,14 +225,14 @@ Private `test` helper for exit; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -275,97 +276,48 @@ load_gpu_source_config(Path('configs/sources/gpu_fr.yaml'))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_invalid_config_values_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_unknown_config_field_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_download` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_zip_download_binds_exact_bytes_and_lineage` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_cold_download_must_match_configured_snapshot_before_publication` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_http_and_payload_failures_are_controlled` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_unsupported_zip_compression_has_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_unsafe_zip_member_paths_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_duplicate_or_colliding_zip_destinations_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_zip_links_and_special_files_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_complete_zip_inventory_is_validated_before_member_copy` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_download_uses_no_hidden_reference_page_scrape` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_validate` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_config_with_structural_patterns` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::_download` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_invalid_config_values_are_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_unknown_config_field_is_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_config`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_config`.
 
 **Complete source-ordered implementation**
 
@@ -405,27 +357,27 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_details` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_listing_item`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::_details` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_listing_item`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_listing_item`.
 
 **Complete source-ordered implementation**
 
@@ -476,23 +428,23 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `result`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_details`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_details`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_details`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_details`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_details`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_details`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_details`.
 
 **Complete source-ordered implementation**
 
@@ -545,23 +497,23 @@ Private `test` helper for files; its complete implementation below is the author
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_files`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_files`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_files`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_files`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_files`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_files`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_files`.
 
 **Complete source-ordered implementation**
 
@@ -601,26 +553,26 @@ _Response(json.dumps(next(responses)).encode())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_patch_json_responses`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::_document` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_patch_json_responses`.
+- direct call: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_patch_json_responses`.
 
 **Complete source-ordered implementation**
 
@@ -665,18 +617,18 @@ _Response(json.dumps(next(responses)).encode())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_gpu_fr.py::_patch_json_responses` via `monkeypatch.setattr(gpu, 'open_safe_https', opener)`.
+- function object argument: `tests/unit/test_gpu_fr.py::_patch_json_responses` via `monkeypatch.setattr(gpu, 'open_safe_https', opener)`.
 
 **Complete source-ordered implementation**
 
@@ -716,26 +668,25 @@ discover_current_gpu_document(_config())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_discovery_success` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_document`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_document`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::_download` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_document_discovery_success` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_document`.
+- direct call: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_document`.
 
 **Complete source-ordered implementation**
 
@@ -776,51 +727,30 @@ stream.getvalue()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `zipfile.ZipFile`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_unsupported_compression_zip` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_config` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_session` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_download` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_zip_download_binds_exact_bytes_and_lineage` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_cold_download_must_match_configured_snapshot_before_publication` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_http_and_payload_failures_are_controlled` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_download_cache_is_a_miss` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_successful_first_and_replacement_publication` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_unsafe_zip_member_paths_are_rejected` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_duplicate_or_colliding_zip_destinations_are_rejected` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_complete_zip_inventory_is_validated_before_member_copy` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_normal_nested_members_are_accepted` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `_zip_bytes`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_exact_file_inventory_does_not_omit_unknown_suffixes` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::_download` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_archive_path_traversal_is_rejected` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_zip_cannot_claim_extraction_manifest_path` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `_zip_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_zip_bytes`.
 
 **Complete source-ordered implementation**
 
@@ -864,19 +794,19 @@ stream.getvalue()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `zipfile.ZipFile`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `_zip_member_bytes`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `_zip_member_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_duplicate_zip_extraction_targets_are_rejected` via `_zip_member_bytes`.
+- direct call: `tests/unit/test_gpu_fr.py::test_zip_file_directory_target_collision_is_rejected` via `_zip_member_bytes`.
 
 **Complete source-ordered implementation**
 
@@ -927,64 +857,29 @@ download_gpu_document(document, _config(), tmp_path)
 **Side effects**
 
 - Network I/O: `download_gpu_document`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_successful_download_persists_sha_and_sidecar` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_download_cache_is_a_miss` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_successful_first_and_replacement_publication` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_normal_nested_members_are_accepted` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_extraction_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_result_dataclasses_are_frozen` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_strict_metadata_rejects_boolean_numeric_values_as_cache_hits` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_cache_path_binds_version_and_filename` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_exact_file_inventory_does_not_omit_unknown_suffixes` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_archive_and_extraction_cache_reuse_are_independent` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_no_stale_parts_after_download_or_extraction_success` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_successful_download_persists_sha_and_sidecar` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `_download`.
+- direct call: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_download`.
 
 **Complete source-ordered implementation**
 
@@ -1030,20 +925,20 @@ archive_path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: `zipfile.ZipFile`.
+- Network I/O: none.
+- Filesystem read: `package.rglob`, `path.is_file`.
 - Filesystem write: `(package / '31395_reglement.pdf').write_bytes`, `(package / 'metadata.xml').write_text`, `package.mkdir`, `prescription.to_file`, `zoning.to_file`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_planning_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_planning_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_planning_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_planning_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_planning_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_planning_archive`.
 
 **Complete source-ordered implementation**
 
@@ -1086,7 +981,7 @@ def _planning_archive(tmp_path: Path) -> Path:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid config and urls`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1117,7 +1012,7 @@ assert build_gpu_partition_download_url(config).endswith(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid config and urls` through the exact asserted conditions: `build_gpu_partition(config) == 'DU_31395'`; `'partition=DU_31395' in build_gpu_document_list_url(config)`; `build_gpu_partition_download_url(config).endswith('/document/download-by-partition/DU_31395')`.
 
 **Test boundary**
 
@@ -1139,7 +1034,7 @@ def test_valid_config_and_urls() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid config values are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1168,7 +1063,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid config values are rejected`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1188,7 +1083,7 @@ def test_invalid_config_values_are_rejected(path: tuple[str, str], value: object
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `mutated loaded api origin is rejected before discovery network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1224,7 +1119,7 @@ assert network_calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `mutated loaded api origin is rejected before discovery network`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1278,24 +1173,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -1314,7 +1203,7 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown config field is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1343,7 +1232,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown config field is rejected`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1363,7 +1252,7 @@ def test_unknown_config_field_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document discovery success`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1399,7 +1288,7 @@ assert document.written_files[0].source_url == (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `document discovery success` through the exact asserted conditions: `document.document_id == 'doc-1'`; `document.document_type == 'PLU'`; `document.effective_status == 'EN_VIGUEUR'`; `document.archive_name == '31395_PLU_20240215'`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1426,7 +1315,7 @@ def test_document_discovery_success(monkeypatch: pytest.MonkeyPatch) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `written material url must be exact official https api url`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1461,7 +1350,7 @@ with pytest.raises(GpuDiscoveryError, match="written material URL"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `written material url must be exact official https api url`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1491,7 +1380,7 @@ def test_written_material_url_must_be_exact_official_https_api_url(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `written material fallback rejects unsafe archive url provenance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1526,7 +1415,7 @@ with pytest.raises(GpuDiscoveryError, match="archive URL"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `written material fallback rejects unsafe archive url provenance`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1556,7 +1445,7 @@ def test_written_material_fallback_rejects_unsafe_archive_url_provenance(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `no current document is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1584,7 +1473,7 @@ with pytest.raises(GpuDiscoveryError, match="No current"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `no current document is rejected`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1603,7 +1492,7 @@ def test_no_current_document_is_rejected(monkeypatch: pytest.MonkeyPatch) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ambiguous current documents are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1631,7 +1520,7 @@ with pytest.raises(GpuDiscoveryError, match="Ambiguous"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `ambiguous current documents are rejected`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1650,7 +1539,7 @@ def test_ambiguous_current_documents_are_rejected(monkeypatch: pytest.MonkeyPatc
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing document identity is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1680,7 +1569,7 @@ with pytest.raises(GpuDiscoveryError, match="missing"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing document identity is rejected`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1703,7 +1592,7 @@ def test_missing_document_identity_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document details must match selected listing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1734,7 +1623,7 @@ with pytest.raises(GpuDiscoveryError, match="match|changed|current"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document details must match selected listing`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1761,7 +1650,7 @@ def test_document_details_must_match_selected_listing(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document details commune must match selected listing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1796,7 +1685,7 @@ with pytest.raises(GpuDiscoveryError, match="match"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document details commune must match selected listing`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1825,7 +1714,7 @@ def test_document_details_commune_must_match_selected_listing(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `discovery rejects unsafe archive name`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1860,7 +1749,7 @@ with pytest.raises(GpuDiscoveryError, match="archive name|safe"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `discovery rejects unsafe archive name`: the reproduced adversarial input must raise `GpuDiscoveryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1890,7 +1779,7 @@ def test_discovery_rejects_unsafe_archive_name(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `successful download persists sha and sidecar`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1923,7 +1812,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `successful download persists sha and sidecar` through the exact asserted conditions: `result.path.is_file()`; `result.file_size > 0`; `len(result.sha256) == 64`; `sidecar['sha256'] == result.sha256`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1950,7 +1839,7 @@ def test_successful_download_persists_sha_and_sidecar(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `download rejects document inconsistent with config`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1984,7 +1873,7 @@ assert not any(tmp_path.iterdir())
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `download rejects document inconsistent with config`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2018,7 +1907,7 @@ def test_download_rejects_document_inconsistent_with_config(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `download rejects forged written file provenance before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2063,7 +1952,7 @@ assert network_calls == 0
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `download rejects forged written file provenance before network`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2129,24 +2018,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -2165,7 +2048,7 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `download rejects forged unsafe archive name before io`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2199,7 +2082,7 @@ assert not (tmp_path / "escape.zip").exists()
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `download rejects forged unsafe archive name before io`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2232,7 +2115,7 @@ def test_download_rejects_forged_unsafe_archive_name_before_io(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `archive name with one zip suffix is not duplicated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2265,7 +2148,7 @@ assert result.path == tmp_path / "safe-name.zip"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `archive name with one zip suffix is not duplicated` through the exact asserted conditions: `result.filename == 'safe-name.zip'`; `result.path == tmp_path / 'safe-name.zip'`.
 
 **Test boundary**
 
@@ -2297,7 +2180,7 @@ def test_archive_name_with_one_zip_suffix_is_not_duplicated(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `fresh cache is reused`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2351,7 +2234,7 @@ def test_fresh_cache_is_reused(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale recovery backup rejects cache before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2386,7 +2269,7 @@ assert recovery_path.read_bytes() == recovery_bytes
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale recovery backup rejects cache before network`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2439,24 +2322,18 @@ Private `test` helper for fail network; its complete implementation below is the
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
 
 **Complete source-ordered implementation**
 
@@ -2473,7 +2350,7 @@ def fail_network(*args: object, **kwargs: object) -> _Response:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `expired cache is refreshed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2537,7 +2414,7 @@ def test_expired_cache_is_refreshed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `failed refresh preserves previous cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2577,7 +2454,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `failed refresh preserves previous cache`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2634,43 +2511,18 @@ Private `test` helper for fail; its complete implementation below is the authori
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network.fail_network` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network.fail_network` via `pytest.fail`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `monkeypatch.setattr(gpu, 'open_safe_https', fail)`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.fail`.
-- callback/function object: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail)`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `pytest.fail`.
-- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.fail`.
-- property/attribute access: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.fail`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `monkeypatch.setattr(gpu, 'open_safe_https', fail)`.
 
 **Complete source-ordered implementation**
 
@@ -2687,7 +2539,7 @@ def fail(*args: object, **kwargs: object) -> _Response:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metadata publication failure rolls back both cache files`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2737,7 +2589,7 @@ assert not list(tmp_path.glob("*.bak"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `metadata publication failure rolls back both cache files`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2804,18 +2656,18 @@ Private `test` helper for fail new metadata once; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `monkeypatch.setattr(gpu, '_replace_file', fail_new_metadata_once)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `monkeypatch.setattr(gpu, '_replace_file', fail_new_metadata_once)`.
 
 **Complete source-ordered implementation**
 
@@ -2836,7 +2688,7 @@ def fail_new_metadata_once(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `publication and rollback failure preserves exact recovery backups`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2970,27 +2822,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -3011,7 +2854,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cleanup failure does not mask double failure recovery error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3157,27 +3000,18 @@ Private `test` helper for fail publication and rollback; its complete implementa
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
 
 **Complete source-ordered implementation**
 
@@ -3220,21 +3054,18 @@ Private `test` helper for fail temporary cleanup; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
 
 **Complete source-ordered implementation**
 
@@ -3253,7 +3084,7 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale cache recovery backup fails closed without destroying it`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3298,7 +3129,7 @@ assert archive_backup.read_bytes() == b"manual recovery archive"
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale cache recovery backup fails closed without destroying it`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3338,7 +3169,7 @@ def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `preexisting temporary archive symlink cannot modify target`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3391,7 +3222,7 @@ assert sentinel.read_bytes() == sentinel_bytes
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `preexisting temporary archive symlink cannot modify target`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3469,23 +3300,18 @@ path == temporary_archive or original_is_symlink(path)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
 **Complete source-ordered implementation**
 
@@ -3529,20 +3355,18 @@ original_open(sentinel, *args, **kwargs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
 
 **Complete source-ordered implementation**
 
@@ -3586,20 +3410,18 @@ _Response(_zip_bytes())
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(gpu, 'open_safe_https', record_network)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', record_network)`.
+- function object argument: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(gpu, 'open_safe_https', record_network)`.
 
 **Complete source-ordered implementation**
 
@@ -3618,7 +3440,7 @@ def record_network(*args: object, **kwargs: object) -> _Response:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `corrupt download is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3648,7 +3470,7 @@ assert not list(tmp_path.glob("*.part"))
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `corrupt download is rejected`: the reproduced adversarial input must raise `GpuDownloadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3673,7 +3495,7 @@ def test_corrupt_download_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `tampered sidecar invalidates cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3732,7 +3554,7 @@ def test_tampered_sidecar_invalidates_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `archive path traversal is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3761,7 +3583,7 @@ with pytest.raises(GpuArchiveError, match="Unsafe"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `archive path traversal is rejected`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3781,7 +3603,7 @@ def test_archive_path_traversal_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `archive symlink is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3814,7 +3636,7 @@ with pytest.raises(GpuArchiveError, match="Symbolic"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `archive symlink is rejected`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3838,7 +3660,7 @@ def test_archive_symlink_is_rejected(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate zip extraction targets are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3867,7 +3689,7 @@ with pytest.raises(GpuArchiveError, match="(?i)duplicate|collid"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate zip extraction targets are rejected`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3891,7 +3713,7 @@ def test_duplicate_zip_extraction_targets_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zip file directory target collision is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3924,7 +3746,7 @@ with pytest.raises(GpuArchiveError, match="collision|target"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zip file directory target collision is rejected`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3949,7 +3771,7 @@ def test_zip_file_directory_target_collision_is_rejected(tmp_path: Path) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zip cannot claim extraction manifest path`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3980,7 +3802,7 @@ with pytest.raises(GpuArchiveError, match="manifest"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zip cannot claim extraction manifest path`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4003,7 +3825,7 @@ def test_zip_cannot_claim_extraction_manifest_path(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `extraction inventory and cache`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4108,7 +3930,7 @@ def test_extraction_inventory_and_cache(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `stale download object rejects replaced valid archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4144,7 +3966,7 @@ assert not (tmp_path / "cache" / "x" / download.sha256[:16]).exists()
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `stale download object rejects replaced valid archive`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4177,7 +3999,7 @@ def test_stale_download_object_rejects_replaced_valid_archive(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `extraction rejects archive object inconsistent with path`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4206,7 +4028,7 @@ with pytest.raises(GpuArchiveError, match="archive|metadata|checksum|size"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `extraction rejects archive object inconsistent with path`: the reproduced adversarial input must raise `GpuArchiveError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4233,7 +4055,7 @@ def test_extraction_rejects_archive_object_inconsistent_with_path(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `tampered extraction is rebuilt from verified archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4353,20 +4175,20 @@ extract_gpu_document(download, tmp_path / 'cache')
 
 **Side effects**
 
-- Network I/O: `GpuArchiveDownload`.
+- Network I/O: none.
 - Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `gpu._sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_extraction_from_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_extraction_from_archive`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_extraction_from_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_extraction_from_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_extraction_from_archive`.
+- direct call: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_extraction_from_archive`.
 
 **Complete source-ordered implementation**
 
@@ -4417,7 +4239,7 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `spatial inventory and inspection preserve source quality`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4494,7 +4316,7 @@ def test_spatial_inventory_and_inspection_preserve_source_quality(tmp_path: Path
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing zoning layer fails clearly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4527,7 +4349,7 @@ with pytest.raises(GpuSpatialInspectionError, match="zoning"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing zoning layer fails clearly`: the reproduced adversarial input must raise `GpuSpatialInspectionError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4551,7 +4373,7 @@ def test_missing_zoning_layer_fails_clearly(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ambiguous zoning layer fails clearly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4586,7 +4408,7 @@ with pytest.raises(GpuSpatialInspectionError, match="found 2"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `ambiguous zoning layer fails clearly`: the reproduced adversarial input must raise `GpuSpatialInspectionError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4612,7 +4434,7 @@ def test_ambiguous_zoning_layer_fails_clearly(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `cached document lineage change forces refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

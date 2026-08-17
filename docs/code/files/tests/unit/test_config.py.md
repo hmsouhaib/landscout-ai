@@ -43,7 +43,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 PROJECT_ROOT = Path(__file__).parents[2]
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_config.py::<module>` (value reference).
 
 #### `SCAN_PATH`
 
@@ -51,7 +51,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SCAN_PATH = PROJECT_ROOT / "configs/scans/bess_muret.yaml"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_config.py::_temporary_scan` (value argument/reference), `tests/unit/test_config.py::test_valid_config_loads` (value argument/reference), `tests/unit/test_config.py::test_invalid_commune_code_fails` (value argument/reference), `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` (value argument/reference), `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` (value argument/reference), `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` (value argument/reference), `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_config.py::_temporary_scan` (value reference), `tests/unit/test_config.py::test_valid_config_loads` (value reference), `tests/unit/test_config.py::test_invalid_commune_code_fails` (value reference), `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` (value reference), `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` (value reference), `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` (value reference), `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` (value reference).
 
 #### `PROFILE_PATH`
 
@@ -59,7 +59,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 PROFILE_PATH = PROJECT_ROOT / "configs/profiles/bess_default_fr.yaml"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_config.py::test_negative_minimum_area_fails` (value argument/reference), `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` (value argument/reference), `tests/unit/test_config.py::test_invalid_shape_threshold_fails` (value argument/reference), `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` (value argument/reference), `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` (value argument/reference), `tests/unit/test_config.py::test_empty_calibration_metadata_fails` (value argument/reference), `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` (value argument/reference), `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` (value argument/reference), `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` (value argument/reference), `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` (value argument/reference), `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` (value argument/reference), `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` (value argument/reference), `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` (value argument/reference), `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` (value argument/reference), `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` (value argument/reference), `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` (value argument/reference), `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` (value argument/reference), `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` (value argument/reference), `tests/unit/test_config.py::test_profile_crs_contract_is_exact` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_config.py::test_valid_config_loads` (value reference), `tests/unit/test_config.py::test_negative_minimum_area_fails` (value reference), `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` (value reference), `tests/unit/test_config.py::test_invalid_shape_threshold_fails` (value reference), `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` (value reference), `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` (value reference), `tests/unit/test_config.py::test_empty_calibration_metadata_fails` (value reference), `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` (value reference), `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` (value reference), `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` (value reference), `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` (value reference), `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` (value reference), `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` (value reference), `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` (value reference), `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` (value reference), `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` (value reference), `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` (value reference), `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` (value reference), `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` (value reference), `tests/unit/test_config.py::test_profile_crs_contract_is_exact` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -108,38 +108,38 @@ yaml.safe_load(stream)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_config.py::_temporary_scan` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_shape_threshold_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_empty_calibration_metadata_fails` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` via `_yaml_data`.
-- direct call or construction: `tests/unit/test_config.py::test_profile_crs_contract_is_exact` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::_temporary_scan` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_invalid_shape_threshold_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_empty_calibration_metadata_fails` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` via `_yaml_data`.
+- direct call: `tests/unit/test_config.py::test_profile_crs_contract_is_exact` via `_yaml_data`.
 
 **Complete source-ordered implementation**
 
@@ -177,26 +177,26 @@ Serializes yaml; exact branches, calls, and return construction are reproduced b
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_config.py::_temporary_scan` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::_load_temporary_profile` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `_write_yaml`.
-- direct call or construction: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::_temporary_scan` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::_load_temporary_profile` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `_write_yaml`.
+- direct call: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `_write_yaml`.
 
 **Complete source-ordered implementation**
 
@@ -236,21 +236,21 @@ scan_path
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `scan_data['profile']['path']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_config.py::_load_temporary_profile` via `_temporary_scan`.
-- direct call or construction: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_temporary_scan`.
-- direct call or construction: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_temporary_scan`.
-- direct call or construction: `tests/unit/test_config.py::test_missing_profile_fails` via `_temporary_scan`.
+- direct call: `tests/unit/test_config.py::_load_temporary_profile` via `_temporary_scan`.
+- direct call: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `_temporary_scan`.
+- direct call: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `_temporary_scan`.
+- direct call: `tests/unit/test_config.py::test_missing_profile_fails` via `_temporary_scan`.
 
 **Complete source-ordered implementation**
 
@@ -294,30 +294,30 @@ load_scan_config(_temporary_scan(tmp_path, profile_path))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_config.py::test_invalid_shape_threshold_fails` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_empty_calibration_metadata_fails` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` via `_load_temporary_profile`.
-- direct call or construction: `tests/unit/test_config.py::test_profile_crs_contract_is_exact` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_invalid_shape_threshold_fails` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_invalid_calibration_percentage_fails` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_invalid_calibration_sample_size_fails` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_empty_calibration_metadata_fails` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_enabled_shape_screening_requires_policy_values` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_enabled_shape_screening_requires_complete_calibration` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_shape_screening_can_be_disabled_without_policy_values` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_unknown_profile_fields_are_rejected` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_parcel_numeric_contract_is_strict_and_finite` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_calibration_sample_size_is_strict_positive_integer` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_shape_enabled_is_strict_boolean` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_scan_and_profile_identity_must_match` via `_load_temporary_profile`.
+- direct call: `tests/unit/test_config.py::test_profile_crs_contract_is_exact` via `_load_temporary_profile`.
 
 **Complete source-ordered implementation**
 
@@ -336,7 +336,7 @@ def _load_temporary_profile(tmp_path: Path, profile_data: dict):
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid config loads`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -377,7 +377,7 @@ assert calibration.observed_retention_pct == 90.655370
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid config loads` through the exact asserted conditions: `loaded.scan_config.aoi.commune_codes == ['31395']`; `loaded.profile.technology == 'BESS'`; `loaded.profile_path == PROFILE_PATH`; `shape_screening.enabled is True`; plus 10 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -413,7 +413,7 @@ def test_valid_config_loads() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid commune code fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -444,7 +444,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid commune code fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -467,7 +467,7 @@ def test_invalid_commune_code_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `negative minimum area fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -498,7 +498,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `negative minimum area fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -521,7 +521,7 @@ def test_negative_minimum_area_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `maximum area smaller than minimum fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -552,7 +552,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `maximum area smaller than minimum fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -575,7 +575,7 @@ def test_maximum_area_smaller_than_minimum_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing profile fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -603,7 +603,7 @@ with pytest.raises(FileNotFoundError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing profile fails`: the reproduced adversarial input must raise `FileNotFoundError` before the prohibited success path.
 
 **Test boundary**
 
@@ -623,7 +623,7 @@ def test_missing_profile_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid shape threshold fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -652,7 +652,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid shape threshold fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -675,7 +675,7 @@ def test_invalid_shape_threshold_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid calibration percentage fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -704,7 +704,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid calibration percentage fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -727,7 +727,7 @@ def test_invalid_calibration_percentage_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid calibration sample size fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -756,7 +756,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid calibration sample size fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -779,7 +779,7 @@ def test_invalid_calibration_sample_size_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty calibration metadata fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -808,7 +808,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `empty calibration metadata fails`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -829,7 +829,7 @@ def test_empty_calibration_metadata_fails(tmp_path: Path, field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enabled shape screening requires policy values`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -858,7 +858,7 @@ with pytest.raises(ValidationError, match="enabled shape screening requires"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `enabled shape screening requires policy values`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -881,7 +881,7 @@ def test_enabled_shape_screening_requires_policy_values(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `enabled shape screening requires complete calibration`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -910,7 +910,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `enabled shape screening requires complete calibration`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -933,7 +933,7 @@ def test_enabled_shape_screening_requires_complete_calibration(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape screening can be disabled without policy values`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -966,7 +966,7 @@ assert shape_screening.calibration is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `shape screening can be disabled without policy values` through the exact asserted conditions: `shape_screening.enabled is False`; `shape_screening.min_width_m is None`; `shape_screening.max_length_width_ratio is None`; `shape_screening.calibration is None`.
 
 **Test boundary**
 
@@ -994,7 +994,7 @@ def test_shape_screening_can_be_disabled_without_policy_values(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown scan fields are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1027,7 +1027,7 @@ with pytest.raises(ValidationError, match=field):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown scan fields are rejected`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1056,7 +1056,7 @@ def test_unknown_scan_fields_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown profile fields are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1109,7 +1109,7 @@ def test_unknown_profile_fields_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `parcel numeric contract is strict and finite`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1138,7 +1138,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `parcel numeric contract is strict and finite`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1163,7 +1163,7 @@ def test_parcel_numeric_contract_is_strict_and_finite(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `calibration sample size is strict positive integer`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1192,7 +1192,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `calibration sample size is strict positive integer`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1216,7 +1216,7 @@ def test_calibration_sample_size_is_strict_positive_integer(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape enabled is strict boolean`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1245,7 +1245,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shape enabled is strict boolean`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1266,7 +1266,7 @@ def test_shape_enabled_is_strict_boolean(tmp_path: Path, value: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `canonical france commune codes are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1297,7 +1297,7 @@ assert load_scan_config(scan_path).scan_config.aoi.commune_codes == [code]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `canonical france commune codes are accepted` through the exact asserted conditions: `load_scan_config(scan_path).scan_config.aoi.commune_codes == [code]`.
 
 **Test boundary**
 
@@ -1323,7 +1323,7 @@ def test_canonical_france_commune_codes_are_accepted(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `noncanonical france commune codes are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1355,7 +1355,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `noncanonical france commune codes are rejected`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1382,7 +1382,7 @@ def test_noncanonical_france_commune_codes_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `aoi requires nonempty unique commune codes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1414,7 +1414,7 @@ with pytest.raises(ValidationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `aoi requires nonempty unique commune codes`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1441,7 +1441,7 @@ def test_aoi_requires_nonempty_unique_commune_codes(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `scan and profile identity must match`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1470,7 +1470,7 @@ with pytest.raises(ValidationError, match=field):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `scan and profile identity must match`: the reproduced adversarial input must raise `ValidationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1495,7 +1495,7 @@ def test_scan_and_profile_identity_must_match(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `profile crs contract is exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

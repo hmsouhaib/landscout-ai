@@ -77,7 +77,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value argument/reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value argument/reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::_sha256` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/rte_odre_fr.py::_sha256` (value reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value reference).
 
 #### `LOGICAL_DATASET_NAMES`
 
@@ -85,7 +85,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 LOGICAL_DATASET_NAMES = ("sites", "overhead_lines", "underground_lines")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/rte_odre_fr.py::_get_dataset_config` (value reference).
 
 #### `COORDINATE_GEOMETRY_TYPES`
 
@@ -102,7 +102,7 @@ COORDINATE_GEOMETRY_TYPES = frozenset(
 )
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/sources/rte_odre_fr.py::<module>` (value reference).
 
 #### `GEOJSON_GEOMETRY_TYPES`
 
@@ -110,7 +110,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 GEOJSON_GEOMETRY_TYPES = COORDINATE_GEOMETRY_TYPES | {"GeometryCollection"}
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -121,7 +121,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 LogicalDatasetName = Literal["sites", "overhead_lines", "underground_lines"]
 ```
 
-Configured RTE/ODRÉ logical dataset role: sites, overhead_lines, or underground_lines. It is consumed by annotations or Pydantic validation in this module.
+Configured RTE/ODRÉ logical dataset role: sites, overhead_lines, or underground_lines. Enforced/consumed by `src/landscout/sources/rte_odre_fr.py::RteOdreDownload` (type annotation), `src/landscout/sources/rte_odre_fr.py::_get_dataset_config` (type annotation), `src/landscout/sources/rte_odre_fr.py::_dataset_api_url` (type annotation), `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` (type annotation), `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` (type annotation), `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` (type annotation), `src/landscout/sources/rte_odre_fr.py::_load_cached_download` (type annotation), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (type annotation).
 
 #### `ExportFormat`
 
@@ -129,7 +129,7 @@ Configured RTE/ODRÉ logical dataset role: sites, overhead_lines, or underground
 ExportFormat = Literal["geojson"]
 ```
 
-ODRÉ export-format domain, currently only geojson. It is consumed by annotations or Pydantic validation in this module.
+ODRÉ export-format domain, currently only geojson. Enforced/consumed by `src/landscout/sources/rte_odre_fr.py::RteDatasetConfig` (type annotation), `src/landscout/sources/rte_odre_fr.py::RteOdreDownload` (type annotation).
 
 #### `GeometryPrecisionStatus`
 
@@ -142,7 +142,7 @@ GeometryPrecisionStatus = Literal[
 ]
 ```
 
-RTE source metadata precision assessment: EXACT_NOT_CLAIMED, GENERALIZED_OR_RESTRICTED, MISSING, or UNKNOWN; these are values, not columns. It is consumed by annotations or Pydantic validation in this module.
+RTE source metadata precision assessment: EXACT_NOT_CLAIMED, GENERALIZED_OR_RESTRICTED, MISSING, or UNKNOWN; these are values, not columns. Enforced/consumed by `src/landscout/sources/rte_odre_fr.py::RteOdreDatasetMetadata` (type annotation), `src/landscout/sources/rte_odre_fr.py::_metadata_precision_status` (type annotation).
 
 #### `NonEmptyString`
 
@@ -150,7 +150,7 @@ RTE source metadata precision assessment: EXACT_NOT_CLAIMED, GENERALIZED_OR_REST
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 ```
 
-String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+String constrained non-empty after the exact StringConstraints behavior in the declaration. Enforced/consumed by `src/landscout/sources/rte_odre_fr.py::RteOdreSourceConfig` (type annotation).
 
 #### `DatasetIdentifier`
 
@@ -165,7 +165,7 @@ DatasetIdentifier = Annotated[
 ]
 ```
 
-Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. Enforced/consumed by `src/landscout/sources/rte_odre_fr.py::RteDatasetConfig` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -194,11 +194,11 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `dataset_id` | `dataset_id: DatasetIdentifier` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `preferred_format` | `preferred_format: ExportFormat` | Closed or validated `preferred format` classification on `RteDatasetConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `preferred_format` | `preferred_format: ExportFormat` | `RteDatasetConfig.preferred_format` represents the `preferred_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -211,6 +211,8 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteDatasetsConfig` via `RteDatasetConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_get_dataset_config` via `RteDatasetConfig`.
 
 **Exact class source**
 
@@ -236,13 +238,13 @@ class RteDatasetConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `sites` | `sites: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `sites` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `overhead_lines` | `overhead_lines: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `overhead lines` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `underground_lines` | `underground_lines: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `underground lines` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `sites` | `sites: RteDatasetConfig` | Configuration for the RTE electrical-sites logical dataset. |
+| `overhead_lines` | `overhead_lines: RteDatasetConfig` | Configuration for the RTE overhead-lines logical dataset. |
+| `underground_lines` | `underground_lines: RteDatasetConfig` | Configuration for the RTE underground-lines logical dataset. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteOdreSourceConfig` via `RteDatasetsConfig`.
 
 **Exact class source**
 
@@ -294,7 +296,7 @@ def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteOdreSourceConfig` via `RteOdreApiConfig`.
 
 **Exact class source**
 
@@ -336,11 +338,11 @@ class RteOdreApiConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `max_age_hours` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Stores `RteOdreCacheConfig`'s `max age hours` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `max_age_hours` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Configured maximum cache age in hours; zero requires immediate refresh. |
 
 **Interface consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteOdreSourceConfig` via `RteOdreCacheConfig`.
 
 **Exact class source**
 
@@ -365,15 +367,15 @@ class RteOdreCacheConfig(BaseModel):
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: NonEmptyString` | Stores `RteOdreSourceConfig`'s `provider` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: NonEmptyString` | Stores `RteOdreSourceConfig`'s `portal` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `api` | `api: RteOdreApiConfig` | Stores `RteOdreSourceConfig`'s `api` value under exact annotation `RteOdreApiConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `datasets` | `datasets: RteDatasetsConfig` | Stores `RteOdreSourceConfig`'s `datasets` value under exact annotation `RteDatasetsConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `cache` | `cache: RteOdreCacheConfig` | Stores `RteOdreSourceConfig`'s `cache` value under exact annotation `RteOdreCacheConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: NonEmptyString` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: NonEmptyString` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
+| `api` | `api: RteOdreApiConfig` | Nested official API-origin/path configuration. |
+| `datasets` | `datasets: RteDatasetsConfig` | Nested configuration for the three logical RTE/ODRÉ datasets. |
+| `cache` | `cache: RteOdreCacheConfig` | Nested cache-path and freshness configuration. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -386,7 +388,7 @@ class RteOdreCacheConfig(BaseModel):
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -396,6 +398,41 @@ class RteOdreCacheConfig(BaseModel):
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::load_rte_odre_source_config` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_validated_source_config` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_get_dataset_config` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_dataset_api_url` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `RteOdreSourceConfig`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::source_config` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_valid_source_config_loads` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_build_export_url` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_build_metadata_url` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `RteOdreSourceConfig`.
+- type annotation: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `RteOdreSourceConfig`.
 
 **Exact class source**
 
@@ -424,7 +461,7 @@ class RteOdreSourceConfig(BaseModel):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -437,37 +474,7 @@ class RteOdreSourceConfig(BaseModel):
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validated_source_config` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_position` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_records_count` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_cleanup_temporary_cache_files` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `RteOdreDownloadError`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownloadError`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `pytest.raises(RteOdreDownloadError, match='config|official|origin')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `pytest.raises(RteOdreDownloadError, match='records_count')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `pytest.raises(RteOdreDownloadError, match='must not be negative')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point|finite')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `pytest.raises(RteOdreDownloadError, match='coordinate|structure|finite')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `pytest.raises(RteOdreDownloadError, match='temporary|link|cache')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
-- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -477,6 +484,36 @@ class RteOdreSourceConfig(BaseModel):
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validated_source_config` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_position` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_records_count` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_cleanup_temporary_cache_files` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `RteOdreDownloadError`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownloadError`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `pytest.raises(RteOdreDownloadError, match='config|official|origin')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `pytest.raises(RteOdreDownloadError, match='records_count')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `pytest.raises(RteOdreDownloadError, match='must not be negative')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point|finite')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `pytest.raises(RteOdreDownloadError, match='coordinate|structure|finite')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `pytest.raises(RteOdreDownloadError, match='temporary|link|cache')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
+- expected exception type: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
 
 **Exact class source**
 
@@ -500,18 +537,18 @@ class RteOdreDownloadError(RuntimeError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `dataset_id` | `dataset_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `title` | `title: str \| None` | `RteOdreDatasetMetadata`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `str | None` and is not promoted to a legal conclusion. |
-| `publisher` | `publisher: str \| None` | Stores `RteOdreDatasetMetadata`'s `publisher` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `modified` | `modified: str \| None` | Stores `RteOdreDatasetMetadata`'s `modified` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `data_processed` | `data_processed: str \| None` | Stores `RteOdreDatasetMetadata`'s `data processed` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `metadata_processed` | `metadata_processed: str \| None` | Stores `RteOdreDatasetMetadata`'s `metadata processed` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `license` | `license: str \| None` | Stores `RteOdreDatasetMetadata`'s `license` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `title` | `title: str \| None` | `RteOdreDatasetMetadata.title` carries the title used by the reproduced constructors and validators; its declared type is `str | None` and no legal meaning is inferred beyond that owner. |
+| `publisher` | `publisher: str \| None` | Publisher text reported by the owning source metadata or checked-in reference. |
+| `modified` | `modified: str \| None` | Nullable source-reported dataset modification timestamp text. |
+| `data_processed` | `data_processed: str \| None` | Nullable source-reported timestamp for data processing. |
+| `metadata_processed` | `metadata_processed: str \| None` | Nullable source-reported timestamp for metadata processing. |
+| `license` | `license: str \| None` | Nullable source-reported dataset licence text. |
 | `records_count` | `records_count: int \| None` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `geometry_precision_status` | `geometry_precision_status: GeometryPrecisionStatus` | Closed or validated `geometry precision status` classification on `RteOdreDatasetMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `geometry_precision_status` | `geometry_precision_status: GeometryPrecisionStatus` | `RteOdreDatasetMetadata.geometry_precision_status` represents the `geometry_precision_status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -524,8 +561,12 @@ class RteOdreDownloadError(RuntimeError):
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDatasetMetadata`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_metadata_from_dict` via `RteOdreDatasetMetadata`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteOdreDownload` via `RteOdreDatasetMetadata`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDatasetMetadata`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDatasetMetadata`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_metadata_from_dict` via `RteOdreDatasetMetadata`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_metadata_from_dict` via `RteOdreDatasetMetadata`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_validate_records_count` via `RteOdreDatasetMetadata`.
 
 **Exact class source**
 
@@ -567,11 +608,11 @@ class RteOdreDatasetMetadata:
 | `feature_count` | `feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `null_geometry_count` | `null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `non_null_geometry_count` | `non_null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `geometry_types` | `geometry_types: tuple[str, ...]` | Closed or validated `geometry types` classification on `RteOdreExportSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `geometry_types` | `geometry_types: tuple[str, ...]` | `RteOdreExportSummary.geometry_types` represents the `geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -584,12 +625,7 @@ class RteOdreDatasetMetadata:
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreExportSummary`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_export_summary_from_dict` via `RteOdreExportSummary`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `RteOdreExportSummary`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_summary_rejects_invalid_geometry_counts` via `RteOdreExportSummary`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `RteOdreExportSummary`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -599,6 +635,15 @@ class RteOdreDatasetMetadata:
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::RteOdreDownload` via `RteOdreExportSummary`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreExportSummary`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreExportSummary`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_export_summary_from_dict` via `RteOdreExportSummary`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_export_summary_from_dict` via `RteOdreExportSummary`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_validate_records_count` via `RteOdreExportSummary`.
+- constructor call: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `RteOdreExportSummary`.
+- constructor call: `tests/unit/test_rte_odre_fr.py::test_export_summary_rejects_invalid_geometry_counts` via `RteOdreExportSummary`.
+- constructor call: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `RteOdreExportSummary`.
 
 **Exact class source**
 
@@ -640,24 +685,24 @@ class RteOdreExportSummary:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `logical_name` | `logical_name: LogicalDatasetName` | Stores `RteOdreDownload`'s `logical name` value under exact annotation `LogicalDatasetName`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `logical_name` | `logical_name: LogicalDatasetName` | LandScout logical dataset/layer role bound to the selected physical source. |
 | `dataset_id` | `dataset_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `provider` | `provider: str` | Stores `RteOdreDownload`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: str` | Stores `RteOdreDownload`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
-| `export_format` | `export_format: ExportFormat` | Closed or validated `export format` classification on `RteOdreDownload`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `export_format` | `export_format: ExportFormat` | `RteOdreDownload.export_format` represents the `export_format` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
 | `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 | `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `path` | `path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
 | `cache_hit` | `cache_hit: bool` | True only when already verified local cache state was reused. |
-| `dataset_metadata` | `dataset_metadata: RteOdreDatasetMetadata` | Stores `RteOdreDownload`'s `dataset metadata` value under exact annotation `RteOdreDatasetMetadata`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `export_summary` | `export_summary: RteOdreExportSummary` | Stores `RteOdreDownload`'s `export summary` value under exact annotation `RteOdreExportSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `dataset_metadata` | `dataset_metadata: RteOdreDatasetMetadata` | Validated RTE/ODRÉ API metadata associated with the downloaded logical dataset. |
+| `export_summary` | `export_summary: RteOdreExportSummary` | Geometry/count summary calculated from the validated RTE/ODRÉ GeoJSON export. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -670,8 +715,10 @@ class RteOdreExportSummary:
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `RteOdreDownload`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownload`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `RteOdreDownload`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `RteOdreDownload`.
+- type annotation: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownload`.
+- constructor call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownload`.
 
 **Exact class source**
 
@@ -723,14 +770,14 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -783,14 +830,14 @@ Private `grid/source` helper for post init; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -838,14 +885,14 @@ Private `grid/source` helper for post init; its complete implementation below is
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
@@ -904,18 +951,18 @@ RteOdreSourceConfig.model_validate(content)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -928,8 +975,7 @@ RteOdreSourceConfig.model_validate(content)
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::source_config` via `load_rte_odre_source_config`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -939,6 +985,7 @@ RteOdreSourceConfig.model_validate(content)
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- direct call: `tests/unit/test_rte_odre_fr.py::source_config` via `load_rte_odre_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -984,26 +1031,21 @@ RteOdreSourceConfig.model_validate(config.model_dump(mode='python'))
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_validated_source_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validated_source_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_validated_source_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_validated_source_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_validated_source_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validated_source_config`.
 
 **Complete source-ordered implementation**
 
@@ -1052,22 +1094,22 @@ getattr(config.datasets, logical_name)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_dataset_api_url` via `_get_dataset_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_get_dataset_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_get_dataset_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_get_dataset_config`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_get_dataset_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_dataset_api_url` via `_get_dataset_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_get_dataset_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_get_dataset_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_get_dataset_config`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_get_dataset_config`.
 
 **Complete source-ordered implementation**
 
@@ -1115,21 +1157,21 @@ f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/{encoded_dataset_id}{s
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_dataset_api_url`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_dataset_api_url`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_dataset_api_url`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_dataset_api_url`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_dataset_api_url`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_dataset_api_url`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_dataset_api_url`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_dataset_api_url`.
 
 **Complete source-ordered implementation**
 
@@ -1180,18 +1222,18 @@ _dataset_api_url(validated_config, logical_name, '')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -1204,9 +1246,7 @@ _dataset_api_url(validated_config, logical_name, '')
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_build_metadata_url` via `build_rte_odre_metadata_url`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `build_rte_odre_metadata_url`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -1216,6 +1256,8 @@ _dataset_api_url(validated_config, logical_name, '')
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_build_metadata_url` via `build_rte_odre_metadata_url`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `build_rte_odre_metadata_url`.
 
 **Complete source-ordered implementation**
 
@@ -1260,18 +1302,18 @@ _dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -1284,10 +1326,7 @@ _dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_build_export_url` via `build_rte_odre_export_url`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `build_rte_odre_export_url`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `build_rte_odre_export_url`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -1297,6 +1336,9 @@ _dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_build_export_url` via `build_rte_odre_export_url`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `build_rte_odre_export_url`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `build_rte_odre_export_url`.
 
 **Complete source-ordered implementation**
 
@@ -1345,20 +1387,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `_optional_string`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_optional_string`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_optional_string`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_optional_string`.
 
 **Complete source-ordered implementation**
 
@@ -1406,18 +1446,18 @@ Private `grid/source` helper for metadata precision status; its complete impleme
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_metadata_precision_status`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_metadata_precision_status`.
 
 **Complete source-ordered implementation**
 
@@ -1462,18 +1502,18 @@ payload
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`, `open_safe_https`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: `open_safe_https`.
+- Filesystem read: `response.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_read_response_json`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_read_response_json`.
 
 **Complete source-ordered implementation**
 
@@ -1532,18 +1572,18 @@ RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(def
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -1556,10 +1596,7 @@ RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(def
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `fetch_rte_odre_dataset_metadata`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `fetch_rte_odre_dataset_metadata`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `fetch_rte_odre_dataset_metadata`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -1569,6 +1606,9 @@ RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(def
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `fetch_rte_odre_dataset_metadata`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `fetch_rte_odre_dataset_metadata`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `fetch_rte_odre_dataset_metadata`.
 
 **Complete source-ordered implementation**
 
@@ -1648,31 +1688,19 @@ digest.hexdigest()
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.open`, `stream.read`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: `digest.hexdigest`, `sha256`.
+- Environment/process effects: none.
+- In-memory mutation: `digest`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -1720,29 +1748,19 @@ RteOdreExportSummary(feature_count=len(features), null_geometry_count=null_geome
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: `path.stat`.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.open`, `path.stat`.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geojson_geometry`, `geometry_types.add`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `geometry_types`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_geojson`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_geojson`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `rte_odre_fr._validate_geojson`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `rte_odre_fr._validate_geojson`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_standard_geojson_geometry_types_are_summarized` via `rte_odre_fr._validate_geojson`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_standard_geojson_geometry_types_are_summarized` via `rte_odre_fr._validate_geojson`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `rte_odre_fr._validate_geojson`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `rte_odre_fr._validate_geojson`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `rte_odre_fr._validate_geojson`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `rte_odre_fr._validate_geojson`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `rte_odre_fr._validate_geojson`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `rte_odre_fr._validate_geojson`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_geojson`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_geojson`.
 
 **Complete source-ordered implementation**
 
@@ -1815,18 +1833,18 @@ Rejects malformed or inconsistent position; exact branches, calls, and return co
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `_validate_position`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `_validate_position`.
 
 **Complete source-ordered implementation**
 
@@ -1883,18 +1901,18 @@ None
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `_validate_nested_coordinates`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `_validate_nested_coordinates`.
 
 **Complete source-ordered implementation**
 
@@ -1957,18 +1975,18 @@ geometry_type
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geojson_geometry`, `geometry.get`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `_validate_geojson_geometry`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `_validate_geojson_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -2043,18 +2061,18 @@ RteOdreDatasetMetadata(dataset_id=str(payload['dataset_id']), title=optional_val
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `optional_values[field_name]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_metadata_from_dict`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_metadata_from_dict`.
 
 **Complete source-ordered implementation**
 
@@ -2134,18 +2152,18 @@ RteOdreExportSummary(feature_count=payload['feature_count'], null_geometry_count
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_export_summary_from_dict`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_export_summary_from_dict`.
 
 **Complete source-ordered implementation**
 
@@ -2197,19 +2215,19 @@ Rejects malformed or inconsistent records count; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_records_count`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_records_count`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_records_count`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_records_count`.
 
 **Complete source-ordered implementation**
 
@@ -2254,39 +2272,18 @@ Private `grid/source` helper for replace file; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
-- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
 
 **Complete source-ordered implementation**
 
@@ -2328,38 +2325,19 @@ True
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
-- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
-- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
 
 **Complete source-ordered implementation**
 
@@ -2405,25 +2383,19 @@ Private `grid/source` helper for cache recovery paths; its complete implementati
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
 
 **Complete source-ordered implementation**
 
@@ -2469,25 +2441,19 @@ Private `grid/source` helper for require no cache recovery material; its complet
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: `path.exists`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
 
 **Complete source-ordered implementation**
 
@@ -2535,21 +2501,18 @@ Private `grid/source` helper for prepare temporary cache file; its complete impl
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.exists`, `path.is_file`.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
 
 **Complete source-ordered implementation**
 
@@ -2605,21 +2568,18 @@ Private `grid/source` helper for cleanup temporary cache files; its complete imp
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
 
 **Complete source-ordered implementation**
 
@@ -2673,34 +2633,18 @@ Private `grid/source` helper for publish cache pair; its complete implementation
 
 **Side effects**
 
-- Network I/O: `RteOdreDownloadError`.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `metadata_path.is_file`.
 - Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
 
 **Complete source-ordered implementation**
 
@@ -2804,22 +2748,18 @@ None
 
 **Side effects**
 
-- Network I/O: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `RteOdreDownload`, `downloaded_at.astimezone`.
-- Filesystem read: `archive_path.stat`, `metadata_path.read_text`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `archive_path.is_file`, `archive_path.stat`, `metadata_path.is_file`, `metadata_path.read_text`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
-- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._load_cached_download`.
+- direct call: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
 
 **Complete source-ordered implementation**
 
@@ -2934,18 +2874,18 @@ result
 
 **Side effects**
 
-- Network I/O: `RteOdreDownload`, `RteOdreDownloadError`, `_load_cached_download`, `open_safe_https`.
-- Filesystem read: `temporary_archive.stat`.
+- Network I/O: `open_safe_https`.
+- Filesystem read: `temporary_archive.open`, `temporary_archive.stat`, `temporary_metadata.open`.
 - Filesystem write: `cache_dir.mkdir`, `copyfileobj`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `lineage`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
     RteOdreDownload,
@@ -2958,27 +2898,7 @@ result
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `download_rte_odre_dataset`.
-- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_rte_odre_dataset`.
-- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+- import: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
     RteOdreExportSummary,
     RteOdreSourceConfig,
@@ -2988,6 +2908,26 @@ result
     fetch_rte_odre_dataset_metadata,
     load_rte_odre_source_config,
 )`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `download_rte_odre_dataset`.
+- direct call: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_rte_odre_dataset`.
 
 **Complete source-ordered implementation**
 

@@ -91,7 +91,7 @@ def square() -> Polygon:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid polygon in lambert93`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -118,7 +118,7 @@ assert area_m2(square, LAMBERT93) > 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid polygon in lambert93` through the exact asserted conditions: `area_m2(square, LAMBERT93) > 0`.
 
 **Test boundary**
 
@@ -135,7 +135,7 @@ def test_valid_polygon_in_lambert93(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `area in square metres`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -162,7 +162,7 @@ assert area_m2(square, LAMBERT93) == pytest.approx(100.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `area in square metres` through the exact asserted conditions: `area_m2(square, LAMBERT93) == pytest.approx(100.0)`.
 
 **Test boundary**
 
@@ -179,7 +179,7 @@ def test_area_in_square_metres(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `perimeter in metres`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -206,7 +206,7 @@ assert perimeter_m(square, LAMBERT93) == pytest.approx(40.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `perimeter in metres` through the exact asserted conditions: `perimeter_m(square, LAMBERT93) == pytest.approx(40.0)`.
 
 **Test boundary**
 
@@ -223,7 +223,7 @@ def test_perimeter_in_metres(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centroid`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -251,7 +251,7 @@ assert center.y == pytest.approx(5.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `centroid` through the exact asserted conditions: `center.x == pytest.approx(5.0)`; `center.y == pytest.approx(5.0)`.
 
 **Test boundary**
 
@@ -271,7 +271,7 @@ def test_centroid(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `metric calculation in wgs84 fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -319,7 +319,7 @@ def test_metric_calculation_in_wgs84_fails(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty geometry fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -347,7 +347,7 @@ with pytest.raises(EmptyGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `empty geometry fails`: the reproduced adversarial input must raise `EmptyGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -365,7 +365,7 @@ def test_empty_geometry_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid geometry fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -394,7 +394,7 @@ with pytest.raises(InvalidGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid geometry fails`: the reproduced adversarial input must raise `InvalidGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -415,7 +415,7 @@ def test_invalid_geometry_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `multipolygon`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -445,7 +445,7 @@ assert perimeter_m(geometry, LAMBERT93) == pytest.approx(80.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `multipolygon` through the exact asserted conditions: `area_m2(geometry, LAMBERT93) == pytest.approx(200.0)`; `perimeter_m(geometry, LAMBERT93) == pytest.approx(80.0)`.
 
 **Test boundary**
 
@@ -467,7 +467,7 @@ def test_multipolygon() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `square shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -497,7 +497,7 @@ assert compactness_score(square, LAMBERT93) == pytest.approx(0.785398)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `square shape metrics` through the exact asserted conditions: `approximate_length_m(square, LAMBERT93) == pytest.approx(10.0)`; `approximate_width_m(square, LAMBERT93) == pytest.approx(10.0)`; `length_width_ratio(square, LAMBERT93) == pytest.approx(1.0)`; `compactness_score(square, LAMBERT93) == pytest.approx(0.785398)`.
 
 **Test boundary**
 
@@ -517,7 +517,7 @@ def test_square_shape_metrics(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `simple rectangle shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -546,7 +546,7 @@ assert length_width_ratio(rectangle, LAMBERT93) == pytest.approx(2.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `simple rectangle shape metrics` through the exact asserted conditions: `approximate_length_m(rectangle, LAMBERT93) == pytest.approx(20.0)`; `approximate_width_m(rectangle, LAMBERT93) == pytest.approx(10.0)`; `length_width_ratio(rectangle, LAMBERT93) == pytest.approx(2.0)`.
 
 **Test boundary**
 
@@ -567,7 +567,7 @@ def test_simple_rectangle_shape_metrics() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `rotated rectangle is orientation independent`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -597,7 +597,7 @@ assert length_width_ratio(rotated, LAMBERT93) == pytest.approx(3.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `rotated rectangle is orientation independent` through the exact asserted conditions: `approximate_length_m(rotated, LAMBERT93) == pytest.approx(30.0)`; `approximate_width_m(rotated, LAMBERT93) == pytest.approx(10.0)`; `length_width_ratio(rotated, LAMBERT93) == pytest.approx(3.0)`.
 
 **Test boundary**
 
@@ -619,7 +619,7 @@ def test_rotated_rectangle_is_orientation_independent() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `elongated rectangle is less compact than square`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -649,7 +649,7 @@ assert compactness_score(square, LAMBERT93) > compactness_score(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `elongated rectangle is less compact than square` through the exact asserted conditions: `length_width_ratio(elongated, LAMBERT93) == pytest.approx(50.0)`; `compactness_score(square, LAMBERT93) > compactness_score(elongated, LAMBERT93)`.
 
 **Test boundary**
 
@@ -671,7 +671,7 @@ def test_elongated_rectangle_is_less_compact_than_square(square: Polygon) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `multipolygon shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -702,7 +702,7 @@ assert 0 < compactness_score(geometry, LAMBERT93) <= 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `multipolygon shape metrics` through the exact asserted conditions: `approximate_length_m(geometry, LAMBERT93) == pytest.approx(30.0)`; `approximate_width_m(geometry, LAMBERT93) == pytest.approx(10.0)`; `0 < compactness_score(geometry, LAMBERT93) <= 1`.
 
 **Test boundary**
 
@@ -725,7 +725,7 @@ def test_multipolygon_shape_metrics() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape metrics reject geographic crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -783,7 +783,7 @@ def test_shape_metrics_reject_geographic_crs(square: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape metrics reject invalid geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -811,7 +811,7 @@ with pytest.raises(InvalidGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shape metrics reject invalid geometry`: the reproduced adversarial input must raise `InvalidGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -831,7 +831,7 @@ def test_shape_metrics_reject_invalid_geometry() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `shape metrics reject empty geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -859,7 +859,7 @@ with pytest.raises(EmptyGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `shape metrics reject empty geometry`: the reproduced adversarial input must raise `EmptyGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -877,7 +877,7 @@ def test_shape_metrics_reject_empty_geometry() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zero area geometry raises controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -905,7 +905,7 @@ with pytest.raises(GeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zero area geometry raises controlled error`: the reproduced adversarial input must raise `GeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -925,7 +925,7 @@ def test_zero_area_geometry_raises_controlled_error() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `length is always at least width`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -954,7 +954,7 @@ assert approximate_length_m(geometry, LAMBERT93) >= approximate_width_m(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `length is always at least width` through the exact asserted conditions: `approximate_length_m(geometry, LAMBERT93) >= approximate_width_m(geometry, LAMBERT93)`.
 
 **Test boundary**
 
@@ -973,7 +973,7 @@ def test_length_is_always_at_least_width(geometry: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `compactness range`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1000,7 +1000,7 @@ assert 0 < compactness_score(geometry, LAMBERT93) <= 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `compactness range` through the exact asserted conditions: `0 < compactness_score(geometry, LAMBERT93) <= 1`.
 
 **Test boundary**
 
@@ -1017,7 +1017,7 @@ def test_compactness_range(geometry: Polygon) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centralized shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1048,7 +1048,7 @@ assert 0 < metrics.compactness <= 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `centralized shape metrics` through the exact asserted conditions: `metrics.length_m == pytest.approx(expected_length)`; `metrics.width_m == pytest.approx(expected_width)`; `metrics.length_m >= metrics.width_m`; `metrics.length_width_ratio == pytest.approx(expected_length / expected_width)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1073,7 +1073,7 @@ def test_centralized_shape_metrics(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centralized shape metrics support multipolygon`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1102,7 +1102,7 @@ assert metrics.width_m == pytest.approx(10.0)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `centralized shape metrics support multipolygon` through the exact asserted conditions: `metrics.length_m == pytest.approx(30.0)`; `metrics.width_m == pytest.approx(10.0)`.
 
 **Test boundary**
 
@@ -1125,7 +1125,7 @@ def test_centralized_shape_metrics_support_multipolygon() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centralized shape metrics reject invalid geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1153,7 +1153,7 @@ with pytest.raises(InvalidGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `centralized shape metrics reject invalid geometry`: the reproduced adversarial input must raise `InvalidGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1173,7 +1173,7 @@ def test_centralized_shape_metrics_reject_invalid_geometry() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centralized shape metrics reject zero area geometry`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1201,7 +1201,7 @@ with pytest.raises(GeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `centralized shape metrics reject zero area geometry`: the reproduced adversarial input must raise `GeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1221,7 +1221,7 @@ def test_centralized_shape_metrics_reject_zero_area_geometry() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `centralized shape metrics reject geographic crs`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1267,7 +1267,7 @@ def test_centralized_shape_metrics_reject_geographic_crs(square: Polygon) -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `non geometry inputs raise controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1295,7 +1295,7 @@ with pytest.raises(UnsupportedGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `non geometry inputs raise controlled error`: the reproduced adversarial input must raise `UnsupportedGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1313,7 +1313,7 @@ def test_non_geometry_inputs_raise_controlled_error(geometry: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported geometry family raises controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1341,7 +1341,7 @@ with pytest.raises(UnsupportedGeometryError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported geometry family raises controlled error`: the reproduced adversarial input must raise `UnsupportedGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1359,7 +1359,7 @@ def test_unsupported_geometry_family_raises_controlled_error() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `three dimensional parcel is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1387,7 +1387,7 @@ with pytest.raises(UnsupportedGeometryError, match="two-dimensional"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `three dimensional parcel is rejected`: the reproduced adversarial input must raise `UnsupportedGeometryError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1407,7 +1407,7 @@ def test_three_dimensional_parcel_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed crs inputs raise controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

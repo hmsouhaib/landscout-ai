@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/enrich_planning_zoning.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: spatial proxy enrichment stage
 - Domain: planning
 - Responsibility: Intersects parcels with source-completely verified GPU zoning polygons and retains factual overlap evidence.
 - Source SHA256: `1838ea77ee7872ce8b663ecb19ffb82455abc7f4c947a847f041828808f22bf9`
@@ -15,7 +15,7 @@ Intersects parcels with source-completely verified GPU zoning polygons and retai
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **spatial proxy enrichment stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -63,7 +63,7 @@ This file belongs to the **processing/policy stage** layer and the **planning** 
 CALCULATION_CRS = "EPSG:2154"
 ```
 
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value reference).
 
 #### `GPU_ZONING_SOURCE_FIELDS`
 
@@ -80,7 +80,7 @@ GPU_ZONING_SOURCE_FIELDS = {
 }
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::<module>` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value reference).
 
 #### `GPU_ZONING_REQUIRED_COLUMNS`
 
@@ -90,7 +90,7 @@ GPU_ZONING_REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` (value reference).
 
 #### `PARCEL_REQUIRED_COLUMNS`
 
@@ -98,7 +98,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` (value reference).
 
 #### `POLYGON_GEOMETRY_TYPES`
 
@@ -106,7 +106,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 POLYGON_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_polygon_geometries` (value reference).
 
 #### `RELATION_TYPES`
 
@@ -114,7 +114,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 RELATION_TYPES = frozenset({"AREA_OVERLAP", "TOUCH_ONLY"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value reference).
 
 #### `PARCEL_ZONING_OUTPUT_COLUMNS`
 
@@ -146,7 +146,7 @@ PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` (value reference), `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` (value reference).
 
 #### `INTERSECTION_COLUMNS`
 
@@ -172,7 +172,7 @@ INTERSECTION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_empty_intersections` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value reference), `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` (value reference).
 
 #### `_INTERSECTION_FLOAT_COLUMNS`
 
@@ -188,7 +188,7 @@ _INTERSECTION_FLOAT_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_empty_intersections` (value reference), `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -227,53 +227,51 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_strict_nonempty_string` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_readable_crs` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_active_geometry` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_polygon_geometries` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_numeric_columns` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_compare_exact_frame` via `PlanningZoningError`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `PlanningZoningError`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     PlanningZoningError,
     validate_normalized_planning_zoning_inputs,
 )`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `pytest.raises(PlanningZoningError, match='materially exceeds')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `pytest.raises(PlanningZoningError, match=message)`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id.*unique|duplicate')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `pytest.raises(PlanningZoningError, match='active')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE|zone')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE.*unique|duplicate')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `pytest.raises(PlanningZoningError, match='IDURBA|document')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `pytest.raises(PlanningZoningError, match=message)`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `pytest.raises(PlanningZoningError, match='column|output|reserved|collision')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `pytest.raises(PlanningZoningError, match=field)`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `pytest.raises(PlanningZoningError, match='source|reconstruction|differs')`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `pytest.raises(PlanningZoningError, match='Physical|source')`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation.invalid_source` via `interpret_module.PlanningZoningError`.
-- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation.invalid_source` via `interpret_module.PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_strict_nonempty_string` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_readable_crs` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_active_geometry` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_polygon_geometries` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_numeric_columns` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_compare_exact_frame` via `PlanningZoningError`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `PlanningZoningError`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `pytest.raises(PlanningZoningError, match='materially exceeds')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `pytest.raises(PlanningZoningError, match=message)`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id.*unique|duplicate')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `pytest.raises(PlanningZoningError, match='active')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE|zone')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE.*unique|duplicate')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `pytest.raises(PlanningZoningError, match='IDURBA|document')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `pytest.raises(PlanningZoningError, match=message)`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `pytest.raises(PlanningZoningError, match='column|output|reserved|collision')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `pytest.raises(PlanningZoningError, match=field)`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `pytest.raises(PlanningZoningError, match='source|reconstruction|differs')`.
+- expected exception type: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `pytest.raises(PlanningZoningError, match='Physical|source')`.
 
 **Exact class source**
 
@@ -297,20 +295,23 @@ class PlanningZoningError(ValueError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-| `zones` | `zones: gpd.GeoDataFrame` | Stores `ParcelZoningResult`'s `zones` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `intersections` | `intersections: pd.DataFrame` | Stores `ParcelZoningResult`'s `intersections` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `zones` | `zones: gpd.GeoDataFrame` | Factual normalized zoning catalog returned by the zoning stage. |
+| `intersections` | `intersections: pd.DataFrame` | Factual parcel-zone relation table returned by the zoning stage. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `ParcelZoningResult`.
-- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `isinstance(result, ParcelZoningResult)`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `ParcelZoningResult`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `ParcelZoningResult`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `ParcelZoningResult`.
+- type annotation: `tests/unit/test_enrich_planning_zoning.py::_run` via `ParcelZoningResult`.
+- type annotation: `tests/unit/test_enrich_planning_zoning.py::_row_for_source_zone` via `ParcelZoningResult`.
 
 **Exact class source**
 
@@ -337,12 +338,12 @@ class ParcelZoningResult:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `provider` | `provider: str` | Stores `_PlanningContext`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `portal` | `portal: str` | Stores `_PlanningContext`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `commune_code` | `commune_code: str` | Stores `_PlanningContext`'s `commune code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
+| `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
+| `commune_code` | `commune_code: str` | Canonical five-character French commune identity attached to this source/configuration context. |
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `document_type` | `document_type: str` | Closed or validated `document type` classification on `_PlanningContext`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `archive_name` | `archive_name: str` | Stores `_PlanningContext`'s `archive name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document_type` | `document_type: str` | `_PlanningContext.document_type` represents the `document_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `archive_name` | `archive_name: str` | Portable physical source-archive basename retained in lineage. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
 | `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
@@ -350,8 +351,10 @@ class ParcelZoningResult:
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+- constructor call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `_PlanningContext`.
+- type annotation: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `_PlanningContext`.
 
 **Exact class source**
 
@@ -399,20 +402,20 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `_strict_nonempty_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `_strict_nonempty_string`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_strict_nonempty_string`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `_strict_nonempty_string`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `_strict_nonempty_string`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_strict_nonempty_string`.
 
 **Complete source-ordered implementation**
 
@@ -457,20 +460,20 @@ Rejects malformed or inconsistent exact string ids; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_exact_string_ids`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_exact_string_ids`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_exact_string_ids`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_exact_string_ids`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_exact_string_ids`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_exact_string_ids`.
 
 **Complete source-ordered implementation**
 
@@ -520,20 +523,20 @@ CRS.from_user_input(value)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_readable_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_readable_crs`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `_readable_crs`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_readable_crs`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_readable_crs`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `_readable_crs`.
 
 **Complete source-ordered implementation**
 
@@ -576,22 +579,19 @@ Private `planning` helper for active geometry; its complete implementation below
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_active_geometry`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_active_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_active_geometry`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_active_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -638,19 +638,19 @@ Rejects malformed or inconsistent polygon geometries; exact branches, calls, and
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_polygon_geometries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_polygon_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_polygon_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_polygon_geometries`.
 
 **Complete source-ordered implementation**
 
@@ -704,25 +704,18 @@ crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_active_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -783,19 +776,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `values`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_standard_model`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_standard_model`.
 
 **Complete source-ordered implementation**
 
@@ -859,18 +851,18 @@ Rejects malformed or inconsistent planning document; exact branches, calls, and 
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_active_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_planning_document`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_planning_document`.
 
 **Complete source-ordered implementation**
 
@@ -996,19 +988,19 @@ projected
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `force_2d`, `frame.geometry.copy`, `frame.geometry.to_crs`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `_project_geometries`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `_project_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `_project_geometries`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `_project_geometries`.
 
 **Complete source-ordered implementation**
 
@@ -1069,18 +1061,18 @@ zones
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(zone_areas <= 0).any`, `np.isfinite(zone_areas).all`, `projected_geometry.to_numpy`, `zones.geometry.area.to_numpy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `data[normalized_name]`, `zones['zone_area_m2']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `data`, `data[normalized_name]`, `zones['zone_area_m2']`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_normalize_zones`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_normalize_zones`.
 
 **Complete source-ordered implementation**
 
@@ -1167,24 +1159,18 @@ metric
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(areas <= 0).any`, `geometry.to_numpy`, `metric.geometry.area.to_numpy`, `np.isfinite(areas).all`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `metric['_parcel_area_m2']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_parcels` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_parcels` via `_metric_parcels`.
-- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_or_wrong_storage_crs_is_rejected` via `_metric_parcels`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
 
 **Complete source-ordered implementation**
 
@@ -1237,18 +1223,18 @@ pd.DataFrame({column: pd.Series(dtype='float64' if column in _INTERSECTION_FLOAT
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_empty_intersections`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_empty_intersections`.
 
 **Complete source-ordered implementation**
 
@@ -1300,18 +1286,18 @@ pd.DataFrame(columns=('_parcel_position', '_zone_position', '_intersection_geome
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `(intersection_areas < 0).any`, `metric_parcels.geometry.to_numpy`, `metric_parcels['_parcel_area_m2'].to_numpy`, `np.isfinite(intersection_areas).all`, `shapely_area`, `shapely_intersection`, `zones.geometry.to_numpy`, `zones['zone_area_m2'].to_numpy`.
-- Hashing: `selected_zones['source_archive_sha256'].to_numpy`, `shapely_area`, `shapely_intersection`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `geometry_values[:]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_candidate_intersections`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_candidate_intersections`.
 
 **Complete source-ordered implementation**
 
@@ -1445,18 +1431,18 @@ technical_overlay_tolerance(parcel_area_m2)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `_technical_area_tolerance`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `_technical_area_tolerance`.
 
 **Complete source-ordered implementation**
 
@@ -1504,26 +1490,26 @@ Private `planning` helper for stabilize area relationships; its complete impleme
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_technical_area_tolerance`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `_stabilize_area_relationships`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `_stabilize_area_relationships`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `_stabilize_area_relationships`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `_stabilize_area_relationships`.
 
 **Complete source-ordered implementation**
 
@@ -1591,19 +1577,18 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_stabilize_area_relationships`, `areas.max`, `areas.sum`, `group['_intersection_geometry'].to_numpy`, `group['intersection_area_m2'].to_numpy`, `metric_parcels['_parcel_area_m2'].to_numpy`, `parcel_areas.copy`, `shapely_area`.
-- Hashing: `shapely_area`.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `area_match_count[position]`, `covered_union[position]`, `dominant_area[position]`, `dominant_label[position]`, `dominant_long_label[position]`, `dominant_planning[position]`, `dominant_share[position]`, `dominant_source[position]`, `dominant_ties[position]`, `dominant_type[position]`, `gap[position]`, `output['dominant_planning_zone_id']`, `output['dominant_source_zone_id']`, `output['dominant_zone_intersection_area_m2']`, `output['dominant_zone_label_raw']`, `output['dominant_zone_long_label_raw']`, `output['dominant_zone_share_pct']`, `output['dominant_zone_tie_count']`, `output['dominant_zone_type_raw']`, `output['planning_archive_name']`, `output['planning_archive_sha256']`, `output['planning_document_id']`, `output['planning_document_type']`, `output['planning_source_layer']`, `output['planning_standard_model']`, `output['zoning_area_match_count']`, `output['zoning_coverage_pct']`, `output['zoning_covered_union_area_m2']`, `output['zoning_gap_area_m2']`, `output['zoning_intersection_area_sum_m2']`, `output['zoning_overlap_excess_area_m2']`, `output['zoning_touch_only_count']`, `overlap_excess[position]`, `raw_sum[position]`, `touch_count[int(position)]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` via `_parcel_summary`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_parcel_summary`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_parcel_summary`.
 
 **Complete source-ordered implementation**
 
@@ -1746,18 +1731,18 @@ Rejects malformed or inconsistent numeric columns; exact branches, calls, and re
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_numeric_columns`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_numeric_columns`.
 
 **Complete source-ordered implementation**
 
@@ -1833,36 +1818,18 @@ Rejects malformed or inconsistent result; exact branches, calls, and return cons
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `input_parcels.geometry.to_wkb`, `intersections.duplicated`, `intersections.duplicated(['parcel_id', 'planning_zone_id']).any`, `output.geometry.to_wkb`, `set(intersections['parcel_id']).issubset`, `set(intersections['planning_zone_id']).issubset`, `set(intersections['relation_type']).issubset`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_result`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
-- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_result`.
 
 **Complete source-ordered implementation**
 
@@ -1971,18 +1938,18 @@ Private `planning` helper for compare exact frame; its complete implementation b
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `expected.geometry.to_wkb`, `expected.geometry.to_wkb().tolist`, `supplied.geometry.to_wkb`, `supplied.geometry.to_wkb().tolist`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `_compare_exact_frame`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `_compare_exact_frame`.
 
 **Complete source-ordered implementation**
 
@@ -2063,38 +2030,38 @@ Prove normalized zoning facts against a freshly read physical GPU layer.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `validate_normalized_planning_zoning_inputs`.
-- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `validate_normalized_planning_zoning_inputs`.
-- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     PlanningZoningError,
     validate_normalized_planning_zoning_inputs,
 )`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `validate_normalized_planning_zoning_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `validate_normalized_planning_zoning_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `validate_normalized_planning_zoning_inputs`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `validate_normalized_planning_zoning_inputs`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `validate_normalized_planning_zoning_inputs`.
+- direct call: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `validate_normalized_planning_zoning_inputs`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `validate_normalized_planning_zoning_inputs`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `validate_normalized_planning_zoning_inputs`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `validate_normalized_planning_zoning_inputs`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `validate_normalized_planning_zoning_inputs`.
 
 **Complete source-ordered implementation**
 
@@ -2208,37 +2175,36 @@ result
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_candidate_intersections`, `_empty_intersections`, `work.loc[:, INTERSECTION_COLUMNS].reset_index`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `intersect_parcels_with_gpu_zoning`.
-- property/attribute access: `tests/unit/test_enrich_planning_zoning.py::test_clean_high_level_api_is_exported` via `stages.intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `intersect_parcels_with_gpu_zoning`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `intersect_parcels_with_gpu_zoning`.
-- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+- import: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )`.
+- direct call: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::_run` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `intersect_parcels_with_gpu_zoning`.
+- direct call: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `intersect_parcels_with_gpu_zoning`.
 
 **Complete source-ordered implementation**
 
@@ -2318,14 +2284,14 @@ GPU_ZONING_REQUIRED_COLUMNS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `IDURBA` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `LIBELONG` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `LIB_IDZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `TYPEZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `IDURBA` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `LIBELONG` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `LIB_IDZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `TYPEZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 9 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
 
 ### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
@@ -2379,12 +2345,12 @@ PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
 | 6 | `dominant_zone_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 7 | `dominant_zone_tie_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 8 | `dominant_zone_type_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `planning_archive_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `planning_archive_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 10 | `planning_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 11 | `planning_document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 12 | `planning_document_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `planning_source_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `planning_standard_model` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `planning_document_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `planning_source_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `planning_standard_model` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 15 | `zoning_area_match_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
 | 16 | `zoning_coverage_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 17 | `zoning_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
@@ -2425,7 +2391,7 @@ INTERSECTION_COLUMNS = (
 | 4 | `zone_type_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 5 | `zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 6 | `zone_long_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 7 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 8 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
 | 9 | `zone_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
 | 10 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
@@ -2468,8 +2434,8 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `intersect_parcels_with_gpu_zoning` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
-| `validate_normalized_planning_zoning_inputs` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
+| `intersect_parcels_with_gpu_zoning` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
+| `validate_normalized_planning_zoning_inputs` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
 
 ## 9. Error handling
 

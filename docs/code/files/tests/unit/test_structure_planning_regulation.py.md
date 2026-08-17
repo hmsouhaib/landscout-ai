@@ -113,53 +113,52 @@ replace(index, index_content_sha256=_index_content_sha256(index))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_index_content_sha256`, `_page_content_sha256`, `_pages_content_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `row['page_content_sha256']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `row['page_content_sha256']`, `rows`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_index`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_index`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_index`.
 
 **Complete source-ordered implementation**
 
@@ -243,97 +242,53 @@ PlanningRegulationStructureConfig.model_validate({'schema_version': 2, 'structur
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_gpu_fr.py::_document` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_valid_config_and_urls` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_invalid_config_values_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_unknown_config_field_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_url_must_be_exact_official_https_api_url` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_written_material_fallback_rejects_unsafe_archive_url_provenance` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_no_current_document_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_current_documents_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_document_identity_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_must_match_selected_listing` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_details_commune_must_match_selected_listing` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_discovery_rejects_unsafe_archive_name` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_spatial_inventory_and_inspection_preserve_source_quality` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_missing_zoning_layer_fails_clearly` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_ambiguous_zoning_layer_fails_clearly` via `_config`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_download` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_zip_download_binds_exact_bytes_and_lineage` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_cold_download_must_match_configured_snapshot_before_publication` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_http_and_payload_failures_are_controlled` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_unsupported_zip_compression_has_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_malformed_response_headers_have_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_midstream_protocol_failure_has_controlled_error` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_unsafe_zip_member_paths_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_duplicate_or_colliding_zip_destinations_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_zip_links_and_special_files_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_complete_zip_inventory_is_validated_before_member_copy` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_download_type` via `_config`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_download_uses_no_hidden_reference_page_scrape` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_validate` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_config_with_structural_patterns` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_config`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_validate` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_config_with_structural_patterns` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_config`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_config`.
 
 **Complete source-ordered implementation**
 
@@ -412,80 +367,48 @@ pd.DataFrame({'planning_zone_id': [f'ZONE-{label}' for label in labels], 'source
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_planning_document` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_physical_planning_document` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_raw_zoning_values_are_preserved_exactly` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_intersection_table_references_only_known_parcels_and_zones` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_result_frames_are_independent_from_inputs` via `_zones`.
-- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `_zones`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::inputs` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_validate` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_zones`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_validate` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_zones`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_zones`.
 
 **Complete source-ordered implementation**
 
@@ -534,48 +457,48 @@ pd.DataFrame({'parcel_id': ['PARCEL-1', 'PARCEL-2'], 'planning_zone_id': ['ZONE-
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_validate` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_intersections`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::valid_result` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_validate` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `_intersections`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `_intersections`.
 
 **Complete source-ordered implementation**
 
@@ -643,42 +566,31 @@ Rejects malformed or inconsistent validate; exact branches, calls, and return co
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_intersections`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_valid_locked_policy_builds_complete_outputs` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_readback_result_validates` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_result_config_schema_versions_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_section_hash_schema_versions_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_realistic_structure_is_deterministic_and_toc_heading_is_ignored` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_frame_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_lossless_partition_mutation_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_duplicate_or_reordered_record_partition_is_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unsorted_section_pages_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_article_parent_semantics_are_enforced` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_mapping_contract_mutations_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_validate`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_source_and_result_hash_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_result_config_schema_versions_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_section_hash_schema_versions_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_realistic_structure_is_deterministic_and_toc_heading_is_ignored` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_coordinated_frame_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_lossless_partition_mutation_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_duplicate_or_reordered_record_partition_is_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_unsorted_section_pages_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_article_parent_semantics_are_enforced` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_mapping_contract_mutations_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_validate`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_and_result_hash_mutation_is_rejected` via `_validate`.
 
 **Complete source-ordered implementation**
 
@@ -704,7 +616,7 @@ def _validate(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `package exports clean high level api`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -734,7 +646,7 @@ assert not any(name.startswith("_build_") for name in stages.__all__)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `package exports clean high level api` through the exact asserted conditions: `'structure_planning_regulation' in stages.__all__`; `'validate_planning_regulation_structure' in stages.__all__`; `'validate_planning_regulation_structure_with_fragments' in stages.__all__`; `not any((name.startswith('_build_') for name in stages.__all__))`.
 
 **Test boundary**
 
@@ -754,7 +666,7 @@ def test_package_exports_clean_high_level_api() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete validator can return validated fragments`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -838,7 +750,7 @@ def test_source_complete_validator_can_return_validated_fragments(valid_result) 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `structure schema versions are explicit`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -870,7 +782,7 @@ assert STRUCTURE_MANIFEST_SCHEMA_VERSION == 4
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `structure schema versions are explicit` through the exact asserted conditions: `config.schema_version == 2`; `result.structure_config_schema_version == 2`; `SECTION_HASH_SCHEMA_VERSION == 3`; `result.section_hash_schema_version == 3`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -893,7 +805,7 @@ def test_structure_schema_versions_are_explicit(valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `old and unknown config schema versions are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -923,7 +835,7 @@ with pytest.raises(ValueError, match="unsupported structure config schema"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `old and unknown config schema versions are rejected`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -946,7 +858,7 @@ def test_old_and_unknown_config_schema_versions_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `old and unknown result config schema versions are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -977,7 +889,7 @@ with pytest.raises(PlanningRegulationStructureError, match="schema version"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `old and unknown result config schema versions are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1002,7 +914,7 @@ def test_old_and_unknown_result_config_schema_versions_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `old and unknown section hash schema versions are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1030,7 +942,7 @@ with pytest.raises(PlanningRegulationStructureError, match="schema version"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `old and unknown section hash schema versions are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1052,7 +964,7 @@ def test_old_and_unknown_section_hash_schema_versions_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `toc topic evidence flag rejects boolean coercion`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1084,7 +996,7 @@ with pytest.raises(ValueError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `toc topic evidence flag rejects boolean coercion`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1107,7 +1019,7 @@ def test_toc_topic_evidence_flag_rejects_boolean_coercion(value: object) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `toc topic evidence flag accepts exact booleans`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1139,7 +1051,7 @@ assert validated.document_layout.include_table_of_contents_in_topic_evidence is 
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `toc topic evidence flag accepts exact booleans` through the exact asserted conditions: `validated.document_layout.include_table_of_contents_in_topic_evidence is value`.
 
 **Test boundary**
 
@@ -1162,7 +1074,7 @@ def test_toc_topic_evidence_flag_accepts_exact_booleans(value: bool) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document layout accepts real first and last indexed pages`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1204,7 +1116,7 @@ assert result.sections.iloc[-1]["page_numbers"] == (3,)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `document layout accepts real first and last indexed pages` through the exact asserted conditions: `result.sections.iloc[0]['page_numbers'] == (1,)`; `result.sections.iloc[-1]['page_numbers'] == (3,)`.
 
 **Test boundary**
 
@@ -1238,7 +1150,7 @@ def test_document_layout_accepts_real_first_and_last_indexed_pages() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document layout rejects nonexistent indexed pages`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1274,7 +1186,7 @@ with pytest.raises(PlanningRegulationStructureError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document layout rejects nonexistent indexed pages`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1304,7 +1216,7 @@ def test_document_layout_rejects_nonexistent_indexed_pages(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `existing empty toc page is valid not nonexistent`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1344,7 +1256,7 @@ assert index.pages.loc[0, "extraction_status"] == "EMPTY"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `existing empty toc page is valid not nonexistent` through the exact asserted conditions: `index.pages.loc[0, 'extraction_status'] == 'EMPTY'`.
 
 **Test boundary**
 
@@ -1376,7 +1288,7 @@ def test_existing_empty_toc_page_is_valid_not_nonexistent() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `document lock mismatch is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1409,7 +1321,7 @@ with pytest.raises(PlanningRegulationStructureError, match="document lock"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `document lock mismatch is rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1433,7 +1345,7 @@ def test_document_lock_mismatch_is_rejected(lock_field: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid regex and unknown yaml field are controlled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1467,7 +1379,7 @@ with pytest.raises(PlanningRegulationStructureError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid regex and unknown yaml field are controlled`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1493,7 +1405,7 @@ def test_invalid_regex_and_unknown_yaml_field_are_controlled(tmp_path: Path) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate yaml alias and alias cycle are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1532,7 +1444,7 @@ with pytest.raises(PlanningRegulationStructureError, match="Duplicate YAML"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate yaml alias and alias cycle are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1563,7 +1475,7 @@ def test_duplicate_yaml_alias_and_alias_cycle_are_rejected(tmp_path: Path) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `realistic structure is deterministic and toc heading is ignored`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1599,7 +1511,7 @@ assert "General energy rule." in general["raw_text"]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `realistic structure is deterministic and toc heading is ignored` through the exact asserted conditions: `result.sections['section_id'].tolist() == [f'SECTION-{number:04d}' for number in range(1, len(result.sections) + 1)]`; `chapters['zone_chapter_label'].tolist() == ['U', 'N', 'Z', 'Z']`; `len(chapters.loc[chapters['zone_chapter_label'].eq('U')]) == 1`; `general['heading_raw'] == 'ARTICLE 1 - GENERAL PROVISIONS'`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1628,7 +1540,7 @@ def test_realistic_structure_is_deterministic_and_toc_heading_is_ignored(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zone article parent and multi page text are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1662,7 +1574,7 @@ assert "Second page of the same article." in article["raw_text"]
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `zone article parent and multi page text are preserved` through the exact asserted conditions: `parent['section_type'] == 'ZONE_CHAPTER'`; `tuple(article['page_numbers']) == (3, 4)`; `'First page energy text.' in article['raw_text']`; `'Second page of the same article.' in article['raw_text']`.
 
 **Test boundary**
 
@@ -1687,7 +1599,7 @@ def test_zone_article_parent_and_multi_page_text_are_preserved(valid_result) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact alias unmapped ambiguous and no fuzzy mapping`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1720,7 +1632,7 @@ assert mappings.at["X", "dominant_candidate_count"] == 0
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact alias unmapped ambiguous and no fuzzy mapping` through the exact asserted conditions: `mappings.at['U', 'mapping_status'] == 'EXACT'`; `mappings.at['Ua', 'mapping_status'] == 'CONFIG_ALIAS'`; `mappings.at['X', 'mapping_status'] == 'UNMAPPED'`; `mappings.at['UX', 'mapping_status'] == 'UNMAPPED'`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1744,7 +1656,7 @@ def test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping(valid_result) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `topic evidence distinguishes general and zone specific`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1774,7 +1686,7 @@ assert all(context for context in energy["raw_context"])
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `topic evidence distinguishes general and zone specific` through the exact asserted conditions: `set(energy['evidence_scope']) == {'GENERAL_RULE', 'ZONE_SPECIFIC_RULE'}`; `set(energy['occurrence_count']) == {1}`; `all((context for context in energy['raw_context']))`.
 
 **Test boundary**
 
@@ -1795,7 +1707,7 @@ def test_topic_evidence_distinguishes_general_and_zone_specific(valid_result) ->
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `evidence scope is derived from exact section type`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1873,7 +1785,7 @@ with pytest.raises(PlanningRegulationStructureError, match="scope"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `evidence scope is derived from exact section type`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1945,7 +1857,7 @@ def test_evidence_scope_is_derived_from_exact_section_type() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `reversed topic mapping keys do not change output or hashes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2006,7 +1918,7 @@ assert (
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `reversed topic mapping keys do not change output or hashes` through the exact asserted conditions: `tuple(reversed_topics.topics) == tuple(reversed(tuple(forward.topics)))`; `forward_result.topic_evidence['topic'].tolist() == sorted(forward_result.topic_evidence['topic'].tolist())`; `forward_result.structure_config_sha256 == reversed_result.structure_config_sha256`; `forward_result.topic_evidence_content_sha256 == reversed_result.topic_evidence_content_sha256`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2061,7 +1973,7 @@ def test_reversed_topic_mapping_keys_do_not_change_output_or_hashes() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `equal length overlap uses configured term order as tie break`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2117,7 +2029,7 @@ assert forward_result.structure_config_sha256 != reverse_result.structure_config
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `equal length overlap uses configured term order as tie break` through the exact asserted conditions: `[match.search_term for match in forward_matches] == ['alpha beta']`; `[match.search_term for match in reverse_matches] == ['beta gamma']`; `(forward_matches[0].normalized_start, forward_matches[0].normalized_end) == (0, 10)`; `(reverse_matches[0].normalized_start, reverse_matches[0].normalized_end) == (6, 16)`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2167,7 +2079,7 @@ def test_equal_length_overlap_uses_configured_term_order_as_tie_break() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `inputs are not mutated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2202,7 +2114,7 @@ structure_planning_regulation(index, zones, intersections, _config(index))
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `inputs are not mutated` by requiring the reproduced call path `_index`, `_zones`, `_intersections`, `index.pages.copy` without an unasserted exception.
 
 **Test boundary**
 
@@ -2228,7 +2140,7 @@ def test_inputs_are_not_mutated() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated frame mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2299,7 +2211,7 @@ def test_coordinated_frame_mutation_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown topic page reference is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2329,7 +2241,7 @@ with pytest.raises(PlanningRegulationStructureError, match="unknown page"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unknown topic page reference is rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2350,7 +2262,7 @@ def test_unknown_topic_page_reference_is_rejected(valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated section row mutation is caught by outer envelope`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2414,7 +2326,7 @@ def test_coordinated_section_row_mutation_is_caught_by_outer_envelope(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `dominant unmapped zone stops processing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2448,7 +2360,7 @@ with pytest.raises(PlanningRegulationStructureError, match="Dominant candidate")
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `dominant unmapped zone stops processing`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2473,7 +2385,7 @@ def test_dominant_unmapped_zone_stops_processing() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `positional header footer filter preserves matching body lines`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2513,7 +2425,7 @@ assert records[0].page_line_number == 4
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `positional header footer filter preserves matching body lines` through the exact asserted conditions: `'Test PLU' in retained`; `'100' in retained`; `'42' not in retained`; `retained[0] == 'ARTICLE 1 - GENERAL PROVISIONS'`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2545,7 +2457,7 @@ def test_positional_header_footer_filter_preserves_matching_body_lines() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `page without configured header or footer is unchanged`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2584,7 +2496,7 @@ assert [record.raw for record in _line_records(index, config)] == [
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `page without configured header or footer is unchanged` through the exact asserted conditions: `[record.raw for record in _line_records(index, config)] == ['ARTICLE 1 - GENERAL', '100', 'Body']`.
 
 **Test boundary**
 
@@ -2614,7 +2526,7 @@ def test_page_without_configured_header_or_footer_is_unchanged() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `blank only prefix is preserved in first actual section`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2665,7 +2577,7 @@ assert "OTHER" not in result.sections["section_type"].tolist()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `blank only prefix is preserved in first actual section` through the exact asserted conditions: `first['section_type'] == 'ZONE_CHAPTER'`; `first['heading_raw'] == 'ZONE U'`; `first['start_record_id'] == 'RECORD-000001'`; `tuple(first['page_numbers']) == expected_pages`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2713,7 +2625,7 @@ def test_blank_only_prefix_is_preserved_in_first_actual_section(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `toc blocks anywhere are other and toggle topic evidence`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2800,7 +2712,7 @@ assert set(included_toc["evidence_scope"]) == {"OTHER_TEXT"}
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `toc blocks anywhere are other and toggle topic evidence` through the exact asserted conditions: `excluded_other['page_numbers'].tolist() == [(1, 2), (4, 5), (7,)]`; `excluded_other['heading_raw'].tolist() == ['CONTENTS', 'ARTICLE 8 - energy', 'ARTICLE 7 - energy']`; `toc_pages.isdisjoint(excluded.topic_evidence['page_number'])`; `set(excluded.topic_evidence['page_number']) == {3, 6}`; plus 2 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2882,7 +2794,7 @@ def test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `blank gap after toc is preserved without a blank other section`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2939,7 +2851,7 @@ assert chapter["raw_text"].startswith(" \n\t\nZONE U")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `blank gap after toc is preserved without a blank other section` through the exact asserted conditions: `other['page_numbers'].tolist() == [(2,)]`; `tuple(chapter['page_numbers']) == (3, 4)`; `chapter['heading_raw'] == 'ZONE U'`; `chapter['raw_text'].startswith(' \n\t\nZONE U')`.
 
 **Test boundary**
 
@@ -3019,23 +2931,23 @@ Private `test` helper for structure with document layout; its complete implement
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_intersections`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: `payload['ignored_patterns']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `payload['document_layout']`, `payload['ignored_patterns']`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_structure_with_document_layout`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_structure_with_document_layout`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_only_toc_blocks_remain_separate_other_sections` via `_structure_with_document_layout`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_blank_toc_followed_only_by_blank_tail_remains_other` via `_structure_with_document_layout`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ordinary_blank_gap_attaches_to_following_real_heading` via `_structure_with_document_layout`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_trailing_blank_records_attach_to_preceding_factual_section` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_toc_blocks_remain_separate_other_sections` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_toc_followed_only_by_blank_tail_remains_other` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_ordinary_blank_gap_attaches_to_following_real_heading` via `_structure_with_document_layout`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_trailing_blank_records_attach_to_preceding_factual_section` via `_structure_with_document_layout`.
 
 **Complete source-ordered implementation**
 
@@ -3085,7 +2997,7 @@ def _structure_with_document_layout(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `blank only toc blocks remain separate other sections`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3123,7 +3035,7 @@ assert other.iloc[0]["heading_raw"] == ""
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `blank only toc blocks remain separate other sections` through the exact asserted conditions: `len(other) == 1`; `tuple(other.iloc[0]['page_numbers']) == expected_pages`; `not str(other.iloc[0]['raw_text']).strip()`; `other.iloc[0]['heading_raw'] == ''`.
 
 **Test boundary**
 
@@ -3155,7 +3067,7 @@ def test_blank_only_toc_blocks_remain_separate_other_sections(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `blank toc followed only by blank tail remains other`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3193,7 +3105,7 @@ assert other.iloc[0]["heading_raw"] == ""
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `blank toc followed only by blank tail remains other` through the exact asserted conditions: `len(other) == 1`; `tuple(other.iloc[0]['page_numbers']) == (2, 3)`; `not str(other.iloc[0]['raw_text']).strip()`; `other.iloc[0]['heading_raw'] == ''`.
 
 **Test boundary**
 
@@ -3222,7 +3134,7 @@ def test_blank_toc_followed_only_by_blank_tail_remains_other() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ordinary blank gap attaches to following real heading`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3260,7 +3172,7 @@ assert chapter["heading_raw"] == "ZONE U"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `ordinary blank gap attaches to following real heading` through the exact asserted conditions: `tuple(chapter['page_numbers']) == (2, 3)`; `str(chapter['raw_text']).startswith(' \n\t\nZONE U')`; `chapter['heading_raw'] == 'ZONE U'`.
 
 **Test boundary**
 
@@ -3289,7 +3201,7 @@ def test_ordinary_blank_gap_attaches_to_following_real_heading() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `trailing blank records attach to preceding factual section`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3324,7 +3236,7 @@ assert str(final_section["raw_text"]).endswith(" \n\t")
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `trailing blank records attach to preceding factual section` through the exact asserted conditions: `final_section['section_type'] == 'ARTICLE'`; `tuple(final_section['page_numbers']) == (1, 2)`; `str(final_section['raw_text']).endswith(' \n\t')`.
 
 **Test boundary**
 
@@ -3350,7 +3262,7 @@ def test_trailing_blank_records_attach_to_preceding_factual_section() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `heading patterns require mandatory named captures`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3383,7 +3295,7 @@ with pytest.raises(ValueError, match="named captures"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `heading patterns require mandatory named captures`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3410,7 +3322,7 @@ def test_heading_patterns_require_mandatory_named_captures(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `optional pattern lists may be empty`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3443,7 +3355,7 @@ assert validated.ignored_patterns.page_headers == ()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `optional pattern lists may be empty` through the exact asserted conditions: `validated.heading_patterns.continuation == ()`; `validated.ignored_patterns.page_headers == ()`.
 
 **Test boundary**
 
@@ -3496,23 +3408,23 @@ PlanningRegulationStructureConfig.model_validate(payload)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `payload['document_layout']['table_of_contents_pages']`, `payload['heading_patterns'][name]`, `payload['ignored_patterns']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_config_with_structural_patterns`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_config_with_structural_patterns`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_config_with_structural_patterns`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_config_with_structural_patterns`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_config_with_structural_patterns`.
-- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `_config_with_structural_patterns`.
+- direct call: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `_config_with_structural_patterns`.
 
 **Complete source-ordered implementation**
 
@@ -3546,7 +3458,7 @@ def _config_with_structural_patterns(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unique zone heading and nonheading line are classified deterministically`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3582,7 +3494,7 @@ assert all(event.record_position != 0 for event in events)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unique zone heading and nonheading line are classified deterministically` through the exact asserted conditions: `[event.section_type for event in events] == ['ZONE_CHAPTER', 'ARTICLE']`; `events[0].record_position == 1`; `events[0].zone_chapter_label == 'U'`; `all((event.record_position != 0 for event in events))`.
 
 **Test boundary**
 
@@ -3611,7 +3523,7 @@ def test_unique_zone_heading_and_nonheading_line_are_classified_deterministicall
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `two zone patterns matching one line are ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3659,7 +3571,7 @@ assert "ZONE U" not in message
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `two zone patterns matching one line are ambiguous`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3698,7 +3610,7 @@ def test_two_zone_patterns_matching_one_line_are_ambiguous() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `two article patterns matching one line are ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3741,7 +3653,7 @@ with pytest.raises(
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `two article patterns matching one line are ambiguous`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3775,7 +3687,7 @@ def test_two_article_patterns_matching_one_line_are_ambiguous() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `general and article cross category match is ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3817,7 +3729,7 @@ assert "ARTICLE[0]" in message
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `general and article cross category match is ambiguous`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3850,7 +3762,7 @@ def test_general_and_article_cross_category_match_is_ambiguous() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zone and general cross category match is ambiguous`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3892,7 +3804,7 @@ assert "GENERAL[0]" in message
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zone and general cross category match is ambiguous`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3925,7 +3837,7 @@ def test_zone_and_general_cross_category_match_is_ambiguous() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `identical structural regex across groups is rejected by config`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3957,7 +3869,7 @@ with pytest.raises(ValueError, match="reused across groups"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `identical structural regex across groups is rejected by config`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3980,7 +3892,7 @@ def test_identical_structural_regex_across_groups_is_rejected_by_config() -> Non
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `ambiguous continuation candidate fails with record diagnostic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4030,7 +3942,7 @@ assert "GENERAL[1]" in message
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `ambiguous continuation candidate fails with record diagnostic`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4071,7 +3983,7 @@ def test_ambiguous_continuation_candidate_fails_with_record_diagnostic() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete validator rejects changed ambiguous grammar`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4158,7 +4070,7 @@ def test_source_complete_validator_rejects_changed_ambiguous_grammar(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normal muret compatible grammar remains deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4200,7 +4112,7 @@ assert first.structure_result_content_sha256 == second.structure_result_content_
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `normal muret compatible grammar remains deterministic` through the exact asserted conditions: `first.structure_result_content_sha256 == second.structure_result_content_sha256`.
 
 **Test boundary**
 
@@ -4234,7 +4146,7 @@ def test_normal_muret_compatible_grammar_remains_deterministic() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `lossless partition mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4289,7 +4201,7 @@ def test_lossless_partition_mutation_is_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate or reordered record partition is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4319,7 +4231,7 @@ with pytest.raises(PlanningRegulationStructureError, match="partition"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate or reordered record partition is rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4340,7 +4252,7 @@ def test_duplicate_or_reordered_record_partition_is_rejected(valid_result) -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsorted section pages are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4373,7 +4285,7 @@ with pytest.raises(PlanningRegulationStructureError, match="page references"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsorted section pages are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4397,7 +4309,7 @@ def test_unsorted_section_pages_are_rejected(valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `article parent semantics are enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4433,7 +4345,7 @@ with pytest.raises(PlanningRegulationStructureError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `article parent semantics are enforced`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4460,7 +4372,7 @@ def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> N
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong intersection source zone id is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4492,7 +4404,7 @@ with pytest.raises(PlanningRegulationStructureError, match="source-zone"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong intersection source zone id is rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4515,7 +4427,7 @@ def test_wrong_intersection_source_zone_id_is_rejected(valid_result) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `intersection area cannot exceed available geometry area`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4547,7 +4459,7 @@ with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `intersection area cannot exceed available geometry area`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4572,7 +4484,7 @@ def test_intersection_area_cannot_exceed_available_geometry_area(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `intersection upper bound uses shared relative tolerance`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4630,7 +4542,7 @@ with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `intersection upper bound uses shared relative tolerance`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4684,7 +4596,7 @@ def test_intersection_upper_bound_uses_shared_relative_tolerance(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `intersection hash columns are actual and deterministic`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4741,7 +4653,7 @@ assert result.zoning_intersection_hash_columns == required + expected_optional
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `intersection hash columns are actual and deterministic` through the exact asserted conditions: `result.zoning_intersection_hash_columns == required + expected_optional`.
 
 **Test boundary**
 
@@ -4792,7 +4704,7 @@ def test_intersection_hash_columns_are_actual_and_deterministic(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `optional intersection metric change invalidates existing result`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4836,7 +4748,7 @@ with pytest.raises(PlanningRegulationStructureError, match="input hash"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `optional intersection metric change invalidates existing result`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4874,7 +4786,7 @@ def test_optional_intersection_metric_change_invalidates_existing_result(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `intersection hash column lineage mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4920,7 +4832,7 @@ with pytest.raises(PlanningRegulationStructureError, match="hash columns"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `intersection hash column lineage mutation is rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -4958,7 +4870,7 @@ def test_intersection_hash_column_lineage_mutation_is_rejected() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `zone mapping contract mutations are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -4989,7 +4901,7 @@ with pytest.raises(PlanningRegulationStructureError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `zone mapping contract mutations are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5015,7 +4927,7 @@ def test_zone_mapping_contract_mutations_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `alias chain resolves to final configured target`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5048,7 +4960,7 @@ assert mapping.at["X", "mapping_status"] == "UNMAPPED"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `alias chain resolves to final configured target` through the exact asserted conditions: `mapping.at['Ua', 'resolved_zone_chapter_label'] == 'U'`; `mapping.at['Ua', 'mapping_status'] == 'CONFIG_ALIAS'`; `mapping.at['X', 'mapping_status'] == 'UNMAPPED'`.
 
 **Test boundary**
 
@@ -5073,7 +4985,7 @@ def test_alias_chain_resolves_to_final_configured_target() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `token boundary and longest match policy`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5128,7 +5040,7 @@ assert len(matches) == 10
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `token boundary and longest match policy` through the exact asserted conditions: `retained.count('risque') == 1`; `retained.count('risques') == 1`; `retained.count('nuisance') == 1`; `retained.count('nuisances') == 1`; plus 7 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -5175,7 +5087,7 @@ def test_token_boundary_and_longest_match_policy() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `topic evidence semantic mutations are rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5207,7 +5119,7 @@ with pytest.raises(PlanningRegulationStructureError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `topic evidence semantic mutations are rejected`: the reproduced adversarial input must raise `PlanningRegulationStructureError` before the prohibited success path.
 
 **Test boundary**
 
@@ -5234,7 +5146,7 @@ def test_topic_evidence_semantic_mutations_are_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `coordinated topic evidence and hash mutation is rebuilt and rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5306,7 +5218,7 @@ def test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete validator rejects post build source change`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -5400,7 +5312,7 @@ def test_source_complete_validator_rejects_post_build_source_change(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source and result hash mutation is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 

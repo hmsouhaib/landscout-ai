@@ -4,7 +4,7 @@
 
 - Repository path: `src/landscout/stages/normalize_grid_ign.py`
 - File type: Python source
-- Layer: processing/policy stage
+- Layer: factual/source normalization stage
 - Domain: grid/source
 - Responsibility: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 - Source SHA256: `f287bded75c93f0a451e5819c7edcd99bdeb8e7a161069dbf99cd019e35ae290`
@@ -15,7 +15,7 @@ Source-completely normalizes IGN electricity lines and transformation posts into
 
 ## 2. Position in LandScout architecture
 
-This file belongs to the **processing/policy stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+This file belongs to the **factual/source normalization stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -62,7 +62,7 @@ This file belongs to the **processing/policy stage** layer and the **grid/source
 SOURCE_PROVIDER = "IGN"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_base_output` (value reference).
 
 #### `SOURCE_PRODUCT`
 
@@ -70,7 +70,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SOURCE_PRODUCT = "BD_TOPO"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_base_output` (value reference).
 
 #### `SPATIAL_ROLE`
 
@@ -78,7 +78,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validated_geodataframe` (value reference), `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` (value reference).
 
 #### `PACKAGE_LINEAGE_COLUMNS`
 
@@ -93,7 +93,7 @@ PACKAGE_LINEAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::<module>` (value reference).
 
 #### `LINE_OUTPUT_COLUMNS`
 
@@ -126,7 +126,7 @@ LINE_OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value reference).
 
 #### `TRANSFORMATION_POST_OUTPUT_COLUMNS`
 
@@ -158,7 +158,7 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value reference).
 
 #### `LINE_SOURCE_FIELDS`
 
@@ -182,7 +182,7 @@ LINE_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference).
 
 #### `TRANSFORMATION_POST_SOURCE_FIELDS`
 
@@ -206,7 +206,7 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference).
 
 #### `LINE_GEOMETRY_TYPES`
 
@@ -214,7 +214,7 @@ Named frame schema/required-field contract; the resolved fields and dtypes are d
 LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference).
 
 #### `TRANSFORMATION_POST_GEOMETRY_TYPES`
 
@@ -222,7 +222,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 TRANSFORMATION_POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value argument/reference).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference).
 
 #### `_EXACT_VOLTAGE_PATTERN`
 
@@ -232,7 +232,7 @@ _EXACT_VOLTAGE_PATTERN = re.compile(
 )
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
 
 #### `_BELOW_VOLTAGE_PATTERN`
 
@@ -242,7 +242,7 @@ _BELOW_VOLTAGE_PATTERN = re.compile(
 )
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
 
 #### `_UNKNOWN_VOLTAGE_TERMS`
 
@@ -252,7 +252,7 @@ _UNKNOWN_VOLTAGE_TERMS = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
 
 #### `_DEENERGIZED_VOLTAGE_TERMS`
 
@@ -260,7 +260,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
 
 #### `_DEPARTMENT_CODE_VALIDATOR`
 
@@ -268,7 +268,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
 
 #### `_EDITION_VALIDATOR`
 
@@ -276,7 +276,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
 
 #### `_HTTP_URL_VALIDATOR`
 
@@ -284,7 +284,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
 
 #### `_SHA256_PATTERN`
 
@@ -292,7 +292,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
 
 #### `_IGN_PROVIDER_IDENTITIES`
 
@@ -306,7 +306,7 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -317,7 +317,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 VoltageStatus = Literal["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]
 ```
 
-IGN voltage parser result: EXACT, BELOW, UNKNOWN, DEENERGIZED, or UNPARSED. It is consumed by annotations or Pydantic validation in this module.
+IGN voltage parser result: EXACT, BELOW, UNKNOWN, DEENERGIZED, or UNPARSED. Enforced/consumed by `src/landscout/stages/normalize_grid_ign.py::IgnVoltageNormalization` (type annotation).
 
 #### `GeometryStatus`
 
@@ -325,7 +325,7 @@ IGN voltage parser result: EXACT, BELOW, UNKNOWN, DEENERGIZED, or UNPARSED. It i
 GeometryStatus = Literal["VALID", "NULL", "EMPTY", "INVALID"]
 ```
 
-Factual source-geometry quality state: VALID, NULL, EMPTY, or INVALID. It is consumed by annotations or Pydantic validation in this module.
+Factual source-geometry quality state: VALID, NULL, EMPTY, or INVALID. No statically owned repository consumer was proven; the declaration remains authoritative for its local runtime use.
 
 
 ### C. Meaningful dunder contracts
@@ -353,59 +353,59 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validated_lambert93` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_required_exact_string` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_valid_geometry_types` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validated_geodataframe` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalized_identity` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `IgnGridNormalizationError`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `IgnGridNormalizationError`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `pytest.raises(IgnGridNormalizationError, match='archive_sha256')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `pytest.raises(IgnGridNormalizationError)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnGridNormalizationError)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `pytest.raises(IgnGridNormalizationError)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='cleabs|null|empty')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `pytest.raises(IgnGridNormalizationError, match='cleabs|whitespace|control|:')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `pytest.raises(IgnGridNormalizationError, match=column)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `pytest.raises(IgnGridNormalizationError, match='physical|fresh|source')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `pytest.raises(IgnGridNormalizationError, match=message)`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `pytest.raises(IgnGridNormalizationError, match='row count')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `pytest.raises(IgnGridNormalizationError, match='summary layer')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `pytest.raises(IgnGridNormalizationError, match='logical name')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `pytest.raises(IgnGridNormalizationError, match='schema|columns|dtype')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|duplicate')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|selected')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `pytest.raises(IgnGridNormalizationError, match='same layer|distinct|role')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
-- callback/function object: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `pytest.raises(IgnGridNormalizationError, match='PROXY_GEOMETRY')`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
 )`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validated_lambert93` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_required_exact_string` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_valid_geometry_types` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validated_geodataframe` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_normalized_identity` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `IgnGridNormalizationError`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `IgnGridNormalizationError`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `pytest.raises(IgnGridNormalizationError, match='archive_sha256')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `pytest.raises(IgnGridNormalizationError)`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnGridNormalizationError)`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `pytest.raises(IgnGridNormalizationError)`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='cleabs|null|empty')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `pytest.raises(IgnGridNormalizationError, match='cleabs|whitespace|control|:')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `pytest.raises(IgnGridNormalizationError, match=column)`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `pytest.raises(IgnGridNormalizationError, match='physical|fresh|source')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `pytest.raises(IgnGridNormalizationError, match=message)`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `pytest.raises(IgnGridNormalizationError, match='row count')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `pytest.raises(IgnGridNormalizationError, match='summary layer')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `pytest.raises(IgnGridNormalizationError, match='logical name')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `pytest.raises(IgnGridNormalizationError, match='schema|columns|dtype')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|duplicate')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|selected')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `pytest.raises(IgnGridNormalizationError, match='same layer|distinct|role')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
+- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `pytest.raises(IgnGridNormalizationError, match='PROXY_GEOMETRY')`.
 
 **Exact class source**
 
@@ -429,19 +429,26 @@ class IgnGridNormalizationError(ValueError):
 | Field | Exact declaration | Meaning |
 |---|---|---|
 | `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `department_code` | `department_code: str` | Stores `_IgnGridSourceContext`'s `department code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `edition` | `edition: str` | Stores `_IgnGridSourceContext`'s `edition` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `product_version` | `product_version: str \| None` | Stores `_IgnGridSourceContext`'s `product version` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
+| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
+| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
 | `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
 | `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 | `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 
 **Interface consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `_IgnGridSourceContext`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     _IgnGridSourceContext as IgnGridSourceContext,
 )`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_IgnGridSourceContext`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_base_output` via `_IgnGridSourceContext`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_IgnGridSourceContext`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_IgnGridSourceContext`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `_IgnGridSourceContext`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `_IgnGridSourceContext`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::_context` via `IgnGridSourceContext`.
+- constructor call: `tests/unit/test_normalize_grid_ign.py::_context` via `IgnGridSourceContext`.
 
 **Exact class source**
 
@@ -472,21 +479,22 @@ class _IgnGridSourceContext:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `raw` | `raw: str \| None` | Stores `IgnVoltageNormalization`'s `raw` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `status` | `status: VoltageStatus` | Closed or validated `status` classification on `IgnVoltageNormalization`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
-| `voltage_kv` | `voltage_kv: float \| None` | Stores `IgnVoltageNormalization`'s `voltage kv` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `voltage_upper_bound_kv` | `voltage_upper_bound_kv: float \| None` | Stores `IgnVoltageNormalization`'s `voltage upper bound kv` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `raw` | `raw: str \| None` | Exact raw source value retained before the owning parser/normalizer derives additional facts. |
+| `status` | `status: VoltageStatus` | `IgnVoltageNormalization.status` represents the `status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+| `voltage_kv` | `voltage_kv: float \| None` | Parsed or profiled voltage level in kilovolts. |
+| `voltage_upper_bound_kv` | `voltage_upper_bound_kv: float \| None` | Upper kilovolt bound retained when an IGN voltage source value is a range. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `IgnVoltageNormalization`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `IgnVoltageNormalization`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `IgnVoltageNormalization`.
 
 **Exact class source**
 
@@ -514,32 +522,34 @@ class IgnVoltageNormalization:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `electric_lines` | `electric_lines: gpd.GeoDataFrame` | Stores `NormalizedIgnElectricityData`'s `electric lines` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `transformation_posts` | `transformation_posts: gpd.GeoDataFrame` | Closed or validated `transformation posts` classification on `NormalizedIgnElectricityData`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `electric_lines` | `electric_lines: gpd.GeoDataFrame` | Factual IGN electricity-line GeoDataFrame owned by this source/normalized result. |
+| `transformation_posts` | `transformation_posts: gpd.GeoDataFrame` | `NormalizedIgnElectricityData.transformation_posts` represents the `transformation_posts` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
 )`.
-- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `NormalizedIgnElectricityData`.
-- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import NormalizedIgnElectricityData`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import NormalizedIgnElectricityData`.
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
 )`.
+- type annotation: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
+- constructor call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
+- constructor call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `NormalizedIgnElectricityData`.
+- type annotation: `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
 
 **Exact class source**
 
@@ -579,18 +589,18 @@ Private `grid/source` helper for normalized term; its complete implementation be
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_normalized_term`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_normalized_term`.
 
 **Complete source-ordered implementation**
 
@@ -636,18 +646,18 @@ value if value > 0 and isfinite(value) else None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_positive_voltage`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_positive_voltage`.
 
 **Complete source-ordered implementation**
 
@@ -692,21 +702,19 @@ False
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_tie_counts` via `_is_missing_scalar`.
-- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_distance_and_ties` via `_is_missing_scalar`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_is_missing_scalar`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `_is_missing_scalar`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_is_missing_scalar`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `_is_missing_scalar`.
 
 **Complete source-ordered implementation**
 
@@ -762,38 +770,38 @@ IgnVoltageNormalization(raw, 'EXACT', exact, None)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
 )`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_exact_voltage_parser_is_generic_and_finite` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_bounded_voltage_is_generic_finite_and_not_exact` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unknown_voltage_parser` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_parser` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` via `parse_ign_voltage`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_or_overflowing_numeric_voltage_is_unparsed` via `parse_ign_voltage`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
 )`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_exact_voltage_parser_is_generic_and_finite` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_bounded_voltage_is_generic_finite_and_not_exact` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unknown_voltage_parser` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_parser` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` via `parse_ign_voltage`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_or_overflowing_numeric_voltage_is_unparsed` via `parse_ign_voltage`.
 
 **Complete source-ordered implementation**
 
@@ -865,25 +873,20 @@ source_crs
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validated_lambert93`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_validated_lambert93`.
 
 **Complete source-ordered implementation**
 
@@ -933,20 +936,18 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_required_exact_string`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_required_exact_string`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_required_exact_string`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_required_exact_string`.
 
 **Complete source-ordered implementation**
 
@@ -992,24 +993,21 @@ Rejects malformed or inconsistent source context; exact branches, calls, and ret
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `_SHA256_PATTERN.fullmatch`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_context`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_source_context`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_source_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_source_context`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_source_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
 
 **Complete source-ordered implementation**
 
@@ -1120,19 +1118,19 @@ Rejects malformed or inconsistent input; exact branches, calls, and return const
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_input`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_input`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_input`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_input`.
 
 **Complete source-ordered implementation**
 
@@ -1218,22 +1216,19 @@ status
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `status.loc[empty_mask]`, `status.loc[invalid_mask]`, `status.loc[null_mask]`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_geometry_status`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_lines` via `_geometry_status`.
-- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_posts` via `_geometry_status`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_geometry_status`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_geometry_status`.
 
 **Complete source-ordered implementation**
 
@@ -1282,19 +1277,18 @@ Private `grid/source` helper for geometry summary; its complete implementation b
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_geometry_summary`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_geometry_summary`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_geometry_summary`.
 
 **Complete source-ordered implementation**
 
@@ -1350,19 +1344,19 @@ Rejects malformed or inconsistent valid geometry types; exact branches, calls, a
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_valid_geometry_types`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_valid_geometry_types`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_valid_geometry_types`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_valid_geometry_types`.
 
 **Complete source-ordered implementation**
 
@@ -1417,19 +1411,19 @@ pd.Series(normalized, index=source.index, dtype='float64')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `normalized`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_normalized_precision`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_normalized_precision`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_normalized_precision`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_normalized_precision`.
 
 **Complete source-ordered implementation**
 
@@ -1492,19 +1486,19 @@ output
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['grid_feature_id']`, `output['grid_feature_type']`, `output['source_archive_sha256']`, `output['source_department_code']`, `output['source_download_timestamp']`, `output['source_edition']`, `output['source_feature_id']`, `output['source_layer']`, `output['source_product']`, `output['source_product_version']`, `output['source_provider']`, `output['source_url']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_base_output`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_base_output`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_base_output`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_base_output`.
 
 **Complete source-ordered implementation**
 
@@ -1572,19 +1566,19 @@ normalized
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `frame.geometry.copy`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['geometry']`, `output['geometry_status']`, `output['spatial_role']`.
 - Input mutation: `output['geometry']`, `output['geometry_status']`, `output['spatial_role']`.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validated_geodataframe`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validated_geodataframe`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validated_geodataframe`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validated_geodataframe`.
 
 **Complete source-ordered implementation**
 
@@ -1647,21 +1641,38 @@ _validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_status`, `_validate_valid_geometry_types`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['asset_status_raw']`, `output['manager_name']`, `output['manager_siren']`, `output['planimetric_acquisition_method']`, `output['planimetric_precision_m']`, `output['source_confirmed_at']`, `output['source_created_at']`, `output['source_identifiers_raw']`, `output['source_modified_at']`, `output['source_name_raw']`, `output['voltage_kv']`, `output['voltage_raw']`, `output['voltage_status']`, `output['voltage_upper_bound_kv']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_electric_lines`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     _normalize_ign_electric_lines as normalize_ign_electric_lines,
 )`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_electric_lines`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `normalize_ign_electric_lines`.
 
 **Complete source-ordered implementation**
 
@@ -1745,21 +1756,28 @@ _validated_geodataframe(output, working, status, TRANSFORMATION_POST_OUTPUT_COLU
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_status`, `_validate_valid_geometry_types`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
+- Hashing: none.
+- Environment/process effects: none.
 - In-memory mutation: `output['asset_status_raw']`, `output['importance_raw']`, `output['name']`, `output['name_status_raw']`, `output['planimetric_acquisition_method']`, `output['planimetric_precision_m']`, `output['source_confirmed_at']`, `output['source_created_at']`, `output['source_identifiers_raw']`, `output['source_modified_at']`, `output['source_name_raw']`, `output['voltage_kv']`, `output['voltage_status']`.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_transformation_posts`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     _normalize_ign_transformation_posts as normalize_ign_transformation_posts,
 )`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_transformation_posts`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `normalize_ign_transformation_posts`.
 
 **Complete source-ordered implementation**
 
@@ -1851,20 +1869,18 @@ Rejects malformed or inconsistent layer summary; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_geometry_summary`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
 
 **Complete source-ordered implementation**
 
@@ -1959,22 +1975,18 @@ Private `grid/source` helper for normalized identity; its complete implementatio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_configured_coverage_identity` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
 
 **Complete source-ordered implementation**
 
@@ -2020,18 +2032,18 @@ Rejects malformed or inconsistent archive identity; exact branches, calls, and r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_archive_identity`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_archive_identity`.
 
 **Complete source-ordered implementation**
 
@@ -2087,19 +2099,18 @@ Rejects malformed or inconsistent source bundle; exact branches, calls, and retu
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_validate_source_bundle`.
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_validate_source_bundle`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_validate_source_bundle`.
 
 **Complete source-ordered implementation**
 
@@ -2209,18 +2220,18 @@ _IgnGridSourceContext(source_layer=source_layer, department_code=archive.departm
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_source_context`.
+- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_source_context`.
 
 **Complete source-ordered implementation**
 
@@ -2275,50 +2286,34 @@ NormalizedIgnElectricityData(electric_lines=_normalize_ign_electric_lines(source
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
 )`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `normalize_ign_electricity`.
-- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
 )`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `normalize_ign_electricity`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
     normalize_ign_electricity as _normalize_ign_electricity,
 )`.
+- direct call: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` via `_normalize_ign_electricity`.
 
 **Complete source-ordered implementation**
 
@@ -2426,7 +2421,7 @@ LINE_OUTPUT_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -2441,17 +2436,17 @@ LINE_OUTPUT_COLUMNS = (
 | 14 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 15 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 16 | `voltage_upper_bound_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 17 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `manager_siren` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `manager_siren` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 19 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 20 | `source_name_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 21 | `source_identifiers_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 22 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 23 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 24 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 25 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 25 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 26 | `planimetric_precision_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 27 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 27 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 28 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 29 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
 
@@ -2488,7 +2483,7 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
 | 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -2499,7 +2494,7 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
 | 10 | `source_download_timestamp` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
 | 12 | `source_url` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 14 | `name_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 15 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 16 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
@@ -2508,11 +2503,11 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
 | 19 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 20 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 | 21 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 22 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 22 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 23 | `planimetric_precision_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
 | 24 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 25 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 26 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 26 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 27 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
 | 28 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
 
@@ -2540,19 +2535,19 @@ LINE_SOURCE_FIELDS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 7 | `gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `siren_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `voltage` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `siren_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `voltage` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 ### `TRANSFORMATION_POST_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
 
@@ -2578,19 +2573,19 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 | 6 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 7 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `statut_du_toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `statut_du_toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.

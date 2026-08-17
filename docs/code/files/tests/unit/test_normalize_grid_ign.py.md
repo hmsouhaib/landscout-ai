@@ -90,7 +90,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` (value argument/reference), `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value reference), `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` (value reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` (value reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` (value reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value reference), `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` (value reference), `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` (value reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` (value reference), `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` (value reference), `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` (value reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value reference), `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` (value reference), `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` (value reference), `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` (value reference).
 
 #### `POST_LAYER`
 
@@ -98,7 +98,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 POST_LAYER = "POSTE_DE_TRANSFORMATION_V2"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value reference), `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value reference), `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` (value reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` (value reference), `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` (value reference), `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` (value reference), `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` (value reference), `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` (value reference).
 
 #### `ARCHIVE_SHA256`
 
@@ -106,7 +106,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ARCHIVE_SHA256 = "a" * 64
 ```
 
-Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_road_proximity_coverage.py::_archive` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_normalize_grid_ign.py::_context` (value reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value reference), `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` (value reference).
 
 #### `SOURCE_URL`
 
@@ -114,7 +114,7 @@ Hash identity, algorithm, or canonical-content field used by the named integrity
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (value reference), `tests/unit/test_normalize_grid_ign.py::_context` (value reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value reference), `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` (value reference).
 
 #### `_FIXTURE_ROOT`
 
@@ -122,7 +122,7 @@ Configured/constructed URL component or origin constraint; it is textual identit
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value reference).
 
 #### `_SOURCE_CONFIG_PAYLOAD`
 
@@ -130,7 +130,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 _SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (value reference).
 
 #### `SOURCE_CONFIG`
 
@@ -138,7 +138,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 SOURCE_CONFIG = IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` (value reference), `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` (value reference), `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -189,50 +189,33 @@ _normalize_ign_electricity(source, SOURCE_CONFIG)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
-    IgnGridNormalizationError,
-    IgnVoltageNormalization,
-    NormalizedIgnElectricityData,
-    normalize_ign_electricity,
-    parse_ign_voltage,
-)`.
-- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `normalize_ign_electricity`.
-- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
-    NormalizedIgnElectricityData,
-    normalize_ign_electricity,
-)`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
-- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `normalize_ign_electricity`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `normalize_ign_electricity`.
-- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
-    normalize_ign_electricity as _normalize_ign_electricity,
-)`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `normalize_ign_electricity`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `normalize_ign_electricity`.
 
 **Complete source-ordered implementation**
 
@@ -282,35 +265,35 @@ gpd.GeoDataFrame({'cleabs': source_ids, 'voltage': source_voltages, 'gestionnair
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_line_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_line_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_line_source`.
 
 **Complete source-ordered implementation**
 
@@ -398,25 +381,25 @@ gpd.GeoDataFrame({'cleabs': source_ids, 'toponyme': ['Poste de test'] * count, '
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_post_source`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_post_source`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_post_source`.
 
 **Complete source-ordered implementation**
 
@@ -495,42 +478,42 @@ IgnGridSourceContext(source_layer=source_layer, department_code='31', edition='2
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_context`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_context`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_context`.
 
 **Complete source-ordered implementation**
 
@@ -582,29 +565,19 @@ IgnBdTopoLayerSummary(logical_name=logical_name, source_layer_name=layer_name, c
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
-- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
 
 **Complete source-ordered implementation**
 
@@ -669,33 +642,33 @@ IgnBdTopoElectricityData(extraction=extraction, electric_lines=line_frame, trans
 
 **Side effects**
 
-- Network I/O: `IgnBdTopoDownload`.
+- Network I/O: none.
 - Filesystem read: `geopackage_path.read_bytes`, `gpd.read_file`.
 - Filesystem write: `(extraction_path / '.landscout-extraction.json').write_text`, `extraction_path.mkdir`.
-- CRS/geometry calculation: none directly visible.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(payload).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle_with_archive` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `_source_bundle`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::_source_bundle_with_archive` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `_source_bundle`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `_source_bundle`.
 
 **Complete source-ordered implementation**
 
@@ -811,20 +784,20 @@ replace(source, extraction=replace(source.extraction, archive=archive))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `_source_bundle_with_archive`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `_source_bundle_with_archive`.
-- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` via `_source_bundle_with_archive`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `_source_bundle_with_archive`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `_source_bundle_with_archive`.
+- direct call: `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` via `_source_bundle_with_archive`.
 
 **Complete source-ordered implementation**
 
@@ -843,7 +816,7 @@ def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `low level normalization is not part of stages public api`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -871,7 +844,7 @@ assert not hasattr(stages, name)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `low level normalization is not part of stages public api` through the exact asserted conditions: `name not in stages.__all__`; `not hasattr(stages, name)`.
 
 **Test boundary**
 
@@ -889,7 +862,7 @@ def test_low_level_normalization_is_not_part_of_stages_public_api(name: str) -> 
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `supported package api keeps high level normalization`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -927,7 +900,7 @@ assert normalized.transformation_posts["source_layer"].unique().tolist() == [
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `supported package api keeps high level normalization` through the exact asserted conditions: `expected_names <= set(stages.__all__)`; `normalized.electric_lines['source_layer'].unique().tolist() == [LINE_LAYER]`; `normalized.transformation_posts['source_layer'].unique().tolist() == [POST_LAYER]`.
 
 **Test boundary**
 
@@ -957,7 +930,7 @@ def test_supported_package_api_keeps_high_level_normalization() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `internal source context accepts supported department codes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -985,7 +958,7 @@ grid_normalization._validate_source_context(context)
 
 **Regression protected**
 
-Pins the exact framework interaction and outcome reproduced in the complete test source.
+Locks `internal source context accepts supported department codes` by requiring the reproduced call path `pytest.mark.parametrize`, `replace`, `grid_normalization._validate_source_context`, `_context` without an unasserted exception.
 
 **Test boundary**
 
@@ -1006,7 +979,7 @@ def test_internal_source_context_accepts_supported_department_codes(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `internal source context rejects uppercase sha256`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1035,7 +1008,7 @@ with pytest.raises(IgnGridNormalizationError, match="archive_sha256"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `internal source context rejects uppercase sha256`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1056,7 +1029,7 @@ def test_internal_source_context_rejects_uppercase_sha256() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `grid summary requires strict structural types`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1108,7 +1081,7 @@ def test_grid_summary_requires_strict_structural_types(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `grid archive sha256 requires canonical lowercase`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1136,7 +1109,7 @@ with pytest.raises(IgnGridNormalizationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `grid archive sha256 requires canonical lowercase`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1156,7 +1129,7 @@ def test_grid_archive_sha256_requires_canonical_lowercase(value: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `internal source context rejects invalid lineage values`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1184,7 +1157,7 @@ with pytest.raises(IgnGridNormalizationError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `internal source context rejects invalid lineage values`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1207,7 +1180,7 @@ def test_internal_source_context_rejects_invalid_lineage_values(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `exact voltage parser is generic and finite`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1238,7 +1211,7 @@ assert parsed.voltage_upper_bound_kv is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `exact voltage parser is generic and finite` through the exact asserted conditions: `parsed.raw == raw`; `parsed.status == 'EXACT'`; `parsed.voltage_kv == expected_kv`; `parsed.voltage_kv is not None and isfinite(parsed.voltage_kv)`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1263,7 +1236,7 @@ def test_exact_voltage_parser_is_generic_and_finite(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `bounded voltage is generic finite and not exact`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1294,7 +1267,7 @@ assert isfinite(parsed.voltage_upper_bound_kv)
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `bounded voltage is generic finite and not exact` through the exact asserted conditions: `parsed.raw == raw`; `parsed.status == 'BELOW'`; `parsed.voltage_kv is None`; `parsed.voltage_upper_bound_kv == expected_upper_bound`; plus 1 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1319,7 +1292,7 @@ def test_bounded_voltage_is_generic_finite_and_not_exact(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unknown voltage parser`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1349,7 +1322,7 @@ assert parsed.voltage_upper_bound_kv is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unknown voltage parser` through the exact asserted conditions: `parsed.raw == raw`; `parsed.status == 'UNKNOWN'`; `parsed.voltage_kv is None`; `parsed.voltage_upper_bound_kv is None`.
 
 **Test boundary**
 
@@ -1371,7 +1344,7 @@ def test_unknown_voltage_parser(raw: str | None) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `deenergized voltage parser`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1401,7 +1374,7 @@ assert parsed.voltage_upper_bound_kv is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `deenergized voltage parser` through the exact asserted conditions: `parsed.raw == raw`; `parsed.status == 'DEENERGIZED'`; `parsed.voltage_kv is None`; `parsed.voltage_upper_bound_kv is None`.
 
 **Test boundary**
 
@@ -1423,7 +1396,7 @@ def test_deenergized_voltage_parser(raw: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unexpected or non scalar voltage is controlled unparsed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1452,7 +1425,7 @@ assert parsed.voltage_upper_bound_kv is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unexpected or non scalar voltage is controlled unparsed` through the exact asserted conditions: `parsed.status == 'UNPARSED'`; `parsed.voltage_kv is None`; `parsed.voltage_upper_bound_kv is None`.
 
 **Test boundary**
 
@@ -1475,7 +1448,7 @@ def test_unexpected_or_non_scalar_voltage_is_controlled_unparsed(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid or overflowing numeric voltage is unparsed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1504,7 +1477,7 @@ assert parsed.voltage_upper_bound_kv is None
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `invalid or overflowing numeric voltage is unparsed` through the exact asserted conditions: `parsed.status == 'UNPARSED'`; `parsed.voltage_kv is None`; `parsed.voltage_upper_bound_kv is None`.
 
 **Test boundary**
 
@@ -1525,7 +1498,7 @@ def test_invalid_or_overflowing_numeric_voltage_is_unparsed(raw: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid line has stable identity lineage and range index`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1570,7 +1543,7 @@ assert row["spatial_role"] == "PROXY_GEOMETRY"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid line has stable identity lineage and range index` through the exact asserted conditions: `list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)`; `isinstance(normalized.index, pd.RangeIndex)`; `row['grid_feature_id'] == 'IGN_BDTOPO:ELECTRIC_LINE:LIGNE-1'`; `row['source_feature_id'] == 'LIGNE-1'`; plus 14 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -1609,7 +1582,7 @@ def test_valid_line_has_stable_identity_lineage_and_range_index() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `deenergized voltage does not override source asset status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1639,7 +1612,7 @@ assert normalized.iloc[0]["asset_status_raw"] == "En service"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `deenergized voltage does not override source asset status` through the exact asserted conditions: `normalized.iloc[0]['voltage_status'] == 'DEENERGIZED'`; `normalized.iloc[0]['asset_status_raw'] == 'En service'`.
 
 **Test boundary**
 
@@ -1661,7 +1634,7 @@ def test_deenergized_voltage_does_not_override_source_asset_status() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null or empty line cleabs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1711,7 +1684,7 @@ def test_null_or_empty_line_cleabs_fails(identifier: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsafe source id is rejected without rewriting`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1741,7 +1714,7 @@ with pytest.raises(IgnGridNormalizationError, match="cleabs|whitespace|control|:
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsafe source id is rejected without rewriting`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1761,7 +1734,7 @@ def test_unsafe_source_id_is_rejected_without_rewriting(identifier: str) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate line cleabs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1795,7 +1768,7 @@ with pytest.raises(IgnGridNormalizationError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate line cleabs fails`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -1821,7 +1794,7 @@ def test_duplicate_line_cleabs_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line missing or wrong crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1867,7 +1840,7 @@ def test_line_missing_or_wrong_crs_fails(crs: str | None) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line geometry quality is preserved without row loss or repair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1953,7 +1926,7 @@ def test_line_geometry_quality_is_preserved_without_row_loss_or_repair() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `z coordinates are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1984,7 +1957,7 @@ assert normalized.geometry.iloc[0].equals_exact(
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `z coordinates are preserved` through the exact asserted conditions: `source.geometry.iloc[0].has_z`; `normalized.geometry.iloc[0].has_z`; `normalized.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)`.
 
 **Test boundary**
 
@@ -2009,7 +1982,7 @@ def test_z_coordinates_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unusual duplicate source index is not preserved as identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2049,7 +2022,7 @@ assert normalized["grid_feature_id"].tolist() == [
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `unusual duplicate source index is not preserved as identity` through the exact asserted conditions: `isinstance(normalized.index, pd.RangeIndex)`; `normalized.index.tolist() == [0, 1]`; `normalized['source_feature_id'].tolist() == ['FIRST', 'SECOND']`; `normalized['grid_feature_id'].tolist() == ['IGN_BDTOPO:ELECTRIC_LINE:FIRST', 'IGN_BDTOPO:ELECTRIC_LINE:SECOND']`.
 
 **Test boundary**
 
@@ -2083,7 +2056,7 @@ def test_unusual_duplicate_source_index_is_not_preserved_as_identity() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `line normalization does not mutate input and has stable columns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2137,7 +2110,7 @@ def test_line_normalization_does_not_mutate_input_and_has_stable_columns() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing required line field fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2165,7 +2138,7 @@ with pytest.raises(IgnGridNormalizationError, match=column):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing required line field fails`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2185,7 +2158,7 @@ def test_missing_required_line_field_fails(column: str) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid or null line precision is normalized to float`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2244,7 +2217,7 @@ def test_valid_or_null_line_precision_is_normalized_to_float(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid line precision fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2274,7 +2247,7 @@ with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid line precision fails`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2294,7 +2267,7 @@ def test_invalid_line_precision_fails(precision: object) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `normalized voltage never emits non finite numeric values`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2333,7 +2306,7 @@ assert np.isfinite(normalized["voltage_upper_bound_kv"].dropna()).all()
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `normalized voltage never emits non finite numeric values` through the exact asserted conditions: `normalized['voltage_status'].tolist() == ['EXACT', 'BELOW', 'UNPARSED', 'UNKNOWN']`; `np.isfinite(normalized['voltage_kv'].dropna()).all()`; `np.isfinite(normalized['voltage_upper_bound_kv'].dropna()).all()`.
 
 **Test boundary**
 
@@ -2366,7 +2339,7 @@ def test_normalized_voltage_never_emits_non_finite_numeric_values() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid post has stable lineage and no voltage inference`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2405,7 +2378,7 @@ assert row["spatial_role"] == "PROXY_GEOMETRY"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `valid post has stable lineage and no voltage inference` through the exact asserted conditions: `list(normalized.columns) == list(TRANSFORMATION_POST_OUTPUT_COLUMNS)`; `isinstance(normalized.index, pd.RangeIndex)`; `row['grid_feature_id'] == 'IGN_BDTOPO:TRANSFORMATION_POST:POSTE-1'`; `row['source_layer'] == POST_LAYER`; plus 6 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2438,7 +2411,7 @@ def test_valid_post_has_stable_lineage_and_no_voltage_inference() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `post geometry crs and input are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2500,7 +2473,7 @@ def test_post_geometry_crs_and_input_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `duplicate post cleabs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2531,7 +2504,7 @@ with pytest.raises(IgnGridNormalizationError, match="unique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `duplicate post cleabs fails`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2554,7 +2527,7 @@ def test_duplicate_post_cleabs_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `null post geometry and precision are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2612,7 +2585,7 @@ def test_null_post_geometry_and_precision_are_preserved() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid post precision fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2642,7 +2615,7 @@ with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid post precision fails`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2662,7 +2635,7 @@ def test_invalid_post_precision_fails() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `appropriate multigeometry types are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2703,7 +2676,7 @@ assert posts.geometry.iloc[0].geom_type == "MultiPolygon"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `appropriate multigeometry types are accepted` through the exact asserted conditions: `lines.iloc[0]['geometry_status'] == 'VALID'`; `lines.geometry.iloc[0].geom_type == 'MultiLineString'`; `posts.iloc[0]['geometry_status'] == 'VALID'`; `posts.geometry.iloc[0].geom_type == 'MultiPolygon'`.
 
 **Test boundary**
 
@@ -2738,7 +2711,7 @@ def test_appropriate_multigeometry_types_are_accepted() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid polygon or point is rejected as electric line`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2768,7 +2741,7 @@ with pytest.raises(IgnGridNormalizationError, match="geometry types"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid polygon or point is rejected as electric line`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2790,7 +2763,7 @@ def test_valid_polygon_or_point_is_rejected_as_electric_line(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `valid line or point is rejected as transformation post`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2820,7 +2793,7 @@ with pytest.raises(IgnGridNormalizationError, match="geometry types"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `valid line or point is rejected as transformation post`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2842,7 +2815,7 @@ def test_valid_line_or_point_is_rejected_as_transformation_post(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level path uses discovered layer names and archive lineage`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2879,7 +2852,7 @@ assert normalized.transformation_posts["source_layer"].unique().tolist() == [
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `high level path uses discovered layer names and archive lineage` through the exact asserted conditions: `normalized.electric_lines['source_layer'].unique().tolist() == [LINE_LAYER]`; `normalized.transformation_posts['source_layer'].unique().tolist() == [POST_LAYER]`; `frame['source_department_code'].unique().tolist() == ['31']`; `frame['source_edition'].unique().tolist() == ['2026-06-15']`; plus 3 additional reproduced assertion(s).
 
 **Test boundary**
 
@@ -2909,7 +2882,7 @@ def test_high_level_path_uses_discovered_layer_names_and_archive_lineage() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects coordinated frame and summary forgery`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -2946,7 +2919,7 @@ with pytest.raises(IgnGridNormalizationError, match="physical|fresh|source"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects coordinated frame and summary forgery`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -2975,7 +2948,7 @@ def test_high_level_rejects_coordinated_frame_and_summary_forgery() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `source complete grid validation does not mutate supplied frames`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3031,7 +3004,7 @@ def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> No
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects incompatible archive identity`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3059,7 +3032,7 @@ with pytest.raises(IgnGridNormalizationError, match=message):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects incompatible archive identity`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3083,7 +3056,7 @@ def test_high_level_rejects_incompatible_archive_identity(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `archive identity comparison is case accent and punctuation tolerant`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3121,7 +3094,7 @@ assert len(normalized.transformation_posts) == 1
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `archive identity comparison is case accent and punctuation tolerant` through the exact asserted conditions: `len(normalized.electric_lines) == 1`; `len(normalized.transformation_posts) == 1`.
 
 **Test boundary**
 
@@ -3153,7 +3126,7 @@ def test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant() -
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects summary row count mismatch`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3185,7 +3158,7 @@ with pytest.raises(IgnGridNormalizationError, match="row count"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects summary row count mismatch`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3209,7 +3182,7 @@ def test_high_level_rejects_summary_row_count_mismatch() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects summary layer name mismatch`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3238,7 +3211,7 @@ with pytest.raises(IgnGridNormalizationError, match="summary layer"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects summary layer name mismatch`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3259,7 +3232,7 @@ def test_high_level_rejects_summary_layer_name_mismatch() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects wrong logical name`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3291,7 +3264,7 @@ with pytest.raises(IgnGridNormalizationError, match="logical name"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects wrong logical name`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3315,7 +3288,7 @@ def test_high_level_rejects_wrong_logical_name() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects summary crs mismatch`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3365,7 +3338,7 @@ def test_high_level_rejects_summary_crs_mismatch() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects forged ordered summary schema`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3439,7 +3412,7 @@ def test_high_level_rejects_forged_ordered_summary_schema(mutation: str) -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects duplicate or missing layer inventory`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3483,7 +3456,7 @@ with pytest.raises(IgnGridNormalizationError, match="inventory|selected"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects duplicate or missing layer inventory`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3519,7 +3492,7 @@ def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects colliding electricity roles`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3561,7 +3534,7 @@ with pytest.raises(IgnGridNormalizationError, match="same layer|distinct|role"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects colliding electricity roles`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 
@@ -3595,7 +3568,7 @@ def test_high_level_rejects_colliding_electricity_roles() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects stale geometry counts after frame mutation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3647,7 +3620,7 @@ def test_high_level_rejects_stale_geometry_counts_after_frame_mutation() -> None
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects stale geometry types after frame mutation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3703,7 +3676,7 @@ def test_high_level_rejects_stale_geometry_types_after_frame_mutation() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `high level rejects any spatial role mismatch`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -3758,7 +3731,7 @@ with pytest.raises(IgnGridNormalizationError, match="PROXY_GEOMETRY"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `high level rejects any spatial role mismatch`: the reproduced adversarial input must raise `IgnGridNormalizationError` before the prohibited success path.
 
 **Test boundary**
 

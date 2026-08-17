@@ -55,7 +55,7 @@ No meaningful module constant is declared.
 type Geometry = Polygon | MultiPolygon
 ```
 
-Semantic type alias shown exactly above. It is consumed by annotations or Pydantic validation in this module.
+Python type alias for the accepted parcel geometry family Polygon | MultiPolygon. Enforced/consumed by `src/landscout/geo/geometry.py::_validate_geometry` (type annotation), `src/landscout/geo/geometry.py::reproject_to_lambert93` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -83,14 +83,14 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `length_m` | `length_m: float` | Metre value; whether measured geometry or configured policy is determined by the owning model/function, not the suffix alone. |
-| `width_m` | `width_m: float` | Metre value; whether measured geometry or configured policy is determined by the owning model/function, not the suffix alone. |
-| `length_width_ratio` | `length_width_ratio: float` | Stores `ParcelShapeMetrics`'s `length width ratio` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
-| `compactness` | `compactness: float` | Stores `ParcelShapeMetrics`'s `compactness` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `length_m` | `length_m: float` | Measured major minimum-rotated-rectangle dimension in metres. |
+| `width_m` | `width_m: float` | Measured minor minimum-rotated-rectangle dimension in metres. |
+| `length_width_ratio` | `length_width_ratio: float` | Dimensionless measured major-dimension divided by minor-dimension ratio. |
+| `compactness` | `compactness: float` | Dimensionless 4πA/P² metric calculated from parcel area and perimeter. |
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -109,7 +109,8 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `ParcelShapeMetrics`.
+- type annotation: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `ParcelShapeMetrics`.
+- constructor call: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `ParcelShapeMetrics`.
 
 **Exact class source**
 
@@ -135,7 +136,7 @@ class ParcelShapeMetrics:
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -154,11 +155,7 @@ class ParcelShapeMetrics:
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `GeometryError`.
-- direct call or construction: `src/landscout/geo/geometry.py::centroid_to_latlon` via `GeometryError`.
-- callback/function object: `tests/unit/test_geometry.py::test_zero_area_geometry_raises_controlled_error` via `pytest.raises(GeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_zero_area_geometry` via `pytest.raises(GeometryError)`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -175,6 +172,10 @@ class ParcelShapeMetrics:
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- constructor call: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `GeometryError`.
+- constructor call: `src/landscout/geo/geometry.py::centroid_to_latlon` via `GeometryError`.
+- expected exception type: `tests/unit/test_geometry.py::test_zero_area_geometry_raises_controlled_error` via `pytest.raises(GeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_zero_area_geometry` via `pytest.raises(GeometryError)`.
 
 **Exact class source**
 
@@ -197,7 +198,7 @@ class GeometryError(ValueError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -216,10 +217,7 @@ class GeometryError(ValueError):
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::_validate_geometry` via `EmptyGeometryError`.
-- callback/function object: `tests/unit/test_geometry.py::test_empty_geometry_fails` via `pytest.raises(EmptyGeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_shape_metrics_reject_empty_geometry` via `pytest.raises(EmptyGeometryError)`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -236,6 +234,9 @@ class GeometryError(ValueError):
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- constructor call: `src/landscout/geo/geometry.py::_validate_geometry` via `EmptyGeometryError`.
+- expected exception type: `tests/unit/test_geometry.py::test_empty_geometry_fails` via `pytest.raises(EmptyGeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_shape_metrics_reject_empty_geometry` via `pytest.raises(EmptyGeometryError)`.
 
 **Exact class source**
 
@@ -258,7 +259,7 @@ class EmptyGeometryError(GeometryError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -277,11 +278,7 @@ class EmptyGeometryError(GeometryError):
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::_validate_geometry` via `InvalidGeometryError`.
-- callback/function object: `tests/unit/test_geometry.py::test_invalid_geometry_fails` via `pytest.raises(InvalidGeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_shape_metrics_reject_invalid_geometry` via `pytest.raises(InvalidGeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_invalid_geometry` via `pytest.raises(InvalidGeometryError)`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -298,6 +295,10 @@ class EmptyGeometryError(GeometryError):
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- constructor call: `src/landscout/geo/geometry.py::_validate_geometry` via `InvalidGeometryError`.
+- expected exception type: `tests/unit/test_geometry.py::test_invalid_geometry_fails` via `pytest.raises(InvalidGeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_shape_metrics_reject_invalid_geometry` via `pytest.raises(InvalidGeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_invalid_geometry` via `pytest.raises(InvalidGeometryError)`.
 
 **Exact class source**
 
@@ -320,7 +321,7 @@ class InvalidGeometryError(GeometryError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -339,11 +340,7 @@ class InvalidGeometryError(GeometryError):
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::_validate_geometry` via `UnsupportedGeometryError`.
-- callback/function object: `tests/unit/test_geometry.py::test_non_geometry_inputs_raise_controlled_error` via `pytest.raises(UnsupportedGeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_unsupported_geometry_family_raises_controlled_error` via `pytest.raises(UnsupportedGeometryError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_three_dimensional_parcel_is_rejected` via `pytest.raises(UnsupportedGeometryError, match='two-dimensional')`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -360,6 +357,10 @@ class InvalidGeometryError(GeometryError):
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- constructor call: `src/landscout/geo/geometry.py::_validate_geometry` via `UnsupportedGeometryError`.
+- expected exception type: `tests/unit/test_geometry.py::test_non_geometry_inputs_raise_controlled_error` via `pytest.raises(UnsupportedGeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_unsupported_geometry_family_raises_controlled_error` via `pytest.raises(UnsupportedGeometryError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_three_dimensional_parcel_is_rejected` via `pytest.raises(UnsupportedGeometryError, match='two-dimensional')`.
 
 **Exact class source**
 
@@ -382,7 +383,7 @@ class UnsupportedGeometryError(GeometryError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -401,15 +402,8 @@ class UnsupportedGeometryError(GeometryError):
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::_parse_crs` via `MetricCrsError`.
-- direct call or construction: `src/landscout/geo/geometry.py::_validate_metric_crs` via `MetricCrsError`.
-- callback/function object: `tests/unit/test_crs.py::test_reprojection_rejects_malformed_crs_with_controlled_error` via `pytest.raises(MetricCrsError)`.
-- import/re-export: `tests/unit/test_crs.py::<module>` via `from landscout.geo import LAMBERT93, WGS84, MetricCrsError, centroid_to_latlon`.
-- callback/function object: `tests/unit/test_geometry.py::test_metric_calculation_in_wgs84_fails` via `pytest.raises(MetricCrsError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `pytest.raises(MetricCrsError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_geographic_crs` via `pytest.raises(MetricCrsError)`.
-- callback/function object: `tests/unit/test_geometry.py::test_malformed_crs_inputs_raise_controlled_error` via `pytest.raises(MetricCrsError)`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_crs.py::<module>` via `from landscout.geo import LAMBERT93, WGS84, MetricCrsError, centroid_to_latlon`.
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -426,6 +420,13 @@ class UnsupportedGeometryError(GeometryError):
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- constructor call: `src/landscout/geo/geometry.py::_parse_crs` via `MetricCrsError`.
+- constructor call: `src/landscout/geo/geometry.py::_validate_metric_crs` via `MetricCrsError`.
+- expected exception type: `tests/unit/test_crs.py::test_reprojection_rejects_malformed_crs_with_controlled_error` via `pytest.raises(MetricCrsError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_metric_calculation_in_wgs84_fails` via `pytest.raises(MetricCrsError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `pytest.raises(MetricCrsError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_geographic_crs` via `pytest.raises(MetricCrsError)`.
+- expected exception type: `tests/unit/test_geometry.py::test_malformed_crs_inputs_raise_controlled_error` via `pytest.raises(MetricCrsError)`.
 
 **Exact class source**
 
@@ -448,7 +449,7 @@ class MetricCrsError(GeometryError):
 
 **Interface consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -467,7 +468,7 @@ class MetricCrsError(GeometryError):
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `ZeroAreaGeometryError`.
+- constructor call: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `ZeroAreaGeometryError`.
 
 **Exact class source**
 
@@ -510,22 +511,22 @@ geometry
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `EmptyGeometryError`, `InvalidGeometryError`, `UnsupportedGeometryError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/geo/geometry.py::reproject_to_lambert93` via `_validate_geometry`.
-- direct call or construction: `src/landscout/geo/geometry.py::area_m2` via `_validate_geometry`.
-- direct call or construction: `src/landscout/geo/geometry.py::perimeter_m` via `_validate_geometry`.
-- direct call or construction: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `_validate_geometry`.
-- direct call or construction: `src/landscout/geo/geometry.py::centroid` via `_validate_geometry`.
+- direct call: `src/landscout/geo/geometry.py::reproject_to_lambert93` via `_validate_geometry`.
+- direct call: `src/landscout/geo/geometry.py::area_m2` via `_validate_geometry`.
+- direct call: `src/landscout/geo/geometry.py::perimeter_m` via `_validate_geometry`.
+- direct call: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `_validate_geometry`.
+- direct call: `src/landscout/geo/geometry.py::centroid` via `_validate_geometry`.
 
 **Complete source-ordered implementation**
 
@@ -579,20 +580,20 @@ CRS.from_user_input(crs)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/geo/geometry.py::_validate_metric_crs` via `_parse_crs`.
-- direct call or construction: `src/landscout/geo/geometry.py::reproject_to_lambert93` via `_parse_crs`.
-- direct call or construction: `src/landscout/geo/geometry.py::centroid_to_latlon` via `_parse_crs`.
+- direct call: `src/landscout/geo/geometry.py::_validate_metric_crs` via `_parse_crs`.
+- direct call: `src/landscout/geo/geometry.py::reproject_to_lambert93` via `_parse_crs`.
+- direct call: `src/landscout/geo/geometry.py::centroid_to_latlon` via `_parse_crs`.
 
 **Complete source-ordered implementation**
 
@@ -637,20 +638,20 @@ parsed
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/geo/geometry.py::area_m2` via `_validate_metric_crs`.
-- direct call or construction: `src/landscout/geo/geometry.py::perimeter_m` via `_validate_metric_crs`.
-- direct call or construction: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `_validate_metric_crs`.
+- direct call: `src/landscout/geo/geometry.py::area_m2` via `_validate_metric_crs`.
+- direct call: `src/landscout/geo/geometry.py::perimeter_m` via `_validate_metric_crs`.
+- direct call: `src/landscout/geo/geometry.py::parcel_shape_metrics_m` via `_validate_metric_crs`.
 
 **Complete source-ordered implementation**
 
@@ -699,18 +700,18 @@ _validate_geometry(transform(transformer.transform, validated))
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -729,9 +730,9 @@ _validate_geometry(transform(transformer.transform, validated))
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` via `reproject_to_lambert93`.
-- direct call or construction: `tests/unit/test_crs.py::test_reprojection_rejects_malformed_crs_with_controlled_error` via `reproject_to_lambert93`.
-- import/re-export: `tests/unit/test_crs.py::<module>` via `from landscout.geo.geometry import reproject_to_lambert93`.
+- import: `tests/unit/test_crs.py::<module>` via `from landscout.geo.geometry import reproject_to_lambert93`.
+- direct call: `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` via `reproject_to_lambert93`.
+- direct call: `tests/unit/test_crs.py::test_reprojection_rejects_malformed_crs_with_controlled_error` via `reproject_to_lambert93`.
 
 **Complete source-ordered implementation**
 
@@ -777,18 +778,18 @@ float(validated.area)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -807,16 +808,7 @@ float(validated.area)
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_geometry.py::test_valid_polygon_in_lambert93` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_area_in_square_metres` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_empty_geometry_fails` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_invalid_geometry_fails` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_multipolygon` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_non_geometry_inputs_raise_controlled_error` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_unsupported_geometry_family_raises_controlled_error` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_three_dimensional_parcel_is_rejected` via `area_m2`.
-- direct call or construction: `tests/unit/test_geometry.py::test_malformed_crs_inputs_raise_controlled_error` via `area_m2`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -833,6 +825,15 @@ float(validated.area)
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_valid_polygon_in_lambert93` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_area_in_square_metres` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_empty_geometry_fails` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_invalid_geometry_fails` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_multipolygon` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_non_geometry_inputs_raise_controlled_error` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_unsupported_geometry_family_raises_controlled_error` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_three_dimensional_parcel_is_rejected` via `area_m2`.
+- direct call: `tests/unit/test_geometry.py::test_malformed_crs_inputs_raise_controlled_error` via `area_m2`.
 
 **Complete source-ordered implementation**
 
@@ -874,18 +875,18 @@ float(validated.length)
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -904,9 +905,7 @@ float(validated.length)
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_geometry.py::test_perimeter_in_metres` via `perimeter_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_multipolygon` via `perimeter_m`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -923,6 +922,8 @@ float(validated.length)
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_perimeter_in_metres` via `perimeter_m`.
+- direct call: `tests/unit/test_geometry.py::test_multipolygon` via `perimeter_m`.
 
 **Complete source-ordered implementation**
 
@@ -969,18 +970,18 @@ ParcelShapeMetrics(length_m=length, width_m=width, length_width_ratio=length / w
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `GeometryError`, `ZeroAreaGeometryError`, `_validate_geometry`.
-- Hashing: `ParcelShapeMetrics`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -999,20 +1000,9 @@ ParcelShapeMetrics(length_m=length, width_m=width, length_width_ratio=length / w
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::approximate_length_m` via `parcel_shape_metrics_m`.
-- direct call or construction: `src/landscout/geo/geometry.py::approximate_width_m` via `parcel_shape_metrics_m`.
-- direct call or construction: `src/landscout/geo/geometry.py::length_width_ratio` via `parcel_shape_metrics_m`.
-- direct call or construction: `src/landscout/geo/geometry.py::compactness_score` via `parcel_shape_metrics_m`.
-- direct call or construction: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `parcel_shape_metrics_m`.
-- import/re-export: `src/landscout/stages/enrich_shape.py::<module>` via `from landscout.geo.geometry import parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `parcel_shape_metrics_m`.
-- import/re-export: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.geo import LAMBERT93, parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centralized_shape_metrics` via `parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centralized_shape_metrics_support_multipolygon` via `parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_invalid_geometry` via `parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_zero_area_geometry` via `parcel_shape_metrics_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_geographic_crs` via `parcel_shape_metrics_m`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `src/landscout/stages/enrich_shape.py::<module>` via `from landscout.geo.geometry import parcel_shape_metrics_m`.
+- import: `tests/unit/test_enrich_shape.py::<module>` via `from landscout.geo import LAMBERT93, parcel_shape_metrics_m`.
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1029,6 +1019,17 @@ ParcelShapeMetrics(length_m=length, width_m=width, length_width_ratio=length / w
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `src/landscout/geo/geometry.py::approximate_length_m` via `parcel_shape_metrics_m`.
+- direct call: `src/landscout/geo/geometry.py::approximate_width_m` via `parcel_shape_metrics_m`.
+- direct call: `src/landscout/geo/geometry.py::length_width_ratio` via `parcel_shape_metrics_m`.
+- direct call: `src/landscout/geo/geometry.py::compactness_score` via `parcel_shape_metrics_m`.
+- direct call: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_geometry.py::test_centralized_shape_metrics` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_geometry.py::test_centralized_shape_metrics_support_multipolygon` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_invalid_geometry` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_zero_area_geometry` via `parcel_shape_metrics_m`.
+- direct call: `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_geographic_crs` via `parcel_shape_metrics_m`.
 
 **Complete source-ordered implementation**
 
@@ -1098,18 +1099,18 @@ parcel_shape_metrics_m(geometry, crs).length_m
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `parcel_shape_metrics_m`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1128,14 +1129,7 @@ parcel_shape_metrics_m(geometry, crs).length_m
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_geometry.py::test_square_shape_metrics` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_invalid_geometry` via `approximate_length_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_length_is_always_at_least_width` via `approximate_length_m`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1152,6 +1146,13 @@ parcel_shape_metrics_m(geometry, crs).length_m
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_square_shape_metrics` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_invalid_geometry` via `approximate_length_m`.
+- direct call: `tests/unit/test_geometry.py::test_length_is_always_at_least_width` via `approximate_length_m`.
 
 **Complete source-ordered implementation**
 
@@ -1191,18 +1192,18 @@ parcel_shape_metrics_m(geometry, crs).width_m
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `parcel_shape_metrics_m`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1221,13 +1222,7 @@ parcel_shape_metrics_m(geometry, crs).width_m
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_geometry.py::test_square_shape_metrics` via `approximate_width_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `approximate_width_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `approximate_width_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `approximate_width_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `approximate_width_m`.
-- direct call or construction: `tests/unit/test_geometry.py::test_length_is_always_at_least_width` via `approximate_width_m`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1244,6 +1239,12 @@ parcel_shape_metrics_m(geometry, crs).width_m
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_square_shape_metrics` via `approximate_width_m`.
+- direct call: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `approximate_width_m`.
+- direct call: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `approximate_width_m`.
+- direct call: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `approximate_width_m`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `approximate_width_m`.
+- direct call: `tests/unit/test_geometry.py::test_length_is_always_at_least_width` via `approximate_width_m`.
 
 **Complete source-ordered implementation**
 
@@ -1283,18 +1284,18 @@ parcel_shape_metrics_m(geometry, crs).length_width_ratio
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `parcel_shape_metrics_m`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1313,19 +1314,7 @@ parcel_shape_metrics_m(geometry, crs).length_width_ratio
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- property/attribute access: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `shape.length_width_ratio`.
-- callback/property argument: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `float(row.length_width_ratio)`.
-- property/attribute access: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `row.length_width_ratio`.
-- callback/property argument: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `pytest.approx(expected.length_width_ratio)`.
-- property/attribute access: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `expected.length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_square_shape_metrics` via `length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_elongated_rectangle_is_less_compact_than_square` via `length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `length_width_ratio`.
-- direct call or construction: `tests/unit/test_geometry.py::test_zero_area_geometry_raises_controlled_error` via `length_width_ratio`.
-- property/attribute access: `tests/unit/test_geometry.py::test_centralized_shape_metrics` via `metrics.length_width_ratio`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1342,6 +1331,12 @@ parcel_shape_metrics_m(geometry, crs).length_width_ratio
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_square_shape_metrics` via `length_width_ratio`.
+- direct call: `tests/unit/test_geometry.py::test_simple_rectangle_shape_metrics` via `length_width_ratio`.
+- direct call: `tests/unit/test_geometry.py::test_rotated_rectangle_is_orientation_independent` via `length_width_ratio`.
+- direct call: `tests/unit/test_geometry.py::test_elongated_rectangle_is_less_compact_than_square` via `length_width_ratio`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `length_width_ratio`.
+- direct call: `tests/unit/test_geometry.py::test_zero_area_geometry_raises_controlled_error` via `length_width_ratio`.
 
 **Complete source-ordered implementation**
 
@@ -1381,18 +1376,18 @@ parcel_shape_metrics_m(geometry, crs).compactness
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `parcel_shape_metrics_m`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1411,13 +1406,7 @@ parcel_shape_metrics_m(geometry, crs).compactness
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_geometry.py::test_square_shape_metrics` via `compactness_score`.
-- direct call or construction: `tests/unit/test_geometry.py::test_elongated_rectangle_is_less_compact_than_square` via `compactness_score`.
-- direct call or construction: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `compactness_score`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `compactness_score`.
-- direct call or construction: `tests/unit/test_geometry.py::test_shape_metrics_reject_empty_geometry` via `compactness_score`.
-- direct call or construction: `tests/unit/test_geometry.py::test_compactness_range` via `compactness_score`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1434,6 +1423,12 @@ parcel_shape_metrics_m(geometry, crs).compactness
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `tests/unit/test_geometry.py::test_square_shape_metrics` via `compactness_score`.
+- direct call: `tests/unit/test_geometry.py::test_elongated_rectangle_is_less_compact_than_square` via `compactness_score`.
+- direct call: `tests/unit/test_geometry.py::test_multipolygon_shape_metrics` via `compactness_score`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` via `compactness_score`.
+- direct call: `tests/unit/test_geometry.py::test_shape_metrics_reject_empty_geometry` via `compactness_score`.
+- direct call: `tests/unit/test_geometry.py::test_compactness_range` via `compactness_score`.
 
 **Complete source-ordered implementation**
 
@@ -1473,18 +1468,18 @@ _validate_geometry(geometry).centroid
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `_validate_geometry`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1503,11 +1498,7 @@ _validate_geometry(geometry).centroid
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `src/landscout/geo/geometry.py::centroid_to_latlon` via `centroid`.
-- property/attribute access: `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` via `projected.geometry.centroid`.
-- property/attribute access: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `square.centroid`.
-- direct call or construction: `tests/unit/test_geometry.py::test_centroid` via `centroid`.
-- import/re-export: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
+- import: `tests/unit/test_geometry.py::<module>` via `from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
@@ -1524,6 +1515,8 @@ _validate_geometry(geometry).centroid
     parcel_shape_metrics_m,
     perimeter_m,
 )`.
+- direct call: `src/landscout/geo/geometry.py::centroid_to_latlon` via `centroid`.
+- direct call: `tests/unit/test_geometry.py::test_centroid` via `centroid`.
 
 **Complete source-ordered implementation**
 
@@ -1565,18 +1558,18 @@ Private `geo/GIS` helper for centroid to latlon; its complete implementation bel
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
 - CRS/geometry calculation: `GeometryError`.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- import/re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
+- re-export: `src/landscout/geo/__init__.py::<module>` via `from landscout.geo.geometry import (
     EmptyGeometryError,
     GeometryError,
     InvalidGeometryError,
@@ -1595,8 +1588,8 @@ Private `geo/GIS` helper for centroid to latlon; its complete implementation bel
     perimeter_m,
     reproject_to_lambert93,
 )`.
-- direct call or construction: `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` via `centroid_to_latlon`.
-- import/re-export: `tests/unit/test_crs.py::<module>` via `from landscout.geo import LAMBERT93, WGS84, MetricCrsError, centroid_to_latlon`.
+- import: `tests/unit/test_crs.py::<module>` via `from landscout.geo import LAMBERT93, WGS84, MetricCrsError, centroid_to_latlon`.
+- direct call: `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` via `centroid_to_latlon`.
 
 **Complete source-ordered implementation**
 

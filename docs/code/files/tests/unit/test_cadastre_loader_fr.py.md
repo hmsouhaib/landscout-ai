@@ -92,18 +92,18 @@ Serializes geojson; exact branches, calls, and return construction are reproduce
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_text`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_write_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_write_geojson`.
 
 **Complete source-ordered implementation**
 
@@ -141,23 +141,23 @@ Serializes gzipped geojson; exact branches, calls, and return construction are r
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_bytes`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_write_gzipped_geojson`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_write_gzipped_geojson`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_write_gzipped_geojson`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_write_gzipped_geojson`.
 
 **Complete source-ordered implementation**
 
@@ -198,65 +198,27 @@ CadastreDownload(**values)
 
 **Side effects**
 
-- Network I/O: `CadastreDownload`.
-- Filesystem read: `path.read_bytes`.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: `path.is_file`, `path.read_bytes`.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `sha256`, `sha256(content).hexdigest`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: `values`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`.
-- direct call or construction: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_successful_download_persists_sha_and_sidecar` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_fresh_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_expired_cache_is_refreshed` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_failed_refresh_preserves_previous_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_sidecar_invalidates_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_inventory_and_cache` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_download_object_rejects_replaced_valid_archive` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_extraction_rejects_archive_object_inconsistent_with_path` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_tampered_extraction_is_rebuilt_from_verified_archive` via `_download`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::test_cached_document_lineage_change_forces_refresh` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_physical_and_metadata_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_download_cache_is_a_miss` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_successful_first_and_replacement_publication` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_validates_complete_inventory_before_copying` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_normal_nested_members_are_accepted` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_inventory_is_complete_ordered_and_hashed` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_valid_extraction_cache_is_reused` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_invalid_extraction_cache_is_rebuilt` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_first_extraction_publication_failure_leaves_no_half_root` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_replacement_failure_restores_old_tree` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rollback_failure_preserves_backup` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_backup_move_failure_leaves_old_tree_untouched` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_wrong_config_type` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_cache_setup_failure_is_controlled` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_extraction_rejects_stale_download_bytes` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_result_dataclasses_are_frozen` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_strict_metadata_rejects_boolean_numeric_values_as_cache_hits` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_cache_path_binds_version_and_filename` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_exact_file_inventory_does_not_omit_unknown_suffixes` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_archive_and_extraction_cache_reuse_are_independent` via `_download`.
-- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_no_stale_parts_after_download_or_extraction_success` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`.
+- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`.
 
 **Complete source-ordered implementation**
 
@@ -284,7 +246,7 @@ def _download(path: Path, **changes: object) -> CadastreDownload:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `load valid geojson preserves attributes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -381,7 +343,7 @@ def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `load valid gzipped geojson`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -424,7 +386,7 @@ assert parcels.iloc[0]["id"] == "parcel-1"
 
 **Regression protected**
 
-Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+Locks `load valid gzipped geojson` through the exact asserted conditions: `len(parcels) == 1`; `parcels.iloc[0]['id'] == 'parcel-1'`.
 
 **Test boundary**
 
@@ -462,7 +424,7 @@ def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `empty dataset fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -491,7 +453,7 @@ with pytest.raises(EmptyCadastreDatasetError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `empty dataset fails`: the reproduced adversarial input must raise `EmptyCadastreDatasetError` before the prohibited success path.
 
 **Test boundary**
 
@@ -512,7 +474,7 @@ def test_empty_dataset_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing file fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -540,7 +502,7 @@ with pytest.raises(CadastreLoadError, match="exist"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing file fails`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -558,7 +520,7 @@ def test_missing_file_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `invalid file fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -587,7 +549,7 @@ with pytest.raises(CadastreLoadError):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `invalid file fails`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -608,7 +570,7 @@ def test_invalid_file_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `missing geometry column fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -644,7 +606,7 @@ with (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `missing geometry column fails`: the reproduced adversarial input must raise `MissingGeometryColumnError` before the prohibited success path.
 
 **Test boundary**
 
@@ -674,7 +636,7 @@ def test_missing_geometry_column_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `unsupported geometry type fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -712,7 +674,7 @@ with pytest.raises(UnsupportedGeometryTypeError, match="Point"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `unsupported geometry type fails`: the reproduced adversarial input must raise `UnsupportedGeometryTypeError` before the prohibited success path.
 
 **Test boundary**
 
@@ -743,7 +705,7 @@ def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `malformed verified download is rejected before parsing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -778,7 +740,7 @@ with (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `malformed verified download is rejected before parsing`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -810,7 +772,7 @@ def test_malformed_verified_download_is_rejected_before_parsing(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `wrong public input type is controlled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -838,7 +800,7 @@ with pytest.raises(CadastreLoadError, match="CadastreDownload"):
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `wrong public input type is controlled`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -856,7 +818,7 @@ def test_wrong_public_input_type_is_controlled() -> None:
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `physical mutation after download is rejected before parsing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -895,7 +857,7 @@ with (
 
 **Regression protected**
 
-Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+Locks `physical mutation after download is rejected before parsing`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
 
 **Test boundary**
 
@@ -929,7 +891,7 @@ def test_physical_mutation_after_download_is_rejected_before_parsing(
 
 **Purpose**
 
-Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+Exercises `physical change during read is rejected by post read verification`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
 
 **Pytest argument classification**
 
@@ -1055,19 +1017,18 @@ frame
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
 - Filesystem write: `path.write_bytes`.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- callback/function object: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `patch('landscout.sources.cadastre_loader_fr.gpd.read_file', side_effect=mutate_after_read)`.
-- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_source_change_after_physical_read` via `patch.object(ign_bdtopo_fr.gpd, 'read_file', side_effect=mutate_after_read)`.
+- function object argument: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `patch('landscout.sources.cadastre_loader_fr.gpd.read_file', side_effect=mutate_after_read)`.
 
 **Complete source-ordered implementation**
 

@@ -62,7 +62,7 @@ This file belongs to the **internal common contract** layer and the **common con
 APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_policy_values` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` (value reference).
 
 #### `POLICY_SCOPE`
 
@@ -70,7 +70,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_parcel_summary` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` (value reference).
 
 #### `POLICY_COLUMNS`
 
@@ -97,7 +97,7 @@ POLICY_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_apply_bess_planning_feature_policy.py::test_policy_suffix_has_one_exact_deterministic_dtype_schema` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_valid_empty_optional_application_catalog_retains_schema_and_crs` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_and_relation_inputs_are_preserved_and_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` (value argument/reference).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::<module>` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_assign_policy_columns` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_feature_catalog` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_relations` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` (value reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` (value reference).
 
 #### `DECISION_COLUMNS`
 
@@ -112,7 +112,7 @@ DECISION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference).
 
 #### `FLAG_COLUMNS`
 
@@ -127,7 +127,7 @@ FLAG_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::<module>` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_assign_policy_columns` (value reference).
 
 #### `STRING_POLICY_COLUMNS`
 
@@ -139,7 +139,7 @@ STRING_POLICY_COLUMNS = tuple(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::<module>` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_assign_policy_columns` (value reference).
 
 #### `POLICY_SUFFIX_DTYPES`
 
@@ -151,7 +151,7 @@ POLICY_SUFFIX_DTYPES = {
 }
 ```
 
-Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` (value reference), `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` (value reference).
 
 #### `ALLOWED_PRECHECK_STATUSES`
 
@@ -167,7 +167,7 @@ ALLOWED_PRECHECK_STATUSES = frozenset(
 )
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_local_domains` (value reference).
 
 #### `ALLOWED_CONFIDENCES`
 
@@ -175,7 +175,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_local_domains` (value reference).
 
 #### `ALLOWED_FEATURE_FAMILIES`
 
@@ -183,7 +183,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 ALLOWED_FEATURE_FAMILIES = frozenset({"PRESCRIPTION", "INFORMATION"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference).
 
 #### `NULL_LITERALS`
 
@@ -191,7 +191,7 @@ Closed vocabulary, ordering, or accepted-domain constant. Its member strings are
 NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import), `src/landscout/common/bess_application_contract.py::_optional_official_string` (value reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference), `src/landscout/common/bess_application_contract.py::_relation_identity_string` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_feature_id` (value reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_parcel_frame` (value reference).
 
 #### `CODE_PATTERN`
 
@@ -199,7 +199,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 CODE_PATTERN = re.compile(r"[0-9]{2}")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value reference).
 
 #### `SHA_PATTERN`
 
@@ -207,7 +207,7 @@ Compiled/text regular expression used by the named validation path; the fenced d
 SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/common/bess_application_contract.py::_sha256` (value reference).
 
 #### `_FEATURE_SPECS`
 
@@ -231,7 +231,7 @@ _FEATURE_SPECS = {
 }
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value reference).
 
 
 ### B. Type aliases and closed domains
@@ -242,7 +242,7 @@ Module-level technical/source/policy constant consumed by the exact references b
 ApplicationStatus = Literal["APPLIED_EXACT_POLICY", "UNRESOLVED_CODE_PAIR"]
 ```
 
-BESS CNIG application state: exact policy applied or unresolved code pair. Enforced/consumed by `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+BESS CNIG application state: exact policy applied or unresolved code pair. Enforced/consumed by `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import), `src/landscout/stages/apply_bess_planning_feature_policy.py::_policy_values` (type annotation), `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_feature_catalog` (type annotation).
 
 
 ### C. Meaningful dunder contracts
@@ -291,26 +291,19 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_null_value`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_null_value`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_local_domains` via `_null_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_null_value`.
+- direct call: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_null_value`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_null_value`.
 
 **Complete source-ordered implementation**
 
@@ -354,39 +347,22 @@ value
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
-- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
-- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
+- direct call: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
 
 **Complete source-ordered implementation**
 
@@ -428,31 +404,19 @@ exact
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: `SHA_PATTERN.fullmatch`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
-- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
-- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
-- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
-- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- direct call: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
 
 **Complete source-ordered implementation**
 
@@ -497,18 +461,18 @@ None
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_optional_official_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_optional_official_string`.
 
 **Complete source-ordered implementation**
 
@@ -566,18 +530,18 @@ Rejects malformed or inconsistent official row; exact branches, calls, and retur
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_validate_official_row`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_validate_official_row`.
 
 **Complete source-ordered implementation**
 
@@ -689,19 +653,19 @@ Validate the complete canonical application suffix and every row.
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
 - Hashing: `_sha256`.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `validate_bess_application_policy_frame`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_bess_application_policy_frame`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `validate_bess_application_policy_frame`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_bess_application_policy_frame`.
 
 **Complete source-ordered implementation**
 
@@ -856,20 +820,20 @@ exact
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::_portable_feature_id` via `_relation_identity_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_relation_identity_string`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_relation_identity_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::_portable_feature_id` via `_relation_identity_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_relation_identity_string`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_relation_identity_string`.
 
 **Complete source-ordered implementation**
 
@@ -912,19 +876,19 @@ feature_id
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_portable_feature_id`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_portable_feature_id`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_portable_feature_id`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_portable_feature_id`.
 
 **Complete source-ordered implementation**
 
@@ -972,19 +936,19 @@ Private `common contract` helper for status priority mapping; its complete imple
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `priority_to_statuses`, `priority_to_statuses.setdefault(priority, set())`, `status_to_priorities`, `status_to_priorities.setdefault(status, set())`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_status_priority_mapping`.
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_status_priority_mapping`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_status_priority_mapping`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_status_priority_mapping`.
 
 **Complete source-ordered implementation**
 
@@ -1048,18 +1012,18 @@ Private `common contract` helper for feature metric; its complete implementation
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_feature_metric`.
+- direct call: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_feature_metric`.
 
 **Complete source-ordered implementation**
 
@@ -1131,19 +1095,18 @@ _status_priority_mapping(combined, 'feature document-wide')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: `applied_frames`, `feature_ids`.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `validate_bess_application_feature_catalogs`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
     APPLICATION_SCOPE,
     FLAG_COLUMNS,
     POLICY_COLUMNS,
@@ -1153,6 +1116,7 @@ _status_priority_mapping(combined, 'feature document-wide')
     validate_bess_application_feature_catalogs,
     validate_bess_application_relation_frame,
 )`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `validate_bess_application_feature_catalogs`.
 
 **Complete source-ordered implementation**
 
@@ -1338,27 +1302,25 @@ _status_priority_mapping(frame, f'{label} document-wide')
 
 **Side effects**
 
-- Network I/O: none directly visible.
-- Filesystem read: none directly visible.
-- Filesystem write: none directly visible.
-- CRS/geometry calculation: none directly visible.
-- Hashing: none directly visible.
-- Environment/process effects: none directly visible.
-- In-memory mutation: none directly visible.
-- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+- Network I/O: none.
+- Filesystem read: none.
+- Filesystem write: none.
+- CRS/geometry calculation: none.
+- Hashing: none.
+- Environment/process effects: none.
+- In-memory mutation: none.
+- Input mutation: none.
 
 **Repository interfaces and consumers**
 
-- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_relations` via `validate_bess_application_relation_frame`.
-- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+- import: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
     ALLOWED_CONFIDENCES,
     ALLOWED_PRECHECK_STATUSES,
     NULL_LITERALS,
     POLICY_SCOPE,
     validate_bess_application_relation_frame,
 )`.
-- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_relation_rows` via `validate_bess_application_relation_frame`.
-- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+- import: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
     APPLICATION_SCOPE,
     FLAG_COLUMNS,
     POLICY_COLUMNS,
@@ -1368,7 +1330,8 @@ _status_priority_mapping(frame, f'{label} document-wide')
     validate_bess_application_feature_catalogs,
     validate_bess_application_relation_frame,
 )`.
-- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module.validate_bess_application_relation_frame`.
+- direct call: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_relations` via `validate_bess_application_relation_frame`.
+- direct call: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_relation_rows` via `validate_bess_application_relation_frame`.
 
 **Complete source-ordered implementation**
 
