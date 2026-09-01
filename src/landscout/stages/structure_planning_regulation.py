@@ -16,7 +16,6 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -27,11 +26,13 @@ from pydantic import (
     model_validator,
 )
 
+from landscout.common.immutable_mapping import freeze_mapping
 from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
     raw_context_from_spans,
 )
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
@@ -60,9 +61,7 @@ _SUPPORTED_CONFIG_SCHEMA_VERSION = 2
 _SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
 _MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"})
 _MAPPING_METHODS = frozenset({"EXACT_HEADING", "CONFIG_ALIAS", "NONE", "AMBIGUOUS"})
-_EVIDENCE_SCOPES = frozenset(
-    {"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"}
-)
+_EVIDENCE_SCOPES = frozenset({"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"})
 
 _ZONE_INPUT_COLUMNS = (
     "planning_zone_id",
@@ -250,7 +249,9 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
                 try:
                     re.compile(pattern)
                 except re.error as error:
-                    raise ValueError(f"invalid regular expression: {pattern}") from error
+                    raise ValueError(
+                        f"invalid regular expression: {pattern}"
+                    ) from error
         structural_pattern_owners: dict[str, str] = {}
         for category, patterns in (
             ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
@@ -305,6 +306,8 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
                         f"topic {topic!r} contains duplicate normalized terms"
                     )
                 normalized.add(normalized_term)
+        object.__setattr__(self, "zone_aliases", freeze_mapping(self.zone_aliases))
+        object.__setattr__(self, "topics", freeze_mapping(self.topics))
         return self
 
 
@@ -372,32 +375,6 @@ class _SectionBuild:
     page_fragments: tuple[tuple[int, str], ...]
 
 
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-
-
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise PlanningRegulationStructureError(
-                f"Duplicate YAML configuration key: {key!r}"
-            )
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-
-
-_UniqueKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _construct_unique_mapping,
-)
-
-
 def _exact_config_string(value: str, label: str) -> str:
     if not value or value != value.strip():
         raise ValueError(f"{label} must be a non-empty exact string")
@@ -422,7 +399,7 @@ def load_planning_regulation_structure_config(
 
     try:
         config_path = Path(path)
-        payload = yaml.load(config_path.read_text(encoding="utf-8"), Loader=_UniqueKeyLoader)
+        payload = loads_strict_yaml(config_path.read_bytes())
         if not isinstance(payload, Mapping):
             raise PlanningRegulationStructureError(
                 "Planning structure configuration must be a mapping"
@@ -430,6 +407,8 @@ def load_planning_regulation_structure_config(
         return PlanningRegulationStructureConfig.model_validate(payload)
     except PlanningRegulationStructureError:
         raise
+    except StrictYamlError as error:
+        raise PlanningRegulationStructureError(str(error)) from error
     except Exception as error:
         raise PlanningRegulationStructureError(
             "Planning structure configuration is invalid"
@@ -558,14 +537,25 @@ def _validate_document_lock(
             "body_start_page must reference a real indexed page"
         )
     missing_toc_pages = sorted(
-        set(config.document_layout.table_of_contents_pages).difference(
-            indexed_page_set
-        )
+        set(config.document_layout.table_of_contents_pages).difference(indexed_page_set)
     )
     if missing_toc_pages:
         raise PlanningRegulationStructureError(
             "table_of_contents_pages reference nonexistent indexed pages: "
             f"{missing_toc_pages}"
+        )
+    table_of_contents_pages = set(config.document_layout.table_of_contents_pages)
+    failed_body_pages = [
+        _strict_positive_integer(row["page_number"], "indexed page number")
+        for row in index.pages.to_dict("records")
+        if _strict_positive_integer(row["page_number"], "indexed page number")
+        >= config.document_layout.body_start_page
+        and row["page_number"] not in table_of_contents_pages
+        and row["extraction_status"] == "ERROR"
+    ]
+    if failed_body_pages:
+        raise PlanningRegulationStructureError(
+            f"Regulation body page extraction status is ERROR: {failed_body_pages}"
         )
 
 
@@ -588,9 +578,8 @@ def _retained_page_lines(
         (position for position, (_, line) in enumerate(lines) if line.strip()),
         None,
     )
-    if (
-        first_nonempty is not None
-        and _matches_any(lines[first_nonempty][1].strip(), headers)
+    if first_nonempty is not None and _matches_any(
+        lines[first_nonempty][1].strip(), headers
     ):
         cursor = first_nonempty
         while cursor < len(lines):
@@ -609,9 +598,8 @@ def _retained_page_lines(
         ),
         None,
     )
-    if (
-        last_nonempty is not None
-        and _matches_any(lines[last_nonempty][1].strip(), footers)
+    if last_nonempty is not None and _matches_any(
+        lines[last_nonempty][1].strip(), footers
     ):
         cursor = last_nonempty
         while cursor >= start:
@@ -889,9 +877,7 @@ def _section_starts(
         if boundary.event is None:
             continue
         minimum_position = (
-            ordered[boundary_index - 1].record_position
-            if boundary_index > 0
-            else 0
+            ordered[boundary_index - 1].record_position if boundary_index > 0 else 0
         )
         shifted_position = boundary.record_position
         while (
@@ -910,10 +896,7 @@ def _section_starts(
         if (
             existing is None
             or boundary.forced_table_of_contents
-            or (
-                not existing.forced_table_of_contents
-                and boundary.event is not None
-            )
+            or (not existing.forced_table_of_contents and boundary.event is not None)
         ):
             compacted[boundary.record_position] = boundary
     ordered = sorted(
@@ -964,7 +947,11 @@ def _section_starts(
 
 
 def _section_content_sha256(row: Mapping[str, object]) -> str:
-    content = {column: row[column] for column in SECTION_COLUMNS if column != "section_content_sha256"}
+    content = {
+        column: row[column]
+        for column in SECTION_COLUMNS
+        if column != "section_content_sha256"
+    }
     return _canonical_sha256(
         {
             "domain": "landscout.planning_regulation.section",
@@ -1087,7 +1074,9 @@ def _validated_zoning_inputs(
     zones: pd.DataFrame,
     intersections: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    if not isinstance(zones, pd.DataFrame) or not isinstance(intersections, pd.DataFrame):
+    if not isinstance(zones, pd.DataFrame) or not isinstance(
+        intersections, pd.DataFrame
+    ):
         raise PlanningRegulationStructureError(
             "Zones and zoning intersections must be DataFrames"
         )
@@ -1130,9 +1119,13 @@ def _validated_zoning_inputs(
     for column in ("source_document_id", "source_archive_sha256"):
         _validate_source_label_values(zone_copy[column], f"zone {column}")
     if not zone_copy["source_document_id"].eq(index.document_id).all():
-        raise PlanningRegulationStructureError("Zone document lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Zone document lineage differs from index"
+        )
     if not zone_copy["source_archive_sha256"].eq(index.archive_sha256).all():
-        raise PlanningRegulationStructureError("Zone archive lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Zone archive lineage differs from index"
+        )
     for column in ("parcel_id", "planning_zone_id", "source_zone_id", "zone_label_raw"):
         _validate_source_label_values(relation_copy[column], f"intersection {column}")
     if relation_copy.duplicated(["parcel_id", "planning_zone_id"]).any():
@@ -1173,9 +1166,7 @@ def _validated_zoning_inputs(
     metrics: list[float] = []
     for value in relation_copy["intersection_area_m2"].tolist():
         if isinstance(value, bool) or not isinstance(value, Real):
-            raise PlanningRegulationStructureError(
-                "Intersection areas must be numeric"
-            )
+            raise PlanningRegulationStructureError("Intersection areas must be numeric")
         try:
             numeric = float(value)
         except (TypeError, ValueError, OverflowError) as error:
@@ -1192,9 +1183,13 @@ def _validated_zoning_inputs(
     )
     positive = relation_copy["intersection_area_m2"].gt(0)
     if not relation_copy.loc[positive, "relation_type"].eq("AREA_OVERLAP").all():
-        raise PlanningRegulationStructureError("Positive zoning relations must be AREA_OVERLAP")
+        raise PlanningRegulationStructureError(
+            "Positive zoning relations must be AREA_OVERLAP"
+        )
     if not relation_copy.loc[~positive, "relation_type"].eq("TOUCH_ONLY").all():
-        raise PlanningRegulationStructureError("Zero-area zoning relations must be TOUCH_ONLY")
+        raise PlanningRegulationStructureError(
+            "Zero-area zoning relations must be TOUCH_ONLY"
+        )
     for upper_column in ("parcel_metric_area_m2", "zone_area_m2"):
         if upper_column not in relation_copy.columns:
             continue
@@ -1291,7 +1286,11 @@ def _build_zone_mapping(
         label = _strict_string(row["zone_chapter_label"], "zone chapter label")
         chapters_by_label.setdefault(label, []).append(row["section_id"])
     zone_counts = Counter(zones["zone_label_raw"].tolist())
-    parcel_counts = intersections.groupby("zone_label_raw", sort=False)["parcel_id"].nunique().to_dict()
+    parcel_counts = (
+        intersections.groupby("zone_label_raw", sort=False)["parcel_id"]
+        .nunique()
+        .to_dict()
+    )
     intersection_counts = Counter(intersections["zone_label_raw"].tolist())
     dominant_counts = _dominant_counts(intersections)
     rows: list[dict[str, object]] = []
@@ -1467,9 +1466,7 @@ def _build_topic_evidence(
                     if not retained:
                         continue
                     first = retained[0]
-                    context_start = max(
-                        0, first.normalized_start - context_characters
-                    )
+                    context_start = max(0, first.normalized_start - context_characters)
                     context_end = min(
                         len(normalized),
                         first.normalized_end + context_characters,
@@ -1498,9 +1495,7 @@ def _build_topic_evidence(
                             "raw_context": _raw_context(
                                 raw_fragment, spans, context_start, context_end
                             ),
-                            "normalized_context": normalized[
-                                context_start:context_end
-                            ],
+                            "normalized_context": normalized[context_start:context_end],
                             "document_id": index.document_id,
                             "archive_sha256": index.archive_sha256,
                             "pdf_sha256": index.pdf_sha256,
@@ -1635,8 +1630,12 @@ def _result_with_hashes(
 
 def _page_tuple(value: object) -> tuple[int, ...]:
     if not isinstance(value, (tuple, list, np.ndarray)):
-        raise PlanningRegulationStructureError("Section page_numbers must be a sequence")
-    return tuple(_strict_positive_integer(item, "section page number") for item in value)
+        raise PlanningRegulationStructureError(
+            "Section page_numbers must be a sequence"
+        )
+    return tuple(
+        _strict_positive_integer(item, "section page number") for item in value
+    )
 
 
 def _validate_sections(
@@ -1653,7 +1652,9 @@ def _validate_sections(
     if result.source_records_sha256 != _source_records_sha256(records):
         raise PlanningRegulationStructureError("Retained source-record hash differs")
     known_pages = set(index.pages["page_number"].tolist())
-    record_position = {record.record_id: position for position, record in enumerate(records)}
+    record_position = {
+        record.record_id: position for position, record in enumerate(records)
+    }
     ids: list[str] = []
     expected_record_start = 0
     parents: dict[str, str] = {}
@@ -1668,18 +1669,32 @@ def _validate_sections(
         section_type = _strict_string(row["section_type"], "section type")
         if section_type not in _SECTION_TYPES:
             raise PlanningRegulationStructureError("Section type is invalid")
-        for column in ("heading_raw", "heading_normalized", "raw_text", "normalized_text"):
+        for column in (
+            "heading_raw",
+            "heading_normalized",
+            "raw_text",
+            "normalized_text",
+        ):
             if not isinstance(row[column], str):
-                raise PlanningRegulationStructureError(f"Section {column} must be a string")
+                raise PlanningRegulationStructureError(
+                    f"Section {column} must be a string"
+                )
         if row["heading_normalized"] != _normalize_search_text(row["heading_raw"]):
-            raise PlanningRegulationStructureError("Section heading normalization differs")
+            raise PlanningRegulationStructureError(
+                "Section heading normalization differs"
+            )
         if row["normalized_text"] != _normalize_search_text(row["raw_text"]):
             raise PlanningRegulationStructureError("Section text normalization differs")
-        if _strict_nonnegative_integer(row["character_count"], "character count") != len(row["raw_text"]):
+        if _strict_nonnegative_integer(
+            row["character_count"], "character count"
+        ) != len(row["raw_text"]):
             raise PlanningRegulationStructureError("Section character count differs")
         start_record_id = _strict_string(row["start_record_id"], "start record ID")
         end_record_id = _strict_string(row["end_record_id"], "end record ID")
-        if start_record_id not in record_position or end_record_id not in record_position:
+        if (
+            start_record_id not in record_position
+            or end_record_id not in record_position
+        ):
             raise PlanningRegulationStructureError("Section record boundary is unknown")
         start_record = record_position[start_record_id]
         end_record = record_position[end_record_id]
@@ -1693,8 +1708,7 @@ def _validate_sections(
             section_type == "OTHER"
             and not row["raw_text"].strip()
             and any(
-                record.page_number
-                in config.document_layout.table_of_contents_pages
+                record.page_number in config.document_layout.table_of_contents_pages
                 for record in segment
             )
         )
@@ -1709,7 +1723,9 @@ def _validate_sections(
         if _strict_positive_integer(
             row["source_record_count"], "source record count"
         ) != len(segment):
-            raise PlanningRegulationStructureError("Section source-record count differs")
+            raise PlanningRegulationStructureError(
+                "Section source-record count differs"
+            )
         if _validated_sha256(
             row["source_records_sha256"], "section source-record SHA256"
         ) != _source_records_sha256(segment):
@@ -1726,11 +1742,15 @@ def _validate_sections(
             or not set(pages).issubset(known_pages)
             or pages != expected_pages
         ):
-            raise PlanningRegulationStructureError("Section page references are invalid")
+            raise PlanningRegulationStructureError(
+                "Section page references are invalid"
+            )
         start = _strict_positive_integer(row["start_page"], "section start page")
         end = _strict_positive_integer(row["end_page"], "section end page")
         if start != pages[0] or end != pages[-1] or end < start:
-            raise PlanningRegulationStructureError("Section page range is invalid or unordered")
+            raise PlanningRegulationStructureError(
+                "Section page range is invalid or unordered"
+            )
         for column, actual in (
             ("document_id", result.document_id),
             ("archive_sha256", result.archive_sha256),
@@ -1741,7 +1761,10 @@ def _validate_sections(
             if row[column] != actual:
                 raise PlanningRegulationStructureError("Section lineage differs")
         expected_hash = _section_content_sha256(row)
-        if _validated_sha256(row["section_content_sha256"], "section content SHA256") != expected_hash:
+        if (
+            _validated_sha256(row["section_content_sha256"], "section content SHA256")
+            != expected_hash
+        ):
             raise PlanningRegulationStructureError("Section content hash differs")
         parent = row["parent_section_id"]
         if parent is not None and not bool(pd.isna(parent)):
@@ -1804,7 +1827,9 @@ def _validate_sections(
             raise PlanningRegulationStructureError("Article parent section is invalid")
         section_type = type_by_id[section_id]
         if section_type != "ARTICLE":
-            raise PlanningRegulationStructureError("Only articles may have a parent section")
+            raise PlanningRegulationStructureError(
+                "Only articles may have a parent section"
+            )
         if order_by_id[parent] >= order_by_id[section_id]:
             raise PlanningRegulationStructureError(
                 "Article parent must occur earlier in source order"
@@ -1820,8 +1845,13 @@ def _validate_zone_mapping(
     config: PlanningRegulationStructureConfig,
 ) -> None:
     frame = result.zone_mapping
-    if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != ZONE_MAPPING_COLUMNS:
-        raise PlanningRegulationStructureError("Zone mapping schema is not deterministic")
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != ZONE_MAPPING_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Zone mapping schema is not deterministic"
+        )
     labels: list[str] = []
     sections = result.sections.set_index("section_id", drop=False)
     exact_methods = {
@@ -1836,7 +1866,9 @@ def _validate_zone_mapping(
         status = _strict_string(row["mapping_status"], "mapping status")
         method = _strict_string(row["mapping_method"], "mapping method")
         if status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS:
-            raise PlanningRegulationStructureError("Zone mapping status or method is invalid")
+            raise PlanningRegulationStructureError(
+                "Zone mapping status or method is invalid"
+            )
         if exact_methods[status] != method:
             raise PlanningRegulationStructureError(
                 "Zone mapping status/method combination is invalid"
@@ -1851,12 +1883,16 @@ def _validate_zone_mapping(
             count = _strict_nonnegative_integer(row[column], column)
             counts[column] = count
             if column == "zone_polygon_count" and count == 0:
-                raise PlanningRegulationStructureError("Zone polygon count must be positive")
+                raise PlanningRegulationStructureError(
+                    "Zone polygon count must be positive"
+                )
         matched = row["matched_section_id"]
         if status in {"EXACT", "CONFIG_ALIAS"}:
             matched_id = _strict_string(matched, "matched section ID")
             if matched_id not in sections.index:
-                raise PlanningRegulationStructureError("Zone mapping section is unknown")
+                raise PlanningRegulationStructureError(
+                    "Zone mapping section is unknown"
+                )
             resolved = _strict_string(
                 row["resolved_zone_chapter_label"], "resolved chapter label"
             )
@@ -1880,15 +1916,24 @@ def _validate_zone_mapping(
                     "Configured zone mapping differs from its final alias target"
                 )
         elif matched is not None and not bool(pd.isna(matched)):
-            raise PlanningRegulationStructureError("Unresolved zone mapping has a section ID")
-        elif status == "UNMAPPED" and row["resolved_zone_chapter_label"] is not None and not bool(
-            pd.isna(row["resolved_zone_chapter_label"])
+            raise PlanningRegulationStructureError(
+                "Unresolved zone mapping has a section ID"
+            )
+        elif (
+            status == "UNMAPPED"
+            and row["resolved_zone_chapter_label"] is not None
+            and not bool(pd.isna(row["resolved_zone_chapter_label"]))
         ):
             raise PlanningRegulationStructureError(
                 "Unmapped zone must not claim a resolved chapter label"
             )
-        if row["dominant_candidate_count"] > 0 and status not in {"EXACT", "CONFIG_ALIAS"}:
-            raise PlanningRegulationStructureError("Dominant candidate zone is unresolved")
+        if row["dominant_candidate_count"] > 0 and status not in {
+            "EXACT",
+            "CONFIG_ALIAS",
+        }:
+            raise PlanningRegulationStructureError(
+                "Dominant candidate zone is unresolved"
+            )
         if not (
             counts["dominant_candidate_count"]
             <= counts["candidate_parcel_count"]
@@ -1907,7 +1952,9 @@ def _validate_zone_mapping(
             if row[column] != actual:
                 raise PlanningRegulationStructureError("Zone mapping lineage differs")
     if labels != sorted(labels) or len(set(labels)) != len(labels):
-        raise PlanningRegulationStructureError("Zone mappings must be unique and sorted")
+        raise PlanningRegulationStructureError(
+            "Zone mappings must be unique and sorted"
+        )
 
 
 def _validate_topic_evidence(
@@ -1917,8 +1964,13 @@ def _validate_topic_evidence(
     builds: Sequence[_SectionBuild],
 ) -> None:
     frame = result.topic_evidence
-    if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS:
-        raise PlanningRegulationStructureError("Topic evidence schema is not deterministic")
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Topic evidence schema is not deterministic"
+        )
     sections = result.sections.set_index("section_id", drop=False)
     fragments = {
         (str(build.row["section_id"]), page_number): raw_fragment
@@ -1930,29 +1982,43 @@ def _validate_topic_evidence(
     for row in frame.to_dict("records"):
         topic = _strict_string(row["topic"], "topic")
         if topic not in config.topics:
-            raise PlanningRegulationStructureError("Topic evidence topic is unconfigured")
+            raise PlanningRegulationStructureError(
+                "Topic evidence topic is unconfigured"
+            )
         term = _strict_string(row["search_term"], "search term")
         if term not in config.topics[topic]:
             raise PlanningRegulationStructureError(
                 "Topic evidence search term is unconfigured"
             )
-        normalized = _strict_string(row["normalized_search_term"], "normalized search term")
+        normalized = _strict_string(
+            row["normalized_search_term"], "normalized search term"
+        )
         if normalized != _normalize_search_text(term):
             raise PlanningRegulationStructureError("Topic search normalization differs")
         section_id = _strict_string(row["section_id"], "topic section ID")
         if section_id not in sections.index:
-            raise PlanningRegulationStructureError("Topic evidence references an unknown section")
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown section"
+            )
         page = _strict_positive_integer(row["page_number"], "topic page number")
-        if page not in page_set or page not in _page_tuple(sections.at[section_id, "page_numbers"]):
-            raise PlanningRegulationStructureError("Topic evidence references an unknown page")
+        if page not in page_set or page not in _page_tuple(
+            sections.at[section_id, "page_numbers"]
+        ):
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown page"
+            )
         if (section_id, page) not in fragments:
             raise PlanningRegulationStructureError(
                 "Topic evidence page is absent from its retained section text"
             )
-        count = _strict_positive_integer(row["occurrence_count"], "topic occurrence count")
+        count = _strict_positive_integer(
+            row["occurrence_count"], "topic occurrence count"
+        )
         if count < 1:
             raise PlanningRegulationStructureError("Topic occurrence count is invalid")
-        if not isinstance(row["raw_context"], str) or not isinstance(row["normalized_context"], str):
+        if not isinstance(row["raw_context"], str) or not isinstance(
+            row["normalized_context"], str
+        ):
             raise PlanningRegulationStructureError("Topic contexts must be strings")
         scope = _strict_string(row["evidence_scope"], "evidence scope")
         if scope not in _EVIDENCE_SCOPES:
@@ -2005,9 +2071,7 @@ def _validate_topic_evidence(
             raise PlanningRegulationStructureError(
                 "Topic occurrence count differs from retained source spans"
             )
-        context_start = max(
-            0, first.normalized_start - config.topic_context_characters
-        )
+        context_start = max(0, first.normalized_start - config.topic_context_characters)
         context_end = min(
             len(normalized_fragment),
             first.normalized_end + config.topic_context_characters,
@@ -2119,7 +2183,9 @@ def _validate_result_self(
         or result.pdf_sha256 != index.pdf_sha256
         or result.index_content_sha256 != index.index_content_sha256
     ):
-        raise PlanningRegulationStructureError("Structure result lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Structure result lineage differs from index"
+        )
     _validated_sha256(result.archive_sha256, "archive SHA256")
     _validated_sha256(result.pdf_sha256, "PDF SHA256")
     _validated_sha256(result.index_content_sha256, "index content SHA256")
@@ -2165,17 +2231,21 @@ def _validate_result_self(
         result.section_hash_schema_version, "section hash schema version"
     )
     if schema != SECTION_HASH_SCHEMA_VERSION:
-        raise PlanningRegulationStructureError("Unsupported section hash schema version")
+        raise PlanningRegulationStructureError(
+            "Unsupported section hash schema version"
+        )
     _validate_sections(index, result, records, config)
     _validate_zone_mapping(result, config)
     _validate_topic_evidence(index, result, config, builds)
-    expected = _result_with_hashes(replace(
-        result,
-        sections_content_sha256="",
-        zone_map_content_sha256="",
-        topic_evidence_content_sha256="",
-        structure_result_content_sha256="",
-    ))
+    expected = _result_with_hashes(
+        replace(
+            result,
+            sections_content_sha256="",
+            zone_map_content_sha256="",
+            topic_evidence_content_sha256="",
+            structure_result_content_sha256="",
+        )
+    )
     for actual, wanted, label in (
         (result.sections_content_sha256, expected.sections_content_sha256, "sections"),
         (result.zone_map_content_sha256, expected.zone_map_content_sha256, "zone map"),
@@ -2187,10 +2257,13 @@ def _validate_result_self(
     ):
         if _validated_sha256(actual, f"{label} content SHA256") != wanted:
             raise PlanningRegulationStructureError(f"{label} content hash differs")
-    if _validated_sha256(
-        result.structure_result_content_sha256,
-        "structure result content SHA256",
-    ) != expected.structure_result_content_sha256:
+    if (
+        _validated_sha256(
+            result.structure_result_content_sha256,
+            "structure result content SHA256",
+        )
+        != expected.structure_result_content_sha256
+    ):
         raise PlanningRegulationStructureError("Complete structure result hash differs")
 
 
@@ -2275,9 +2348,7 @@ def _section_page_fragments(
             "archive_sha256": result.archive_sha256,
             "pdf_sha256": result.pdf_sha256,
             "index_content_sha256": result.index_content_sha256,
-            "structure_result_content_sha256": (
-                result.structure_result_content_sha256
-            ),
+            "structure_result_content_sha256": (result.structure_result_content_sha256),
             "structure_profile": result.structure_profile,
         }
         for build in builds

@@ -70,9 +70,7 @@ def _parcels(
     crs: str | None = "EPSG:2154",
     index: list[object] | None = None,
 ) -> gpd.GeoDataFrame:
-    values = geometries or [
-        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    ]
+    values = geometries or [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]
     count = len(values)
     ids = identifiers or [f"PARCEL-{position + 1}" for position in range(count)]
     source_index = index or [100 + position for position in range(count)]
@@ -247,8 +245,7 @@ def _physical_summary(
         invalid_geometry_count=int(invalid_mask.sum()),
         geometry_types=tuple(
             sorted(
-                str(value)
-                for value in geometry[~null_mask].geom_type.dropna().unique()
+                str(value) for value in geometry[~null_mask].geom_type.dropna().unique()
             )
         ),
     )
@@ -272,12 +269,26 @@ def _physical_electricity_source(
             ),
         ),
         (
+            "TRONCON_DE_ROUTE",
+            gpd.GeoDataFrame(
+                {"id": ["ROAD"]},
+                geometry=[LineString([(0, 0), (1, 1)])],
+                crs="EPSG:2154",
+            ),
+        ),
+        (
+            "DEPARTEMENT",
+            gpd.GeoDataFrame(
+                {"code_insee": ["31"]},
+                geometry=[Polygon([(0, 0), (0, 10), (10, 10), (10, 0)])],
+                crs="EPSG:2154",
+            ),
+        ),
+        (
             configured_post_layer,
             _physical_post_source(
                 "CONFIGURED-POST",
-                Polygon(
-                    [(500, 0), (500, 10), (510, 10), (510, 0), (500, 0)]
-                ),
+                Polygon([(500, 0), (500, 10), (510, 10), (510, 0), (500, 0)]),
             ),
         ),
         (
@@ -332,7 +343,7 @@ def _physical_electricity_source(
         str(record[0]) for record in pyogrio.list_layers(geopackage_path)
     )
     marker = {
-        "schema_version": 2,
+        "schema_version": 3,
         "archive_sha256": "a" * 64,
         "geopackage_relative_path": geopackage_path.name,
         "geopackage_size_bytes": len(payload),
@@ -340,6 +351,16 @@ def _physical_electricity_source(
         "all_layer_names": list(layer_names),
         "electric_lines_layer": selected_line_layer,
         "transformation_posts_layer": selected_post_layer,
+        "road_segments_layer": "TRONCON_DE_ROUTE",
+        "department_layer": "DEPARTEMENT",
+        "extracted_entries": [
+            {
+                "relative_path": geopackage_path.name,
+                "kind": "file",
+                "size_bytes": len(payload),
+                "sha256": digest,
+            }
+        ],
         "spatial_role": "PROXY_GEOMETRY",
     }
     (extraction_path / ".landscout-extraction.json").write_text(
@@ -367,10 +388,8 @@ def _physical_electricity_source(
         sha256="a" * 64,
         official_checksum_algorithm=SOURCE_CONFIG.official_checksum_algorithm,
         official_checksum=SOURCE_CONFIG.official_checksum,
-        official_checksum_validated=(
-            SOURCE_CONFIG.official_checksum is not None
-        ),
-        path=tmp_path / "synthetic.7z",
+        official_checksum_validated=(SOURCE_CONFIG.official_checksum is not None),
+        path=tmp_path / Path(str(SOURCE_CONFIG.source_url)).name,
         cache_hit=True,
     )
     extraction = IgnBdTopoExtraction(
@@ -383,6 +402,8 @@ def _physical_electricity_source(
         all_layer_names=layer_names,
         electric_lines_layer=selected_line_layer,
         transformation_posts_layer=selected_post_layer,
+        road_segments_layer="TRONCON_DE_ROUTE",
+        department_layer="DEPARTEMENT",
         cache_hit=True,
     )
     return IgnBdTopoElectricityData(
@@ -457,10 +478,7 @@ def _mutate_voltage_result(
 
 
 def test_clean_high_level_api_is_exported() -> None:
-    assert (
-        stages.enrich_parcel_grid_proximity
-        is public_enrich_parcel_grid_proximity
-    )
+    assert stages.enrich_parcel_grid_proximity is public_enrich_parcel_grid_proximity
     assert stages.profile_grid_proximity is profile_grid_proximity
     assert "enrich_parcel_grid_proximity" in stages.__all__
     assert "profile_grid_proximity" in stages.__all__
@@ -478,9 +496,7 @@ def test_public_proximity_normalizes_verified_source_exactly_once() -> None:
         return_value=normalized,
         create=True,
     ) as normalizer:
-        result = public_enrich_parcel_grid_proximity(
-            parcels, source, SOURCE_CONFIG
-        )
+        result = public_enrich_parcel_grid_proximity(parcels, source, SOURCE_CONFIG)
 
     normalizer.assert_called_once_with(source, SOURCE_CONFIG)
     assert result.parcels.loc[0, "nearest_line_grid_feature_id"] == "LINE-1"
@@ -498,10 +514,13 @@ def test_public_proximity_rejects_wrong_source_boundary_types(
     }
     kwargs[argument] = pd.DataFrame() if argument == "parcels" else object()
 
-    with patch(
-        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
-        create=True,
-    ) as normalizer, pytest.raises(GridProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+            create=True,
+        ) as normalizer,
+        pytest.raises(GridProximityError),
+    ):
         public_enrich_parcel_grid_proximity(**cast(Any, kwargs))
 
     normalizer.assert_not_called()
@@ -517,12 +536,15 @@ def test_caller_crafted_normalized_grid_frame_is_not_a_public_source() -> None:
     assert forged_lines["source_archive_sha256"].eq("a" * 64).all()
     assert forged_lines["spatial_role"].eq("PROXY_GEOMETRY").all()
 
-    with patch(
-        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
-        create=True,
-    ) as normalizer, pytest.raises(
-        GridProximityError,
-        match="IgnBdTopoElectricityData|electricity source",
+    with (
+        patch(
+            "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+            create=True,
+        ) as normalizer,
+        pytest.raises(
+            GridProximityError,
+            match="IgnBdTopoElectricityData|electricity source",
+        ),
     ):
         public_enrich_parcel_grid_proximity(
             _parcels(),
@@ -539,8 +561,7 @@ def test_public_proximity_reproduces_configured_electricity_roles(
     forged = _alternate_role_electricity_source(tmp_path)
     assert forged.extraction.electric_lines_layer == "CABLE_SOURCE_ALTERNATE"
     assert (
-        forged.extraction.transformation_posts_layer
-        == "INSTALLATION_SOURCE_ALTERNATE"
+        forged.extraction.transformation_posts_layer == "INSTALLATION_SOURCE_ALTERNATE"
     )
 
     with pytest.raises(GridProximityError):
@@ -577,12 +598,7 @@ def test_public_proximity_reproduces_configured_electricity_roles(
             id="official-checksum",
         ),
         pytest.param(
-            {
-                "file_size": (
-                    SOURCE_CONFIG.expected_archive_size_bytes or 1
-                )
-                + 1
-            },
+            {"file_size": (SOURCE_CONFIG.expected_archive_size_bytes or 1) + 1},
             id="archive-size",
         ),
     ],
@@ -598,10 +614,13 @@ def test_public_proximity_rejects_archive_lineage_differing_from_config(
         extraction=replace(source.extraction, archive=forged_archive),
     )
 
-    with patch(
-        "landscout.stages.enrich_grid_proximity."
-        "_enrich_parcel_grid_proximity_from_normalized",
-    ) as computation, pytest.raises(GridProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_grid_proximity."
+            "_enrich_parcel_grid_proximity_from_normalized",
+        ) as computation,
+        pytest.raises(GridProximityError),
+    ):
         public_enrich_parcel_grid_proximity(_parcels(), forged, SOURCE_CONFIG)
 
     computation.assert_not_called()
@@ -610,14 +629,15 @@ def test_public_proximity_rejects_archive_lineage_differing_from_config(
 def test_source_normalization_failure_stops_grid_computation() -> None:
     source = _electricity_source()
 
-    with patch(
-        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
-        side_effect=ValueError("physical source changed"),
-        create=True,
-    ) as normalizer, pytest.raises(GridProximityError):
-        public_enrich_parcel_grid_proximity(
-            _parcels(), source, SOURCE_CONFIG
-        )
+    with (
+        patch(
+            "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+            side_effect=ValueError("physical source changed"),
+            create=True,
+        ) as normalizer,
+        pytest.raises(GridProximityError),
+    ):
+        public_enrich_parcel_grid_proximity(_parcels(), source, SOURCE_CONFIG)
 
     normalizer.assert_called_once_with(source, SOURCE_CONFIG)
 
@@ -642,15 +662,11 @@ def test_touching_line_has_zero_distance() -> None:
 
 
 def test_post_distance_uses_parcel_and_post_polygons() -> None:
-    posts = _posts(
-        [Polygon([(60, 0), (60, 10), (70, 10), (70, 0), (60, 0)])]
-    )
+    posts = _posts([Polygon([(60, 0), (60, 10), (70, 10), (70, 0), (60, 0)])])
 
     result = enrich_parcel_grid_proximity(_parcels(), _lines(), posts)
 
-    assert result.parcels.loc[0, "nearest_post_proxy_distance_m"] == pytest.approx(
-        50.0
-    )
+    assert result.parcels.loc[0, "nearest_post_proxy_distance_m"] == pytest.approx(50.0)
 
 
 def test_epsg4326_input_is_calculated_in_lambert93_and_preserved() -> None:
@@ -684,6 +700,27 @@ def test_valid_parcel_id_is_preserved_exactly() -> None:
     assert result.parcels["parcel_id"].tolist() == ["FR-31-VALID-ID"]
 
 
+def test_public_proximity_rejects_generated_parcel_column_before_normalization() -> (
+    None
+):
+    parcels = _parcels()
+    parcels["nearest_line_proxy_distance_m"] = 123.0
+
+    with (
+        patch(
+            "landscout.stages.enrich_grid_proximity.normalize_ign_electricity"
+        ) as normalize,
+        pytest.raises(GridProximityError, match="collides.*generated"),
+    ):
+        public_enrich_parcel_grid_proximity(
+            parcels,
+            _electricity_source(),
+            SOURCE_CONFIG,
+        )
+
+    normalize.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "identifier",
     [None, "", "   ", " PARCEL-1", "PARCEL-1 ", 123],
@@ -699,9 +736,7 @@ def test_invalid_parcel_id_hygiene_is_rejected(identifier: object) -> None:
     "geometry",
     [
         Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
-        MultiPolygon(
-            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]
-        ),
+        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),
         Polygon([(0, 0, 5), (0, 10, 5), (10, 10, 5), (10, 0, 5), (0, 0, 5)]),
     ],
 )
@@ -753,9 +788,9 @@ def test_z_line_has_same_horizontal_distance_as_xy_line() -> None:
     xyz_result = enrich_parcel_grid_proximity(_parcels(), xyz, _posts())
 
     assert xyz.geometry.iloc[0].has_z
-    assert xyz_result.parcels.loc[
-        0, "nearest_line_proxy_distance_m"
-    ] == pytest.approx(xy_result.parcels.loc[0, "nearest_line_proxy_distance_m"])
+    assert xyz_result.parcels.loc[0, "nearest_line_proxy_distance_m"] == pytest.approx(
+        xy_result.parcels.loc[0, "nearest_line_proxy_distance_m"]
+    )
 
 
 def test_line_tie_is_counted_and_lexical_feature_id_wins() -> None:
@@ -777,9 +812,7 @@ def test_line_tie_is_counted_and_lexical_feature_id_wins() -> None:
     assert row["nearest_exact_line_grid_feature_id"] == "A-LINE"
     assert result.voltage_level_proximity.loc[0, "tie_count"] == 2
     assert (
-        result.voltage_level_proximity.loc[
-            0, "nearest_line_grid_feature_id"
-        ]
+        result.voltage_level_proximity.loc[0, "nearest_line_grid_feature_id"]
         == "A-LINE"
     )
     assert len(result.parcels) == 1
@@ -890,15 +923,7 @@ def test_supported_multi_geometries_are_accepted() -> None:
         [MultiLineString([[(110, -20), (110, 30)], [(120, -20), (120, 30)]])]
     )
     posts = _posts(
-        [
-            MultiPolygon(
-                [
-                    Polygon(
-                        [(110, 0), (110, 5), (115, 5), (115, 0), (110, 0)]
-                    )
-                ]
-            )
-        ]
+        [MultiPolygon([Polygon([(110, 0), (110, 5), (115, 5), (115, 0), (110, 0)])])]
     )
 
     result = enrich_parcel_grid_proximity(_parcels(), lines, posts)
@@ -987,9 +1012,7 @@ def test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table() -> No
     assert list(result.voltage_level_proximity.columns) == list(
         VOLTAGE_PROXIMITY_COLUMNS
     )
-    assert is_float_dtype(
-        result.parcels["nearest_exact_line_proxy_distance_m"].dtype
-    )
+    assert is_float_dtype(result.parcels["nearest_exact_line_proxy_distance_m"].dtype)
     assert is_float_dtype(result.parcels["nearest_exact_line_voltage_kv"].dtype)
     assert is_integer_dtype(result.parcels["nearest_exact_line_tie_count"].dtype)
     assert str(result.parcels["nearest_exact_line_tie_count"].dtype) == "Int64"
@@ -1014,9 +1037,7 @@ def test_missing_parcel_column_is_rejected(column: str) -> None:
 
 def test_null_parcel_id_is_rejected() -> None:
     with pytest.raises(GridProximityError, match="parcel_id"):
-        enrich_parcel_grid_proximity(
-            _parcels(identifiers=[None]), _lines(), _posts()
-        )
+        enrich_parcel_grid_proximity(_parcels(identifiers=[None]), _lines(), _posts())
 
 
 def test_duplicate_parcel_id_is_rejected() -> None:
@@ -1045,9 +1066,7 @@ def test_duplicate_parcel_id_is_rejected() -> None:
 )
 def test_bad_parcel_geometry_is_rejected(geometry: object, message: str) -> None:
     with pytest.raises(GridProximityError, match=message):
-        enrich_parcel_grid_proximity(
-            _parcels([geometry]), _lines(), _posts()
-        )
+        enrich_parcel_grid_proximity(_parcels([geometry]), _lines(), _posts())
 
 
 def test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved() -> None:
@@ -1338,17 +1357,13 @@ def test_profile_rejects_nondeterministic_or_duplicate_coverage(
 )
 def test_profile_rejects_invalid_voltage_coverage_level(voltage_kv: object) -> None:
     result = _two_parcel_two_voltage_result()
-    coverage = (
-        VoltageLevelCoverage(voltage_kv=voltage_kv, line_feature_count=1),
-    )
+    coverage = (VoltageLevelCoverage(voltage_kv=voltage_kv, line_feature_count=1),)
 
     with pytest.raises(GridProximityError, match="coverage"):
         profile_grid_proximity(replace(result, voltage_level_coverage=coverage))
 
 
-@pytest.mark.parametrize(
-    "feature_count", [0, -1, 1.5, float("inf"), True, "2"]
-)
+@pytest.mark.parametrize("feature_count", [0, -1, 1.5, float("inf"), True, "2"])
 def test_profile_rejects_invalid_voltage_coverage_feature_count(
     feature_count: object,
 ) -> None:
@@ -1404,9 +1419,7 @@ def test_profile_rejects_bad_long_table_distance(value: object) -> None:
 
     with pytest.raises(GridProximityError):
         profile_grid_proximity(
-            _mutate_voltage_result(
-                result, "nearest_line_proxy_distance_m", value
-            )
+            _mutate_voltage_result(result, "nearest_line_proxy_distance_m", value)
         )
 
 

@@ -55,11 +55,14 @@ def test_successful_download(tmp_path: Path) -> None:
         result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
     assert result.path.read_bytes() == ARCHIVE_CONTENT
+    assert result.commune_code == COMMUNE_CODE
     assert result.source_url == EXPECTED_URL
     assert result.file_size == len(ARCHIVE_CONTENT)
     assert result.cache_hit is False
     metadata_path = tmp_path / f"{result.filename}.metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["schema_version"] == 1
+    assert metadata["commune_code"] == COMMUNE_CODE
     assert metadata["download_timestamp"] == result.download_timestamp
 
 
@@ -81,7 +84,10 @@ def test_fresh_cache_is_reused(tmp_path: Path) -> None:
 def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -155,7 +161,10 @@ def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
 def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -247,7 +256,10 @@ def test_malformed_cached_metadata_triggers_refresh(
 ) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -264,10 +276,46 @@ def test_malformed_cached_metadata_triggers_refresh(
     assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("schema_version", True),
+        ("schema_version", 1.0),
+        ("file_size", True),
+        ("file_size", 1.0),
+        ("file_size", "1"),
+    ],
+)
+def test_cache_metadata_schema_and_size_are_strict_integers(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        metadata[field] = value
+        metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+
+
 def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -280,6 +328,34 @@ def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
 
     assert opener.call_count == 2
     assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+
+
+@pytest.mark.parametrize(
+    "invalid_metadata",
+    [
+        '{"schema_version":1,"schema_version":1}',
+        '{"schema_version":1,"file_size":NaN}',
+        "[]",
+    ],
+)
+def test_strict_cadastre_cache_json_never_returns_a_cache_hit(
+    tmp_path: Path,
+    invalid_metadata: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata_path.write_text(invalid_metadata, encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
 
 
 def test_metadata_publication_failure_restores_previous_cache_pair(
@@ -399,7 +475,9 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
     ):
         download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
-    useful_backups = [path for path in (archive_backup, metadata_backup) if path.exists()]
+    useful_backups = [
+        path for path in (archive_backup, metadata_backup) if path.exists()
+    ]
     assert useful_backups
 
 
@@ -509,18 +587,16 @@ def test_temporary_link_or_junction_cannot_modify_target_before_network(
     original_open = Path.open
 
     def simulated_is_symlink(path: Path) -> bool:
-        return (
-            link_kind == "symlink" and path == unsafe_path
-        ) or original_is_symlink(path)
+        return (link_kind == "symlink" and path == unsafe_path) or original_is_symlink(
+            path
+        )
 
     def simulated_is_junction(path: Path) -> bool:
         return (
             link_kind == "junction" and path == unsafe_path
         ) or original_is_junction(path)
 
-    def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+    def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
         if path == unsafe_path:
             return original_open(sentinel, *args, **kwargs)
         return original_open(path, *args, **kwargs)

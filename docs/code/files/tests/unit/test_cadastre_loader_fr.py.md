@@ -3,19 +3,22 @@
 ## File identity
 
 - Repository path: `tests/unit/test_cadastre_loader_fr.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
+- Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
-- Source SHA256: `e724a7ac10433602f93022270b72ad077cec1f8fc679b99eed6e954446f25959`
+- Source SHA256: `11133b8fec1b86b6fef37300aa005c152cbdc577b02b2354041f57fdd7f3df18`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Refreshes permanent STEP 7F.1A.4 regression coverage for cadastre loader fr; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -34,41 +37,155 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ### Internal LandScout imports
 
+- `import landscout.sources.cadastre_loader_fr as cadastre_loader`
+- `from landscout import sources`
 - `from landscout.sources.cadastre_fr import CadastreDownload`
 - `from landscout.sources.cadastre_loader_fr import (
     CadastreLoadError,
+    CadastreParcelSource,
     EmptyCadastreDatasetError,
     MissingGeometryColumnError,
     UnsupportedGeometryTypeError,
     load_cadastre_parcels,
+    revalidate_cadastre_parcel_source,
 )`
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-No meaningful module constant is declared.
+### `COMMUNE_CODE`
 
-### B. Type aliases and closed domains
+- Category: module constant or closed domain.
+- Exact declaration:
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+```python
+COMMUNE_CODE = "31395"
+```
 
-### C. Meaningful dunder contracts
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-No meaningful module-level dunder contract is declared.
+### `OFFICIAL_FILENAME`
 
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+- Category: module constant or closed domain.
+- Exact declaration:
 
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+```python
+OFFICIAL_FILENAME = f"cadastre-{COMMUNE_CODE}-parcelles.json.gz"
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+
+### `OFFICIAL_URL`
+
+- Category: module constant or closed domain.
+- Exact declaration:
+
+```python
+OFFICIAL_URL = (
+    "https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/geojson/communes/"
+    f"31/{COMMUNE_CODE}/{OFFICIAL_FILENAME}"
+)
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
 
-## 5. Classes / models / dataclasses
+### Executable module-import-time statements
 
-No class/model/dataclass is declared.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-## 6. Functions and methods
+## 5. Classes, models, dataclasses, and fields
+
+No top-level class/model/dataclass is declared.
+
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
+
+### `test_public_sources_export_the_source_bound_cadastre_api`
+
+**Purpose:** Regression invariant: public sources export the source bound cadastre api. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_public_sources_export_the_source_bound_cadastre_api() -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+- No parameters.
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert sources.CadastreParcelSource is CadastreParcelSource`
+  - `assert sources.load_cadastre_parcels is load_cadastre_parcels`
+  - `assert (<br>        sources.revalidate_cadastre_parcel_source is revalidate_cadastre_parcel_source<br>    )`
+  - `assert set(cadastre_loader.__all__) == expected`
+  - `assert expected <= set(sources.__all__)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_public_sources_export_the_source_bound_cadastre_api() -> None:
+    expected = {
+        "CadastreLoadError",
+        "CadastreParcelSource",
+        "EmptyCadastreDatasetError",
+        "MissingGeometryColumnError",
+        "UnsupportedGeometryTypeError",
+        "load_cadastre_parcels",
+        "revalidate_cadastre_parcel_source",
+    }
+    assert sources.CadastreParcelSource is CadastreParcelSource
+    assert sources.load_cadastre_parcels is load_cadastre_parcels
+    assert (
+        sources.revalidate_cadastre_parcel_source is revalidate_cadastre_parcel_source
+    )
+    assert set(cadastre_loader.__all__) == expected
+    assert expected <= set(sources.__all__)
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_write_geojson`
+
+**Purpose:** Implements `write geojson` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -76,34 +193,47 @@ No class/model/dataclass is declared.
 def _write_geojson(path: Path, features: list[dict]) -> None:
 ```
 
-**Purpose**
-
-Serializes geojson; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
+| `features` | positional-or-keyword | `list[dict]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: `path.write_text`.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_write_geojson`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_cadastre_loader_fr::test_load_valid_gzipped_geojson` via `_write_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_load_valid_gzipped_geojson` via `_write_geojson`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -115,9 +245,11 @@ def _write_geojson(path: Path, features: list[dict]) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_write_gzipped_geojson`
+
+**Purpose:** Implements `write gzipped geojson` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -125,39 +257,63 @@ def _write_geojson(path: Path, features: list[dict]) -> None:
 def _write_gzipped_geojson(path: Path, features: list[dict]) -> None:
 ```
 
-**Purpose**
-
-Serializes gzipped geojson; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
+| `features` | positional-or-keyword | `list[dict]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: `path.write_bytes`.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_write_gzipped_geojson`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_write_gzipped_geojson`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_write_gzipped_geojson`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_write_gzipped_geojson`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_write_gzipped_geojson`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_cadastre_loader_fr::test_load_valid_geojson_preserves_attributes` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_load_valid_geojson_preserves_attributes` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_empty_dataset_fails` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_empty_dataset_fails` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_unsupported_geometry_type_fails` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_unsupported_geometry_type_fails` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_three_dimensional_cadastre_geometry_is_rejected` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_three_dimensional_cadastre_geometry_is_rejected` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_malformed_verified_download_is_rejected_before_parsing` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_malformed_verified_download_is_rejected_before_parsing` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_physical_mutation_after_download_is_rejected_before_parsing` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_physical_mutation_after_download_is_rejected_before_parsing` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_write_gzipped_geojson`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` via `_write_gzipped_geojson`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` via `_write_gzipped_geojson`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `json.dumps({"type": "FeatureCollection", "features": features}).encode` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -169,9 +325,11 @@ def _write_gzipped_geojson(path: Path, features: list[dict]) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_download`
+
+**Purpose:** Implements `download` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -179,46 +337,77 @@ def _write_gzipped_geojson(path: Path, features: list[dict]) -> None:
 def _download(path: Path, **changes: object) -> CadastreDownload:
 ```
 
-**Purpose**
-
-Acquires, verifies, and records download; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `CadastreDownload`.
-- Every observed return expression is reproduced without truncation:
-```python
-CadastreDownload(**values)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
+| `**changes` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: `path.is_file`, `path.read_bytes`.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `sha256`, `sha256(content).hexdigest`.
-- Environment/process effects: none.
-- In-memory mutation: `values`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `CadastreDownload(**values)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_geojson_preserves_attributes` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_load_valid_gzipped_geojson` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_empty_dataset_fails` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_file_fails` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_invalid_file_fails` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_missing_geometry_column_fails` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_unsupported_geometry_type_fails` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_malformed_verified_download_is_rejected_before_parsing` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`.
-- direct call: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_cadastre_loader_fr::test_load_valid_geojson_preserves_attributes` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_load_valid_geojson_preserves_attributes` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_load_valid_gzipped_geojson` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_load_valid_gzipped_geojson` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_empty_dataset_fails` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_empty_dataset_fails` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_missing_file_fails` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_missing_file_fails` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_invalid_file_fails` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_invalid_file_fails` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_missing_geometry_column_fails` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_missing_geometry_column_fails` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_noncanonical_active_geometry_name_fails_with_controlled_error` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_noncanonical_active_geometry_name_fails_with_controlled_error` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_unsupported_geometry_type_fails` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_unsupported_geometry_type_fails` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_three_dimensional_cadastre_geometry_is_rejected` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_three_dimensional_cadastre_geometry_is_rejected` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_malformed_verified_download_is_rejected_before_parsing` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_malformed_verified_download_is_rejected_before_parsing` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_physical_mutation_after_download_is_rejected_before_parsing` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_physical_change_during_read_is_rejected_by_post_read_verification` via `_download`
+- direct call: `tests.unit.test_cadastre_loader_fr::test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` via `_download`
+- value/type reference: `tests.unit.test_cadastre_loader_fr::test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` via `_download`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
+| `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256(content).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
+| `values.update` | `unresolved local/third-party receiver; no ownership inferred` |
+| `CadastreDownload` | `landscout.sources.cadastre_fr.CadastreDownload` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `path.is_file`<br>`path.read_bytes` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `sha256(content).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `values.update(changes)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -226,7 +415,8 @@ CadastreDownload(**values)
 def _download(path: Path, **changes: object) -> CadastreDownload:
     content = path.read_bytes() if path.is_file() else b"missing"
     values: dict[str, object] = {
-        "source_url": "https://cadastre.data.gouv.fr/test/parcels.json.gz",
+        "commune_code": COMMUNE_CODE,
+        "source_url": OFFICIAL_URL,
         "download_timestamp": "2026-08-16T10:00:00+00:00",
         "filename": path.name,
         "file_size": len(content),
@@ -240,75 +430,74 @@ def _download(path: Path, **changes: object) -> CadastreDownload:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_load_valid_geojson_preserves_attributes`
 
-**Purpose**
+**Purpose:** Regression invariant: load valid geojson preserves attributes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `load valid geojson preserves attributes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "parcels.json.gz"
-_write_gzipped_geojson(
-        path,
-        [
-            {
-                "type": "Feature",
-                "properties": {"id": "parcel-1", "section": "AB", "numero": "42"},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
-                },
-            },
-            {
-                "type": "Feature",
-                "properties": {"id": "parcel-2", "section": "AC", "numero": "7"},
-                "geometry": {
-                    "type": "MultiPolygon",
-                    "coordinates": [[[[3, 43], [4, 43], [4, 44], [3, 43]]]],
-                },
-            },
-        ],
-    )
-```
-
-**Action**
-
-```python
-parcels = load_cadastre_parcels(_download(path))
-```
-
-**Expected result**
-
-```python
-assert len(parcels) == 2
-assert list(parcels.columns) == ["id", "section", "numero", "geometry"]
-assert set(parcels.geometry.geom_type) == {"Polygon", "MultiPolygon"}
-assert parcels.crs is not None
-```
-
-**Regression protected**
-
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
-
-**Test boundary**
-
-- Uses a temporary synthetic filesystem/source.
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
-    path = tmp_path / "parcels.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert type(source) is CadastreParcelSource`
+  - `assert len(parcels) == 2`
+  - `assert list(parcels.columns) == ["id", "section", "numero", "geometry"]`
+  - `assert set(parcels.geometry.geom_type) == {"Polygon", "MultiPolygon"}`
+  - `assert parcels.crs is not None`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(
         path,
         [
@@ -331,7 +520,9 @@ def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
         ],
     )
 
-    parcels = load_cadastre_parcels(_download(path))
+    source = load_cadastre_parcels(_download(path))
+    assert type(source) is CadastreParcelSource
+    parcels = source.parcels
 
     assert len(parcels) == 2
     assert list(parcels.columns) == ["id", "section", "numero", "geometry"]
@@ -339,66 +530,74 @@ def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
     assert parcels.crs is not None
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_load_valid_gzipped_geojson`
 
-**Purpose**
+**Purpose:** Regression invariant: load valid gzipped geojson. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `load valid gzipped geojson`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-plain_path = tmp_path / "parcels.geojson"
-gzip_path = tmp_path / "parcels.json.gz"
-_write_geojson(
-        plain_path,
-        [
-            {
-                "type": "Feature",
-                "properties": {"id": "parcel-1"},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
-                },
-            }
-        ],
-    )
-gzip_path.write_bytes(gzip.compress(plain_path.read_bytes()))
+def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-parcels = load_cadastre_parcels(_download(gzip_path))
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert len(parcels) == 1
-assert parcels.iloc[0]["id"] == "parcel-1"
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert len(parcels) == 1`
+  - `assert parcels.iloc[0]["id"] == "parcel-1"`
 
-Locks `load valid gzipped geojson` through the exact asserted conditions: `len(parcels) == 1`; `parcels.iloc[0]['id'] == 'parcel-1'`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_geojson` | `tests.unit.test_cadastre_loader_fr._write_geojson` |
+| `gzip_path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+| `plain_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress`<br>`plain_path.read_bytes` |
+| Filesystem/archive write or publication | `gzip_path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
     plain_path = tmp_path / "parcels.geojson"
-    gzip_path = tmp_path / "parcels.json.gz"
+    gzip_path = tmp_path / OFFICIAL_FILENAME
     _write_geojson(
         plain_path,
         [
@@ -414,212 +613,283 @@ def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
     )
     gzip_path.write_bytes(gzip.compress(plain_path.read_bytes()))
 
-    parcels = load_cadastre_parcels(_download(gzip_path))
+    parcels = load_cadastre_parcels(_download(gzip_path)).parcels
 
     assert len(parcels) == 1
     assert parcels.iloc[0]["id"] == "parcel-1"
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_empty_dataset_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: empty dataset fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `empty dataset fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "empty.json.gz"
-_write_gzipped_geojson(path, [])
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with pytest.raises(EmptyCadastreDatasetError):
-        load_cadastre_parcels(_download(path))
-```
-
-**Regression protected**
-
-Locks `empty dataset fails`: the reproduced adversarial input must raise `EmptyCadastreDatasetError` before the prohibited success path.
-
-**Test boundary**
-
-- Uses a temporary synthetic filesystem/source.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_empty_dataset_fails(tmp_path: Path) -> None:
-    path = tmp_path / "empty.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(EmptyCadastreDatasetError)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_empty_dataset_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(path, [])
 
     with pytest.raises(EmptyCadastreDatasetError):
         load_cadastre_parcels(_download(path))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_missing_file_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: missing file fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `missing file fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_missing_file_fails(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with pytest.raises(CadastreLoadError, match="exist"):
-        load_cadastre_parcels(_download(tmp_path / "missing.json.gz"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match="exist")`
 
-Locks `missing file fails`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_missing_file_fails(tmp_path: Path) -> None:
     with pytest.raises(CadastreLoadError, match="exist"):
-        load_cadastre_parcels(_download(tmp_path / "missing.json.gz"))
+        load_cadastre_parcels(_download(tmp_path / OFFICIAL_FILENAME))
 ```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_invalid_file_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: invalid file fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `invalid file fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "invalid.json.gz"
-path.write_bytes(gzip.compress(b"not GeoJSON"))
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with pytest.raises(CadastreLoadError):
-        load_cadastre_parcels(_download(path))
-```
-
-**Regression protected**
-
-Locks `invalid file fails`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
-
-**Test boundary**
-
-- Uses a temporary synthetic filesystem/source.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_invalid_file_fails(tmp_path: Path) -> None:
-    path = tmp_path / "invalid.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_invalid_file_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     path.write_bytes(gzip.compress(b"not GeoJSON"))
 
     with pytest.raises(CadastreLoadError):
         load_cadastre_parcels(_download(path))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_missing_geometry_column_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: missing geometry column fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `missing geometry column fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "parcels.json.gz"
-path.write_bytes(gzip.compress(b'{' + b' ' * 5 + b'}'))
-frame_without_geometry = gpd.GeoDataFrame({"id": ["parcel-1"]})
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_loader_fr.gpd.read_file",
-            return_value=frame_without_geometry,
-        ),
-        pytest.raises(MissingGeometryColumnError),
-    ):
-        load_cadastre_parcels(_download(path))
-```
-
-**Regression protected**
-
-Locks `missing geometry column fails`: the reproduced adversarial input must raise `MissingGeometryColumnError` before the prohibited success path.
-
-**Test boundary**
-
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_missing_geometry_column_fails(tmp_path: Path) -> None:
-    path = tmp_path / "parcels.json.gz"
-    path.write_bytes(gzip.compress(b'{' + b' ' * 5 + b'}'))
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(MissingGeometryColumnError)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `patch` | `unittest.mock.patch` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_missing_geometry_column_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    path.write_bytes(gzip.compress(b"{" + b" " * 5 + b"}"))
     frame_without_geometry = gpd.GeoDataFrame({"id": ["parcel-1"]})
 
     with (
@@ -632,60 +902,157 @@ def test_missing_geometry_column_fails(tmp_path: Path) -> None:
         load_cadastre_parcels(_download(path))
 ```
 
-### `test_unsupported_geometry_type_fails`
+**Business boundary**
 
-**Purpose**
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
-Exercises `unsupported geometry type fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
+### `test_noncanonical_active_geometry_name_fails_with_controlled_error`
 
-**Pytest argument classification**
+**Purpose:** Regression invariant: noncanonical active geometry name fails with controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-path = tmp_path / "points.json.gz"
-_write_gzipped_geojson(
-        path,
-        [
-            {
-                "type": "Feature",
-                "properties": {"id": "point-1"},
-                "geometry": {"type": "Point", "coordinates": [1, 43]},
-            }
-        ],
+def test_noncanonical_active_geometry_name_fails_with_controlled_error(
+    tmp_path: Path,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(MissingGeometryColumnError, match="canonical geometry")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `gpd.points_from_xy` | `geopandas.points_from_xy` |
+| `patch` | `unittest.mock.patch` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_noncanonical_active_geometry_name_fails_with_controlled_error(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    path.write_bytes(gzip.compress(b"{}"))
+    frame = gpd.GeoDataFrame(
+        {"id": ["parcel-1"], "shape": [gpd.points_from_xy([1], [43])[0]]},
+        geometry="shape",
+        crs="EPSG:4326",
     )
-```
 
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with pytest.raises(UnsupportedGeometryTypeError, match="Point"):
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            return_value=frame,
+        ),
+        pytest.raises(MissingGeometryColumnError, match="canonical geometry"),
+    ):
         load_cadastre_parcels(_download(path))
 ```
 
-**Regression protected**
+**Business boundary**
 
-Locks `unsupported geometry type fails`: the reproduced adversarial input must raise `UnsupportedGeometryTypeError` before the prohibited success path.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
-**Test boundary**
+### `test_unsupported_geometry_type_fails`
 
-- Uses a temporary synthetic filesystem/source.
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+**Purpose:** Regression invariant: unsupported geometry type fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
-    path = tmp_path / "points.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(UnsupportedGeometryTypeError, match="Point")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(
         path,
         [
@@ -701,53 +1068,107 @@ def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
         load_cadastre_parcels(_download(path))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_three_dimensional_cadastre_geometry_is_rejected`
+
+**Purpose:** Regression invariant: three dimensional cadastre geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_three_dimensional_cadastre_geometry_is_rejected(
+    tmp_path: Path,
+    geometry: dict[str, object],
+) -> None:
+```
+
+- Exact decorators: `pytest.mark.parametrize(
+    "geometry",
+    [
+        {
+            "type": "Polygon",
+            "coordinates": [[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]],
+        },
+        {
+            "type": "MultiPolygon",
+            "coordinates": [[[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]]],
+        },
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `geometry` | positional-or-keyword | `dict[str, object]` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(UnsupportedGeometryTypeError, match="2D")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_three_dimensional_cadastre_geometry_is_rejected(
+    tmp_path: Path,
+    geometry: dict[str, object],
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [{"type": "Feature", "properties": {"id": "parcel"}, "geometry": geometry}],
+    )
+
+    with pytest.raises(UnsupportedGeometryTypeError, match="2D"):
+        load_cadastre_parcels(_download(path))
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_malformed_verified_download_is_rejected_before_parsing`
 
-**Purpose**
+**Purpose:** Regression invariant: malformed verified download is rejected before parsing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `malformed verified download is rejected before parsing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `changes`, `message`.
-
-**Setup**
-
-```python
-path = tmp_path / "parcels.json.gz"
-_write_gzipped_geojson(path, [])
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_loader_fr.gpd.read_file",
-            side_effect=AssertionError("parser must not run"),
-        ),
-        pytest.raises(CadastreLoadError, match=message),
-    ):
-        load_cadastre_parcels(_download(path, **changes))
-```
-
-**Regression protected**
-
-Locks `malformed verified download is rejected before parsing`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
-
-**Test boundary**
-
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_malformed_verified_download_is_rejected_before_parsing(
@@ -755,7 +1176,84 @@ def test_malformed_verified_download_is_rejected_before_parsing(
     changes: dict[str, object],
     message: str,
 ) -> None:
-    path = tmp_path / "parcels.json.gz"
+```
+
+- Exact decorators: `pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"sha256": "0" * 64}, "SHA|checksum"),
+        ({"sha256": "A" * 64}, "SHA"),
+        ({"sha256": "a" * 63}, "SHA"),
+        ({"file_size": True}, "size"),
+        ({"file_size": 0}, "size"),
+        ({"filename": "other.json.gz"}, "filename"),
+        ({"source_url": ""}, "URL"),
+        ({"source_url": OFFICIAL_URL.replace("https://", "http://")}, "URL"),
+        (
+            {"source_url": OFFICIAL_URL.replace("cadastre.data.gouv.fr", "evil.test")},
+            "URL",
+        ),
+        ({"commune_code": "31446"}, "URL|commune"),
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `changes` | positional-or-keyword | `dict[str, object]` | `required` |
+| `message` | positional-or-keyword | `str` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match=message)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `patch` | `unittest.mock.patch` |
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `OFFICIAL_URL.replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `OFFICIAL_URL.replace` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_malformed_verified_download_is_rejected_before_parsing(
+    tmp_path: Path,
+    changes: dict[str, object],
+    message: str,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(path, [])
 
     with (
@@ -768,45 +1266,62 @@ def test_malformed_verified_download_is_rejected_before_parsing(
         load_cadastre_parcels(_download(path, **changes))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_wrong_public_input_type_is_controlled`
 
-**Purpose**
+**Purpose:** Regression invariant: wrong public input type is controlled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `wrong public input type is controlled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_wrong_public_input_type_is_controlled() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-with pytest.raises(CadastreLoadError, match="CadastreDownload"):
-        load_cadastre_parcels(Path("untrusted.json.gz"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match="CadastreDownload")`
 
-Locks `wrong public input type is controlled`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- In-memory/local unit boundary defined entirely by the reproduced setup.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `Path` | `pathlib.Path` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_wrong_public_input_type_is_controlled() -> None:
@@ -814,63 +1329,78 @@ def test_wrong_public_input_type_is_controlled() -> None:
         load_cadastre_parcels(Path("untrusted.json.gz"))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_physical_mutation_after_download_is_rejected_before_parsing`
 
-**Purpose**
+**Purpose:** Regression invariant: physical mutation after download is rejected before parsing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `physical mutation after download is rejected before parsing`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "parcels.json.gz"
-_write_gzipped_geojson(path, [])
-download = _download(path)
-content = bytearray(path.read_bytes())
-content[-1] ^= 1
-path.write_bytes(content)
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_loader_fr.gpd.read_file",
-            side_effect=AssertionError("parser must not run"),
-        ),
-        pytest.raises(CadastreLoadError, match="SHA|checksum|gzip"),
-    ):
-        load_cadastre_parcels(download)
-```
-
-**Regression protected**
-
-Locks `physical mutation after download is rejected before parsing`: the reproduced adversarial input must raise `CadastreLoadError` before the prohibited success path.
-
-**Test boundary**
-
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_physical_mutation_after_download_is_rejected_before_parsing(
     tmp_path: Path,
 ) -> None:
-    path = tmp_path / "parcels.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match="SHA\|checksum\|gzip")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `bytearray` | `unresolved local/third-party receiver; no ownership inferred` |
+| `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `patch` | `unittest.mock.patch` |
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `path.read_bytes` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `content[-1] ^= 1` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_physical_mutation_after_download_is_rejected_before_parsing(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(path, [])
     download = _download(path)
     content = bytearray(path.read_bytes())
@@ -887,78 +1417,74 @@ def test_physical_mutation_after_download_is_rejected_before_parsing(
         load_cadastre_parcels(download)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_physical_change_during_read_is_rejected_by_post_read_verification`
 
-**Purpose**
+**Purpose:** Regression invariant: physical change during read is rejected by post read verification. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `physical change during read is rejected by post read verification`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-path = tmp_path / "parcels.json.gz"
-_write_gzipped_geojson(
-        path,
-        [
-            {
-                "type": "Feature",
-                "properties": {"id": "parcel-1"},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
-                },
-            }
-        ],
-    )
-download = _download(path)
-original_read = gpd.read_file
-def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
-        frame = original_read(*args, **kwargs)
-        path.write_bytes(gzip.compress(b'{"type":"FeatureCollection","features":[]}'))
-        return frame
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_loader_fr.gpd.read_file",
-            side_effect=mutate_after_read,
-        ),
-        pytest.raises(CadastreLoadError, match="changed|SHA|size"),
-    ):
-        load_cadastre_parcels(download)
-```
-
-**Regression protected**
-
-Prevents geometry changes from passing a preservation or source-bound comparison merely because other fields were updated coherently.
-
-**Test boundary**
-
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_physical_change_during_read_is_rejected_by_post_read_verification(
     tmp_path: Path,
 ) -> None:
-    path = tmp_path / "parcels.json.gz"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match="changed\|SHA\|size")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `patch` | `unittest.mock.patch` |
+| `pytest.raises` | `pytest.raises` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_physical_change_during_read_is_rejected_by_post_read_verification(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
     _write_gzipped_geojson(
         path,
         [
@@ -990,7 +1516,13 @@ def test_physical_change_during_read_is_rejected_by_post_read_verification(
         load_cadastre_parcels(download)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_physical_change_during_read_is_rejected_by_post_read_verification.mutate_after_read`
+
+**Purpose:** Implements `mutate after read` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -998,37 +1530,48 @@ def test_physical_change_during_read_is_rejected_by_post_read_verification(
 def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Private `test` helper for mutate after read; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: `path.write_bytes`.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `frame`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_loader_fr.py::test_physical_change_during_read_is_rejected_by_post_read_verification` via `patch('landscout.sources.cadastre_loader_fr.gpd.read_file', side_effect=mutate_after_read)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `original_read` | `unresolved local/third-party receiver; no ownership inferred` |
+| `path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gzip.compress` | `gzip.compress` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive write or publication | `path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1041,52 +1584,491 @@ def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread`
+
+**Purpose:** Regression invariant: supplied cadastre frame mutation is rejected by fresh reread. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread(
+    tmp_path: Path,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreLoadError, match="freshly read")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_write_gzipped_geojson` | `tests.unit.test_cadastre_loader_fr._write_gzipped_geojson` |
+| `load_cadastre_parcels` | `landscout.sources.cadastre_loader_fr.load_cadastre_parcels` |
+| `_download` | `tests.unit.test_cadastre_loader_fr._download` |
+| `pytest.raises` | `pytest.raises` |
+| `revalidate_cadastre_parcel_source` | `landscout.sources.cadastre_loader_fr.revalidate_cadastre_parcel_source` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `source.parcels.loc[0, "id"] = "FORGED"` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "313950000A0001"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
+                },
+            }
+        ],
+    )
+    source = load_cadastre_parcels(_download(path))
+    source.parcels.loc[0, "id"] = "FORGED"
+
+    with pytest.raises(CadastreLoadError, match="freshly read"):
+        revalidate_cadastre_parcel_source(source)
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 7. Data contracts
+## 7. Test-specific regression contract
 
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+- Test functions: **15**.
+- Pytest fixtures (decorator-proven): **0**.
 
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+### Per-test regression index
 
-## 8. Interfaces
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_public_sources_export_the_source_bound_cadastre_api` | none | none | 5 | Proves public sources export the source bound cadastre api using the exact source reproduced in section 7. |
+| `test_load_valid_geojson_preserves_attributes` | none | none | 5 | Proves load valid geojson preserves attributes using the exact source reproduced in section 7. |
+| `test_load_valid_gzipped_geojson` | none | none | 2 | Proves load valid gzipped geojson using the exact source reproduced in section 7. |
+| `test_empty_dataset_fails` | none | pytest.raises(EmptyCadastreDatasetError) | 0 | Proves empty dataset fails using the exact source reproduced in section 7. |
+| `test_missing_file_fails` | none | pytest.raises(CadastreLoadError, match="exist") | 0 | Proves missing file fails using the exact source reproduced in section 7. |
+| `test_invalid_file_fails` | none | pytest.raises(CadastreLoadError) | 0 | Proves invalid file fails using the exact source reproduced in section 7. |
+| `test_missing_geometry_column_fails` | none | pytest.raises(MissingGeometryColumnError) | 0 | Proves missing geometry column fails using the exact source reproduced in section 7. |
+| `test_noncanonical_active_geometry_name_fails_with_controlled_error` | none | pytest.raises(MissingGeometryColumnError, match="canonical geometry") | 0 | Proves noncanonical active geometry name fails with controlled error using the exact source reproduced in section 7. |
+| `test_unsupported_geometry_type_fails` | none | pytest.raises(UnsupportedGeometryTypeError, match="Point") | 0 | Proves unsupported geometry type fails using the exact source reproduced in section 7. |
+| `test_three_dimensional_cadastre_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        {<br>            "type": "Polygon",<br>            "coordinates": [[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]],<br>        },<br>        {<br>            "type": "MultiPolygon",<br>            "coordinates": [[[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]]],<br>        },<br>    ],<br>) | pytest.raises(UnsupportedGeometryTypeError, match="2D") | 0 | Proves three dimensional cadastre geometry is rejected using the exact source reproduced in section 7. |
+| `test_malformed_verified_download_is_rejected_before_parsing` | pytest.mark.parametrize(<br>    ("changes", "message"),<br>    [<br>        ({"sha256": "0" * 64}, "SHA\|checksum"),<br>        ({"sha256": "A" * 64}, "SHA"),<br>        ({"sha256": "a" * 63}, "SHA"),<br>        ({"file_size": True}, "size"),<br>        ({"file_size": 0}, "size"),<br>        ({"filename": "other.json.gz"}, "filename"),<br>        ({"source_url": ""}, "URL"),<br>        ({"source_url": OFFICIAL_URL.replace("https://", "http://")}, "URL"),<br>        (<br>            {"source_url": OFFICIAL_URL.replace("cadastre.data.gouv.fr", "evil.test")},<br>            "URL",<br>        ),<br>        ({"commune_code": "31446"}, "URL\|commune"),<br>    ],<br>) | pytest.raises(CadastreLoadError, match=message) | 0 | Proves malformed verified download is rejected before parsing using the exact source reproduced in section 7. |
+| `test_wrong_public_input_type_is_controlled` | none | pytest.raises(CadastreLoadError, match="CadastreDownload") | 0 | Proves wrong public input type is controlled using the exact source reproduced in section 7. |
+| `test_physical_mutation_after_download_is_rejected_before_parsing` | none | pytest.raises(CadastreLoadError, match="SHA\|checksum\|gzip") | 0 | Proves physical mutation after download is rejected before parsing using the exact source reproduced in section 7. |
+| `test_physical_change_during_read_is_rejected_by_post_read_verification` | none | pytest.raises(CadastreLoadError, match="changed\|SHA\|size") | 0 | Proves physical change during read is rejected by post read verification using the exact source reproduced in section 7. |
+| `test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` | none | pytest.raises(CadastreLoadError, match="freshly read") | 0 | Proves supplied cadastre frame mutation is rejected by fresh reread using the exact source reproduced in section 7. |
 
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
+## 8. Public exports and package ownership
 
-## 9. Error handling
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
+## 9. Trust, provenance, side effects, and business boundary
 
-## 10. Side effects
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
+## 10. Change impact
 
-## 11. Security / trust boundaries
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
 
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+import gzip
+import json
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+
+import geopandas as gpd
+import pytest
+
+import landscout.sources.cadastre_loader_fr as cadastre_loader
+from landscout import sources
+from landscout.sources.cadastre_fr import CadastreDownload
+from landscout.sources.cadastre_loader_fr import (
+    CadastreLoadError,
+    CadastreParcelSource,
+    EmptyCadastreDatasetError,
+    MissingGeometryColumnError,
+    UnsupportedGeometryTypeError,
+    load_cadastre_parcels,
+    revalidate_cadastre_parcel_source,
+)
+
+COMMUNE_CODE = "31395"
+OFFICIAL_FILENAME = f"cadastre-{COMMUNE_CODE}-parcelles.json.gz"
+OFFICIAL_URL = (
+    "https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/geojson/communes/"
+    f"31/{COMMUNE_CODE}/{OFFICIAL_FILENAME}"
+)
 
 
-## 12. GIS / CRS rules
+def test_public_sources_export_the_source_bound_cadastre_api() -> None:
+    expected = {
+        "CadastreLoadError",
+        "CadastreParcelSource",
+        "EmptyCadastreDatasetError",
+        "MissingGeometryColumnError",
+        "UnsupportedGeometryTypeError",
+        "load_cadastre_parcels",
+        "revalidate_cadastre_parcel_source",
+    }
+    assert sources.CadastreParcelSource is CadastreParcelSource
+    assert sources.load_cadastre_parcels is load_cadastre_parcels
+    assert (
+        sources.revalidate_cadastre_parcel_source is revalidate_cadastre_parcel_source
+    )
+    assert set(cadastre_loader.__all__) == expected
+    assert expected <= set(sources.__all__)
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
-## 13. Provenance rules
+def _write_geojson(path: Path, features: list[dict]) -> None:
+    content = {"type": "FeatureCollection", "features": features}
+    path.write_text(json.dumps(content), encoding="utf-8")
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
-## 14. Business meaning
+def _write_gzipped_geojson(path: Path, features: list[dict]) -> None:
+    content = json.dumps({"type": "FeatureCollection", "features": features}).encode()
+    path.write_bytes(gzip.compress(content))
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
-## 15. Explicit non-goals
+def _download(path: Path, **changes: object) -> CadastreDownload:
+    content = path.read_bytes() if path.is_file() else b"missing"
+    values: dict[str, object] = {
+        "commune_code": COMMUNE_CODE,
+        "source_url": OFFICIAL_URL,
+        "download_timestamp": "2026-08-16T10:00:00+00:00",
+        "filename": path.name,
+        "file_size": len(content),
+        "sha256": sha256(content).hexdigest(),
+        "path": path,
+        "cache_hit": True,
+    }
+    values.update(changes)
+    return CadastreDownload(**values)  # type: ignore[arg-type]
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-## 16. Tests
+def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "parcel-1", "section": "AB", "numero": "42"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
+                },
+            },
+            {
+                "type": "Feature",
+                "properties": {"id": "parcel-2", "section": "AC", "numero": "7"},
+                "geometry": {
+                    "type": "MultiPolygon",
+                    "coordinates": [[[[3, 43], [4, 43], [4, 44], [3, 43]]]],
+                },
+            },
+        ],
+    )
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+    source = load_cadastre_parcels(_download(path))
+    assert type(source) is CadastreParcelSource
+    parcels = source.parcels
 
-## 17. Change impact
+    assert len(parcels) == 2
+    assert list(parcels.columns) == ["id", "section", "numero", "geometry"]
+    assert set(parcels.geometry.geom_type) == {"Polygon", "MultiPolygon"}
+    assert parcels.crs is not None
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+
+def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
+    plain_path = tmp_path / "parcels.geojson"
+    gzip_path = tmp_path / OFFICIAL_FILENAME
+    _write_geojson(
+        plain_path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "parcel-1"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
+                },
+            }
+        ],
+    )
+    gzip_path.write_bytes(gzip.compress(plain_path.read_bytes()))
+
+    parcels = load_cadastre_parcels(_download(gzip_path)).parcels
+
+    assert len(parcels) == 1
+    assert parcels.iloc[0]["id"] == "parcel-1"
+
+
+def test_empty_dataset_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(path, [])
+
+    with pytest.raises(EmptyCadastreDatasetError):
+        load_cadastre_parcels(_download(path))
+
+
+def test_missing_file_fails(tmp_path: Path) -> None:
+    with pytest.raises(CadastreLoadError, match="exist"):
+        load_cadastre_parcels(_download(tmp_path / OFFICIAL_FILENAME))
+
+
+def test_invalid_file_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    path.write_bytes(gzip.compress(b"not GeoJSON"))
+
+    with pytest.raises(CadastreLoadError):
+        load_cadastre_parcels(_download(path))
+
+
+def test_missing_geometry_column_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    path.write_bytes(gzip.compress(b"{" + b" " * 5 + b"}"))
+    frame_without_geometry = gpd.GeoDataFrame({"id": ["parcel-1"]})
+
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            return_value=frame_without_geometry,
+        ),
+        pytest.raises(MissingGeometryColumnError),
+    ):
+        load_cadastre_parcels(_download(path))
+
+
+def test_noncanonical_active_geometry_name_fails_with_controlled_error(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    path.write_bytes(gzip.compress(b"{}"))
+    frame = gpd.GeoDataFrame(
+        {"id": ["parcel-1"], "shape": [gpd.points_from_xy([1], [43])[0]]},
+        geometry="shape",
+        crs="EPSG:4326",
+    )
+
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            return_value=frame,
+        ),
+        pytest.raises(MissingGeometryColumnError, match="canonical geometry"),
+    ):
+        load_cadastre_parcels(_download(path))
+
+
+def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "point-1"},
+                "geometry": {"type": "Point", "coordinates": [1, 43]},
+            }
+        ],
+    )
+
+    with pytest.raises(UnsupportedGeometryTypeError, match="Point"):
+        load_cadastre_parcels(_download(path))
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        {
+            "type": "Polygon",
+            "coordinates": [[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]],
+        },
+        {
+            "type": "MultiPolygon",
+            "coordinates": [[[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]]],
+        },
+    ],
+)
+def test_three_dimensional_cadastre_geometry_is_rejected(
+    tmp_path: Path,
+    geometry: dict[str, object],
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [{"type": "Feature", "properties": {"id": "parcel"}, "geometry": geometry}],
+    )
+
+    with pytest.raises(UnsupportedGeometryTypeError, match="2D"):
+        load_cadastre_parcels(_download(path))
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"sha256": "0" * 64}, "SHA|checksum"),
+        ({"sha256": "A" * 64}, "SHA"),
+        ({"sha256": "a" * 63}, "SHA"),
+        ({"file_size": True}, "size"),
+        ({"file_size": 0}, "size"),
+        ({"filename": "other.json.gz"}, "filename"),
+        ({"source_url": ""}, "URL"),
+        ({"source_url": OFFICIAL_URL.replace("https://", "http://")}, "URL"),
+        (
+            {"source_url": OFFICIAL_URL.replace("cadastre.data.gouv.fr", "evil.test")},
+            "URL",
+        ),
+        ({"commune_code": "31446"}, "URL|commune"),
+    ],
+)
+def test_malformed_verified_download_is_rejected_before_parsing(
+    tmp_path: Path,
+    changes: dict[str, object],
+    message: str,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(path, [])
+
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            side_effect=AssertionError("parser must not run"),
+        ),
+        pytest.raises(CadastreLoadError, match=message),
+    ):
+        load_cadastre_parcels(_download(path, **changes))
+
+
+def test_wrong_public_input_type_is_controlled() -> None:
+    with pytest.raises(CadastreLoadError, match="CadastreDownload"):
+        load_cadastre_parcels(Path("untrusted.json.gz"))  # type: ignore[arg-type]
+
+
+def test_physical_mutation_after_download_is_rejected_before_parsing(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(path, [])
+    download = _download(path)
+    content = bytearray(path.read_bytes())
+    content[-1] ^= 1
+    path.write_bytes(content)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            side_effect=AssertionError("parser must not run"),
+        ),
+        pytest.raises(CadastreLoadError, match="SHA|checksum|gzip"),
+    ):
+        load_cadastre_parcels(download)
+
+
+def test_physical_change_during_read_is_rejected_by_post_read_verification(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "parcel-1"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
+                },
+            }
+        ],
+    )
+    download = _download(path)
+    original_read = gpd.read_file
+
+    def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
+        frame = original_read(*args, **kwargs)
+        path.write_bytes(gzip.compress(b'{"type":"FeatureCollection","features":[]}'))
+        return frame
+
+    with (
+        patch(
+            "landscout.sources.cadastre_loader_fr.gpd.read_file",
+            side_effect=mutate_after_read,
+        ),
+        pytest.raises(CadastreLoadError, match="changed|SHA|size"),
+    ):
+        load_cadastre_parcels(download)
+
+
+def test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / OFFICIAL_FILENAME
+    _write_gzipped_geojson(
+        path,
+        [
+            {
+                "type": "Feature",
+                "properties": {"id": "313950000A0001"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[1, 43], [2, 43], [2, 44], [1, 43]]],
+                },
+            }
+        ],
+    )
+    source = load_cadastre_parcels(_download(path))
+    source.parcels.loc[0, "id"] = "FORGED"
+
+    with pytest.raises(CadastreLoadError, match="freshly read"):
+        revalidate_cadastre_parcel_source(source)
+```

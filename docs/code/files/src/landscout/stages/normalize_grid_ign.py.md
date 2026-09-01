@@ -4,18 +4,21 @@
 
 - Repository path: `src/landscout/stages/normalize_grid_ign.py`
 - File type: Python source
-- Layer: factual/source normalization stage
-- Domain: grid/source
+- Layer: pipeline stage
+- Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
-- Source SHA256: `f287bded75c93f0a451e5819c7edcd99bdeb8e7a161069dbf99cd019e35ae290`
+- Source SHA256: `e89baab63d48517ce48f3fbdf03602673786ca33f1671f3abf9cb366d57948a0`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Consumes fresh config-bound electricity objects and rows returned by independent source-complete revalidation.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **factual/source normalization stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -54,33 +57,72 @@ This file belongs to the **factual/source normalization stage** layer and the **
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `SOURCE_PROVIDER`
+### `SOURCE_PROVIDER`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 SOURCE_PROVIDER = "IGN"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_base_output` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `SOURCE_PRODUCT`
+### `SOURCE_PRODUCT`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 SOURCE_PRODUCT = "BD_TOPO"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_base_output` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `SPATIAL_ROLE`
+### `SPATIAL_ROLE`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validated_geodataframe` (value reference), `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `PACKAGE_LINEAGE_COLUMNS`
+### `VoltageStatus`
+
+- Category: type alias or closed annotated domain.
+- Exact declaration:
+
+```python
+VoltageStatus = Literal["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+
+### `GeometryStatus`
+
+- Category: type alias or closed annotated domain.
+- Exact declaration:
+
+```python
+GeometryStatus = Literal["VALID", "NULL", "EMPTY", "INVALID"]
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+
+### `PACKAGE_LINEAGE_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 PACKAGE_LINEAGE_COLUMNS = (
@@ -93,9 +135,20 @@ PACKAGE_LINEAGE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::<module>` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `source_department_code`
+  - `source_edition`
+  - `source_product_version`
+  - `source_download_timestamp`
+  - `source_archive_sha256`
+  - `source_url`
 
-#### `LINE_OUTPUT_COLUMNS`
+### `LINE_OUTPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 LINE_OUTPUT_COLUMNS = (
@@ -126,9 +179,21 @@ LINE_OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value reference).
+- Qualified consumers:
+  - import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
+    LINE_OUTPUT_COLUMNS,
+    TRANSFORMATION_POST_OUTPUT_COLUMNS,
+    IgnGridNormalizationError,
+    NormalizedIgnElectricityData,
+    parse_ign_voltage,
+)`
+  - value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_line_has_stable_identity_lineage_and_range_index` via `LINE_OUTPUT_COLUMNS`
+  - value/type reference: `tests.unit.test_normalize_grid_ign::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `LINE_OUTPUT_COLUMNS`
 
-#### `TRANSFORMATION_POST_OUTPUT_COLUMNS`
+### `TRANSFORMATION_POST_OUTPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 TRANSFORMATION_POST_OUTPUT_COLUMNS = (
@@ -158,9 +223,20 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (import), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value reference).
+- Qualified consumers:
+  - import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
+    LINE_OUTPUT_COLUMNS,
+    TRANSFORMATION_POST_OUTPUT_COLUMNS,
+    IgnGridNormalizationError,
+    NormalizedIgnElectricityData,
+    parse_ign_voltage,
+)`
+  - value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `TRANSFORMATION_POST_OUTPUT_COLUMNS`
 
-#### `LINE_SOURCE_FIELDS`
+### `LINE_SOURCE_FIELDS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 LINE_SOURCE_FIELDS = frozenset(
@@ -182,9 +258,13 @@ LINE_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `TRANSFORMATION_POST_SOURCE_FIELDS`
+### `TRANSFORMATION_POST_SOURCE_FIELDS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
@@ -206,35 +286,49 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `LINE_GEOMETRY_TYPES`
+### `LINE_GEOMETRY_TYPES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `TRANSFORMATION_POST_GEOMETRY_TYPES`
+### `TRANSFORMATION_POST_GEOMETRY_TYPES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 TRANSFORMATION_POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_EXACT_VOLTAGE_PATTERN`
+### `_EXACT_VOLTAGE_PATTERN`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
-_EXACT_VOLTAGE_PATTERN = re.compile(
-    r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE
-)
+_EXACT_VOLTAGE_PATTERN = re.compile(r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE)
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_BELOW_VOLTAGE_PATTERN`
+### `_BELOW_VOLTAGE_PATTERN`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _BELOW_VOLTAGE_PATTERN = re.compile(
@@ -242,9 +336,13 @@ _BELOW_VOLTAGE_PATTERN = re.compile(
 )
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_UNKNOWN_VOLTAGE_TERMS`
+### `_UNKNOWN_VOLTAGE_TERMS`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _UNKNOWN_VOLTAGE_TERMS = frozenset(
@@ -252,49 +350,73 @@ _UNKNOWN_VOLTAGE_TERMS = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_DEENERGIZED_VOLTAGE_TERMS`
+### `_DEENERGIZED_VOLTAGE_TERMS`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_DEPARTMENT_CODE_VALIDATOR`
+### `_DEPARTMENT_CODE_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_EDITION_VALIDATOR`
+### `_EDITION_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_HTTP_URL_VALIDATOR`
+### `_HTTP_URL_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_SHA256_PATTERN`
+### `_SHA256_PATTERN`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_IGN_PROVIDER_IDENTITIES`
+### `_IGN_PROVIDER_IDENTITIES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _IGN_PROVIDER_IDENTITIES = frozenset(
@@ -306,106 +428,94 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-#### `VoltageStatus`
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-```python
-VoltageStatus = Literal["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]
-```
-
-IGN voltage parser result: EXACT, BELOW, UNKNOWN, DEENERGIZED, or UNPARSED. Enforced/consumed by `src/landscout/stages/normalize_grid_ign.py::IgnVoltageNormalization` (type annotation).
-
-#### `GeometryStatus`
-
-```python
-GeometryStatus = Literal["VALID", "NULL", "EMPTY", "INVALID"]
-```
-
-Factual source-geometry quality state: VALID, NULL, EMPTY, or INVALID. No statically owned repository consumer was proven; the declaration remains authoritative for its local runtime use.
-
-
-### C. Meaningful dunder contracts
-
-No meaningful module-level dunder contract is declared.
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
+## 5. Classes, models, dataclasses, and fields
 
 ### `IgnGridNormalizationError`
 
-**Purpose:** Raised when IGN electricity data cannot be normalized safely.
+**Source purpose:** Raised when IGN electricity data cannot be normalized safely.
 
-**Kind:** controlled exception.
+- Exact decorators: none.
+- Exact bases: `ValueError`.
 
-**Inheritance:** `ValueError`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+No direct class/model/dataclass or `self` field assignment is declared.
 
-**Fields:** none declared directly on this class.
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
-)`.
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- constructor call: `landscout.stages.normalize_grid_ign::_validated_lambert93` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validated_lambert93` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_required_exact_string` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_required_exact_string` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_source_context` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_context` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_input` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_input` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_valid_geometry_types` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_valid_geometry_types` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_normalized_precision` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalized_precision` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validated_geodataframe` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validated_geodataframe` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_normalized_identity` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalized_identity` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `IgnGridNormalizationError`
+- constructor call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `IgnGridNormalizationError`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `IgnGridNormalizationError`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
-)`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validated_lambert93` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_required_exact_string` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_valid_geometry_types` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validated_geodataframe` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_normalized_identity` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `IgnGridNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `IgnGridNormalizationError`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `pytest.raises(IgnGridNormalizationError, match='archive_sha256')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `pytest.raises(IgnGridNormalizationError)`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnGridNormalizationError)`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `pytest.raises(IgnGridNormalizationError)`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='cleabs|null|empty')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `pytest.raises(IgnGridNormalizationError, match='cleabs|whitespace|control|:')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `pytest.raises(IgnGridNormalizationError, match=column)`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `pytest.raises(IgnGridNormalizationError, match='unique')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `pytest.raises(IgnGridNormalizationError, match='geometry types')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `pytest.raises(IgnGridNormalizationError, match='physical|fresh|source')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `pytest.raises(IgnGridNormalizationError, match=message)`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `pytest.raises(IgnGridNormalizationError, match='row count')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `pytest.raises(IgnGridNormalizationError, match='summary layer')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `pytest.raises(IgnGridNormalizationError, match='logical name')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `pytest.raises(IgnGridNormalizationError, match='CRS|2154')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `pytest.raises(IgnGridNormalizationError, match='schema|columns|dtype')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|duplicate')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `pytest.raises(IgnGridNormalizationError, match='inventory|selected')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `pytest.raises(IgnGridNormalizationError, match='same layer|distinct|role')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `pytest.raises(IgnGridNormalizationError, match='geometry summary')`.
-- expected exception type: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `pytest.raises(IgnGridNormalizationError, match='PROXY_GEOMETRY')`.
+)`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_internal_source_context_rejects_uppercase_sha256` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_grid_summary_requires_strict_structural_types` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_grid_archive_sha256_requires_canonical_lowercase` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_internal_source_context_rejects_invalid_lineage_values` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_null_or_empty_line_cleabs_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_unsafe_source_id_is_rejected_without_rewriting` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_duplicate_line_cleabs_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_line_missing_or_wrong_crs_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_missing_required_line_field_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_invalid_line_precision_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_duplicate_post_cleabs_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_invalid_post_precision_fails` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_polygon_or_point_is_rejected_as_electric_line` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_line_or_point_is_rejected_as_transformation_post` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_incompatible_archive_identity` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_archive_identity_requires_exact_pinned_strings` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_summary_row_count_mismatch` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_summary_layer_name_mismatch` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_wrong_logical_name` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_summary_crs_mismatch` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_forged_ordered_summary_schema` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_colliding_electricity_roles` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `IgnGridNormalizationError`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_high_level_rejects_any_spatial_role_mismatch` via `IgnGridNormalizationError`
 
 **Exact class source**
 
@@ -416,39 +526,38 @@ class IgnGridNormalizationError(ValueError):
 
 ### `_IgnGridSourceContext`
 
-**Purpose:** Immutable source-package context persisted on every normalized row.
+**Source purpose:** Immutable source-package context persisted on every normalized row.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `source_layer` | `str` | `required` | `source_layer: str` |
+| `department_code` | `str` | `required` | `department_code: str` |
+| `edition` | `str` | `required` | `edition: str` |
+| `product_version` | `str \| None` | `required` | `product_version: str \| None` |
+| `download_timestamp` | `str` | `required` | `download_timestamp: str` |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
+| `source_url` | `str` | `required` | `source_url: str` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
-| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
-| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
-| `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
-| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_context` via `_IgnGridSourceContext`
+- value/type reference: `landscout.stages.normalize_grid_ign::_base_output` via `_IgnGridSourceContext`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_IgnGridSourceContext`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_IgnGridSourceContext`
+- constructor call: `landscout.stages.normalize_grid_ign::_source_context` via `_IgnGridSourceContext`
+- value/type reference: `landscout.stages.normalize_grid_ign::_source_context` via `_IgnGridSourceContext`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     _IgnGridSourceContext as IgnGridSourceContext,
-)`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_IgnGridSourceContext`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::_base_output` via `_IgnGridSourceContext`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_IgnGridSourceContext`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_IgnGridSourceContext`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `_IgnGridSourceContext`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::_source_context` via `_IgnGridSourceContext`.
-- type annotation: `tests/unit/test_normalize_grid_ign.py::_context` via `IgnGridSourceContext`.
-- constructor call: `tests/unit/test_normalize_grid_ign.py::_context` via `IgnGridSourceContext`.
+)`
+- constructor call: `tests.unit.test_normalize_grid_ign::_context` via `IgnGridSourceContext`
+- value/type reference: `tests.unit.test_normalize_grid_ign::_context` via `IgnGridSourceContext`
 
 **Exact class source**
 
@@ -467,34 +576,33 @@ class _IgnGridSourceContext:
 
 ### `IgnVoltageNormalization`
 
-**Purpose:** One source voltage value and its explicit normalized semantics.
+**Source purpose:** One source voltage value and its explicit normalized semantics.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `raw` | `str \| None` | `required` | `raw: str \| None` |
+| `status` | `VoltageStatus` | `required` | `status: VoltageStatus` |
+| `voltage_kv` | `float \| None` | `required` | `voltage_kv: float \| None` |
+| `voltage_upper_bound_kv` | `float \| None` | `required` | `voltage_upper_bound_kv: float \| None` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `raw` | `raw: str \| None` | Exact raw source value retained before the owning parser/normalizer derives additional facts. |
-| `status` | `status: VoltageStatus` | `IgnVoltageNormalization.status` represents the `status` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `voltage_kv` | `voltage_kv: float \| None` | Parsed or profiled voltage level in kilovolts. |
-| `voltage_upper_bound_kv` | `voltage_upper_bound_kv: float \| None` | Upper kilovolt bound retained when an IGN voltage source value is a range. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
-)`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `IgnVoltageNormalization`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `IgnVoltageNormalization`.
+)`
+- constructor call: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `IgnVoltageNormalization`
+- value/type reference: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `IgnVoltageNormalization`
 
 **Exact class source**
 
@@ -510,46 +618,47 @@ class IgnVoltageNormalization:
 
 ### `NormalizedIgnElectricityData`
 
-**Purpose:** Immutable result containing normalized IGN electricity-line and transformation-post GeoDataFrames.
+**Source purpose:** Defines `NormalizedIgnElectricityData`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `electric_lines` | `gpd.GeoDataFrame` | `required` | `electric_lines: gpd.GeoDataFrame` |
+| `transformation_posts` | `gpd.GeoDataFrame` | `required` | `transformation_posts: gpd.GeoDataFrame` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `electric_lines` | `electric_lines: gpd.GeoDataFrame` | Factual IGN electricity-line GeoDataFrame owned by this source/normalized result. |
-| `transformation_posts` | `transformation_posts: gpd.GeoDataFrame` | `NormalizedIgnElectricityData.transformation_posts` represents the `transformation_posts` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
-)`.
-- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- import: `landscout.stages.enrich_grid_proximity::<module>` via `from landscout.stages.normalize_grid_ign import (
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
-)`.
-- import: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import NormalizedIgnElectricityData`.
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- value/type reference: `landscout.stages.enrich_grid_proximity::enrich_parcel_grid_proximity` via `NormalizedIgnElectricityData`
+- constructor call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `NormalizedIgnElectricityData`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `NormalizedIgnElectricityData`
+- import: `tests.unit.test_enrich_grid_proximity::<module>` via `from landscout.stages.normalize_grid_ign import NormalizedIgnElectricityData`
+- constructor call: `tests.unit.test_enrich_grid_proximity::test_public_proximity_normalizes_verified_source_exactly_once` via `NormalizedIgnElectricityData`
+- value/type reference: `tests.unit.test_enrich_grid_proximity::test_public_proximity_normalizes_verified_source_exactly_once` via `NormalizedIgnElectricityData`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
-)`.
-- type annotation: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
-- constructor call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
-- constructor call: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `NormalizedIgnElectricityData`.
-- type annotation: `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` via `NormalizedIgnElectricityData`.
+)`
+- value/type reference: `tests.unit.test_normalize_grid_ign::normalize_ign_electricity` via `NormalizedIgnElectricityData`
 
 **Exact class source**
 
@@ -560,9 +669,11 @@ class NormalizedIgnElectricityData:
 ```
 
 
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_normalized_term`
+
+**Purpose:** Implements `normalized term` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -570,37 +681,52 @@ class NormalizedIgnElectricityData:
 def _normalized_term(value: str) -> str:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for normalized term; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-' '.join(without_accents.split())
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `" ".join(without_accents.split())`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_normalized_term`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_normalized_term`
+- value/type reference: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_normalized_term`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `unicodedata.normalize` | `unicodedata.normalize` |
+| `value.strip().casefold` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `unicodedata.combining` | `unicodedata.combining` |
+| `" ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `without_accents.split` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -608,18 +734,18 @@ Private `grid/source` helper for normalized term; its complete implementation be
 def _normalized_term(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value.strip().casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(without_accents.split())
 ```
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_positive_voltage`
+
+**Purpose:** Implements `positive voltage` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -627,37 +753,49 @@ def _normalized_term(value: str) -> str:
 def _positive_voltage(match: re.Match[str]) -> float | None:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for positive voltage; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `float | None`.
-- Every observed return expression is reproduced without truncation:
-```python
-value if value > 0 and isfinite(value) else None
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `match` | positional-or-keyword | `re.Match[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value if value > 0 and isfinite(value) else None`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_positive_voltage`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_positive_voltage`
+- value/type reference: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_positive_voltage`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `match.group("value").replace` | `unresolved local/third-party receiver; no ownership inferred` |
+| `match.group` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isfinite` | `math.isfinite` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `match.group("value").replace` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -669,9 +807,11 @@ def _positive_voltage(match: re.Match[str]) -> float | None:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_is_missing_scalar`
+
+**Purpose:** Implements `is missing scalar` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -679,42 +819,52 @@ def _positive_voltage(match: re.Match[str]) -> float | None:
 def _is_missing_scalar(value: object) -> bool:
 ```
 
-**Purpose**
-
-Tests whether missing scalar; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-bool(pd.isna(value))
 
-True
+**Inputs**
 
-False
-```
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-**Validation and exceptions**
+**Return and exception contract**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+- Exact observed return expressions:
+  - `True`
+  - `False`
+  - `bool(pd.isna(value))`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Side effects**
+**Qualified relationships**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_is_missing_scalar`
+- value/type reference: `landscout.stages.normalize_grid_ign::parse_ign_voltage` via `_is_missing_scalar`
+- direct call: `landscout.stages.normalize_grid_ign::_normalized_precision` via `_is_missing_scalar`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalized_precision` via `_is_missing_scalar`
 
-**Repository interfaces and consumers**
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `is_scalar` | `pandas.api.types.is_scalar` |
+| `bool` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.isna` | `pandas.isna` |
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_is_missing_scalar`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `_is_missing_scalar`.
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -729,9 +879,15 @@ def _is_missing_scalar(value: object) -> bool:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `parse_ign_voltage`
+
+**Purpose:** Parse scalar IGN voltage vocabulary without inventing precision.
+
+    Unsupported list-like or array-like inputs are preserved as text and
+    classified ``UNPARSED`` rather than reaching Pandas' ambiguous truth-value
+    handling.
 
 **Exact signature**
 
@@ -739,69 +895,86 @@ def _is_missing_scalar(value: object) -> bool:
 def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
 ```
 
-**Purpose**
-
-Parse scalar IGN voltage vocabulary without inventing precision. Unsupported list-like or array-like inputs are preserved as text and classified ``UNPARSED`` rather than reaching Pandas' ambiguous truth-value handling.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `IgnVoltageNormalization`.
-- Every observed return expression is reproduced without truncation:
-```python
-IgnVoltageNormalization(raw, 'UNPARSED', None, None)
 
-IgnVoltageNormalization(str(value), 'UNPARSED', None, None)
+**Inputs**
 
-IgnVoltageNormalization(None, 'UNKNOWN', None, None)
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-IgnVoltageNormalization(raw, 'UNKNOWN', None, None)
+**Return and exception contract**
 
-IgnVoltageNormalization(raw, 'DEENERGIZED', None, None)
+- Exact observed return expressions:
+  - `IgnVoltageNormalization(str(value), "UNPARSED", None, None)`
+  - `IgnVoltageNormalization(None, "UNKNOWN", None, None)`
+  - `IgnVoltageNormalization(raw, "UNKNOWN", None, None)`
+  - `IgnVoltageNormalization(raw, "DEENERGIZED", None, None)`
+  - `IgnVoltageNormalization(raw, "BELOW", None, upper_bound)`
+  - `IgnVoltageNormalization(raw, "EXACT", exact, None)`
+  - `IgnVoltageNormalization(raw, "UNPARSED", None, None)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-IgnVoltageNormalization(raw, 'BELOW', None, upper_bound)
+**Qualified relationships**
 
-IgnVoltageNormalization(raw, 'EXACT', exact, None)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
-)`.
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `parse_ign_voltage`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `parse_ign_voltage`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
     NormalizedIgnElectricityData,
     parse_ign_voltage,
-)`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_exact_voltage_parser_is_generic_and_finite` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_bounded_voltage_is_generic_finite_and_not_exact` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_unknown_voltage_parser` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_parser` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` via `parse_ign_voltage`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_or_overflowing_numeric_voltage_is_unparsed` via `parse_ign_voltage`.
+)`
+- direct call: `tests.unit.test_normalize_grid_ign::test_exact_voltage_parser_is_generic_and_finite` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_exact_voltage_parser_is_generic_and_finite` via `parse_ign_voltage`
+- direct call: `tests.unit.test_normalize_grid_ign::test_bounded_voltage_is_generic_finite_and_not_exact` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_bounded_voltage_is_generic_finite_and_not_exact` via `parse_ign_voltage`
+- direct call: `tests.unit.test_normalize_grid_ign::test_unknown_voltage_parser` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_unknown_voltage_parser` via `parse_ign_voltage`
+- direct call: `tests.unit.test_normalize_grid_ign::test_deenergized_voltage_parser` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_deenergized_voltage_parser` via `parse_ign_voltage`
+- direct call: `tests.unit.test_normalize_grid_ign::test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` via `parse_ign_voltage`
+- direct call: `tests.unit.test_normalize_grid_ign::test_invalid_or_overflowing_numeric_voltage_is_unparsed` via `parse_ign_voltage`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_invalid_or_overflowing_numeric_voltage_is_unparsed` via `parse_ign_voltage`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `is_scalar` | `pandas.api.types.is_scalar` |
+| `IgnVoltageNormalization` | `landscout.stages.normalize_grid_ign.IgnVoltageNormalization` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_is_missing_scalar` | `landscout.stages.normalize_grid_ign._is_missing_scalar` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalized_term` | `landscout.stages.normalize_grid_ign._normalized_term` |
+| `_BELOW_VOLTAGE_PATTERN.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_positive_voltage` | `landscout.stages.normalize_grid_ign._positive_voltage` |
+| `_EXACT_VOLTAGE_PATTERN.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -843,9 +1016,11 @@ def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validated_lambert93`
+
+**Purpose:** Implements `validated lambert93` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -853,40 +1028,57 @@ def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
 def _validated_lambert93(crs_value: object, label: str) -> CRS:
 ```
 
-**Purpose**
-
-Checks and returns canonical lambert93; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `CRS`.
-- Every observed return expression is reproduced without truncation:
-```python
-source_crs
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `crs_value is None`.
-- Guard with a raise path: `not source_crs.is_projected or not source_crs.equals(expected_crs)`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'{label} CRS is required')`, `IgnGridNormalizationError(f'{label} CRS is unreadable')`, `IgnGridNormalizationError(f'{label} must use EPSG:2154')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `crs_value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `source_crs`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(f"{label} CRS is required")` under lexical guard `crs_value is None`.
+  - `IgnGridNormalizationError(f"{label} CRS is unreadable")`.
+  - `IgnGridNormalizationError(f"{label} must use EPSG:2154")` under lexical guard `not source_crs.is_projected or not source_crs.equals(expected_crs)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_input` via `_validated_lambert93`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_validated_lambert93`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_input` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_input` via `_validated_lambert93`
+- direct call: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `_validated_lambert93`
+- direct call: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `_validated_lambert93`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `CRS.from_user_input` | `pyproj.CRS.from_user_input` |
+| `CRS.from_epsg` | `pyproj.CRS.from_epsg` |
+| `source_crs.equals` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -906,9 +1098,11 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_required_exact_string`
+
+**Purpose:** Implements `required exact string` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -916,38 +1110,51 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 def _required_exact_string(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for required exact string; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-value
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, str) or not value.strip()`.
-- Guard with a raise path: `value != value.strip()`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'IGN source context {label} must be a string')`, `IgnGridNormalizationError(f'IGN source context {label} must not contain edge whitespace')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(f"IGN source context {label} must be a string")` under lexical guard `not isinstance(value, str) or not value.strip()`.
+  - `IgnGridNormalizationError(<br>            f"IGN source context {label} must not contain edge whitespace"<br>        )` under lexical guard `value != value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_context` via `_required_exact_string`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_source_context` via `_required_exact_string`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_context` via `_required_exact_string`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -964,9 +1171,11 @@ def _required_exact_string(value: object, label: str) -> str:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_context`
+
+**Purpose:** Implements `validate source context` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -974,56 +1183,77 @@ def _required_exact_string(value: object, label: str) -> str:
 def _validate_source_context(context: _IgnGridSourceContext) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source context; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `validated_department != department_code`.
-- Guard with a raise path: `validated_edition != edition`.
-- Guard with a raise path: `timestamp.tzinfo is None or timestamp.utcoffset() is None`.
-- Guard with a raise path: `_SHA256_PATTERN.fullmatch(archive_sha256) is None`.
-- Explicit raise expressions: `IgnGridNormalizationError('IGN source context archive_sha256 must contain 64 hexadecimal characters')`, `IgnGridNormalizationError('IGN source context department_code is invalid')`, `IgnGridNormalizationError('IGN source context department_code must not be rewritten')`, `IgnGridNormalizationError('IGN source context download_timestamp must be a valid ISO datetime')`, `IgnGridNormalizationError('IGN source context download_timestamp must be timezone-aware')`, `IgnGridNormalizationError('IGN source context edition must be a valid ISO calendar date')`, `IgnGridNormalizationError('IGN source context edition must not be rewritten')`, `IgnGridNormalizationError('IGN source context source_url must be a valid HTTP(S) URL')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `context` | positional-or-keyword | `_IgnGridSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            "IGN source context department_code is invalid"<br>        )`.
+  - `IgnGridNormalizationError(<br>            "IGN source context department_code must not be rewritten"<br>        )` under lexical guard `validated_department != department_code`.
+  - `IgnGridNormalizationError(<br>            "IGN source context edition must be a valid ISO calendar date"<br>        )`.
+  - `IgnGridNormalizationError(<br>            "IGN source context edition must not be rewritten"<br>        )` under lexical guard `validated_edition != edition`.
+  - `IgnGridNormalizationError(<br>            "IGN source context download_timestamp must be a valid ISO datetime"<br>        )`.
+  - `IgnGridNormalizationError(<br>            "IGN source context download_timestamp must be timezone-aware"<br>        )` under lexical guard `timestamp.tzinfo is None or timestamp.utcoffset() is None`.
+  - `IgnGridNormalizationError(<br>            "IGN source context archive_sha256 must contain 64 hexadecimal characters"<br>        )` under lexical guard `_SHA256_PATTERN.fullmatch(archive_sha256) is None`.
+  - `IgnGridNormalizationError(<br>            "IGN source context source_url must be a valid HTTP(S) URL"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_source_context`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_source_context`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_source_context`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_source_context`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_source_context`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_source_context`
+- direct call: `tests.unit.test_normalize_grid_ign::test_internal_source_context_accepts_supported_department_codes` via `grid_normalization._validate_source_context`
+- direct call: `tests.unit.test_normalize_grid_ign::test_internal_source_context_rejects_invalid_lineage_values` via `grid_normalization._validate_source_context`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_required_exact_string` | `landscout.stages.normalize_grid_ign._required_exact_string` |
+| `_DEPARTMENT_CODE_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `_EDITION_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+| `date.fromisoformat` | `datetime.date.fromisoformat` |
+| `datetime.fromisoformat` | `datetime.datetime.fromisoformat` |
+| `timestamp.utcoffset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_SHA256_PATTERN.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_HTTP_URL_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def _validate_source_context(context: _IgnGridSourceContext) -> None:
     _required_exact_string(context.source_layer, "source_layer")
-    department_code = _required_exact_string(
-        context.department_code, "department_code"
-    )
+    department_code = _required_exact_string(context.department_code, "department_code")
     edition = _required_exact_string(context.edition, "edition")
     download_timestamp = _required_exact_string(
         context.download_timestamp, "download_timestamp"
     )
-    archive_sha256 = _required_exact_string(
-        context.archive_sha256, "archive_sha256"
-    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
     source_url = _required_exact_string(context.source_url, "source_url")
 
     try:
@@ -1080,9 +1310,11 @@ def _validate_source_context(context: _IgnGridSourceContext) -> None:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_input`
+
+**Purpose:** Implements `validate input` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1094,43 +1326,77 @@ def _validate_input(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent input; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `frame.active_geometry_name != 'geometry'`.
-- Guard with a raise path: `identifiers.isna().any()`.
-- Guard with a raise path: `any((not isinstance(identifier, str) for identifier in identifiers.tolist()))`.
-- Guard with a raise path: `identifiers.str.strip().eq('').any()`.
-- Guard with a raise path: `identifiers.map(lambda value: value != value.strip()).any()`.
-- Guard with a raise path: `identifiers.str.contains(':', regex=False).any()`.
-- Guard with a raise path: `identifiers.map(lambda value: any((unicodedata.category(character) == 'Cc' for character in value))).any()`.
-- Guard with a raise path: `identifiers.duplicated().any()`.
-- Explicit raise expressions: `IgnGridNormalizationError(f"IGN {source_layer} cleabs values must not contain ':'")`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must be strings')`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must be unique')`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must not be empty')`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must not be null')`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must not contain control characters')`, `IgnGridNormalizationError(f'IGN {source_layer} cleabs values must not contain edge whitespace')`, `IgnGridNormalizationError(f'IGN {source_layer} requires an active geometry column')`, `IgnGridNormalizationError(f'Missing required IGN {source_layer} columns: {formatted}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `required_columns` | positional-or-keyword | `frozenset[str]` | `required` |
+| `source_layer` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            f"Missing required IGN {source_layer} columns: {formatted}"<br>        )` under lexical guard `missing`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} requires an active geometry column"<br>        )` under lexical guard `frame.active_geometry_name != "geometry"`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must not be null"<br>        )` under lexical guard `identifiers.isna().any()`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must be strings"<br>        )` under lexical guard `any(not isinstance(identifier, str) for identifier in identifiers.tolist())`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must not be empty"<br>        )` under lexical guard `identifiers.str.strip().eq("").any()`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must not contain edge whitespace"<br>        )` under lexical guard `identifiers.map(lambda value: value != value.strip()).any()`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must not contain ':'"<br>        )` under lexical guard `identifiers.str.contains(":", regex=False).any()`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must not contain control characters"<br>        )` under lexical guard `identifiers.map(<br>        lambda value: any(<br>            unicodedata.category(character) == "Cc" for character in value<br>        )<br>    ).any()`.
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} cleabs values must be unique"<br>        )` under lexical guard `identifiers.duplicated().any()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_input`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_input`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_input`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_input`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_input`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_input`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `_validated_lambert93` | `landscout.stages.normalize_grid_ign._validated_lambert93` |
+| `identifiers.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.str.strip().eq("").any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.str.strip().eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.str.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.map(lambda value: value != value.strip()).any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.map` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.str.contains(":", regex=False).any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.str.contains` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.map(<br>        lambda value: any(<br>            unicodedata.category(character) == "Cc" for character in value<br>        )<br>    ).any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1174,7 +1440,9 @@ def _validate_input(
             f"IGN {source_layer} cleabs values must not contain ':'"
         )
     if identifiers.map(
-        lambda value: any(unicodedata.category(character) == "Cc" for character in value)
+        lambda value: any(
+            unicodedata.category(character) == "Cc" for character in value
+        )
     ).any():
         raise IgnGridNormalizationError(
             f"IGN {source_layer} cleabs values must not contain control characters"
@@ -1187,9 +1455,11 @@ def _validate_input(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_geometry_status`
+
+**Purpose:** Implements `geometry status` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1197,38 +1467,49 @@ def _validate_input(
 def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for geometry status; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-status
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `geometry` | positional-or-keyword | `gpd.GeoSeries` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `geometry.isna`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `status.loc[empty_mask]`, `status.loc[invalid_mask]`, `status.loc[null_mask]`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `status`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_geometry_status`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_geometry_status`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_geometry_status`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_geometry_status`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_geometry_status`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_geometry_status`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pd.Series` | `pandas.Series` |
+| `geometry.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `geometry.isna` |
+| External process/environment | None directly present. |
+| In-memory mutation | `status.loc[null_mask] = "NULL"`<br>`status.loc[empty_mask] = "EMPTY"`<br>`status.loc[invalid_mask] = "INVALID"` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1246,9 +1527,11 @@ def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_geometry_summary`
+
+**Purpose:** Implements `geometry summary` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1258,37 +1541,55 @@ def _geometry_summary(
 ) -> tuple[int, int, int, tuple[str, ...]]:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for geometry summary; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[int, int, int, tuple[str, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(int(null_mask.sum()), int(empty_mask.sum()), int(invalid_mask.sum()), geometry_types)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `(<br>        int(null_mask.sum()),<br>        int(empty_mask.sum()),<br>        int(invalid_mask.sum()),<br>        geometry_types,<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_layer_summary` via `_geometry_summary`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `_geometry_summary`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_layer_summary` via `_geometry_summary`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `geometry.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `geometry[~null_mask].geom_type.dropna().unique` | `unresolved local/third-party receiver; no ownership inferred` |
+| `geometry[~null_mask].geom_type.dropna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `int` | `unresolved local/third-party receiver; no ownership inferred` |
+| `null_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+| `empty_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+| `invalid_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `geometry.isna`<br>`geometry[~null_mask].geom_type.dropna().unique`<br>`geometry[~null_mask].geom_type.dropna` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1313,9 +1614,11 @@ def _geometry_summary(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_valid_geometry_types`
+
+**Purpose:** Implements `validate valid geometry types` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1328,35 +1631,55 @@ def _validate_valid_geometry_types(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent valid geometry types; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `unsupported`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'IGN {source_layer} has unsupported VALID geometry types: ' + ', '.join(unsupported))`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `status` | positional-or-keyword | `pd.Series` | `required` |
+| `allowed_types` | positional-or-keyword | `frozenset[str]` | `required` |
+| `source_layer` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            f"IGN {source_layer} has unsupported VALID geometry types: "<br>            + ", ".join(unsupported)<br>        )` under lexical guard `unsupported`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validate_valid_geometry_types`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validate_valid_geometry_types`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_valid_geometry_types`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validate_valid_geometry_types`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_valid_geometry_types`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validate_valid_geometry_types`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `valid_types.dropna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1378,9 +1701,11 @@ def _validate_valid_geometry_types(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalized_precision`
+
+**Purpose:** Implements `normalized precision` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1391,39 +1716,58 @@ def _normalized_precision(
 ) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for normalized precision; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-pd.Series(normalized, index=source.index, dtype='float64')
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
-- Guard with a raise path: `not isfinite(numeric) or numeric < 0`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'IGN {source_layer} precision_planimetrique must be finite and >= 0')`, `IgnGridNormalizationError(f'IGN {source_layer} precision_planimetrique must be numeric or null')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `pd.Series` | `required` |
+| `source_layer` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `normalized`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `pd.Series(normalized, index=source.index, dtype="float64")`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>                f"IGN {source_layer} precision_planimetrique must be numeric or null"<br>            )` under lexical guard `isinstance(value, bool) or not isinstance(value, Real)`.
+  - `IgnGridNormalizationError(<br>                f"IGN {source_layer} precision_planimetrique must be finite and >= 0"<br>            )` under lexical guard `not isfinite(numeric) or numeric < 0`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_normalized_precision`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_normalized_precision`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_normalized_precision`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_normalized_precision`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_normalized_precision`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_normalized_precision`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `source.tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_is_missing_scalar` | `landscout.stages.normalize_grid_ign._is_missing_scalar` |
+| `normalized.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `isfinite` | `math.isfinite` |
+| `pd.Series` | `pandas.Series` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `normalized.append(float("nan"))`<br>`normalized.append(numeric)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1452,9 +1796,11 @@ def _normalized_precision(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_base_output`
+
+**Purpose:** Implements `base output` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1467,38 +1813,53 @@ def _base_output(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for base output; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-output
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `feature_type` | keyword-only | `str` | `required` |
+| `context` | keyword-only | `_IgnGridSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['grid_feature_id']`, `output['grid_feature_type']`, `output['source_archive_sha256']`, `output['source_department_code']`, `output['source_download_timestamp']`, `output['source_edition']`, `output['source_feature_id']`, `output['source_layer']`, `output['source_product']`, `output['source_product_version']`, `output['source_provider']`, `output['source_url']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `output`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_base_output`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_base_output`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_base_output`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_base_output`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_base_output`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_base_output`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `frame["cleabs"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `frame.index.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `source_ids.map` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `output["grid_feature_id"] = source_ids.map(<br>        lambda identifier: f"IGN_BDTOPO:{feature_type}:{identifier}"<br>    )`<br>`output["grid_feature_type"] = feature_type`<br>`output["source_provider"] = SOURCE_PROVIDER`<br>`output["source_product"] = SOURCE_PRODUCT`<br>`output["source_layer"] = context.source_layer`<br>`output["source_feature_id"] = source_ids`<br>`output["source_department_code"] = context.department_code`<br>`output["source_edition"] = context.edition`<br>`output["source_product_version"] = context.product_version`<br>`output["source_download_timestamp"] = context.download_timestamp`<br>`output["source_archive_sha256"] = context.archive_sha256`<br>`output["source_url"] = context.source_url` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1530,9 +1891,11 @@ def _base_output(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validated_geodataframe`
+
+**Purpose:** Implements `validated geodataframe` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1545,40 +1908,63 @@ def _validated_geodataframe(
 ) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Checks and returns canonical geodataframe; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-normalized
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `normalized_ids.isna().any() or normalized_ids.duplicated().any()`.
-- Guard with a raise path: `len(normalized) != len(frame)`.
-- Guard with a raise path: `not isinstance(normalized.index, pd.RangeIndex)`.
-- Explicit raise expressions: `IgnGridNormalizationError('IGN normalization changed the row count')`, `IgnGridNormalizationError('IGN normalized output must use a RangeIndex')`, `IgnGridNormalizationError('Normalized IGN grid_feature_id values must be non-null and unique')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `output` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `status` | positional-or-keyword | `pd.Series` | `required` |
+| `columns` | positional-or-keyword | `tuple[str, ...]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `frame.geometry.copy`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['geometry']`, `output['geometry_status']`, `output['spatial_role']`.
-- Input mutation: `output['geometry']`, `output['geometry_status']`, `output['spatial_role']`.
+- Exact observed return expressions:
+  - `normalized`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            "Normalized IGN grid_feature_id values must be non-null and unique"<br>        )` under lexical guard `normalized_ids.isna().any() or normalized_ids.duplicated().any()`.
+  - `IgnGridNormalizationError("IGN normalization changed the row count")` under lexical guard `len(normalized) != len(frame)`.
+  - `IgnGridNormalizationError("IGN normalized output must use a RangeIndex")` under lexical guard `not isinstance(normalized.index, pd.RangeIndex)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` via `_validated_geodataframe`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_transformation_posts` via `_validated_geodataframe`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validated_geodataframe`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_electric_lines` via `_validated_geodataframe`
+- direct call: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validated_geodataframe`
+- value/type reference: `landscout.stages.normalize_grid_ign::_normalize_ign_transformation_posts` via `_validated_geodataframe`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `frame.geometry.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized_ids.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized_ids.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized_ids.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized_ids.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `frame.geometry.copy` |
+| External process/environment | None directly present. |
+| In-memory mutation | `output["spatial_role"] = SPATIAL_ROLE`<br>`output["geometry_status"] = status`<br>`output["geometry"] = frame.geometry.copy()` |
+| Direct parameter mutation | `output["spatial_role"] = SPATIAL_ROLE`<br>`output["geometry_status"] = status`<br>`output["geometry"] = frame.geometry.copy()` |
 
 **Complete source-ordered implementation**
 
@@ -1609,9 +1995,11 @@ def _validated_geodataframe(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalize_ign_electric_lines`
+
+**Purpose:** Normalize one discovered IGN electric-line layer.
 
 **Exact signature**
 
@@ -1622,57 +2010,103 @@ def _normalize_ign_electric_lines(
 ) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Normalize one discovered IGN electric-line layer.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `lines` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `context` | positional-or-keyword | `_IgnGridSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_geometry_status`, `_validate_valid_geometry_types`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['asset_status_raw']`, `output['manager_name']`, `output['manager_siren']`, `output['planimetric_acquisition_method']`, `output['planimetric_precision_m']`, `output['source_confirmed_at']`, `output['source_created_at']`, `output['source_identifiers_raw']`, `output['source_modified_at']`, `output['source_name_raw']`, `output['voltage_kv']`, `output['voltage_raw']`, `output['voltage_status']`, `output['voltage_upper_bound_kv']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_electric_lines`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_electric_lines`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     _normalize_ign_electric_lines as normalize_ign_electric_lines,
-)`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_electric_lines`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `normalize_ign_electric_lines`.
+)`
+- direct call: `tests.unit.test_normalize_grid_ign::test_internal_source_context_rejects_uppercase_sha256` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_internal_source_context_rejects_uppercase_sha256` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_valid_line_has_stable_identity_lineage_and_range_index` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_line_has_stable_identity_lineage_and_range_index` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_deenergized_voltage_does_not_override_source_asset_status` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_deenergized_voltage_does_not_override_source_asset_status` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_null_or_empty_line_cleabs_fails` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_null_or_empty_line_cleabs_fails` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_unsafe_source_id_is_rejected_without_rewriting` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_unsafe_source_id_is_rejected_without_rewriting` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_duplicate_line_cleabs_fails` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_duplicate_line_cleabs_fails` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_line_missing_or_wrong_crs_fails` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_line_missing_or_wrong_crs_fails` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_z_coordinates_are_preserved` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_z_coordinates_are_preserved` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_missing_required_line_field_fails` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_missing_required_line_field_fails` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_valid_or_null_line_precision_is_normalized_to_float` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_or_null_line_precision_is_normalized_to_float` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_invalid_line_precision_fails` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_invalid_line_precision_fails` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_normalized_voltage_never_emits_non_finite_numeric_values` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_normalized_voltage_never_emits_non_finite_numeric_values` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_electric_lines`
+- direct call: `tests.unit.test_normalize_grid_ign::test_valid_polygon_or_point_is_rejected_as_electric_line` via `normalize_ign_electric_lines`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_polygon_or_point_is_rejected_as_electric_line` via `normalize_ign_electric_lines`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_source_context` | `landscout.stages.normalize_grid_ign._validate_source_context` |
+| `_validate_input` | `landscout.stages.normalize_grid_ign._validate_input` |
+| `lines.reset_index(drop=True).copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `lines.reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_geometry_status` | `landscout.stages.normalize_grid_ign._geometry_status` |
+| `_validate_valid_geometry_types` | `landscout.stages.normalize_grid_ign._validate_valid_geometry_types` |
+| `_normalized_precision` | `landscout.stages.normalize_grid_ign._normalized_precision` |
+| `_base_output` | `landscout.stages.normalize_grid_ign._base_output` |
+| `parse_ign_voltage` | `landscout.stages.normalize_grid_ign.parse_ign_voltage` |
+| `working["voltage"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["gestionnaire"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["siren_gestionnaire"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["etat_de_l_objet"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["sources"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["identifiants_sources"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_creation"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_modification"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_de_confirmation"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working[<br>        "methode_d_acquisition_planimetrique"<br>    ].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_geodataframe` | `landscout.stages.normalize_grid_ign._validated_geodataframe` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_geometry_status`<br>`_validate_valid_geometry_types` |
+| External process/environment | None directly present. |
+| In-memory mutation | `output["voltage_raw"] = [result.raw for result in parsed]`<br>`output["voltage_status"] = [result.status for result in parsed]`<br>`output["voltage_kv"] = [result.voltage_kv for result in parsed]`<br>`output["voltage_upper_bound_kv"] = [<br>        result.voltage_upper_bound_kv for result in parsed<br>    ]`<br>`output["manager_name"] = working["gestionnaire"].copy()`<br>`output["manager_siren"] = working["siren_gestionnaire"].copy()`<br>`output["asset_status_raw"] = working["etat_de_l_objet"].copy()`<br>`output["source_name_raw"] = working["sources"].copy()`<br>`output["source_identifiers_raw"] = working["identifiants_sources"].copy()`<br>`output["source_created_at"] = working["date_creation"].copy()`<br>`output["source_modified_at"] = working["date_modification"].copy()`<br>`output["source_confirmed_at"] = working["date_de_confirmation"].copy()`<br>`output["planimetric_acquisition_method"] = working[<br>        "methode_d_acquisition_planimetrique"<br>    ].copy()`<br>`output["planimetric_precision_m"] = precision` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1717,16 +2151,16 @@ def _normalize_ign_electric_lines(
         "methode_d_acquisition_planimetrique"
     ].copy()
     output["planimetric_precision_m"] = precision
-    return _validated_geodataframe(
-        output, working, status, LINE_OUTPUT_COLUMNS
-    )
+    return _validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)
 ```
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalize_ign_transformation_posts`
+
+**Purpose:** Normalize one discovered IGN transformation-post proxy layer.
 
 **Exact signature**
 
@@ -1737,47 +2171,83 @@ def _normalize_ign_transformation_posts(
 ) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Normalize one discovered IGN transformation-post proxy layer.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_validated_geodataframe(output, working, status, TRANSFORMATION_POST_OUTPUT_COLUMNS)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `posts` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `context` | positional-or-keyword | `_IgnGridSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_geometry_status`, `_validate_valid_geometry_types`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['asset_status_raw']`, `output['importance_raw']`, `output['name']`, `output['name_status_raw']`, `output['planimetric_acquisition_method']`, `output['planimetric_precision_m']`, `output['source_confirmed_at']`, `output['source_created_at']`, `output['source_identifiers_raw']`, `output['source_modified_at']`, `output['source_name_raw']`, `output['voltage_kv']`, `output['voltage_status']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_validated_geodataframe(<br>        output,<br>        working,<br>        status,<br>        TRANSFORMATION_POST_OUTPUT_COLUMNS,<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_transformation_posts`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_transformation_posts`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     _normalize_ign_transformation_posts as normalize_ign_transformation_posts,
-)`.
-- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_transformation_posts`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `normalize_ign_transformation_posts`.
+)`
+- direct call: `tests.unit.test_normalize_grid_ign::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_post_geometry_crs_and_input_are_preserved` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_post_geometry_crs_and_input_are_preserved` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_duplicate_post_cleabs_fails` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_duplicate_post_cleabs_fails` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_null_post_geometry_and_precision_are_preserved` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_null_post_geometry_and_precision_are_preserved` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_invalid_post_precision_fails` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_invalid_post_precision_fails` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_appropriate_multigeometry_types_are_accepted` via `normalize_ign_transformation_posts`
+- direct call: `tests.unit.test_normalize_grid_ign::test_valid_line_or_point_is_rejected_as_transformation_post` via `normalize_ign_transformation_posts`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_valid_line_or_point_is_rejected_as_transformation_post` via `normalize_ign_transformation_posts`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_source_context` | `landscout.stages.normalize_grid_ign._validate_source_context` |
+| `_validate_input` | `landscout.stages.normalize_grid_ign._validate_input` |
+| `posts.reset_index(drop=True).copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `posts.reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_geometry_status` | `landscout.stages.normalize_grid_ign._geometry_status` |
+| `_validate_valid_geometry_types` | `landscout.stages.normalize_grid_ign._validate_valid_geometry_types` |
+| `_normalized_precision` | `landscout.stages.normalize_grid_ign._normalized_precision` |
+| `_base_output` | `landscout.stages.normalize_grid_ign._base_output` |
+| `working["toponyme"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["statut_du_toponyme"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["importance"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["etat_de_l_objet"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["sources"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["identifiants_sources"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_creation"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_modification"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["date_de_confirmation"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working[<br>        "methode_d_acquisition_planimetrique"<br>    ].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_geodataframe` | `landscout.stages.normalize_grid_ign._validated_geodataframe` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_geometry_status`<br>`_validate_valid_geometry_types` |
+| External process/environment | None directly present. |
+| In-memory mutation | `output["name"] = working["toponyme"].copy()`<br>`output["name_status_raw"] = working["statut_du_toponyme"].copy()`<br>`output["importance_raw"] = working["importance"].copy()`<br>`output["asset_status_raw"] = working["etat_de_l_objet"].copy()`<br>`output["source_name_raw"] = working["sources"].copy()`<br>`output["source_identifiers_raw"] = working["identifiants_sources"].copy()`<br>`output["source_created_at"] = working["date_creation"].copy()`<br>`output["source_modified_at"] = working["date_modification"].copy()`<br>`output["source_confirmed_at"] = working["date_de_confirmation"].copy()`<br>`output["planimetric_acquisition_method"] = working[<br>        "methode_d_acquisition_planimetrique"<br>    ].copy()`<br>`output["planimetric_precision_m"] = precision`<br>`output["voltage_status"] = "UNKNOWN"`<br>`output["voltage_kv"] = float("nan")` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1831,9 +2301,11 @@ def _normalize_ign_transformation_posts(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_layer_summary`
+
+**Purpose:** Implements `validate layer summary` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1847,40 +2319,64 @@ def _validate_layer_summary(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent layer summary; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `summary.source_layer_name != expected_layer`.
-- Guard with a raise path: `summary.logical_name != expected_logical_name`.
-- Guard with a raise path: `summary.feature_count != len(frame)`.
-- Guard with a raise path: `summary.columns != observed_columns or summary.dtypes != observed_dtypes`.
-- Guard with a raise path: `frame.active_geometry_name != 'geometry'`.
-- Guard with a raise path: `not frame_crs.equals(summary_crs)`.
-- Guard with a raise path: `observed_geometry != expected_geometry`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'IGN {expected_logical_name} geometry summary does not match frame')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} requires an active geometry column')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary CRS does not match frame')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary has the wrong logical name')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary layer does not match extraction')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary row count does not match frame')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary schema columns or dtypes do not match frame')`, `IgnGridNormalizationError(f'IGN {expected_logical_name} summary schema contract is invalid')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `summary` | positional-or-keyword | `IgnBdTopoLayerSummary` | `required` |
+| `expected_layer` | keyword-only | `str` | `required` |
+| `expected_logical_name` | keyword-only | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_geometry_summary`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary schema contract is invalid"<br>        )`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary layer does not match extraction"<br>        )` under lexical guard `summary.source_layer_name != expected_layer`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary has the wrong logical name"<br>        )` under lexical guard `summary.logical_name != expected_logical_name`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary row count does not match frame"<br>        )` under lexical guard `summary.feature_count != len(frame)`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary schema columns or dtypes "<br>            "do not match frame"<br>        )` under lexical guard `summary.columns != observed_columns or summary.dtypes != observed_dtypes`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} requires an active geometry column"<br>        )` under lexical guard `frame.active_geometry_name != "geometry"`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} summary CRS does not match frame"<br>        )` under lexical guard `not frame_crs.equals(summary_crs)`.
+  - `IgnGridNormalizationError(<br>            f"IGN {expected_logical_name} geometry summary does not match frame"<br>        )` under lexical guard `observed_geometry != expected_geometry`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `_validate_layer_summary`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `_validate_layer_summary`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_layer_summary_contract` | `landscout.sources.ign_bdtopo_fr._validate_layer_summary_contract` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.dtypes.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_lambert93` | `landscout.stages.normalize_grid_ign._validated_lambert93` |
+| `frame_crs.equals` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_geometry_summary` | `landscout.stages.normalize_grid_ign._geometry_summary` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_geometry_summary` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1946,9 +2442,11 @@ def _validate_layer_summary(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalized_identity`
+
+**Purpose:** Implements `normalized identity` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -1956,37 +2454,56 @@ def _validate_layer_summary(
 def _normalized_identity(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for normalized identity; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-' '.join(re.findall('[a-z0-9]+', without_accents))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, str) or not value.strip()`.
-- Explicit raise expressions: `IgnGridNormalizationError(f'IGN archive {label} must be a string')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `" ".join(re.findall(r"[a-z0-9]+", without_accents))`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(f"IGN archive {label} must be a string")` under lexical guard `not isinstance(value, str) or not value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_archive_identity` via `_normalized_identity`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `_normalized_identity`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_archive_identity` via `_normalized_identity`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `unicodedata.normalize` | `unicodedata.normalize` |
+| `value.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `unicodedata.combining` | `unicodedata.combining` |
+| `" ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `re.findall` | `re.findall` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1996,18 +2513,18 @@ def _normalized_identity(value: object, label: str) -> str:
         raise IgnGridNormalizationError(f"IGN archive {label} must be a string")
     decomposed = unicodedata.normalize("NFKD", value.casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(re.findall(r"[a-z0-9]+", without_accents))
 ```
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_archive_identity`
+
+**Purpose:** Implements `validate archive identity` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -2015,35 +2532,50 @@ def _normalized_identity(value: object, label: str) -> str:
 def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent archive identity; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `provider not in _IGN_PROVIDER_IDENTITIES`.
-- Guard with a raise path: `product.replace(' ', '') != 'bdtopo'`.
-- Explicit raise expressions: `IgnGridNormalizationError('IGN archive product is incompatible with the BD TOPO normalizer')`, `IgnGridNormalizationError('IGN archive provider is incompatible with the IGN normalizer')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoElectricityData` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            "IGN archive provider is incompatible with the IGN normalizer"<br>        )` under lexical guard `provider not in _IGN_PROVIDER_IDENTITIES`.
+  - `IgnGridNormalizationError(<br>            "IGN archive product is incompatible with the BD TOPO normalizer"<br>        )` under lexical guard `product.replace(" ", "") != "bdtopo"`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_archive_identity`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `_validate_archive_identity`
+- value/type reference: `landscout.stages.normalize_grid_ign::_validate_source_bundle` via `_validate_archive_identity`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_normalized_identity` | `landscout.stages.normalize_grid_ign._normalized_identity` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `product.replace` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_lambert93` | `landscout.stages.normalize_grid_ign._validated_lambert93` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `product.replace` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2065,9 +2597,11 @@ def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_bundle`
+
+**Purpose:** Implements `validate source bundle` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -2075,42 +2609,62 @@ def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
 def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source bundle; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(source) is not IgnBdTopoElectricityData`.
-- Guard with a raise path: `type(source.extraction) is not IgnBdTopoExtraction`.
-- Guard with a raise path: `type(source.extraction.archive) is not IgnBdTopoDownload`.
-- Guard with a raise path: `type(source.electric_lines_summary) is not IgnBdTopoLayerSummary or type(source.transformation_posts_summary) is not IgnBdTopoLayerSummary`.
-- Guard with a raise path: `not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(source.transformation_posts, gpd.GeoDataFrame)`.
-- Guard with a raise path: `type(layer_names) is not tuple or not layer_names or any((not isinstance(name, str) or not name or name != name.strip() for name in layer_names)) or (len(set(layer_names)) != len(layer_names))`.
-- Guard with a raise path: `any((layer not in layer_names for layer in selected_layers))`.
-- Guard with a raise path: `selected_layers[0] == selected_layers[1]`.
-- Guard with a raise path: `any((role != SPATIAL_ROLE for role in roles))`.
-- Explicit raise expressions: `IgnGridNormalizationError('IGN electricity archive type is invalid')`, `IgnGridNormalizationError('IGN electricity extraction type is invalid')`, `IgnGridNormalizationError('IGN electricity layer inventory must be a unique non-empty tuple')`, `IgnGridNormalizationError('IGN electricity layers must be GeoDataFrames')`, `IgnGridNormalizationError('IGN electricity roles must use distinct layers, not the same layer')`, `IgnGridNormalizationError('IGN electricity selected layer is absent from the layer inventory')`, `IgnGridNormalizationError('IGN electricity source must be IgnBdTopoElectricityData')`, `IgnGridNormalizationError('IGN electricity summary type is invalid')`, `IgnGridNormalizationError('IGN source bundle spatial roles must all be PROXY_GEOMETRY')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoElectricityData` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>            "IGN electricity source must be IgnBdTopoElectricityData"<br>        )` under lexical guard `type(source) is not IgnBdTopoElectricityData`.
+  - `IgnGridNormalizationError("IGN electricity extraction type is invalid")` under lexical guard `type(source.extraction) is not IgnBdTopoExtraction`.
+  - `IgnGridNormalizationError("IGN electricity archive type is invalid")` under lexical guard `type(source.extraction.archive) is not IgnBdTopoDownload`.
+  - `IgnGridNormalizationError("IGN electricity summary type is invalid")` under lexical guard `type(source.electric_lines_summary) is not IgnBdTopoLayerSummary<br>        or type(source.transformation_posts_summary) is not IgnBdTopoLayerSummary`.
+  - `IgnGridNormalizationError("IGN electricity layers must be GeoDataFrames")` under lexical guard `not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(<br>        source.transformation_posts, gpd.GeoDataFrame<br>    )`.
+  - `IgnGridNormalizationError(<br>            "IGN electricity layer inventory must be a unique non-empty tuple"<br>        )` under lexical guard `type(layer_names) is not tuple<br>        or not layer_names<br>        or any(<br>            not isinstance(name, str) or not name or name != name.strip()<br>            for name in layer_names<br>        )<br>        or len(set(layer_names)) != len(layer_names)`.
+  - `IgnGridNormalizationError(<br>            "IGN electricity selected layer is absent from the layer inventory"<br>        )` under lexical guard `any(layer not in layer_names for layer in selected_layers)`.
+  - `IgnGridNormalizationError(<br>            "IGN electricity roles must use distinct layers, not the same layer"<br>        )` under lexical guard `selected_layers[0] == selected_layers[1]`.
+  - `IgnGridNormalizationError(<br>            "IGN source bundle spatial roles must all be PROXY_GEOMETRY"<br>        )` under lexical guard `any(role != SPATIAL_ROLE for role in roles)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_validate_source_bundle`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_validate_source_bundle`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_validate_source_bundle`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `name.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validate_archive_identity` | `landscout.stages.normalize_grid_ign._validate_archive_identity` |
+| `_validate_layer_summary` | `landscout.stages.normalize_grid_ign._validate_layer_summary` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2124,16 +2678,15 @@ def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
         raise IgnGridNormalizationError("IGN electricity extraction type is invalid")
     if type(source.extraction.archive) is not IgnBdTopoDownload:
         raise IgnGridNormalizationError("IGN electricity archive type is invalid")
-    if type(source.electric_lines_summary) is not IgnBdTopoLayerSummary or type(
-        source.transformation_posts_summary
-    ) is not IgnBdTopoLayerSummary:
+    if (
+        type(source.electric_lines_summary) is not IgnBdTopoLayerSummary
+        or type(source.transformation_posts_summary) is not IgnBdTopoLayerSummary
+    ):
         raise IgnGridNormalizationError("IGN electricity summary type is invalid")
     if not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(
         source.transformation_posts, gpd.GeoDataFrame
     ):
-        raise IgnGridNormalizationError(
-            "IGN electricity layers must be GeoDataFrames"
-        )
+        raise IgnGridNormalizationError("IGN electricity layers must be GeoDataFrames")
     extraction = source.extraction
     layer_names = extraction.all_layer_names
     if (
@@ -2188,9 +2741,11 @@ def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_source_context`
+
+**Purpose:** Implements `source context` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
 
 **Exact signature**
 
@@ -2201,37 +2756,47 @@ def _source_context(
 ) -> _IgnGridSourceContext:
 ```
 
-**Purpose**
-
-Private `grid/source` helper for source context; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_IgnGridSourceContext`.
-- Every observed return expression is reproduced without truncation:
-```python
-_IgnGridSourceContext(source_layer=source_layer, department_code=archive.department_code, edition=archive.edition, product_version=archive.product_version, download_timestamp=archive.download_timestamp, archive_sha256=archive.sha256, source_url=archive.source_url)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoElectricityData` | `required` |
+| `source_layer` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_IgnGridSourceContext(<br>        source_layer=source_layer,<br>        department_code=archive.department_code,<br>        edition=archive.edition,<br>        product_version=archive.product_version,<br>        download_timestamp=archive.download_timestamp,<br>        archive_sha256=archive.sha256,<br>        source_url=archive.source_url,<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_grid_ign.py::normalize_ign_electricity` via `_source_context`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_source_context`
+- value/type reference: `landscout.stages.normalize_grid_ign::normalize_ign_electricity` via `_source_context`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_IgnGridSourceContext` | `landscout.stages.normalize_grid_ign._IgnGridSourceContext` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2254,9 +2819,11 @@ def _source_context(
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `normalize_ign_electricity`
+
+**Purpose:** Validate and normalize a complete already-loaded IGN source bundle.
 
 **Exact signature**
 
@@ -2267,53 +2834,75 @@ def normalize_ign_electricity(
 ) -> NormalizedIgnElectricityData:
 ```
 
-**Purpose**
-
-Validate and normalize a complete already-loaded IGN source bundle.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `NormalizedIgnElectricityData`.
-- Every observed return expression is reproduced without truncation:
-```python
-NormalizedIgnElectricityData(electric_lines=_normalize_ign_electric_lines(source.electric_lines, line_context), transformation_posts=_normalize_ign_transformation_posts(source.transformation_posts, post_context))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(config) is not IgnBdTopoSourceConfig`.
-- Explicit raise expressions: `IgnGridNormalizationError('IGN electricity source cannot be normalized safely')`, `IgnGridNormalizationError('IGN electricity source config type is invalid')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoElectricityData` | `required` |
+| `config` | positional-or-keyword | `IgnBdTopoSourceConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `NormalizedIgnElectricityData(<br>            electric_lines=_normalize_ign_electric_lines(<br>                fresh.electric_lines, line_context<br>            ),<br>            transformation_posts=_normalize_ign_transformation_posts(<br>                fresh.transformation_posts, post_context<br>            ),<br>        )`
+- Explicit raise paths:
+  - `IgnGridNormalizationError(<br>                "IGN electricity source config type is invalid"<br>            )` under lexical guard `type(config) is not IgnBdTopoSourceConfig`.
+  - `re-raise`.
+  - `IgnGridNormalizationError(<br>            f"IGN electricity source cannot be normalized safely: {error}"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
     parse_ign_voltage,
-)`.
-- import: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- import: `landscout.stages.enrich_grid_proximity::<module>` via `from landscout.stages.normalize_grid_ign import (
     NormalizedIgnElectricityData,
     normalize_ign_electricity,
-)`.
-- import: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+)`
+- direct call: `landscout.stages.enrich_grid_proximity::enrich_parcel_grid_proximity` via `normalize_ign_electricity`
+- value/type reference: `landscout.stages.enrich_grid_proximity::enrich_parcel_grid_proximity` via `normalize_ign_electricity`
+- import: `tests.unit.test_normalize_grid_ign::<module>` via `from landscout.stages.normalize_grid_ign import (
     normalize_ign_electricity as _normalize_ign_electricity,
-)`.
-- direct call: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `normalize_ign_electricity`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::normalize_ign_electricity` via `_normalize_ign_electricity`.
-- direct call: `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` via `_normalize_ign_electricity`.
+)`
+- direct call: `tests.unit.test_normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_electricity`
+- value/type reference: `tests.unit.test_normalize_grid_ign::normalize_ign_electricity` via `_normalize_ign_electricity`
+- direct call: `tests.unit.test_normalize_grid_ign::test_grid_normalization_uses_distinct_fresh_revalidated_frames` via `_normalize_ign_electricity`
+- value/type reference: `tests.unit.test_normalize_grid_ign::test_grid_normalization_uses_distinct_fresh_revalidated_frames` via `_normalize_ign_electricity`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnGridNormalizationError` | `landscout.stages.normalize_grid_ign.IgnGridNormalizationError` |
+| `_revalidate_ign_bdtopo_electricity_data` | `landscout.sources.ign_bdtopo_fr._revalidate_ign_bdtopo_electricity_data` |
+| `_validate_source_bundle` | `landscout.stages.normalize_grid_ign._validate_source_bundle` |
+| `_source_context` | `landscout.stages.normalize_grid_ign._source_context` |
+| `NormalizedIgnElectricityData` | `landscout.stages.normalize_grid_ign.NormalizedIgnElectricityData` |
+| `_normalize_ign_electric_lines` | `landscout.stages.normalize_grid_ign._normalize_ign_electric_lines` |
+| `_normalize_ign_transformation_posts` | `landscout.stages.normalize_grid_ign._normalize_ign_transformation_posts` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2329,45 +2918,94 @@ def normalize_ign_electricity(
             raise IgnGridNormalizationError(
                 "IGN electricity source config type is invalid"
             )
-        _validate_source_bundle(source)
-        _revalidate_ign_bdtopo_electricity_data(source, config)
-        line_context = _source_context(
-            source, source.extraction.electric_lines_layer
-        )
+        fresh = _revalidate_ign_bdtopo_electricity_data(source, config)
+        _validate_source_bundle(fresh)
+        line_context = _source_context(fresh, fresh.extraction.electric_lines_layer)
         post_context = _source_context(
-            source, source.extraction.transformation_posts_layer
+            fresh, fresh.extraction.transformation_posts_layer
         )
         return NormalizedIgnElectricityData(
             electric_lines=_normalize_ign_electric_lines(
-                source.electric_lines, line_context
+                fresh.electric_lines, line_context
             ),
             transformation_posts=_normalize_ign_transformation_posts(
-                source.transformation_posts, post_context
+                fresh.transformation_posts, post_context
             ),
         )
     except IgnGridNormalizationError:
         raise
     except Exception as error:
         raise IgnGridNormalizationError(
-            "IGN electricity source cannot be normalized safely"
+            f"IGN electricity source cannot be normalized safely: {error}"
         ) from error
 ```
 
 **Business boundary**
 
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
-## 7. Data contracts
+## 7. Validation and data-contract summary
 
-### Frame-preservation and semantic notes
+- Canonical schema/mapping declarations inventoried above: `PACKAGE_LINEAGE_COLUMNS`, `LINE_OUTPUT_COLUMNS`, `TRANSFORMATION_POST_OUTPUT_COLUMNS`, `LINE_SOURCE_FIELDS`, `TRANSFORMATION_POST_SOURCE_FIELDS`.
+- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
-- `VoltageStatus` values (`EXACT`, `BELOW`, `UNKNOWN`, `DEENERGIZED`, `UNPARSED`) and `GeometryStatus` values (`VALID`, `NULL`, `EMPTY`, `INVALID`) are closed vocabularies, never column names.
-- `LINE_OUTPUT_COLUMNS` and `TRANSFORMATION_POST_OUTPUT_COLUMNS` below are the canonical ordered factual GeoDataFrame schemas. Raw source attributes are copied; voltage fields are derived factual parsing; `spatial_role` is proxy lineage, not capacity evidence.
+## 8. Public exports and package ownership
 
-### `PACKAGE_LINEAGE_COLUMNS` — canonical or derived frame-column schema
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
+
+## 9. Trust, provenance, side effects, and business boundary
+
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+
+## 10. Change impact
+
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
+
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
 
 ```python
+"""Normalize IGN BD TOPO electricity layers into stable LandScout proxies."""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from dataclasses import dataclass
+from datetime import date, datetime
+from math import isfinite
+from numbers import Real
+from typing import Literal
+
+import geopandas as gpd  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
+from pandas.api.types import is_scalar  # type: ignore[import-untyped]
+from pydantic import HttpUrl, TypeAdapter, ValidationError
+from pyproj import CRS
+
+from landscout.sources.ign_bdtopo_fr import (
+    DepartmentCode,
+    EditionString,
+    IgnBdTopoDownload,
+    IgnBdTopoElectricityData,
+    IgnBdTopoExtraction,
+    IgnBdTopoLayerSummary,
+    IgnBdTopoSourceConfig,
+    _revalidate_ign_bdtopo_electricity_data,
+    _validate_layer_summary_contract,
+)
+
+SOURCE_PROVIDER = "IGN"
+SOURCE_PRODUCT = "BD_TOPO"
+SPATIAL_ROLE = "PROXY_GEOMETRY"
+
+VoltageStatus = Literal["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]
+GeometryStatus = Literal["VALID", "NULL", "EMPTY", "INVALID"]
+
 PACKAGE_LINEAGE_COLUMNS = (
     "source_department_code",
     "source_edition",
@@ -2376,20 +3014,7 @@ PACKAGE_LINEAGE_COLUMNS = (
     "source_archive_sha256",
     "source_url",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `source_product_version` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_download_timestamp` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 6 | `source_url` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-
-### `LINE_OUTPUT_COLUMNS` — canonical or derived frame-column schema
-
-```python
 LINE_OUTPUT_COLUMNS = (
     "grid_feature_id",
     "grid_feature_type",
@@ -2416,43 +3041,7 @@ LINE_OUTPUT_COLUMNS = (
     "geometry_status",
     "geometry",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 7 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `source_product_version` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 10 | `source_download_timestamp` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 12 | `source_url` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `voltage_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 14 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 15 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 16 | `voltage_upper_bound_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 17 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `manager_siren` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 19 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 20 | `source_name_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 21 | `source_identifiers_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 22 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 23 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 24 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 25 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 26 | `planimetric_precision_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 27 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 28 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 29 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-
-### `TRANSFORMATION_POST_OUTPUT_COLUMNS` — canonical or derived frame-column schema
-
-```python
 TRANSFORMATION_POST_OUTPUT_COLUMNS = (
     "grid_feature_id",
     "grid_feature_type",
@@ -2478,42 +3067,7 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
     "geometry_status",
     "geometry",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 7 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `source_product_version` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 10 | `source_download_timestamp` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 12 | `source_url` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `name_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 15 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 16 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 17 | `source_name_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 18 | `source_identifiers_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 19 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 20 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 21 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 22 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 23 | `planimetric_precision_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 24 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 25 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 26 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 27 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 28 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-
-### `LINE_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
-
-```python
 LINE_SOURCE_FIELDS = frozenset(
     {
         "cleabs",
@@ -2531,27 +3085,7 @@ LINE_SOURCE_FIELDS = frozenset(
         "geometry",
     }
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 7 | `gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `siren_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `voltage` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-### `TRANSFORMATION_POST_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
-
-```python
 TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
     {
         "cleabs",
@@ -2569,64 +3103,661 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
         "geometry",
     }
 )
+
+LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
+TRANSFORMATION_POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
+
+_EXACT_VOLTAGE_PATTERN = re.compile(r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE)
+_BELOW_VOLTAGE_PATTERN = re.compile(
+    r"^<\s*(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE
+)
+_UNKNOWN_VOLTAGE_TERMS = frozenset(
+    {"inconnu", "inconnue", "unknown", "non renseigne", "non renseignee"}
+)
+_DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
+_DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
+_EDITION_VALIDATOR = TypeAdapter(EditionString)
+_HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_IGN_PROVIDER_IDENTITIES = frozenset(
+    {
+        "ign",
+        "institut national de l information geographique et forestiere",
+        "institut national de l information geographique et forestiere ign",
+    }
+)
+
+
+class IgnGridNormalizationError(ValueError):
+    """Raised when IGN electricity data cannot be normalized safely."""
+
+
+@dataclass(frozen=True)
+class _IgnGridSourceContext:
+    """Immutable source-package context persisted on every normalized row."""
+
+    source_layer: str
+    department_code: str
+    edition: str
+    product_version: str | None
+    download_timestamp: str
+    archive_sha256: str
+    source_url: str
+
+
+@dataclass(frozen=True)
+class IgnVoltageNormalization:
+    """One source voltage value and its explicit normalized semantics."""
+
+    raw: str | None
+    status: VoltageStatus
+    voltage_kv: float | None
+    voltage_upper_bound_kv: float | None
+
+
+@dataclass(frozen=True)
+class NormalizedIgnElectricityData:
+    electric_lines: gpd.GeoDataFrame
+    transformation_posts: gpd.GeoDataFrame
+
+
+def _normalized_term(value: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", value.strip().casefold())
+    without_accents = "".join(
+        character for character in decomposed if not unicodedata.combining(character)
+    )
+    return " ".join(without_accents.split())
+
+
+def _positive_voltage(match: re.Match[str]) -> float | None:
+    value = float(match.group("value").replace(",", "."))
+    return value if value > 0 and isfinite(value) else None
+
+
+def _is_missing_scalar(value: object) -> bool:
+    if value is None:
+        return True
+    if not is_scalar(value):
+        return False
+    return bool(pd.isna(value))
+
+
+def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
+    """Parse scalar IGN voltage vocabulary without inventing precision.
+
+    Unsupported list-like or array-like inputs are preserved as text and
+    classified ``UNPARSED`` rather than reaching Pandas' ambiguous truth-value
+    handling.
+    """
+
+    if not is_scalar(value):
+        return IgnVoltageNormalization(str(value), "UNPARSED", None, None)
+    if _is_missing_scalar(value):
+        return IgnVoltageNormalization(None, "UNKNOWN", None, None)
+
+    raw = value if isinstance(value, str) else str(value)
+    normalized = _normalized_term(raw)
+    if normalized in _UNKNOWN_VOLTAGE_TERMS:
+        return IgnVoltageNormalization(raw, "UNKNOWN", None, None)
+    if normalized in _DEENERGIZED_VOLTAGE_TERMS:
+        return IgnVoltageNormalization(raw, "DEENERGIZED", None, None)
+
+    below_match = _BELOW_VOLTAGE_PATTERN.fullmatch(normalized)
+    if below_match is not None:
+        upper_bound = _positive_voltage(below_match)
+        if upper_bound is not None:
+            return IgnVoltageNormalization(raw, "BELOW", None, upper_bound)
+
+    exact_match = _EXACT_VOLTAGE_PATTERN.fullmatch(normalized)
+    if exact_match is not None:
+        exact = _positive_voltage(exact_match)
+        if exact is not None:
+            return IgnVoltageNormalization(raw, "EXACT", exact, None)
+
+    return IgnVoltageNormalization(raw, "UNPARSED", None, None)
+
+
+def _validated_lambert93(crs_value: object, label: str) -> CRS:
+    if crs_value is None:
+        raise IgnGridNormalizationError(f"{label} CRS is required")
+    try:
+        source_crs = CRS.from_user_input(crs_value)
+    except Exception as error:
+        raise IgnGridNormalizationError(f"{label} CRS is unreadable") from error
+    expected_crs = CRS.from_epsg(2154)
+    if not source_crs.is_projected or not source_crs.equals(expected_crs):
+        raise IgnGridNormalizationError(f"{label} must use EPSG:2154")
+    return source_crs
+
+
+def _required_exact_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnGridNormalizationError(f"IGN source context {label} must be a string")
+    if value != value.strip():
+        raise IgnGridNormalizationError(
+            f"IGN source context {label} must not contain edge whitespace"
+        )
+    return value
+
+
+def _validate_source_context(context: _IgnGridSourceContext) -> None:
+    _required_exact_string(context.source_layer, "source_layer")
+    department_code = _required_exact_string(context.department_code, "department_code")
+    edition = _required_exact_string(context.edition, "edition")
+    download_timestamp = _required_exact_string(
+        context.download_timestamp, "download_timestamp"
+    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
+    source_url = _required_exact_string(context.source_url, "source_url")
+
+    try:
+        validated_department = _DEPARTMENT_CODE_VALIDATOR.validate_python(
+            department_code
+        )
+    except ValidationError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context department_code is invalid"
+        ) from error
+    if validated_department != department_code:
+        raise IgnGridNormalizationError(
+            "IGN source context department_code must not be rewritten"
+        )
+
+    try:
+        validated_edition = _EDITION_VALIDATOR.validate_python(edition)
+        date.fromisoformat(validated_edition)
+    except (ValidationError, ValueError) as error:
+        raise IgnGridNormalizationError(
+            "IGN source context edition must be a valid ISO calendar date"
+        ) from error
+    if validated_edition != edition:
+        raise IgnGridNormalizationError(
+            "IGN source context edition must not be rewritten"
+        )
+
+    try:
+        timestamp = datetime.fromisoformat(download_timestamp)
+    except ValueError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context download_timestamp must be a valid ISO datetime"
+        ) from error
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        raise IgnGridNormalizationError(
+            "IGN source context download_timestamp must be timezone-aware"
+        )
+
+    if _SHA256_PATTERN.fullmatch(archive_sha256) is None:
+        raise IgnGridNormalizationError(
+            "IGN source context archive_sha256 must contain 64 hexadecimal characters"
+        )
+
+    try:
+        _HTTP_URL_VALIDATOR.validate_python(source_url)
+    except ValidationError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context source_url must be a valid HTTP(S) URL"
+        ) from error
+
+    if context.product_version is not None:
+        _required_exact_string(context.product_version, "product_version")
+
+
+def _validate_input(
+    frame: gpd.GeoDataFrame,
+    required_columns: frozenset[str],
+    source_layer: str,
+) -> None:
+    missing = required_columns - set(frame.columns)
+    if missing:
+        formatted = ", ".join(sorted(missing))
+        raise IgnGridNormalizationError(
+            f"Missing required IGN {source_layer} columns: {formatted}"
+        )
+    if frame.active_geometry_name != "geometry":
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} requires an active geometry column"
+        )
+    _validated_lambert93(frame.crs, f"IGN {source_layer}")
+
+    identifiers = frame["cleabs"]
+    if identifiers.isna().any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not be null"
+        )
+    if any(not isinstance(identifier, str) for identifier in identifiers.tolist()):
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must be strings"
+        )
+    if identifiers.str.strip().eq("").any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not be empty"
+        )
+    if identifiers.map(lambda value: value != value.strip()).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain edge whitespace"
+        )
+    if identifiers.str.contains(":", regex=False).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain ':'"
+        )
+    if identifiers.map(
+        lambda value: any(
+            unicodedata.category(character) == "Cc" for character in value
+        )
+    ).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain control characters"
+        )
+    if identifiers.duplicated().any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must be unique"
+        )
+
+
+def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
+    status = pd.Series("VALID", index=geometry.index, dtype="object")
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    status.loc[null_mask] = "NULL"
+    status.loc[empty_mask] = "EMPTY"
+    status.loc[invalid_mask] = "INVALID"
+    return status
+
+
+def _geometry_summary(
+    frame: gpd.GeoDataFrame,
+) -> tuple[int, int, int, tuple[str, ...]]:
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    geometry_types = tuple(
+        sorted(str(value) for value in geometry[~null_mask].geom_type.dropna().unique())
+    )
+    return (
+        int(null_mask.sum()),
+        int(empty_mask.sum()),
+        int(invalid_mask.sum()),
+        geometry_types,
+    )
+
+
+def _validate_valid_geometry_types(
+    frame: gpd.GeoDataFrame,
+    status: pd.Series,
+    allowed_types: frozenset[str],
+    source_layer: str,
+) -> None:
+    valid_types = frame.loc[status == "VALID", "geometry"].geom_type
+    unsupported = sorted(set(valid_types.dropna()) - allowed_types)
+    if unsupported:
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} has unsupported VALID geometry types: "
+            + ", ".join(unsupported)
+        )
+
+
+def _normalized_precision(
+    source: pd.Series,
+    source_layer: str,
+) -> pd.Series:
+    normalized: list[float] = []
+    for value in source.tolist():
+        if _is_missing_scalar(value):
+            normalized.append(float("nan"))
+            continue
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise IgnGridNormalizationError(
+                f"IGN {source_layer} precision_planimetrique must be numeric or null"
+            )
+        numeric = float(value)
+        if not isfinite(numeric) or numeric < 0:
+            raise IgnGridNormalizationError(
+                f"IGN {source_layer} precision_planimetrique must be finite and >= 0"
+            )
+        normalized.append(numeric)
+    return pd.Series(normalized, index=source.index, dtype="float64")
+
+
+def _base_output(
+    frame: gpd.GeoDataFrame,
+    *,
+    feature_type: str,
+    context: _IgnGridSourceContext,
+) -> pd.DataFrame:
+    source_ids = frame["cleabs"].copy()
+    output = pd.DataFrame(index=frame.index.copy())
+    output["grid_feature_id"] = source_ids.map(
+        lambda identifier: f"IGN_BDTOPO:{feature_type}:{identifier}"
+    )
+    output["grid_feature_type"] = feature_type
+    output["source_provider"] = SOURCE_PROVIDER
+    output["source_product"] = SOURCE_PRODUCT
+    output["source_layer"] = context.source_layer
+    output["source_feature_id"] = source_ids
+    output["source_department_code"] = context.department_code
+    output["source_edition"] = context.edition
+    output["source_product_version"] = context.product_version
+    output["source_download_timestamp"] = context.download_timestamp
+    output["source_archive_sha256"] = context.archive_sha256
+    output["source_url"] = context.source_url
+    return output
+
+
+def _validated_geodataframe(
+    output: pd.DataFrame,
+    frame: gpd.GeoDataFrame,
+    status: pd.Series,
+    columns: tuple[str, ...],
+) -> gpd.GeoDataFrame:
+    output["spatial_role"] = SPATIAL_ROLE
+    output["geometry_status"] = status
+    output["geometry"] = frame.geometry.copy()
+    normalized = gpd.GeoDataFrame(
+        output.loc[:, list(columns)], geometry="geometry", crs=frame.crs
+    )
+    normalized_ids = normalized["grid_feature_id"]
+    if normalized_ids.isna().any() or normalized_ids.duplicated().any():
+        raise IgnGridNormalizationError(
+            "Normalized IGN grid_feature_id values must be non-null and unique"
+        )
+    if len(normalized) != len(frame):
+        raise IgnGridNormalizationError("IGN normalization changed the row count")
+    if not isinstance(normalized.index, pd.RangeIndex):
+        raise IgnGridNormalizationError("IGN normalized output must use a RangeIndex")
+    return normalized
+
+
+def _normalize_ign_electric_lines(
+    lines: gpd.GeoDataFrame,
+    context: _IgnGridSourceContext,
+) -> gpd.GeoDataFrame:
+    """Normalize one discovered IGN electric-line layer."""
+
+    _validate_source_context(context)
+    _validate_input(lines, LINE_SOURCE_FIELDS, context.source_layer)
+    working = lines.reset_index(drop=True).copy()
+    status = _geometry_status(working.geometry)
+    _validate_valid_geometry_types(
+        working, status, LINE_GEOMETRY_TYPES, context.source_layer
+    )
+    precision = _normalized_precision(
+        working["precision_planimetrique"], context.source_layer
+    )
+    output = _base_output(
+        working,
+        feature_type="ELECTRIC_LINE",
+        context=context,
+    )
+    parsed = [parse_ign_voltage(value) for value in working["voltage"].tolist()]
+    output["voltage_raw"] = [result.raw for result in parsed]
+    output["voltage_status"] = [result.status for result in parsed]
+    output["voltage_kv"] = [result.voltage_kv for result in parsed]
+    output["voltage_upper_bound_kv"] = [
+        result.voltage_upper_bound_kv for result in parsed
+    ]
+    output["manager_name"] = working["gestionnaire"].copy()
+    output["manager_siren"] = working["siren_gestionnaire"].copy()
+    output["asset_status_raw"] = working["etat_de_l_objet"].copy()
+    output["source_name_raw"] = working["sources"].copy()
+    output["source_identifiers_raw"] = working["identifiants_sources"].copy()
+    output["source_created_at"] = working["date_creation"].copy()
+    output["source_modified_at"] = working["date_modification"].copy()
+    output["source_confirmed_at"] = working["date_de_confirmation"].copy()
+    output["planimetric_acquisition_method"] = working[
+        "methode_d_acquisition_planimetrique"
+    ].copy()
+    output["planimetric_precision_m"] = precision
+    return _validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)
+
+
+def _normalize_ign_transformation_posts(
+    posts: gpd.GeoDataFrame,
+    context: _IgnGridSourceContext,
+) -> gpd.GeoDataFrame:
+    """Normalize one discovered IGN transformation-post proxy layer."""
+
+    _validate_source_context(context)
+    _validate_input(posts, TRANSFORMATION_POST_SOURCE_FIELDS, context.source_layer)
+    working = posts.reset_index(drop=True).copy()
+    status = _geometry_status(working.geometry)
+    _validate_valid_geometry_types(
+        working,
+        status,
+        TRANSFORMATION_POST_GEOMETRY_TYPES,
+        context.source_layer,
+    )
+    precision = _normalized_precision(
+        working["precision_planimetrique"], context.source_layer
+    )
+    output = _base_output(
+        working,
+        feature_type="TRANSFORMATION_POST",
+        context=context,
+    )
+    output["name"] = working["toponyme"].copy()
+    output["name_status_raw"] = working["statut_du_toponyme"].copy()
+    output["importance_raw"] = working["importance"].copy()
+    output["asset_status_raw"] = working["etat_de_l_objet"].copy()
+    output["source_name_raw"] = working["sources"].copy()
+    output["source_identifiers_raw"] = working["identifiants_sources"].copy()
+    output["source_created_at"] = working["date_creation"].copy()
+    output["source_modified_at"] = working["date_modification"].copy()
+    output["source_confirmed_at"] = working["date_de_confirmation"].copy()
+    output["planimetric_acquisition_method"] = working[
+        "methode_d_acquisition_planimetrique"
+    ].copy()
+    output["planimetric_precision_m"] = precision
+    output["voltage_status"] = "UNKNOWN"
+    output["voltage_kv"] = float("nan")
+    return _validated_geodataframe(
+        output,
+        working,
+        status,
+        TRANSFORMATION_POST_OUTPUT_COLUMNS,
+    )
+
+
+def _validate_layer_summary(
+    frame: gpd.GeoDataFrame,
+    summary: IgnBdTopoLayerSummary,
+    *,
+    expected_layer: str,
+    expected_logical_name: str,
+) -> None:
+    try:
+        _validate_layer_summary_contract(summary)
+    except Exception as error:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary schema contract is invalid"
+        ) from error
+    if summary.source_layer_name != expected_layer:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary layer does not match extraction"
+        )
+    if summary.logical_name != expected_logical_name:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary has the wrong logical name"
+        )
+    if summary.feature_count != len(frame):
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary row count does not match frame"
+        )
+    observed_columns = tuple(str(column) for column in frame.columns)
+    observed_dtypes = tuple(
+        (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+    )
+    if summary.columns != observed_columns or summary.dtypes != observed_dtypes:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary schema columns or dtypes "
+            "do not match frame"
+        )
+    if frame.active_geometry_name != "geometry":
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} requires an active geometry column"
+        )
+    frame_crs = _validated_lambert93(frame.crs, f"IGN {expected_logical_name}")
+    summary_crs = _validated_lambert93(
+        summary.crs, f"IGN {expected_logical_name} summary"
+    )
+    if not frame_crs.equals(summary_crs):
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary CRS does not match frame"
+        )
+    observed_geometry = _geometry_summary(frame)
+    expected_geometry = (
+        summary.null_geometry_count,
+        summary.empty_geometry_count,
+        summary.invalid_geometry_count,
+        summary.geometry_types,
+    )
+    if observed_geometry != expected_geometry:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} geometry summary does not match frame"
+        )
+
+
+def _normalized_identity(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnGridNormalizationError(f"IGN archive {label} must be a string")
+    decomposed = unicodedata.normalize("NFKD", value.casefold())
+    without_accents = "".join(
+        character for character in decomposed if not unicodedata.combining(character)
+    )
+    return " ".join(re.findall(r"[a-z0-9]+", without_accents))
+
+
+def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
+    archive = source.extraction.archive
+    provider = _normalized_identity(archive.provider, "provider")
+    product = _normalized_identity(archive.product, "product")
+    if provider not in _IGN_PROVIDER_IDENTITIES:
+        raise IgnGridNormalizationError(
+            "IGN archive provider is incompatible with the IGN normalizer"
+        )
+    if product.replace(" ", "") != "bdtopo":
+        raise IgnGridNormalizationError(
+            "IGN archive product is incompatible with the BD TOPO normalizer"
+        )
+    _validated_lambert93(archive.projection, "IGN archive projection")
+
+
+def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
+    if type(source) is not IgnBdTopoElectricityData:
+        raise IgnGridNormalizationError(
+            "IGN electricity source must be IgnBdTopoElectricityData"
+        )
+    if type(source.extraction) is not IgnBdTopoExtraction:
+        raise IgnGridNormalizationError("IGN electricity extraction type is invalid")
+    if type(source.extraction.archive) is not IgnBdTopoDownload:
+        raise IgnGridNormalizationError("IGN electricity archive type is invalid")
+    if (
+        type(source.electric_lines_summary) is not IgnBdTopoLayerSummary
+        or type(source.transformation_posts_summary) is not IgnBdTopoLayerSummary
+    ):
+        raise IgnGridNormalizationError("IGN electricity summary type is invalid")
+    if not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(
+        source.transformation_posts, gpd.GeoDataFrame
+    ):
+        raise IgnGridNormalizationError("IGN electricity layers must be GeoDataFrames")
+    extraction = source.extraction
+    layer_names = extraction.all_layer_names
+    if (
+        type(layer_names) is not tuple
+        or not layer_names
+        or any(
+            not isinstance(name, str) or not name or name != name.strip()
+            for name in layer_names
+        )
+        or len(set(layer_names)) != len(layer_names)
+    ):
+        raise IgnGridNormalizationError(
+            "IGN electricity layer inventory must be a unique non-empty tuple"
+        )
+    selected_layers = (
+        extraction.electric_lines_layer,
+        extraction.transformation_posts_layer,
+    )
+    if any(layer not in layer_names for layer in selected_layers):
+        raise IgnGridNormalizationError(
+            "IGN electricity selected layer is absent from the layer inventory"
+        )
+    if selected_layers[0] == selected_layers[1]:
+        raise IgnGridNormalizationError(
+            "IGN electricity roles must use distinct layers, not the same layer"
+        )
+    _validate_archive_identity(source)
+    roles = (
+        source.spatial_role,
+        source.extraction.spatial_role,
+        source.extraction.archive.spatial_role,
+        source.electric_lines_summary.spatial_role,
+        source.transformation_posts_summary.spatial_role,
+    )
+    if any(role != SPATIAL_ROLE for role in roles):
+        raise IgnGridNormalizationError(
+            "IGN source bundle spatial roles must all be PROXY_GEOMETRY"
+        )
+    _validate_layer_summary(
+        source.electric_lines,
+        source.electric_lines_summary,
+        expected_layer=source.extraction.electric_lines_layer,
+        expected_logical_name="electric_lines",
+    )
+    _validate_layer_summary(
+        source.transformation_posts,
+        source.transformation_posts_summary,
+        expected_layer=source.extraction.transformation_posts_layer,
+        expected_logical_name="transformation_posts",
+    )
+
+
+def _source_context(
+    source: IgnBdTopoElectricityData,
+    source_layer: str,
+) -> _IgnGridSourceContext:
+    archive = source.extraction.archive
+    return _IgnGridSourceContext(
+        source_layer=source_layer,
+        department_code=archive.department_code,
+        edition=archive.edition,
+        product_version=archive.product_version,
+        download_timestamp=archive.download_timestamp,
+        archive_sha256=archive.sha256,
+        source_url=archive.source_url,
+    )
+
+
+def normalize_ign_electricity(
+    source: IgnBdTopoElectricityData,
+    config: IgnBdTopoSourceConfig,
+) -> NormalizedIgnElectricityData:
+    """Validate and normalize a complete already-loaded IGN source bundle."""
+
+    try:
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise IgnGridNormalizationError(
+                "IGN electricity source config type is invalid"
+            )
+        fresh = _revalidate_ign_bdtopo_electricity_data(source, config)
+        _validate_source_bundle(fresh)
+        line_context = _source_context(fresh, fresh.extraction.electric_lines_layer)
+        post_context = _source_context(
+            fresh, fresh.extraction.transformation_posts_layer
+        )
+        return NormalizedIgnElectricityData(
+            electric_lines=_normalize_ign_electric_lines(
+                fresh.electric_lines, line_context
+            ),
+            transformation_posts=_normalize_ign_transformation_posts(
+                fresh.transformation_posts, post_context
+            ),
+        )
+    except IgnGridNormalizationError:
+        raise
+    except Exception as error:
+        raise IgnGridNormalizationError(
+            f"IGN electricity source cannot be normalized safely: {error}"
+        ) from error
 ```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 7 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `statut_du_toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `toponyme` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the grid/source flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

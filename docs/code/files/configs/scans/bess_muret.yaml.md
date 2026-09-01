@@ -32,112 +32,216 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 | `profile.path` | `"configs/profiles/bess_default_fr.yaml"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `path` under the exact parent path `profile`. | `landscout.config.load_scan_config` |
 | `output.directory` | `"outputs"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `directory` under the exact parent path `output`. | `landscout.config.load_scan_config` |
 
+## STEP 7F.1A.4 dependent-model refresh
+
+- The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.config.load_scan_config`; section 5 now embeds the exact current owning model sources and qualified consumers.
+- Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
+- No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+
 ## 5. Classes / models / dataclasses
 
-Authoritative owning model: `landscout.config.ScanConfig`. The checked-in file currently validates as `LoadedScanConfig`.
+- Exact checked-in configuration SHA256 remains `6da68dfa5442b7b856687d5c9d5b0db10a2a2f799a2d7b8b35342573d54c65ba`; its values are unchanged by STEP 7F.1A.4.
+- Authoritative loader/config boundary: `landscout.config.load_scan_config`.
+- Owning Python module: `landscout.config`.
+- The owning model declarations below are refreshed from the current source so frozen/deeply immutable fields, strict serialization, exact domains, validators, and internal metadata schemas cannot remain stale merely because the YAML bytes did not change.
+
+### `_ConfigModel`
+
+**Source purpose:** Defines `_ConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `BaseModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
 
 ```python
 class _ConfigModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
+```
 
-class ParcelConfig(_ConfigModel):
-    min_area_m2: StrictPositiveFloat
-    max_area_m2: StrictPositiveFloat
+### `ScanMetadata`
 
-    @model_validator(mode="after")
-    def validate_area_range(self) -> "ParcelConfig":
-        if self.max_area_m2 <= self.min_area_m2:
-            raise ValueError("max_area_m2 must be greater than min_area_m2")
-        return self
+**Source purpose:** Defines `ScanMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-class ShapeCalibrationConfig(_ConfigModel):
-    policy_version: NonEmptyString
-    method: NonEmptyString
-    calibration_scope: NonEmptyString
-    sample_size: StrictPositiveInt
-    calibrated_at: NonEmptyString
-    target_retention_pct: Annotated[
-        StrictFiniteFloat, Field(gt=0, le=100, allow_inf_nan=False)
-    ]
-    observed_retention_pct: Annotated[
-        StrictFiniteFloat, Field(ge=0, le=100, allow_inf_nan=False)
-    ]
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
 
-class ShapeScreeningConfig(_ConfigModel):
-    enabled: StrictBool
-    min_width_m: StrictPositiveFloat | None = None
-    max_length_width_ratio: StrictFiniteFloat | None = Field(
-        default=None, ge=1, allow_inf_nan=False
-    )
-    calibration: ShapeCalibrationConfig | None = None
+**Fields and model attributes**
 
-    @model_validator(mode="after")
-    def validate_enabled_policy(self) -> "ShapeScreeningConfig":
-        if not self.enabled:
-            return self
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `name` | `NonEmptyString` | `required` | `name: NonEmptyString` |
+| `country` | `NonEmptyString` | `required` | `country: NonEmptyString` |
+| `technology` | `NonEmptyString` | `required` | `technology: NonEmptyString` |
 
-        required_values = {
-            "min_width_m": self.min_width_m,
-            "max_length_width_ratio": self.max_length_width_ratio,
-            "calibration": self.calibration,
-        }
-        missing = [name for name, value in required_values.items() if value is None]
-        if missing:
-            formatted = ", ".join(missing)
-            raise ValueError(f"enabled shape screening requires: {formatted}")
-        return self
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-class CrsConfig(_ConfigModel):
-    storage: NonEmptyString
-    calculation: NonEmptyString
+**Qualified consumers**
 
-    @model_validator(mode="after")
-    def validate_crs_contract(self) -> "CrsConfig":
-        for field, value, expected in (
-            ("storage", self.storage, 4326),
-            ("calculation", self.calculation, 2154),
-        ):
-            try:
-                observed = CRS.from_user_input(value)
-            except Exception as error:
-                raise ValueError(f"{field} CRS is unreadable") from error
-            if not observed.equals(CRS.from_epsg(expected)):
-                raise ValueError(f"{field} CRS must be EPSG:{expected}")
-        return self
+- No conservative direct repository consumer was found.
 
-class BessProfile(_ConfigModel):
-    country: NonEmptyString
-    technology: NonEmptyString
-    parcel: ParcelConfig
-    shape_screening: ShapeScreeningConfig
-    crs: CrsConfig
+**Exact class source**
 
+```python
 class ScanMetadata(_ConfigModel):
     name: NonEmptyString
     country: NonEmptyString
     technology: NonEmptyString
+```
 
+### `AoiConfig`
+
+**Source purpose:** Defines `AoiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `commune_codes` | `tuple[CommuneCode, ...]` | `Field(min_length=1)` | `commune_codes: tuple[CommuneCode, ...] = Field(min_length=1)` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
 class AoiConfig(_ConfigModel):
-    commune_codes: list[CommuneCode] = Field(min_length=1)
+    commune_codes: tuple[CommuneCode, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
     def validate_unique_communes(self) -> "AoiConfig":
         if len(set(self.commune_codes)) != len(self.commune_codes):
             raise ValueError("commune_codes must not contain duplicates")
         return self
+```
 
+### `ProfileReference`
+
+**Source purpose:** Defines `ProfileReference`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `path` | `Path` | `required` | `path: Path` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
 class ProfileReference(_ConfigModel):
     path: Path
+```
 
+### `OutputConfig`
+
+**Source purpose:** Defines `OutputConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `directory` | `Path` | `required` | `directory: Path` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
 class OutputConfig(_ConfigModel):
     directory: Path
+```
 
+### `ScanConfig`
+
+**Source purpose:** Defines `ScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `scan` | `ScanMetadata` | `required` | `scan: ScanMetadata` |
+| `aoi` | `AoiConfig` | `required` | `aoi: AoiConfig` |
+| `profile` | `ProfileReference` | `required` | `profile: ProfileReference` |
+| `output` | `OutputConfig` | `required` | `output: OutputConfig` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- value/type reference: `landscout.config::load_scan_config` via `ScanConfig`
+
+**Exact class source**
+
+```python
 class ScanConfig(_ConfigModel):
     scan: ScanMetadata
     aoi: AoiConfig
     profile: ProfileReference
     output: OutputConfig
+```
 
+### `LoadedScanConfig`
+
+**Source purpose:** Defines `LoadedScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_ConfigModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `scan_config` | `ScanConfig` | `required` | `scan_config: ScanConfig` |
+| `profile` | `BessProfile` | `required` | `profile: BessProfile` |
+| `profile_path` | `Path` | `required` | `profile_path: Path` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- constructor call: `landscout.config::load_scan_config` via `LoadedScanConfig`
+- value/type reference: `landscout.config::load_scan_config` via `LoadedScanConfig`
+
+**Exact class source**
+
+```python
 class LoadedScanConfig(_ConfigModel):
     scan_config: ScanConfig
     profile: BessProfile
@@ -199,3 +303,39 @@ The loader/model companion and relevant test companion document exact valid/inva
 ## 17. Change impact
 
 Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.
+
+## 18. Complete readable configuration and authoritative raw-byte snapshot
+
+### Complete readable YAML
+
+The following is the complete decoded UTF-8 configuration with line endings normalized to LF for stable Markdown display. Every character and logical line is present, but this readable fence is not the authority for original CR/LF byte positions.
+
+```yaml
+scan:
+  name: bess_muret
+  country: FR
+  technology: BESS
+
+aoi:
+  commune_codes:
+    - "31395"
+
+profile:
+  path: configs/profiles/bess_default_fr.yaml
+
+output:
+  directory: outputs
+```
+
+### Authoritative raw-byte payload
+
+- Raw byte length: `181`.
+- Raw SHA256: `6da68dfa5442b7b856687d5c9d5b0db10a2a2f799a2d7b8b35342573d54c65ba` (identical to **File identity**).
+- Encoding: RFC 4648 Base64, wrapped for display only. Decoding the concatenated payload reproduces every original byte, including mixed CRLF/LF positions.
+
+```text
+c2NhbjoKICBuYW1lOiBiZXNzX211cmV0CiAgY291bnRyeTogRlIKICB0ZWNobm9sb2d5OiBCRVNT
+Cgphb2k6CiAgY29tbXVuZV9jb2RlczoKICAgIC0gIjMxMzk1IgoKcHJvZmlsZToKICBwYXRoOiBj
+b25maWdzL3Byb2ZpbGVzL2Jlc3NfZGVmYXVsdF9mci55YW1sCgpvdXRwdXQ6CiAgZGlyZWN0b3J5
+OiBvdXRwdXRzCg==
+```

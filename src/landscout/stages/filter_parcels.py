@@ -2,9 +2,10 @@ from math import isfinite
 from numbers import Real
 
 import geopandas as gpd  # type: ignore[import-untyped]
+from pydantic import ValidationError
 from pyproj import CRS
 
-from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses
+from landscout.common.cadastre_contract import validate_normalized_cadastre_parcels
 from landscout.config import ParcelConfig, ShapeScreeningConfig
 
 AREA_REQUIRED_COLUMNS = frozenset(
@@ -77,6 +78,18 @@ def _is_strict_finite_number(value: object) -> bool:
 def filter_parcels_by_area(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    try:
+        if type(area_config) is not ParcelConfig:
+            raise TypeError("Area filter config type is invalid")
+        validated_config = ParcelConfig.model_validate(
+            area_config.model_dump(mode="python")
+        )
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise ParcelFilterError("Area filter config is invalid") from error
+    if "rejection_reason" in getattr(parcels, "columns", ()):
+        raise ParcelFilterError(
+            "Area-filter input collides with generated rejection_reason"
+        )
     missing_columns = _missing_columns(parcels, AREA_REQUIRED_COLUMNS, "Area-filter")
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
@@ -84,23 +97,17 @@ def filter_parcels_by_area(
     parcels = _validate_spatial_frame(parcels, "Area-filter")
     _validate_exact_parcel_ids(parcels)
     try:
-        validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
+        validate_normalized_cadastre_parcels(parcels)
     except ValueError as error:
         raise ParcelFilterError(str(error)) from error
 
     valid_geometry = parcels["geometry_status"] == "VALID"
-    if any(
-        not _is_strict_finite_number(value) or float(value) <= 0
-        for value in parcels.loc[valid_geometry, "area_m2"]
-    ):
-        raise ParcelFilterError(
-            "area_m2 must be a strict positive finite numeric value when "
-            "geometry_status is VALID"
-        )
 
     known_area = parcels["area_m2"].notna()
     within_area_range = parcels["area_m2"].between(
-        area_config.min_area_m2, area_config.max_area_m2, inclusive="both"
+        validated_config.min_area_m2,
+        validated_config.max_area_m2,
+        inclusive="both",
     )
     candidate_mask = valid_geometry & known_area & within_area_range
 
@@ -114,13 +121,13 @@ def filter_parcels_by_area(
     rejected.loc[
         rejected_valid_geometry
         & rejected_known_area
-        & (rejected["area_m2"] < area_config.min_area_m2),
+        & (rejected["area_m2"] < validated_config.min_area_m2),
         "rejection_reason",
     ] = "AREA_BELOW_MIN"
     rejected.loc[
         rejected_valid_geometry
         & rejected_known_area
-        & (rejected["area_m2"] > area_config.max_area_m2),
+        & (rejected["area_m2"] > validated_config.max_area_m2),
         "rejection_reason",
     ] = "AREA_ABOVE_MAX"
 
@@ -129,9 +136,10 @@ def filter_parcels_by_area(
     input_ids = set(parcels["parcel_id"])
     candidate_ids = set(candidates["parcel_id"])
     rejected_ids = set(rejected["parcel_id"])
-    if candidates["parcel_id"].duplicated().any() or rejected[
-        "parcel_id"
-    ].duplicated().any():
+    if (
+        candidates["parcel_id"].duplicated().any()
+        or rejected["parcel_id"].duplicated().any()
+    ):
         raise ParcelFilterError("Parcel partition contains duplicate parcel IDs")
     if candidate_ids & rejected_ids:
         raise ParcelFilterError("Candidate and rejected parcel IDs overlap")
@@ -146,7 +154,10 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
         formatted = ", ".join(sorted(missing_columns))
         raise ParcelFilterError(f"Missing required shape columns: {formatted}")
     parcels = _validate_spatial_frame(parcels, "Shape-filter")
-    _validate_exact_parcel_ids(parcels)
+    try:
+        validate_normalized_cadastre_parcels(parcels)
+    except ValueError as error:
+        raise ParcelFilterError(str(error)) from error
 
     statuses = parcels["shape_status"]
     unexpected_statuses = set(statuses.dropna().unique()) - ALLOWED_SHAPE_STATUSES
@@ -187,9 +198,10 @@ def _validate_shape_partition(
 ) -> None:
     if len(parcels) != len(retained) + len(rejected):
         raise ParcelFilterError("Shape partition did not preserve every input row")
-    if retained["parcel_id"].duplicated().any() or rejected[
-        "parcel_id"
-    ].duplicated().any():
+    if (
+        retained["parcel_id"].duplicated().any()
+        or rejected["parcel_id"].duplicated().any()
+    ):
         raise ParcelFilterError("Shape partition contains duplicate parcel IDs")
 
     input_ids = set(parcels["parcel_id"])
@@ -205,17 +217,38 @@ def filter_parcels_by_shape(
     parcels: gpd.GeoDataFrame, shape_config: ShapeScreeningConfig
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     """Partition shape-enriched parcels using an explicit screening policy."""
+    try:
+        if type(shape_config) is not ShapeScreeningConfig:
+            raise TypeError("Shape filter config type is invalid")
+        validated_config = ShapeScreeningConfig.model_validate(
+            shape_config.model_dump(mode="python")
+        )
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise ParcelFilterError("Shape filter config is invalid") from error
     _validate_shape_filter_input(parcels)
 
-    if not shape_config.enabled:
+    if not validated_config.enabled:
         retained = parcels.copy()
         rejected = parcels.iloc[0:0].copy()
         _validate_shape_partition(parcels, retained, rejected)
         return retained, rejected
 
-    min_width_m = shape_config.min_width_m
-    max_ratio = shape_config.max_length_width_ratio
-    calibration = shape_config.calibration
+    generated_columns = {
+        "shape_rejection_reason",
+        "shape_policy_version",
+        "shape_policy_min_width_m",
+        "shape_policy_max_ratio",
+    }
+    collisions = generated_columns & set(parcels.columns)
+    if collisions:
+        raise ParcelFilterError(
+            "Shape-filter input collides with generated columns: "
+            + ", ".join(sorted(collisions))
+        )
+
+    min_width_m = validated_config.min_width_m
+    max_ratio = validated_config.max_length_width_ratio
+    calibration = validated_config.calibration
     if min_width_m is None or max_ratio is None or calibration is None:
         raise ParcelFilterError("Enabled shape screening policy is incomplete")
 
@@ -239,8 +272,7 @@ def filter_parcels_by_shape(
     rejected_valid = rejected["shape_status"] == "VALID"
     rejected_width = rejected["width_m"].where(rejected_valid)
     rejected.loc[
-        rejected_valid
-        & (rejected_width < min_width_m),
+        rejected_valid & (rejected_width < min_width_m),
         "shape_rejection_reason",
     ] = "WIDTH_BELOW_MIN"
     rejected.loc[~rejected_valid, "shape_rejection_reason"] = "SHAPE_ERROR"

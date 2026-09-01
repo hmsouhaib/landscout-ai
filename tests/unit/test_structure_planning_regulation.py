@@ -257,9 +257,7 @@ def test_old_and_unknown_section_hash_schema_versions_are_rejected(
 def test_toc_topic_evidence_flag_rejects_boolean_coercion(value: object) -> None:
     index = _index()
     payload = _config(index).model_dump(mode="python")
-    payload["document_layout"][
-        "include_table_of_contents_in_topic_evidence"
-    ] = value
+    payload["document_layout"]["include_table_of_contents_in_topic_evidence"] = value
     with pytest.raises(ValueError):
         PlanningRegulationStructureConfig.model_validate(payload)
 
@@ -268,11 +266,11 @@ def test_toc_topic_evidence_flag_rejects_boolean_coercion(value: object) -> None
 def test_toc_topic_evidence_flag_accepts_exact_booleans(value: bool) -> None:
     index = _index()
     payload = _config(index).model_dump(mode="python")
-    payload["document_layout"][
-        "include_table_of_contents_in_topic_evidence"
-    ] = value
+    payload["document_layout"]["include_table_of_contents_in_topic_evidence"] = value
     validated = PlanningRegulationStructureConfig.model_validate(payload)
-    assert validated.document_layout.include_table_of_contents_in_topic_evidence is value
+    assert (
+        validated.document_layout.include_table_of_contents_in_topic_evidence is value
+    )
 
 
 def test_document_layout_accepts_real_first_and_last_indexed_pages() -> None:
@@ -358,7 +356,9 @@ def test_document_lock_mismatch_is_rejected(lock_field: str) -> None:
     )
     changed = config.model_copy(update={"document_lock": lock})
     with pytest.raises(PlanningRegulationStructureError, match="document lock"):
-        structure_planning_regulation(index, _zones(index), _intersections(index), changed)
+        structure_planning_regulation(
+            index, _zones(index), _intersections(index), changed
+        )
 
 
 def test_invalid_regex_and_unknown_yaml_field_are_controlled(tmp_path: Path) -> None:
@@ -444,10 +444,7 @@ def test_evidence_scope_is_derived_from_exact_section_type() -> None:
         (
             "energy cover text",
             "ARTICLE 1 - GENERAL\nenergy general text",
-            (
-                "ZONE U\nenergy chapter text\n"
-                "ARTICLE U 1 - BODY\nenergy article text"
-            ),
+            ("ZONE U\nenergy chapter text\nARTICLE U 1 - BODY\nenergy article text"),
         )
     )
     payload = _config(index).model_dump(mode="python")
@@ -465,9 +462,7 @@ def test_evidence_scope_is_derived_from_exact_section_type() -> None:
     scopes_by_type = {
         section_type: set(
             result.topic_evidence.loc[
-                result.topic_evidence["section_id"].map(section_types).eq(
-                    section_type
-                ),
+                result.topic_evidence["section_id"].map(section_types).eq(section_type),
                 "evidence_scope",
             ]
         )
@@ -482,9 +477,7 @@ def test_evidence_scope_is_derived_from_exact_section_type() -> None:
 
     evidence = result.topic_evidence.copy(deep=True)
     other_section_ids = set(
-        result.sections.loc[
-            result.sections["section_type"].eq("OTHER"), "section_id"
-        ]
+        result.sections.loc[result.sections["section_type"].eq("OTHER"), "section_id"]
     )
     row_index = evidence.index[evidence["section_id"].isin(other_section_ids)][0]
     evidence.loc[row_index, "evidence_scope"] = "GENERAL_RULE"
@@ -574,7 +567,9 @@ def test_equal_length_overlap_uses_configured_term_order_as_tie_break() -> None:
     )
     assert forward_result.topic_evidence["search_term"].tolist() == ["alpha beta"]
     assert reverse_result.topic_evidence["search_term"].tolist() == ["beta gamma"]
-    assert forward_result.structure_config_sha256 != reverse_result.structure_config_sha256
+    assert (
+        forward_result.structure_config_sha256 != reverse_result.structure_config_sha256
+    )
 
 
 def test_inputs_are_not_mutated() -> None:
@@ -588,6 +583,71 @@ def test_inputs_are_not_mutated() -> None:
     pd.testing.assert_frame_equal(index.pages, pages_before)
     pd.testing.assert_frame_equal(zones, zones_before)
     pd.testing.assert_frame_equal(intersections, intersections_before)
+
+
+def test_structure_decision_mappings_are_deeply_immutable() -> None:
+    config = _config(_index())
+    snapshot = config.model_dump(mode="python")
+
+    with pytest.raises(TypeError, match="frozen mapping"):
+        config.zone_aliases["Ux"] = "U"
+    with pytest.raises(TypeError, match="frozen mapping"):
+        config.topics["new"] = ("term",)
+
+    assert config.model_dump(mode="python") == snapshot
+
+
+def test_body_page_extraction_error_stops_structure() -> None:
+    index = _index()
+    pages = index.pages.copy(deep=True)
+    pages.loc[2, "extraction_status"] = "ERROR"
+    pages.loc[2, "raw_text"] = ""
+    pages.loc[2, "normalized_search_text"] = ""
+    pages.loc[2, "character_count"] = 0
+    pages.loc[2, "extraction_error"] = "synthetic extraction failure"
+    row = pages.loc[2].to_dict()
+    pages.loc[2, "page_content_sha256"] = _page_content_sha256(row)
+    changed = replace(
+        index,
+        pages=pages,
+        pages_content_sha256=_pages_content_sha256(pages),
+    )
+    changed = replace(changed, index_content_sha256=_index_content_sha256(changed))
+
+    with pytest.raises(PlanningRegulationStructureError, match="body page.*ERROR"):
+        structure_planning_regulation(
+            changed,
+            _zones(changed),
+            _intersections(changed),
+            _config(changed),
+        )
+
+
+def test_blank_successfully_extracted_body_page_remains_valid() -> None:
+    index = _index()
+    pages = index.pages.copy(deep=True)
+    pages.loc[1, "extraction_status"] = "EMPTY"
+    pages.loc[1, "raw_text"] = ""
+    pages.loc[1, "normalized_search_text"] = ""
+    pages.loc[1, "character_count"] = 0
+    pages.loc[1, "extraction_error"] = None
+    row = pages.loc[1].to_dict()
+    pages.loc[1, "page_content_sha256"] = _page_content_sha256(row)
+    changed = replace(
+        index,
+        pages=pages,
+        pages_content_sha256=_pages_content_sha256(pages),
+    )
+    changed = replace(changed, index_content_sha256=_index_content_sha256(changed))
+
+    result = structure_planning_regulation(
+        changed,
+        _zones(changed),
+        _intersections(changed),
+        _config(changed),
+    )
+
+    assert not result.sections.empty
 
 
 @pytest.mark.parametrize(
@@ -766,9 +826,7 @@ def test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence() -> None:
     included_payload["document_layout"][
         "include_table_of_contents_in_topic_evidence"
     ] = True
-    included_config = PlanningRegulationStructureConfig.model_validate(
-        included_payload
-    )
+    included_config = PlanningRegulationStructureConfig.model_validate(included_payload)
 
     excluded = structure_planning_regulation(
         index, _zones(index), _intersections(index), excluded_config
@@ -1010,12 +1068,10 @@ def _config_with_structural_patterns(
     return PlanningRegulationStructureConfig.model_validate(payload)
 
 
-def test_unique_zone_heading_and_nonheading_line_are_classified_deterministically() -> None:
-    index = _index(
-        (
-            "Ordinary factual text\nZONE U\nARTICLE U 1 - BODY\nBody text",
-        )
-    )
+def test_unique_zone_heading_and_nonheading_line_are_classified_deterministically() -> (
+    None
+):
+    index = _index(("Ordinary factual text\nZONE U\nARTICLE U 1 - BODY\nBody text",))
     config = _config_with_structural_patterns(index)
     records = _line_records(index, config)
     events = _heading_events(records, config)
@@ -1077,9 +1133,7 @@ def test_general_and_article_cross_category_match_is_ambiguous() -> None:
     index = _index(("ARTICLE 1 - GENERAL\nBody",))
     config = _config_with_structural_patterns(
         index,
-        article=(
-            r"^ARTICLE\s+(?P<zone>[A-Z]*)(?P<number>\d+)\s*-\s*(?P<title>.*)$",
-        ),
+        article=(r"^ARTICLE\s+(?P<zone>[A-Z]*)(?P<number>\d+)\s*-\s*(?P<title>.*)$",),
     )
     with pytest.raises(PlanningRegulationStructureError) as captured:
         structure_planning_regulation(
@@ -1097,9 +1151,7 @@ def test_zone_and_general_cross_category_match_is_ambiguous() -> None:
     index = _index(("ZONE U\nBody",))
     config = _config_with_structural_patterns(
         index,
-        general_section=(
-            r"^ZONE\s+(?P<number>[A-Z]+)(?P<title>)$",
-        ),
+        general_section=(r"^ZONE\s+(?P<number>[A-Z]+)(?P<title>)$",),
     )
     with pytest.raises(PlanningRegulationStructureError) as captured:
         structure_planning_regulation(
@@ -1196,7 +1248,9 @@ def test_normal_muret_compatible_grammar_remains_deterministic() -> None:
     pd.testing.assert_frame_equal(first.sections, second.sections)
     pd.testing.assert_frame_equal(first.zone_mapping, second.zone_mapping)
     pd.testing.assert_frame_equal(first.topic_evidence, second.topic_evidence)
-    assert first.structure_result_content_sha256 == second.structure_result_content_sha256
+    assert (
+        first.structure_result_content_sha256 == second.structure_result_content_sha256
+    )
 
 
 @pytest.mark.parametrize(
@@ -1239,7 +1293,9 @@ def test_unsorted_section_pages_are_rejected(valid_result) -> None:
         _validate(index, replace(result, sections=sections))
 
 
-@pytest.mark.parametrize("mutation", ["missing_parent", "parent_after", "zone_mismatch"])
+@pytest.mark.parametrize(
+    "mutation", ["missing_parent", "parent_after", "zone_mismatch"]
+)
 def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> None:
     index, result = valid_result
     sections = result.sections.copy(deep=True)
@@ -1247,7 +1303,9 @@ def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> N
     if mutation == "missing_parent":
         sections.loc[article_index, "parent_section_id"] = None
     elif mutation == "parent_after":
-        sections.loc[article_index, "parent_section_id"] = sections.iloc[-1]["section_id"]
+        sections.loc[article_index, "parent_section_id"] = sections.iloc[-1][
+            "section_id"
+        ]
     else:
         sections.loc[article_index, "zone_chapter_label"] = "N"
     with pytest.raises(PlanningRegulationStructureError):
@@ -1289,9 +1347,7 @@ def test_intersection_upper_bound_uses_shared_relative_tolerance(
 
     within_tolerance = _intersections(index)
     within_tolerance[upper_column] = [reference_area, 50.0]
-    within_tolerance.loc[0, "intersection_area_m2"] = (
-        reference_area + tolerance / 2
-    )
+    within_tolerance.loc[0, "intersection_area_m2"] = reference_area + tolerance / 2
     result = structure_planning_regulation(
         index,
         _zones(index),
@@ -1307,9 +1363,7 @@ def test_intersection_upper_bound_uses_shared_relative_tolerance(
     )
 
     above_tolerance = within_tolerance.copy(deep=True)
-    above_tolerance.loc[0, "intersection_area_m2"] = (
-        reference_area + tolerance * 2
-    )
+    above_tolerance.loc[0, "intersection_area_m2"] = reference_area + tolerance * 2
     with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
         structure_planning_regulation(
             index,
@@ -1446,7 +1500,9 @@ def test_zone_mapping_contract_mutations_are_rejected(
 
 def test_alias_chain_resolves_to_final_configured_target() -> None:
     index = _index()
-    config = _config(index).model_copy(update={"zone_aliases": {"Ua": "Urban", "Urban": "U"}})
+    config = _config(index).model_copy(
+        update={"zone_aliases": {"Ua": "Urban", "Urban": "U"}}
+    )
     result = structure_planning_regulation(
         index, _zones(index), _intersections(index), config
     )
@@ -1537,7 +1593,9 @@ def test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected(
         _validate(index, changed)
 
 
-@pytest.mark.parametrize("source_change", ["alias", "topic", "heading", "zone", "area", "relation"])
+@pytest.mark.parametrize(
+    "source_change", ["alias", "topic", "heading", "zone", "area", "relation"]
+)
 def test_source_complete_validator_rejects_post_build_source_change(
     valid_result,
     source_change: str,
@@ -1549,7 +1607,9 @@ def test_source_complete_validator_rejects_post_build_source_change(
     if source_change == "alias":
         config = config.model_copy(update={"zone_aliases": {"Ua": "N"}})
     elif source_change == "topic":
-        config = config.model_copy(update={"topics": {"energy": ("electricity",), "risk": ("risk",)}})
+        config = config.model_copy(
+            update={"topics": {"energy": ("electricity",), "risk": ("risk",)}}
+        )
     elif source_change == "heading":
         patterns = config.heading_patterns.model_copy(
             update={"zone_chapter": (r"^ZONE\s+(?P<label>[A-Za-z0-9]+)\s*$",)}
@@ -1578,7 +1638,9 @@ def test_source_complete_validator_rejects_post_build_source_change(
         "structure_result_content_sha256",
     ],
 )
-def test_source_and_result_hash_mutation_is_rejected(valid_result, hash_field: str) -> None:
+def test_source_and_result_hash_mutation_is_rejected(
+    valid_result, hash_field: str
+) -> None:
     index, result = valid_result
     with pytest.raises(PlanningRegulationStructureError):
         _validate(index, replace(result, **{hash_field: "f" * 64}))

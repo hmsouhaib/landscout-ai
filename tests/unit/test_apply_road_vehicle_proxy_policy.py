@@ -155,26 +155,25 @@ def test_public_api_exports_only_stable_application_symbols() -> None:
 
 def test_wrong_source_type_has_controlled_error() -> None:
     with pytest.raises(IgnRoadVehicleProxyApplicationError):
-        apply_ign_road_vehicle_proxy_policy(
-            cast(Any, object()), SOURCE_CONFIG
-        )
+        apply_ign_road_vehicle_proxy_policy(cast(Any, object()), SOURCE_CONFIG)
 
 
 def test_wrong_source_config_type_has_controlled_error() -> None:
     with pytest.raises(IgnRoadVehicleProxyApplicationError):
-        apply_ign_road_vehicle_proxy_policy(
-            _source(), cast(Any, object())
-        )
+        apply_ign_road_vehicle_proxy_policy(_source(), cast(Any, object()))
 
 
 def test_malformed_policy_path_has_controlled_error(tmp_path: Path) -> None:
     path = tmp_path / "policy.yaml"
     path.write_text("policy_id: [", encoding="utf-8")
 
-    with patch(
-        "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
-        return_value=NormalizedIgnRoadData(_roads()),
-    ), pytest.raises(IgnRoadVehicleProxyApplicationError):
+    with (
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
+            return_value=NormalizedIgnRoadData(_roads()),
+        ),
+        pytest.raises(IgnRoadVehicleProxyApplicationError),
+    ):
         apply_ign_road_vehicle_proxy_policy(_source(), SOURCE_CONFIG, path)
 
 
@@ -190,12 +189,35 @@ def test_source_complete_normalization_is_invoked_exactly_once() -> None:
 
 
 def test_normalization_failure_stops_policy_loading() -> None:
-    with patch(
-        "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
-        side_effect=IgnRoadNormalizationError("bad source"),
-    ), patch(
-        "landscout.stages.apply_road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy"
-    ) as policy_loader, pytest.raises(IgnRoadVehicleProxyApplicationError):
+    with (
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
+            side_effect=IgnRoadNormalizationError("bad source"),
+        ),
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy"
+        ) as policy_loader,
+        pytest.raises(IgnRoadVehicleProxyApplicationError),
+    ):
+        apply_ign_road_vehicle_proxy_policy(_source(), SOURCE_CONFIG)
+
+    policy_loader.assert_not_called()
+
+
+def test_generated_policy_column_collision_fails_before_policy_loading() -> None:
+    roads = _roads()
+    roads["road_proxy_class"] = "FORGED"
+
+    with (
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
+            return_value=NormalizedIgnRoadData(roads),
+        ),
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy"
+        ) as policy_loader,
+        pytest.raises(IgnRoadVehicleProxyApplicationError, match="collide.*generated"),
+    ):
         apply_ign_road_vehicle_proxy_policy(_source(), SOURCE_CONFIG)
 
     policy_loader.assert_not_called()
@@ -243,9 +265,7 @@ def test_source_object_is_not_mutated() -> None:
         ("INVALID", LineString([(0, 0), (1, 1), (0, 1), (1, 0)])),
     ],
 )
-def test_non_valid_geometry_uses_technical_gate(
-    status: str, geometry: object
-) -> None:
+def test_non_valid_geometry_uses_technical_gate(status: str, geometry: object) -> None:
     row = _row({"geometry_status": status, "geometry": geometry})
 
     assert row.road_proxy_primary_rule == "SOURCE_GEOMETRY_NOT_VALID"
@@ -462,9 +482,10 @@ def test_optional_restriction_source_contract(
 def test_every_configured_known_restriction_is_applied() -> None:
     policy = load_ign_road_vehicle_proxy_policy()
     for restriction in policy.known_restriction_review:
-        assert _row(
-            {"restriction_nature_raw": restriction}
-        ).road_proxy_primary_rule == "KNOWN_RESTRICTION"
+        assert (
+            _row({"restriction_nature_raw": restriction}).road_proxy_primary_rule
+            == "KNOWN_RESTRICTION"
+        )
 
 
 def test_general_fallback_requires_complete_positive_evidence_and_tracks_toll() -> None:
@@ -487,7 +508,7 @@ def test_general_fallback_requires_complete_positive_evidence_and_tracks_toll() 
     ],
 )
 def test_open_access_does_not_hide_unresolved_evidence(
-    overrides: dict[str, object]
+    overrides: dict[str, object],
 ) -> None:
     assert _row(overrides).road_proxy_primary_rule == "UNKNOWN"
 
@@ -585,10 +606,13 @@ def test_valid_geometry_status_with_unsupported_geometry_is_not_repaired() -> No
 
     # The source-complete normalizer owns this geometry-kind rejection. The
     # application must propagate its controlled failure rather than repair it.
-    with patch(
-        "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
-        side_effect=IgnRoadNormalizationError("unsupported geometry"),
-    ), pytest.raises(IgnRoadVehicleProxyApplicationError):
+    with (
+        patch(
+            "landscout.stages.apply_road_vehicle_proxy_policy.normalize_ign_roads",
+            side_effect=IgnRoadNormalizationError("unsupported geometry"),
+        ),
+        pytest.raises(IgnRoadVehicleProxyApplicationError),
+    ):
         apply_ign_road_vehicle_proxy_policy(_source(), SOURCE_CONFIG)
 
     assert roads.geometry.iloc[0].equals_exact(polygon, tolerance=0)

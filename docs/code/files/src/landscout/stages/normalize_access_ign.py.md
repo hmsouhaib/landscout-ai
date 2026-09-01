@@ -4,18 +4,21 @@
 
 - Repository path: `src/landscout/stages/normalize_access_ign.py`
 - File type: Python source
-- Layer: factual/source normalization stage
-- Domain: road
+- Layer: pipeline stage
+- Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
-- Source SHA256: `7f5132849965a01ce4e6826044f2e879dd3a4c7614ae8f5cc8e2d0fed080cfa3`
+- Source SHA256: `a9f84f4d65fa9c597a1069cfb36c7cd5313bf20c12fbfd30cda719d6e4eccf35`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Consumes the fresh config-bound road object returned by independent source-complete revalidation instead of the supplied caller object.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **factual/source normalization stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -50,41 +53,80 @@ This file belongs to the **factual/source normalization stage** layer and the **
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `_SOURCE_PROVIDER`
+### `__all__`
+
+- Category: explicit package/module export list.
+- Exact declaration:
+
+```python
+__all__ = [
+    "IgnRoadNormalizationError",
+    "NormalizedIgnRoadData",
+    "normalize_ign_roads",
+]
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `IgnRoadNormalizationError`
+  - `NormalizedIgnRoadData`
+  - `normalize_ign_roads`
+
+### `_SOURCE_PROVIDER`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SOURCE_PROVIDER = "IGN"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_SOURCE_PRODUCT`
+### `_SOURCE_PRODUCT`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SOURCE_PRODUCT = "BD_TOPO"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_SPATIAL_ROLE`
+### `_SPATIAL_ROLE`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SPATIAL_ROLE = "PROXY_GEOMETRY"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` (value reference), `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_ROAD_FEATURE_TYPE`
+### `_ROAD_FEATURE_TYPE`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _ROAD_FEATURE_TYPE = "ROAD_SEGMENT"
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_OUTPUT_COLUMNS`
+### `_OUTPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _OUTPUT_COLUMNS = (
@@ -135,9 +177,58 @@ _OUTPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `road_feature_id`
+  - `road_feature_type`
+  - `source_provider`
+  - `source_product`
+  - `source_layer`
+  - `source_feature_id`
+  - `source_department_code`
+  - `source_edition`
+  - `source_product_version`
+  - `source_download_timestamp`
+  - `source_archive_sha256`
+  - `source_url`
+  - `nature_raw`
+  - `importance_raw`
+  - `fictitious_raw`
+  - `position_relative_to_ground_raw`
+  - `asset_status_raw`
+  - `lane_count_raw`
+  - `carriageway_width_raw`
+  - `private_raw`
+  - `traffic_direction_raw`
+  - `urban_raw`
+  - `mean_light_vehicle_speed_raw`
+  - `light_vehicle_access_raw`
+  - `closure_period_raw`
+  - `restriction_nature_raw`
+  - `restriction_height_raw`
+  - `restriction_total_weight_raw`
+  - `restriction_axle_weight_raw`
+  - `restriction_width_raw`
+  - `restriction_length_raw`
+  - `dangerous_goods_forbidden_raw`
+  - `administrative_classification_raw`
+  - `manager_raw`
+  - `source_name_raw`
+  - `source_identifiers_raw`
+  - `source_created_at`
+  - `source_modified_at`
+  - `source_confirmed_at`
+  - `planimetric_acquisition_method`
+  - `planimetric_precision_raw`
+  - `spatial_role`
+  - `geometry_status`
+  - `geometry`
 
-#### `_RAW_FIELD_MAPPING`
+### `_RAW_FIELD_MAPPING`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _RAW_FIELD_MAPPING = (
@@ -173,9 +264,13 @@ _RAW_FIELD_MAPPING = (
 )
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/normalize_access_ign.py::<module>` (value reference), `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_REQUIRED_SOURCE_FIELDS`
+### `_REQUIRED_SOURCE_FIELDS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _REQUIRED_SOURCE_FIELDS = frozenset(
@@ -183,49 +278,73 @@ _REQUIRED_SOURCE_FIELDS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_ROAD_GEOMETRY_TYPES`
+### `_ROAD_GEOMETRY_TYPES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _ROAD_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_DEPARTMENT_CODE_VALIDATOR`
+### `_DEPARTMENT_CODE_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_EDITION_VALIDATOR`
+### `_EDITION_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_HTTP_URL_VALIDATOR`
+### `_HTTP_URL_VALIDATOR`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_SHA256_PATTERN`
+### `_SHA256_PATTERN`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ```
 
-Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_context` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_IGN_PROVIDER_IDENTITIES`
+### `_IGN_PROVIDER_IDENTITIES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _IGN_PROVIDER_IDENTITIES = frozenset(
@@ -237,94 +356,88 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
-
-- `__all__` — explicit public export allow-list.
-```python
-__all__ = [
-    "IgnRoadNormalizationError",
-    "NormalizedIgnRoadData",
-    "normalize_ign_roads",
-]
-```
-
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
+## 5. Classes, models, dataclasses, and fields
 
 ### `IgnRoadNormalizationError`
 
-**Purpose:** Raised when factual IGN road data cannot be normalized safely.
+**Source purpose:** Raised when factual IGN road data cannot be normalized safely.
 
-**Kind:** controlled exception.
+- Exact decorators: none.
+- Exact bases: `ValueError`.
 
-**Inheritance:** `ValueError`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+No direct class/model/dataclass or `self` field assignment is declared.
 
-**Fields:** none declared directly on this class.
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- constructor call: `landscout.stages.normalize_access_ign::_validated_lambert93` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validated_lambert93` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_required_exact_string` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_required_exact_string` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_source_context` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_context` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_normalized_identity` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalized_identity` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_identifiers` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_identifiers` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_source_frame` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_frame` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `IgnRoadNormalizationError`
+- constructor call: `landscout.stages.normalize_access_ign::normalize_ign_roads` via `IgnRoadNormalizationError`
+- value/type reference: `landscout.stages.normalize_access_ign::normalize_ign_roads` via `IgnRoadNormalizationError`
+- import: `tests.unit.test_apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
-)`.
-- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_normalization_failure_stops_policy_loading` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_normalization_failure_stops_policy_loading` via `IgnRoadNormalizationError`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadNormalizationError`
+- import: `tests.unit.test_normalize_access_ign::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validated_lambert93` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_required_exact_string` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalized_identity` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_identifiers` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `IgnRoadNormalizationError`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `IgnRoadNormalizationError`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `IgnRoadNormalizationError`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadNormalizationError`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `pytest.raises(IgnRoadNormalizationError, match='source|configured|physical')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=column)`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='cleabs')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='unique')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match=message)`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='PROXY_GEOMETRY')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='row count')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `pytest.raises(IgnRoadNormalizationError)`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `pytest.raises(IgnRoadNormalizationError)`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='CRS|2154')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='schema|columns|dtype')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `pytest.raises(IgnRoadNormalizationError, match='same layer|distinct|role')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `pytest.raises(IgnRoadNormalizationError, match='inventory|duplicate')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry summary')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `pytest.raises(IgnRoadNormalizationError, match='layer inventory')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='physical layer')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `pytest.raises(IgnRoadNormalizationError, match='logical name')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `pytest.raises(IgnRoadNormalizationError, match='geometry types')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `pytest.raises(IgnRoadNormalizationError, match='physical|fresh|source')`.
-- expected exception type: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `pytest.raises(IgnRoadNormalizationError)`.
+)`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_normalization_reproduces_configured_logical_layer` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_missing_required_source_field_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_null_or_empty_cleabs_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_unsafe_cleabs_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_duplicate_cleabs_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_or_missing_road_crs_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_archive_identity_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_source_spatial_role_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_row_count_mismatch_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_summary_requires_strict_structural_types` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_archive_sha256_requires_canonical_lowercase` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_crs_mismatch_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_forged_ordered_summary_schema_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_source_rejects_physical_role_collision` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_source_rejects_duplicate_layer_inventory` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_geometry_facts_mismatch_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_layer_must_exist_in_extraction_inventory` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_layer_and_logical_name_must_be_exact` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_valid_unsupported_geometry_type_is_rejected` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `IgnRoadNormalizationError`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_malformed_public_input_has_controlled_error` via `IgnRoadNormalizationError`
 
 **Exact class source**
 
@@ -335,32 +448,31 @@ class IgnRoadNormalizationError(ValueError):
 
 ### `_IgnRoadSourceContext`
 
-**Purpose:** Immutable result/value envelope carrying `source_layer`, `department_code`, `edition`, `product_version`, `download_timestamp`, `archive_sha256`, `source_url`.
+**Source purpose:** Defines `_IgnRoadSourceContext`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `source_layer` | `str` | `required` | `source_layer: str` |
+| `department_code` | `str` | `required` | `department_code: str` |
+| `edition` | `str` | `required` | `edition: str` |
+| `product_version` | `str \| None` | `required` | `product_version: str \| None` |
+| `download_timestamp` | `str` | `required` | `download_timestamp: str` |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
+| `source_url` | `str` | `required` | `source_url: str` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
-| `department_code` | `department_code: str` | French department code bound to this source package or normalization context. |
-| `edition` | `edition: str` | Declared physical source edition bound to this package/result. |
-| `product_version` | `product_version: str \| None` | Nullable source product version copied from the verified package lineage. |
-| `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
-| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_IgnRoadSourceContext`.
-- type annotation: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_IgnRoadSourceContext`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_IgnRoadSourceContext`.
-- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_IgnRoadSourceContext`.
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_context` via `_IgnRoadSourceContext`
+- constructor call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_IgnRoadSourceContext`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_IgnRoadSourceContext`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_IgnRoadSourceContext`
 
 **Exact class source**
 
@@ -377,47 +489,54 @@ class _IgnRoadSourceContext:
 
 ### `NormalizedIgnRoadData`
 
-**Purpose:** Stable factual IGN road catalog with no access-policy interpretation.
+**Source purpose:** Stable factual IGN road catalog with no access-policy interpretation.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `road_segments` | `gpd.GeoDataFrame` | `required` | `road_segments: gpd.GeoDataFrame` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `road_segments` | `road_segments: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- import: `landscout.stages.apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.normalize_access_ign import (
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `NormalizedIgnRoadData`
+- constructor call: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `NormalizedIgnRoadData`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `NormalizedIgnRoadData`
+- value/type reference: `landscout.stages.normalize_access_ign::normalize_ign_roads` via `NormalizedIgnRoadData`
+- import: `tests.unit.test_apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
-)`.
-- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::_apply` via `NormalizedIgnRoadData`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::_apply` via `NormalizedIgnRoadData`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_malformed_policy_path_has_controlled_error` via `NormalizedIgnRoadData`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_malformed_policy_path_has_controlled_error` via `NormalizedIgnRoadData`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_complete_normalization_is_invoked_exactly_once` via `NormalizedIgnRoadData`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_complete_normalization_is_invoked_exactly_once` via `NormalizedIgnRoadData`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_generated_policy_column_collision_fails_before_policy_loading` via `NormalizedIgnRoadData`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_generated_policy_column_collision_fails_before_policy_loading` via `NormalizedIgnRoadData`
+- constructor call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_object_is_not_mutated` via `NormalizedIgnRoadData`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_object_is_not_mutated` via `NormalizedIgnRoadData`
+- import: `tests.unit.test_normalize_access_ign::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- type annotation: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `NormalizedIgnRoadData`.
-- constructor call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `NormalizedIgnRoadData`.
-- type annotation: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `NormalizedIgnRoadData`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `NormalizedIgnRoadData`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `NormalizedIgnRoadData`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `NormalizedIgnRoadData`.
-- constructor call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `NormalizedIgnRoadData`.
+)`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `NormalizedIgnRoadData`
 
 **Exact class source**
 
@@ -429,9 +548,11 @@ class NormalizedIgnRoadData:
 ```
 
 
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_validated_lambert93`
+
+**Purpose:** Implements `validated lambert93` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -439,40 +560,57 @@ class NormalizedIgnRoadData:
 def _validated_lambert93(crs_value: object, label: str) -> CRS:
 ```
 
-**Purpose**
-
-Checks and returns canonical lambert93; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `CRS`.
-- Every observed return expression is reproduced without truncation:
-```python
-source_crs
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `crs_value is None`.
-- Guard with a raise path: `not source_crs.is_projected or not source_crs.equals(expected_crs)`.
-- Explicit raise expressions: `IgnRoadNormalizationError(f'{label} CRS is required')`, `IgnRoadNormalizationError(f'{label} CRS is unreadable')`, `IgnRoadNormalizationError(f'{label} must use EPSG:2154')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `crs_value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `source_crs`
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(f"{label} CRS is required")` under lexical guard `crs_value is None`.
+  - `IgnRoadNormalizationError(f"{label} CRS is unreadable")`.
+  - `IgnRoadNormalizationError(f"{label} must use EPSG:2154")` under lexical guard `not source_crs.is_projected or not source_crs.equals(expected_crs)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_validated_lambert93`.
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validated_lambert93`.
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validated_lambert93`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_validated_lambert93`
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validated_lambert93`
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_frame` via `_validated_lambert93`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_frame` via `_validated_lambert93`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `CRS.from_user_input` | `pyproj.CRS.from_user_input` |
+| `CRS.from_epsg` | `pyproj.CRS.from_epsg` |
+| `source_crs.equals` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -492,9 +630,11 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_required_exact_string`
+
+**Purpose:** Implements `required exact string` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -502,39 +642,53 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 def _required_exact_string(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `road` helper for required exact string; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-value
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, str) or not value.strip()`.
-- Guard with a raise path: `value != value.strip()`.
-- Explicit raise expressions: `IgnRoadNormalizationError(f'IGN road {label} must be a string')`, `IgnRoadNormalizationError(f'IGN road {label} must not contain edge whitespace')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value`
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(f"IGN road {label} must be a string")` under lexical guard `not isinstance(value, str) or not value.strip()`.
+  - `IgnRoadNormalizationError(<br>            f"IGN road {label} must not contain edge whitespace"<br>        )` under lexical guard `value != value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_context` via `_required_exact_string`.
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_required_exact_string`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_context` via `_required_exact_string`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_context` via `_required_exact_string`
+- direct call: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_required_exact_string`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_required_exact_string`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -551,9 +705,11 @@ def _required_exact_string(value: object, label: str) -> str:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_context`
+
+**Purpose:** Implements `validate source context` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -561,53 +717,73 @@ def _required_exact_string(value: object, label: str) -> str:
 def _validate_source_context(context: _IgnRoadSourceContext) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source context; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `validated_department != department_code`.
-- Guard with a raise path: `validated_edition != edition`.
-- Guard with a raise path: `timestamp.tzinfo is None or timestamp.utcoffset() is None`.
-- Guard with a raise path: `_SHA256_PATTERN.fullmatch(archive_sha256) is None`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN road archive_sha256 must contain 64 hexadecimal characters')`, `IgnRoadNormalizationError('IGN road department_code is invalid')`, `IgnRoadNormalizationError('IGN road department_code must not be rewritten')`, `IgnRoadNormalizationError('IGN road download_timestamp must be a valid ISO datetime')`, `IgnRoadNormalizationError('IGN road download_timestamp must be timezone-aware')`, `IgnRoadNormalizationError('IGN road edition must be a valid ISO calendar date')`, `IgnRoadNormalizationError('IGN road edition must not be rewritten')`, `IgnRoadNormalizationError('IGN road source_url must be a valid HTTP(S) URL')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `context` | positional-or-keyword | `_IgnRoadSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(<br>            "IGN road department_code is invalid"<br>        )`.
+  - `IgnRoadNormalizationError(<br>            "IGN road department_code must not be rewritten"<br>        )` under lexical guard `validated_department != department_code`.
+  - `IgnRoadNormalizationError(<br>            "IGN road edition must be a valid ISO calendar date"<br>        )`.
+  - `IgnRoadNormalizationError("IGN road edition must not be rewritten")` under lexical guard `validated_edition != edition`.
+  - `IgnRoadNormalizationError(<br>            "IGN road download_timestamp must be a valid ISO datetime"<br>        )`.
+  - `IgnRoadNormalizationError(<br>            "IGN road download_timestamp must be timezone-aware"<br>        )` under lexical guard `timestamp.tzinfo is None or timestamp.utcoffset() is None`.
+  - `IgnRoadNormalizationError(<br>            "IGN road archive_sha256 must contain 64 hexadecimal characters"<br>        )` under lexical guard `_SHA256_PATTERN.fullmatch(archive_sha256) is None`.
+  - `IgnRoadNormalizationError(<br>            "IGN road source_url must be a valid HTTP(S) URL"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_context`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_validate_source_context`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_validate_source_context`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_required_exact_string` | `landscout.stages.normalize_access_ign._required_exact_string` |
+| `_DEPARTMENT_CODE_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `_EDITION_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+| `date.fromisoformat` | `datetime.date.fromisoformat` |
+| `datetime.fromisoformat` | `datetime.datetime.fromisoformat` |
+| `timestamp.utcoffset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_SHA256_PATTERN.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_HTTP_URL_VALIDATOR.validate_python` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def _validate_source_context(context: _IgnRoadSourceContext) -> None:
     _required_exact_string(context.source_layer, "source_layer")
-    department_code = _required_exact_string(
-        context.department_code, "department_code"
-    )
+    department_code = _required_exact_string(context.department_code, "department_code")
     edition = _required_exact_string(context.edition, "edition")
     timestamp_raw = _required_exact_string(
         context.download_timestamp, "download_timestamp"
     )
-    archive_sha256 = _required_exact_string(
-        context.archive_sha256, "archive_sha256"
-    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
     source_url = _required_exact_string(context.source_url, "source_url")
 
     try:
@@ -661,9 +837,11 @@ def _validate_source_context(context: _IgnRoadSourceContext) -> None:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalized_identity`
+
+**Purpose:** Implements `normalized identity` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -671,37 +849,56 @@ def _validate_source_context(context: _IgnRoadSourceContext) -> None:
 def _normalized_identity(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `road` helper for normalized identity; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-' '.join(re.findall('[a-z0-9]+', without_accents))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, str) or not value.strip()`.
-- Explicit raise expressions: `IgnRoadNormalizationError(f'IGN archive {label} must be a string')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `" ".join(re.findall(r"[a-z0-9]+", without_accents))`
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(f"IGN archive {label} must be a string")` under lexical guard `not isinstance(value, str) or not value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_normalized_identity`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_normalized_identity`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_normalized_identity`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `unicodedata.normalize` | `unicodedata.normalize` |
+| `value.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `unicodedata.combining` | `unicodedata.combining` |
+| `" ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `re.findall` | `re.findall` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -711,18 +908,18 @@ def _normalized_identity(value: object, label: str) -> str:
         raise IgnRoadNormalizationError(f"IGN archive {label} must be a string")
     decomposed = unicodedata.normalize("NFKD", value.casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(re.findall(r"[a-z0-9]+", without_accents))
 ```
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_geometry_summary`
+
+**Purpose:** Implements `geometry summary` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -732,37 +929,55 @@ def _geometry_summary(
 ) -> tuple[int, int, int, tuple[str, ...]]:
 ```
 
-**Purpose**
-
-Private `road` helper for geometry summary; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[int, int, int, tuple[str, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(int(null_mask.sum()), int(empty_mask.sum()), int(invalid_mask.sum()), geometry_types)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `(<br>        int(null_mask.sum()),<br>        int(empty_mask.sum()),<br>        int(invalid_mask.sum()),<br>        geometry_types,<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_layer_summary` via `_geometry_summary`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_geometry_summary`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_layer_summary` via `_geometry_summary`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `geometry.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `geometry[~null_mask].geom_type.dropna().unique` | `unresolved local/third-party receiver; no ownership inferred` |
+| `geometry[~null_mask].geom_type.dropna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `int` | `unresolved local/third-party receiver; no ownership inferred` |
+| `null_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+| `empty_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+| `invalid_mask.sum` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `geometry.isna`<br>`geometry[~null_mask].geom_type.dropna().unique`<br>`geometry[~null_mask].geom_type.dropna` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -787,9 +1002,11 @@ def _geometry_summary(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_layer_summary`
+
+**Purpose:** Implements `validate layer summary` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -801,40 +1018,64 @@ def _validate_layer_summary(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent layer summary; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `summary.logical_name != 'road_segments'`.
-- Guard with a raise path: `source_layer not in all_layer_names`.
-- Guard with a raise path: `summary.feature_count != len(frame)`.
-- Guard with a raise path: `summary.columns != observed_columns or summary.dtypes != observed_dtypes`.
-- Guard with a raise path: `frame.active_geometry_name != 'geometry'`.
-- Guard with a raise path: `not frame_crs.equals(summary_crs)`.
-- Guard with a raise path: `_geometry_summary(frame) != expected_geometry`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN road geometry summary does not match the source frame')`, `IgnRoadNormalizationError('IGN road source requires an active geometry column')`, `IgnRoadNormalizationError('IGN road summary CRS does not match the source frame')`, `IgnRoadNormalizationError('IGN road summary has the wrong logical name')`, `IgnRoadNormalizationError('IGN road summary physical layer is absent from the extraction layer inventory')`, `IgnRoadNormalizationError('IGN road summary row count does not match the source frame')`, `IgnRoadNormalizationError('IGN road summary schema columns or dtypes do not match the source frame')`, `IgnRoadNormalizationError('IGN road summary schema contract is invalid')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `summary` | positional-or-keyword | `IgnBdTopoLayerSummary` | `required` |
+| `all_layer_names` | positional-or-keyword | `tuple[str, ...]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_geometry_summary`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(<br>            "IGN road summary schema contract is invalid"<br>        )`.
+  - `IgnRoadNormalizationError("IGN road summary has the wrong logical name")` under lexical guard `summary.logical_name != "road_segments"`.
+  - `IgnRoadNormalizationError(<br>            "IGN road summary physical layer is absent from the extraction layer inventory"<br>        )` under lexical guard `source_layer not in all_layer_names`.
+  - `IgnRoadNormalizationError(<br>            "IGN road summary row count does not match the source frame"<br>        )` under lexical guard `summary.feature_count != len(frame)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road summary schema columns or dtypes do not match the source frame"<br>        )` under lexical guard `summary.columns != observed_columns or summary.dtypes != observed_dtypes`.
+  - `IgnRoadNormalizationError(<br>            "IGN road source requires an active geometry column"<br>        )` under lexical guard `frame.active_geometry_name != "geometry"`.
+  - `IgnRoadNormalizationError(<br>            "IGN road summary CRS does not match the source frame"<br>        )` under lexical guard `not frame_crs.equals(summary_crs)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road geometry summary does not match the source frame"<br>        )` under lexical guard `_geometry_summary(frame) != expected_geometry`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validate_layer_summary`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validate_layer_summary`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_layer_summary_contract` | `landscout.sources.ign_bdtopo_fr._validate_layer_summary_contract` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `_required_exact_string` | `landscout.stages.normalize_access_ign._required_exact_string` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.dtypes.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_lambert93` | `landscout.stages.normalize_access_ign._validated_lambert93` |
+| `frame_crs.equals` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_geometry_summary` | `landscout.stages.normalize_access_ign._geometry_summary` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_geometry_summary` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -851,9 +1092,7 @@ def _validate_layer_summary(
             "IGN road summary schema contract is invalid"
         ) from error
     if summary.logical_name != "road_segments":
-        raise IgnRoadNormalizationError(
-            "IGN road summary has the wrong logical name"
-        )
+        raise IgnRoadNormalizationError("IGN road summary has the wrong logical name")
     source_layer = _required_exact_string(
         summary.source_layer_name, "summary physical layer"
     )
@@ -897,9 +1136,11 @@ def _validate_layer_summary(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_bundle`
+
+**Purpose:** Implements `validate source bundle` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -907,47 +1148,69 @@ def _validate_layer_summary(
 def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source bundle; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_IgnRoadSourceContext`.
-- Every observed return expression is reproduced without truncation:
-```python
-_IgnRoadSourceContext(source_layer=source.road_segments_summary.source_layer_name, department_code=archive.department_code, edition=archive.edition, product_version=archive.product_version, download_timestamp=archive.download_timestamp, archive_sha256=archive.sha256, source_url=archive.source_url)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(source.extraction) is not IgnBdTopoExtraction`.
-- Guard with a raise path: `type(source.extraction.archive) is not IgnBdTopoDownload`.
-- Guard with a raise path: `type(source.road_segments_summary) is not IgnBdTopoLayerSummary`.
-- Guard with a raise path: `provider not in _IGN_PROVIDER_IDENTITIES`.
-- Guard with a raise path: `product.replace(' ', '') != 'bdtopo'`.
-- Guard with a raise path: `any((role != _SPATIAL_ROLE for role in roles))`.
-- Guard with a raise path: `type(layer_names) is not tuple or not layer_names or any((not isinstance(name, str) or not name or name != name.strip() for name in layer_names)) or (len(set(layer_names)) != len(layer_names))`.
-- Guard with a raise path: `any((layer not in layer_names for layer in selected_layers))`.
-- Guard with a raise path: `selected_layers[0] == selected_layers[1]`.
-- Guard with a raise path: `road_layer in selected_layers`.
-- Guard with a raise path: `not isinstance(source.road_segments, gpd.GeoDataFrame)`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN archive product is incompatible with the BD TOPO road normalizer')`, `IgnRoadNormalizationError('IGN archive provider is incompatible with the IGN road normalizer')`, `IgnRoadNormalizationError('IGN electricity roles must use distinct layers, not the same layer')`, `IgnRoadNormalizationError('IGN road and electricity roles must use distinct layers, not the same layer')`, `IgnRoadNormalizationError('IGN road archive type is invalid')`, `IgnRoadNormalizationError('IGN road extraction selected layer is absent from the layer inventory')`, `IgnRoadNormalizationError('IGN road extraction type is invalid')`, `IgnRoadNormalizationError('IGN road layer inventory must be a unique non-empty tuple')`, `IgnRoadNormalizationError('IGN road source spatial roles must all be PROXY_GEOMETRY')`, `IgnRoadNormalizationError('IGN road summary type is invalid')`, `IgnRoadNormalizationError('IGN road_segments must be a GeoDataFrame with an active geometry column')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoRoadData` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_IgnRoadSourceContext(<br>        source_layer=source.road_segments_summary.source_layer_name,<br>        department_code=archive.department_code,<br>        edition=archive.edition,<br>        product_version=archive.product_version,<br>        download_timestamp=archive.download_timestamp,<br>        archive_sha256=archive.sha256,<br>        source_url=archive.source_url,<br>    )`
+- Explicit raise paths:
+  - `IgnRoadNormalizationError("IGN road extraction type is invalid")` under lexical guard `type(source.extraction) is not IgnBdTopoExtraction`.
+  - `IgnRoadNormalizationError("IGN road archive type is invalid")` under lexical guard `type(source.extraction.archive) is not IgnBdTopoDownload`.
+  - `IgnRoadNormalizationError("IGN road summary type is invalid")` under lexical guard `type(source.road_segments_summary) is not IgnBdTopoLayerSummary`.
+  - `IgnRoadNormalizationError(<br>            "IGN archive provider is incompatible with the IGN road normalizer"<br>        )` under lexical guard `provider not in _IGN_PROVIDER_IDENTITIES`.
+  - `IgnRoadNormalizationError(<br>            "IGN archive product is incompatible with the BD TOPO road normalizer"<br>        )` under lexical guard `product.replace(" ", "") != "bdtopo"`.
+  - `IgnRoadNormalizationError(<br>            "IGN road source spatial roles must all be PROXY_GEOMETRY"<br>        )` under lexical guard `any(role != _SPATIAL_ROLE for role in roles)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road layer inventory must be a unique non-empty tuple"<br>        )` under lexical guard `type(layer_names) is not tuple<br>        or not layer_names<br>        or any(<br>            not isinstance(name, str) or not name or name != name.strip()<br>            for name in layer_names<br>        )<br>        or len(set(layer_names)) != len(layer_names)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road extraction selected layer is absent from the layer inventory"<br>        )` under lexical guard `any(layer not in layer_names for layer in selected_layers)`.
+  - `IgnRoadNormalizationError(<br>            "IGN electricity roles must use distinct layers, not the same layer"<br>        )` under lexical guard `selected_layers[0] == selected_layers[1]`.
+  - `IgnRoadNormalizationError(<br>            "IGN road and electricity roles must use distinct layers, not the same layer"<br>        )` under lexical guard `road_layer in selected_layers`.
+  - `IgnRoadNormalizationError(<br>            "IGN road_segments must be a GeoDataFrame with an active geometry column"<br>        )` under lexical guard `not isinstance(source.road_segments, gpd.GeoDataFrame)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_validate_source_bundle`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `_validate_source_bundle`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `_validate_source_bundle`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `_normalized_identity` | `landscout.stages.normalize_access_ign._normalized_identity` |
+| `product.replace` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_lambert93` | `landscout.stages.normalize_access_ign._validated_lambert93` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `name.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validate_source_frame` | `landscout.stages.normalize_access_ign._validate_source_frame` |
+| `_validate_layer_summary` | `landscout.stages.normalize_access_ign._validate_layer_summary` |
+| `_IgnRoadSourceContext` | `landscout.stages.normalize_access_ign._IgnRoadSourceContext` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `product.replace` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1033,9 +1296,11 @@ def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_identifiers`
+
+**Purpose:** Implements `validate identifiers` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -1043,40 +1308,61 @@ def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
 def _validate_identifiers(frame: gpd.GeoDataFrame) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent identifiers; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `identifiers.isna().any()`.
-- Guard with a raise path: `any((not isinstance(identifier, str) for identifier in values))`.
-- Guard with a raise path: `any((not identifier.strip() for identifier in values))`.
-- Guard with a raise path: `any((identifier != identifier.strip() for identifier in values))`.
-- Guard with a raise path: `any((':' in identifier for identifier in values))`.
-- Guard with a raise path: `any((unicodedata.category(character) == 'Cc' for identifier in values for character in identifier))`.
-- Guard with a raise path: `identifiers.duplicated().any()`.
-- Explicit raise expressions: `IgnRoadNormalizationError("IGN road cleabs values must not contain ':'")`, `IgnRoadNormalizationError('IGN road cleabs values must be strings')`, `IgnRoadNormalizationError('IGN road cleabs values must be unique')`, `IgnRoadNormalizationError('IGN road cleabs values must not be empty')`, `IgnRoadNormalizationError('IGN road cleabs values must not be null')`, `IgnRoadNormalizationError('IGN road cleabs values must not contain control characters')`, `IgnRoadNormalizationError('IGN road cleabs values must not contain edge whitespace')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnRoadNormalizationError("IGN road cleabs values must not be null")` under lexical guard `identifiers.isna().any()`.
+  - `IgnRoadNormalizationError("IGN road cleabs values must be strings")` under lexical guard `any(not isinstance(identifier, str) for identifier in values)`.
+  - `IgnRoadNormalizationError("IGN road cleabs values must not be empty")` under lexical guard `any(not identifier.strip() for identifier in values)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road cleabs values must not contain edge whitespace"<br>        )` under lexical guard `any(identifier != identifier.strip() for identifier in values)`.
+  - `IgnRoadNormalizationError("IGN road cleabs values must not contain ':'")` under lexical guard `any(":" in identifier for identifier in values)`.
+  - `IgnRoadNormalizationError(<br>            "IGN road cleabs values must not contain control characters"<br>        )` under lexical guard `any(<br>        unicodedata.category(character) == "Cc"<br>        for identifier in values<br>        for character in identifier<br>    )`.
+  - `IgnRoadNormalizationError("IGN road cleabs values must be unique")` under lexical guard `identifiers.duplicated().any()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_frame` via `_validate_identifiers`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_frame` via `_validate_identifiers`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_frame` via `_validate_identifiers`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `identifiers.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `identifiers.tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifier.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `unicodedata.category` | `unicodedata.category` |
+| `identifiers.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `identifiers.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1110,9 +1396,11 @@ def _validate_identifiers(frame: gpd.GeoDataFrame) -> None:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_frame`
+
+**Purpose:** Implements `validate source frame` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -1120,37 +1408,57 @@ def _validate_identifiers(frame: gpd.GeoDataFrame) -> None:
 def _validate_source_frame(frame: gpd.GeoDataFrame) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source frame; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `frame.columns.duplicated().any()`.
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `frame.active_geometry_name != 'geometry'`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN road source columns must not contain duplicates')`, `IgnRoadNormalizationError('IGN road source requires an active geometry column')`, `IgnRoadNormalizationError(f'Missing required IGN road source columns: {formatted}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(<br>            "IGN road source columns must not contain duplicates"<br>        )` under lexical guard `frame.columns.duplicated().any()`.
+  - `IgnRoadNormalizationError(<br>            f"Missing required IGN road source columns: {formatted}"<br>        )` under lexical guard `missing`.
+  - `IgnRoadNormalizationError(<br>            "IGN road source requires an active geometry column"<br>        )` under lexical guard `frame.active_geometry_name != "geometry"`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_source_frame`.
-- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_validate_source_frame`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validate_source_frame`
+- value/type reference: `landscout.stages.normalize_access_ign::_validate_source_bundle` via `_validate_source_frame`
+- direct call: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_validate_source_frame`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_validate_source_frame`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `frame.columns.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.columns.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validated_lambert93` | `landscout.stages.normalize_access_ign._validated_lambert93` |
+| `_validate_identifiers` | `landscout.stages.normalize_access_ign._validate_identifiers` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1176,9 +1484,11 @@ def _validate_source_frame(frame: gpd.GeoDataFrame) -> None:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_geometry_status`
+
+**Purpose:** Implements `geometry status` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -1186,37 +1496,47 @@ def _validate_source_frame(frame: gpd.GeoDataFrame) -> None:
 def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `road` helper for geometry status; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-status
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `geometry` | positional-or-keyword | `gpd.GeoSeries` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `geometry.isna`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `status.loc[empty_mask]`, `status.loc[invalid_mask]`, `status.loc[null_mask]`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `status`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_road_frame` via `_geometry_status`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_geometry_status`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_road_frame` via `_geometry_status`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pd.Series` | `pandas.Series` |
+| `geometry.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `geometry.isna` |
+| External process/environment | None directly present. |
+| In-memory mutation | `status.loc[null_mask] = "NULL"`<br>`status.loc[empty_mask] = "EMPTY"`<br>`status.loc[invalid_mask] = "INVALID"` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1234,9 +1554,11 @@ def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalize_road_frame`
+
+**Purpose:** Implements `normalize road frame` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -1247,40 +1569,74 @@ def _normalize_road_frame(
 ) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Projects validated source facts into road frame; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-normalized
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `unsupported`.
-- Guard with a raise path: `len(normalized) != len(frame)`.
-- Guard with a raise path: `not isinstance(normalized.index, pd.RangeIndex)`.
-- Guard with a raise path: `normalized['road_feature_id'].isna().any() or normalized['road_feature_id'].duplicated().any()`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN normalized road output must use a RangeIndex')`, `IgnRoadNormalizationError('IGN road normalization changed the row count')`, `IgnRoadNormalizationError('IGN road source has unsupported VALID geometry types: ' + ', '.join(unsupported))`, `IgnRoadNormalizationError('Normalized IGN road_feature_id values must be non-null and unique')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `context` | positional-or-keyword | `_IgnRoadSourceContext` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_geometry_status`, `working.geometry.copy`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['geometry']`, `output['geometry_status']`, `output['road_feature_id']`, `output['road_feature_type']`, `output['source_archive_sha256']`, `output['source_department_code']`, `output['source_download_timestamp']`, `output['source_edition']`, `output['source_feature_id']`, `output['source_layer']`, `output['source_product']`, `output['source_product_version']`, `output['source_provider']`, `output['source_url']`, `output['spatial_role']`, `output[output_column]`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `normalized`
+- Explicit raise paths:
+  - `IgnRoadNormalizationError(<br>            "IGN road source has unsupported VALID geometry types: "<br>            + ", ".join(unsupported)<br>        )` under lexical guard `unsupported`.
+  - `IgnRoadNormalizationError("IGN road normalization changed the row count")` under lexical guard `len(normalized) != len(frame)`.
+  - `IgnRoadNormalizationError(<br>            "IGN normalized road output must use a RangeIndex"<br>        )` under lexical guard `not isinstance(normalized.index, pd.RangeIndex)`.
+  - `IgnRoadNormalizationError(<br>            "Normalized IGN road_feature_id values must be non-null and unique"<br>        )` under lexical guard `normalized["road_feature_id"].isna().any()<br>        or normalized["road_feature_id"].duplicated().any()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::_normalize_ign_roads` via `_normalize_road_frame`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `_normalize_road_frame`
+- value/type reference: `landscout.stages.normalize_access_ign::_normalize_ign_roads` via `_normalize_road_frame`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_source_context` | `landscout.stages.normalize_access_ign._validate_source_context` |
+| `_validate_source_frame` | `landscout.stages.normalize_access_ign._validate_source_frame` |
+| `frame.reset_index(drop=True).copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_geometry_status` | `landscout.stages.normalize_access_ign._geometry_status` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `valid_types.dropna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working["cleabs"].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `working.index.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `source_ids.map` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working[source_column].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `working.geometry.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized["road_feature_id"].isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized["road_feature_id"].isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized["road_feature_id"].duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized["road_feature_id"].duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_geometry_status`<br>`working.geometry.copy` |
+| External process/environment | None directly present. |
+| In-memory mutation | `output["road_feature_id"] = source_ids.map(<br>        lambda identifier: f"IGN_BDTOPO:{_ROAD_FEATURE_TYPE}:{identifier}"<br>    )`<br>`output["road_feature_type"] = _ROAD_FEATURE_TYPE`<br>`output["source_provider"] = _SOURCE_PROVIDER`<br>`output["source_product"] = _SOURCE_PRODUCT`<br>`output["source_layer"] = context.source_layer`<br>`output["source_feature_id"] = source_ids`<br>`output["source_department_code"] = context.department_code`<br>`output["source_edition"] = context.edition`<br>`output["source_product_version"] = context.product_version`<br>`output["source_download_timestamp"] = context.download_timestamp`<br>`output["source_archive_sha256"] = context.archive_sha256`<br>`output["source_url"] = context.source_url`<br>`output[output_column] = working[source_column].copy()`<br>`output["spatial_role"] = _SPATIAL_ROLE`<br>`output["geometry_status"] = status`<br>`output["geometry"] = working.geometry.copy()` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1334,9 +1690,10 @@ def _normalize_road_frame(
         raise IgnRoadNormalizationError(
             "IGN normalized road output must use a RangeIndex"
         )
-    if normalized["road_feature_id"].isna().any() or normalized[
-        "road_feature_id"
-    ].duplicated().any():
+    if (
+        normalized["road_feature_id"].isna().any()
+        or normalized["road_feature_id"].duplicated().any()
+    ):
         raise IgnRoadNormalizationError(
             "Normalized IGN road_feature_id values must be non-null and unique"
         )
@@ -1345,9 +1702,11 @@ def _normalize_road_frame(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalize_ign_roads`
+
+**Purpose:** Implements `normalize ign roads` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
 **Exact signature**
 
@@ -1358,37 +1717,50 @@ def _normalize_ign_roads(
 ) -> NormalizedIgnRoadData:
 ```
 
-**Purpose**
-
-Projects validated source facts into ign roads; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `NormalizedIgnRoadData`.
-- Every observed return expression is reproduced without truncation:
-```python
-NormalizedIgnRoadData(road_segments=_normalize_road_frame(source.road_segments, context))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoRoadData` | `required` |
+| `config` | positional-or-keyword | `IgnBdTopoSourceConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `NormalizedIgnRoadData(<br>        road_segments=_normalize_road_frame(fresh.road_segments, context)<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/normalize_access_ign.py::normalize_ign_roads` via `_normalize_ign_roads`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.normalize_access_ign::normalize_ign_roads` via `_normalize_ign_roads`
+- value/type reference: `landscout.stages.normalize_access_ign::normalize_ign_roads` via `_normalize_ign_roads`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_revalidate_ign_bdtopo_road_data` | `landscout.sources.ign_bdtopo_fr._revalidate_ign_bdtopo_road_data` |
+| `_validate_source_bundle` | `landscout.stages.normalize_access_ign._validate_source_bundle` |
+| `NormalizedIgnRoadData` | `landscout.stages.normalize_access_ign.NormalizedIgnRoadData` |
+| `_normalize_road_frame` | `landscout.stages.normalize_access_ign._normalize_road_frame` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1397,18 +1769,20 @@ def _normalize_ign_roads(
     source: IgnBdTopoRoadData,
     config: IgnBdTopoSourceConfig,
 ) -> NormalizedIgnRoadData:
-    context = _validate_source_bundle(source)
-    _revalidate_ign_bdtopo_road_data(source, config)
+    fresh = _revalidate_ign_bdtopo_road_data(source, config)
+    context = _validate_source_bundle(fresh)
     return NormalizedIgnRoadData(
-        road_segments=_normalize_road_frame(source.road_segments, context)
+        road_segments=_normalize_road_frame(fresh.road_segments, context)
     )
 ```
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `normalize_ign_roads`
+
+**Purpose:** Validate and project one already-loaded IGN road source without interpretation.
 
 **Exact signature**
 
@@ -1419,81 +1793,128 @@ def normalize_ign_roads(
 ) -> NormalizedIgnRoadData:
 ```
 
-**Purpose**
-
-Validate and project one already-loaded IGN road source without interpretation.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `NormalizedIgnRoadData`.
-- Every observed return expression is reproduced without truncation:
-```python
-_normalize_ign_roads(source, config)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(source) is not IgnBdTopoRoadData`.
-- Guard with a raise path: `type(config) is not IgnBdTopoSourceConfig`.
-- Explicit raise expressions: `IgnRoadNormalizationError('IGN road source cannot be normalized safely')`, `TypeError('config must be an IgnBdTopoSourceConfig')`, `TypeError('source must be an IgnBdTopoRoadData')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoRoadData` | `required` |
+| `config` | positional-or-keyword | `IgnBdTopoSourceConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_normalize_ign_roads(source, config)`
+- Explicit raise paths:
+  - `TypeError("source must be an IgnBdTopoRoadData")` under lexical guard `type(source) is not IgnBdTopoRoadData`.
+  - `TypeError("config must be an IgnBdTopoSourceConfig")` under lexical guard `type(config) is not IgnBdTopoSourceConfig`.
+  - `re-raise`.
+  - `IgnRoadNormalizationError(<br>            f"IGN road source cannot be normalized safely: {error}"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_access_ign import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- import: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- import: `landscout.stages.apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.normalize_access_ign import (
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- import: `tests/unit/test_normalize_access_ign.py::<module>` via `from landscout.stages.normalize_access_ign import (
+)`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `normalize_ign_roads`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `normalize_ign_roads`
+- import: `tests.unit.test_normalize_access_ign::<module>` via `from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
     NormalizedIgnRoadData,
     normalize_ign_roads,
-)`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_road_normalization_reproduces_configured_logical_layer` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_multilinestring_is_preserved` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_z_coordinates_are_preserved_exactly` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_row_count_order_geometry_and_range_index_are_preserved` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_missing_required_source_field_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_null_or_empty_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_unsafe_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_duplicate_cleabs_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_archive_identity_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_wrong_source_spatial_role_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_row_count_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_road_summary_requires_strict_structural_types` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_road_archive_sha256_requires_canonical_lowercase` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_crs_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_forged_ordered_summary_schema_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_physical_role_collision` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_road_source_rejects_duplicate_layer_inventory` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_geometry_facts_mismatch_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_must_exist_in_extraction_inventory` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_summary_layer_and_logical_name_must_be_exact` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_valid_unsupported_geometry_type_is_rejected` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_normalization_does_not_mutate_input` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `normalize_ign_roads`.
-- direct call: `tests/unit/test_normalize_access_ign.py::test_malformed_public_input_has_controlled_error` via `normalize_ign_roads`.
+)`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_normalization_reproduces_configured_logical_layer` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_normalization_reproduces_configured_logical_layer` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_valid_multilinestring_is_preserved` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_valid_multilinestring_is_preserved` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_z_coordinates_are_preserved_exactly` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_z_coordinates_are_preserved_exactly` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_row_count_order_geometry_and_range_index_are_preserved` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_row_count_order_geometry_and_range_index_are_preserved` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_raw_access_and_restriction_values_are_copied_without_interpretation` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_every_raw_field_preserves_source_values_nulls_and_dtype` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_missing_required_source_field_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_missing_required_source_field_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_null_or_empty_cleabs_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_null_or_empty_cleabs_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_unsafe_cleabs_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_unsafe_cleabs_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_duplicate_cleabs_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_duplicate_cleabs_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_wrong_or_missing_road_crs_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_or_missing_road_crs_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_wrong_archive_identity_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_archive_identity_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_wrong_source_spatial_role_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_wrong_source_spatial_role_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_summary_row_count_mismatch_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_row_count_mismatch_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_summary_requires_strict_structural_types` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_summary_requires_strict_structural_types` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_archive_sha256_requires_canonical_lowercase` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_archive_sha256_requires_canonical_lowercase` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_summary_crs_mismatch_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_crs_mismatch_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_forged_ordered_summary_schema_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_forged_ordered_summary_schema_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_source_rejects_physical_role_collision` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_source_rejects_physical_role_collision` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_source_rejects_duplicate_layer_inventory` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_source_rejects_duplicate_layer_inventory` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_summary_geometry_facts_mismatch_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_geometry_facts_mismatch_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_summary_layer_must_exist_in_extraction_inventory` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_layer_must_exist_in_extraction_inventory` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_summary_layer_and_logical_name_must_be_exact` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_summary_layer_and_logical_name_must_be_exact` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_valid_unsupported_geometry_type_is_rejected` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_valid_unsupported_geometry_type_is_rejected` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_null_empty_and_invalid_geometry_are_preserved_with_status` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_normalization_does_not_mutate_input` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_normalization_does_not_mutate_input` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_road_normalization_uses_distinct_fresh_revalidated_frame` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_road_normalization_uses_distinct_fresh_revalidated_frame` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `normalize_ign_roads`
+- direct call: `tests.unit.test_normalize_access_ign::test_malformed_public_input_has_controlled_error` via `normalize_ign_roads`
+- value/type reference: `tests.unit.test_normalize_access_ign::test_malformed_public_input_has_controlled_error` via `normalize_ign_roads`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_ign_roads` | `landscout.stages.normalize_access_ign._normalize_ign_roads` |
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1514,25 +1935,82 @@ def normalize_ign_roads(
         raise
     except Exception as error:
         raise IgnRoadNormalizationError(
-            "IGN road source cannot be normalized safely"
+            f"IGN road source cannot be normalized safely: {error}"
         ) from error
 ```
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
-## 7. Data contracts
+## 7. Validation and data-contract summary
 
-### Frame-preservation and semantic notes
+- Canonical schema/mapping declarations inventoried above: `_OUTPUT_COLUMNS`, `_RAW_FIELD_MAPPING`, `_REQUIRED_SOURCE_FIELDS`.
+- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
-- `_OUTPUT_COLUMNS` is the complete ordered factual road schema. `_RAW_FIELD_MAPPING` copies IGN values/nulls without Boolean coercion, unit interpretation, or access suitability decisions.
-- Geometry status values are a closed domain; they are stored in the `geometry_status` column but are not themselves columns.
+## 8. Public exports and package ownership
 
-### `_OUTPUT_COLUMNS` — canonical or derived frame-column schema
+Exact `__all__` members and local origins:
+
+| Export | Local origin binding |
+|---|---|
+| `IgnRoadNormalizationError` | `landscout.stages.normalize_access_ign.IgnRoadNormalizationError` |
+| `NormalizedIgnRoadData` | `landscout.stages.normalize_access_ign.NormalizedIgnRoadData` |
+| `normalize_ign_roads` | `landscout.stages.normalize_access_ign.normalize_ign_roads` |
+
+## 9. Trust, provenance, side effects, and business boundary
+
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+
+## 10. Change impact
+
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
+
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
 
 ```python
+"""Normalize factual IGN BD TOPO roads into a stable access-domain catalog."""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from dataclasses import dataclass
+from datetime import date, datetime
+
+import geopandas as gpd  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
+from pydantic import HttpUrl, TypeAdapter, ValidationError
+from pyproj import CRS
+
+from landscout.sources.ign_bdtopo_fr import (
+    DepartmentCode,
+    EditionString,
+    IgnBdTopoDownload,
+    IgnBdTopoExtraction,
+    IgnBdTopoLayerSummary,
+    IgnBdTopoRoadData,
+    IgnBdTopoSourceConfig,
+    _revalidate_ign_bdtopo_road_data,
+    _validate_layer_summary_contract,
+)
+
+__all__ = [
+    "IgnRoadNormalizationError",
+    "NormalizedIgnRoadData",
+    "normalize_ign_roads",
+]
+
+_SOURCE_PROVIDER = "IGN"
+_SOURCE_PRODUCT = "BD_TOPO"
+_SPATIAL_ROLE = "PROXY_GEOMETRY"
+_ROAD_FEATURE_TYPE = "ROAD_SEGMENT"
+
 _OUTPUT_COLUMNS = (
     "road_feature_id",
     "road_feature_type",
@@ -1579,58 +2057,7 @@ _OUTPUT_COLUMNS = (
     "geometry_status",
     "geometry",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `road_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `road_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_product` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 7 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `source_product_version` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 10 | `source_download_timestamp` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 12 | `source_url` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 14 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 15 | `fictitious_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 16 | `position_relative_to_ground_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 17 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 18 | `lane_count_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 19 | `carriageway_width_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 20 | `private_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 21 | `traffic_direction_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 22 | `urban_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 23 | `mean_light_vehicle_speed_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 24 | `light_vehicle_access_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 25 | `closure_period_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 26 | `restriction_nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 27 | `restriction_height_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 28 | `restriction_total_weight_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 29 | `restriction_axle_weight_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 30 | `restriction_width_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 31 | `restriction_length_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 32 | `dangerous_goods_forbidden_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 33 | `administrative_classification_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 34 | `manager_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 35 | `source_name_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 36 | `source_identifiers_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 37 | `source_created_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 38 | `source_modified_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 39 | `source_confirmed_at` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 40 | `planimetric_acquisition_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 41 | `planimetric_precision_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 42 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 43 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 44 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-
-### `_RAW_FIELD_MAPPING` — mapping between source/input and output keys or columns
-
-```python
 _RAW_FIELD_MAPPING = (
     ("nature", "nature_raw"),
     ("importance", "importance_raw"),
@@ -1662,128 +2089,431 @@ _RAW_FIELD_MAPPING = (
     ("methode_d_acquisition_planimetrique", "planimetric_acquisition_method"),
     ("precision_planimetrique", "planimetric_precision_raw"),
 )
-```
-
-| Source/input key or column | Target/output key or column | Contract |
-|---|---|---|
-| `nature` | `nature_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `importance` | `importance_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `fictif` | `fictitious_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `position_par_rapport_au_sol` | `position_relative_to_ground_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `etat_de_l_objet` | `asset_status_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `nombre_de_voies` | `lane_count_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `largeur_de_chaussee` | `carriageway_width_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `prive` | `private_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `sens_de_circulation` | `traffic_direction_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `urbain` | `urban_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `vitesse_moyenne_vl` | `mean_light_vehicle_speed_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `acces_vehicule_leger` | `light_vehicle_access_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `periode_de_fermeture` | `closure_period_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `nature_de_la_restriction` | `restriction_nature_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `restriction_de_hauteur` | `restriction_height_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `restriction_de_poids_total` | `restriction_total_weight_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `restriction_de_poids_par_essieu` | `restriction_axle_weight_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `restriction_de_largeur` | `restriction_width_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `restriction_de_longueur` | `restriction_length_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `matieres_dangereuses_interdites` | `dangerous_goods_forbidden_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `cpx_classement_administratif` | `administrative_classification_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `cpx_gestionnaire` | `manager_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `sources` | `source_name_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `identifiants_sources` | `source_identifiers_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `date_creation` | `source_created_at` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `date_modification` | `source_modified_at` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `date_de_confirmation` | `source_confirmed_at` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `methode_d_acquisition_planimetrique` | `planimetric_acquisition_method` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-| `precision_planimetrique` | `planimetric_precision_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
-
-### `_REQUIRED_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
-
-```python
 _REQUIRED_SOURCE_FIELDS = frozenset(
     {"cleabs", "geometry", *(source for source, _ in _RAW_FIELD_MAPPING)}
 )
+_ROAD_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
+_DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
+_EDITION_VALIDATOR = TypeAdapter(EditionString)
+_HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_IGN_PROVIDER_IDENTITIES = frozenset(
+    {
+        "ign",
+        "institut national de l information geographique et forestiere",
+        "institut national de l information geographique et forestiere ign",
+    }
+)
+
+
+class IgnRoadNormalizationError(ValueError):
+    """Raised when factual IGN road data cannot be normalized safely."""
+
+
+@dataclass(frozen=True)
+class _IgnRoadSourceContext:
+    source_layer: str
+    department_code: str
+    edition: str
+    product_version: str | None
+    download_timestamp: str
+    archive_sha256: str
+    source_url: str
+
+
+@dataclass(frozen=True)
+class NormalizedIgnRoadData:
+    """Stable factual IGN road catalog with no access-policy interpretation."""
+
+    road_segments: gpd.GeoDataFrame
+
+
+def _validated_lambert93(crs_value: object, label: str) -> CRS:
+    if crs_value is None:
+        raise IgnRoadNormalizationError(f"{label} CRS is required")
+    try:
+        source_crs = CRS.from_user_input(crs_value)
+    except Exception as error:
+        raise IgnRoadNormalizationError(f"{label} CRS is unreadable") from error
+    expected_crs = CRS.from_epsg(2154)
+    if not source_crs.is_projected or not source_crs.equals(expected_crs):
+        raise IgnRoadNormalizationError(f"{label} must use EPSG:2154")
+    return source_crs
+
+
+def _required_exact_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnRoadNormalizationError(f"IGN road {label} must be a string")
+    if value != value.strip():
+        raise IgnRoadNormalizationError(
+            f"IGN road {label} must not contain edge whitespace"
+        )
+    return value
+
+
+def _validate_source_context(context: _IgnRoadSourceContext) -> None:
+    _required_exact_string(context.source_layer, "source_layer")
+    department_code = _required_exact_string(context.department_code, "department_code")
+    edition = _required_exact_string(context.edition, "edition")
+    timestamp_raw = _required_exact_string(
+        context.download_timestamp, "download_timestamp"
+    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
+    source_url = _required_exact_string(context.source_url, "source_url")
+
+    try:
+        validated_department = _DEPARTMENT_CODE_VALIDATOR.validate_python(
+            department_code
+        )
+    except ValidationError as error:
+        raise IgnRoadNormalizationError(
+            "IGN road department_code is invalid"
+        ) from error
+    if validated_department != department_code:
+        raise IgnRoadNormalizationError(
+            "IGN road department_code must not be rewritten"
+        )
+
+    try:
+        validated_edition = _EDITION_VALIDATOR.validate_python(edition)
+        date.fromisoformat(validated_edition)
+    except (ValidationError, ValueError) as error:
+        raise IgnRoadNormalizationError(
+            "IGN road edition must be a valid ISO calendar date"
+        ) from error
+    if validated_edition != edition:
+        raise IgnRoadNormalizationError("IGN road edition must not be rewritten")
+
+    try:
+        timestamp = datetime.fromisoformat(timestamp_raw)
+    except ValueError as error:
+        raise IgnRoadNormalizationError(
+            "IGN road download_timestamp must be a valid ISO datetime"
+        ) from error
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        raise IgnRoadNormalizationError(
+            "IGN road download_timestamp must be timezone-aware"
+        )
+
+    if _SHA256_PATTERN.fullmatch(archive_sha256) is None:
+        raise IgnRoadNormalizationError(
+            "IGN road archive_sha256 must contain 64 hexadecimal characters"
+        )
+    try:
+        _HTTP_URL_VALIDATOR.validate_python(source_url)
+    except ValidationError as error:
+        raise IgnRoadNormalizationError(
+            "IGN road source_url must be a valid HTTP(S) URL"
+        ) from error
+
+    if context.product_version is not None:
+        _required_exact_string(context.product_version, "product_version")
+
+
+def _normalized_identity(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnRoadNormalizationError(f"IGN archive {label} must be a string")
+    decomposed = unicodedata.normalize("NFKD", value.casefold())
+    without_accents = "".join(
+        character for character in decomposed if not unicodedata.combining(character)
+    )
+    return " ".join(re.findall(r"[a-z0-9]+", without_accents))
+
+
+def _geometry_summary(
+    frame: gpd.GeoDataFrame,
+) -> tuple[int, int, int, tuple[str, ...]]:
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    geometry_types = tuple(
+        sorted(str(value) for value in geometry[~null_mask].geom_type.dropna().unique())
+    )
+    return (
+        int(null_mask.sum()),
+        int(empty_mask.sum()),
+        int(invalid_mask.sum()),
+        geometry_types,
+    )
+
+
+def _validate_layer_summary(
+    frame: gpd.GeoDataFrame,
+    summary: IgnBdTopoLayerSummary,
+    all_layer_names: tuple[str, ...],
+) -> None:
+    try:
+        _validate_layer_summary_contract(summary)
+    except Exception as error:
+        raise IgnRoadNormalizationError(
+            "IGN road summary schema contract is invalid"
+        ) from error
+    if summary.logical_name != "road_segments":
+        raise IgnRoadNormalizationError("IGN road summary has the wrong logical name")
+    source_layer = _required_exact_string(
+        summary.source_layer_name, "summary physical layer"
+    )
+    if source_layer not in all_layer_names:
+        raise IgnRoadNormalizationError(
+            "IGN road summary physical layer is absent from the extraction layer inventory"
+        )
+    if summary.feature_count != len(frame):
+        raise IgnRoadNormalizationError(
+            "IGN road summary row count does not match the source frame"
+        )
+    observed_columns = tuple(str(column) for column in frame.columns)
+    observed_dtypes = tuple(
+        (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+    )
+    if summary.columns != observed_columns or summary.dtypes != observed_dtypes:
+        raise IgnRoadNormalizationError(
+            "IGN road summary schema columns or dtypes do not match the source frame"
+        )
+    if frame.active_geometry_name != "geometry":
+        raise IgnRoadNormalizationError(
+            "IGN road source requires an active geometry column"
+        )
+    frame_crs = _validated_lambert93(frame.crs, "IGN road source")
+    summary_crs = _validated_lambert93(summary.crs, "IGN road summary")
+    if not frame_crs.equals(summary_crs):
+        raise IgnRoadNormalizationError(
+            "IGN road summary CRS does not match the source frame"
+        )
+    expected_geometry = (
+        summary.null_geometry_count,
+        summary.empty_geometry_count,
+        summary.invalid_geometry_count,
+        summary.geometry_types,
+    )
+    if _geometry_summary(frame) != expected_geometry:
+        raise IgnRoadNormalizationError(
+            "IGN road geometry summary does not match the source frame"
+        )
+
+
+def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
+    if type(source.extraction) is not IgnBdTopoExtraction:
+        raise IgnRoadNormalizationError("IGN road extraction type is invalid")
+    if type(source.extraction.archive) is not IgnBdTopoDownload:
+        raise IgnRoadNormalizationError("IGN road archive type is invalid")
+    if type(source.road_segments_summary) is not IgnBdTopoLayerSummary:
+        raise IgnRoadNormalizationError("IGN road summary type is invalid")
+    archive = source.extraction.archive
+    provider = _normalized_identity(archive.provider, "provider")
+    product = _normalized_identity(archive.product, "product")
+    if provider not in _IGN_PROVIDER_IDENTITIES:
+        raise IgnRoadNormalizationError(
+            "IGN archive provider is incompatible with the IGN road normalizer"
+        )
+    if product.replace(" ", "") != "bdtopo":
+        raise IgnRoadNormalizationError(
+            "IGN archive product is incompatible with the BD TOPO road normalizer"
+        )
+    _validated_lambert93(archive.projection, "IGN archive projection")
+    roles = (
+        archive.spatial_role,
+        source.extraction.spatial_role,
+        source.road_segments_summary.spatial_role,
+    )
+    if any(role != _SPATIAL_ROLE for role in roles):
+        raise IgnRoadNormalizationError(
+            "IGN road source spatial roles must all be PROXY_GEOMETRY"
+        )
+    layer_names = source.extraction.all_layer_names
+    if (
+        type(layer_names) is not tuple
+        or not layer_names
+        or any(
+            not isinstance(name, str) or not name or name != name.strip()
+            for name in layer_names
+        )
+        or len(set(layer_names)) != len(layer_names)
+    ):
+        raise IgnRoadNormalizationError(
+            "IGN road layer inventory must be a unique non-empty tuple"
+        )
+    selected_layers = (
+        source.extraction.electric_lines_layer,
+        source.extraction.transformation_posts_layer,
+    )
+    if any(layer not in layer_names for layer in selected_layers):
+        raise IgnRoadNormalizationError(
+            "IGN road extraction selected layer is absent from the layer inventory"
+        )
+    if selected_layers[0] == selected_layers[1]:
+        raise IgnRoadNormalizationError(
+            "IGN electricity roles must use distinct layers, not the same layer"
+        )
+    road_layer = source.road_segments_summary.source_layer_name
+    if road_layer in selected_layers:
+        raise IgnRoadNormalizationError(
+            "IGN road and electricity roles must use distinct layers, not the same layer"
+        )
+    if not isinstance(source.road_segments, gpd.GeoDataFrame):
+        raise IgnRoadNormalizationError(
+            "IGN road_segments must be a GeoDataFrame with an active geometry column"
+        )
+    _validate_source_frame(source.road_segments)
+    _validate_layer_summary(
+        source.road_segments,
+        source.road_segments_summary,
+        source.extraction.all_layer_names,
+    )
+    return _IgnRoadSourceContext(
+        source_layer=source.road_segments_summary.source_layer_name,
+        department_code=archive.department_code,
+        edition=archive.edition,
+        product_version=archive.product_version,
+        download_timestamp=archive.download_timestamp,
+        archive_sha256=archive.sha256,
+        source_url=archive.source_url,
+    )
+
+
+def _validate_identifiers(frame: gpd.GeoDataFrame) -> None:
+    identifiers = frame["cleabs"]
+    if identifiers.isna().any():
+        raise IgnRoadNormalizationError("IGN road cleabs values must not be null")
+    values = identifiers.tolist()
+    if any(not isinstance(identifier, str) for identifier in values):
+        raise IgnRoadNormalizationError("IGN road cleabs values must be strings")
+    if any(not identifier.strip() for identifier in values):
+        raise IgnRoadNormalizationError("IGN road cleabs values must not be empty")
+    if any(identifier != identifier.strip() for identifier in values):
+        raise IgnRoadNormalizationError(
+            "IGN road cleabs values must not contain edge whitespace"
+        )
+    if any(":" in identifier for identifier in values):
+        raise IgnRoadNormalizationError("IGN road cleabs values must not contain ':'")
+    if any(
+        unicodedata.category(character) == "Cc"
+        for identifier in values
+        for character in identifier
+    ):
+        raise IgnRoadNormalizationError(
+            "IGN road cleabs values must not contain control characters"
+        )
+    if identifiers.duplicated().any():
+        raise IgnRoadNormalizationError("IGN road cleabs values must be unique")
+
+
+def _validate_source_frame(frame: gpd.GeoDataFrame) -> None:
+    if frame.columns.duplicated().any():
+        raise IgnRoadNormalizationError(
+            "IGN road source columns must not contain duplicates"
+        )
+    missing = _REQUIRED_SOURCE_FIELDS - set(frame.columns)
+    if missing:
+        formatted = ", ".join(sorted(missing))
+        raise IgnRoadNormalizationError(
+            f"Missing required IGN road source columns: {formatted}"
+        )
+    if frame.active_geometry_name != "geometry":
+        raise IgnRoadNormalizationError(
+            "IGN road source requires an active geometry column"
+        )
+    _validated_lambert93(frame.crs, "IGN road source")
+    _validate_identifiers(frame)
+
+
+def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
+    status = pd.Series("VALID", index=geometry.index, dtype="object")
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    status.loc[null_mask] = "NULL"
+    status.loc[empty_mask] = "EMPTY"
+    status.loc[invalid_mask] = "INVALID"
+    return status
+
+
+def _normalize_road_frame(
+    frame: gpd.GeoDataFrame,
+    context: _IgnRoadSourceContext,
+) -> gpd.GeoDataFrame:
+    _validate_source_context(context)
+    _validate_source_frame(frame)
+    working = frame.reset_index(drop=True).copy()
+    status = _geometry_status(working.geometry)
+    valid_types = working.loc[status == "VALID", "geometry"].geom_type
+    unsupported = sorted(set(valid_types.dropna()) - _ROAD_GEOMETRY_TYPES)
+    if unsupported:
+        raise IgnRoadNormalizationError(
+            "IGN road source has unsupported VALID geometry types: "
+            + ", ".join(unsupported)
+        )
+
+    source_ids = working["cleabs"].copy()
+    output = pd.DataFrame(index=working.index.copy())
+    output["road_feature_id"] = source_ids.map(
+        lambda identifier: f"IGN_BDTOPO:{_ROAD_FEATURE_TYPE}:{identifier}"
+    )
+    output["road_feature_type"] = _ROAD_FEATURE_TYPE
+    output["source_provider"] = _SOURCE_PROVIDER
+    output["source_product"] = _SOURCE_PRODUCT
+    output["source_layer"] = context.source_layer
+    output["source_feature_id"] = source_ids
+    output["source_department_code"] = context.department_code
+    output["source_edition"] = context.edition
+    output["source_product_version"] = context.product_version
+    output["source_download_timestamp"] = context.download_timestamp
+    output["source_archive_sha256"] = context.archive_sha256
+    output["source_url"] = context.source_url
+    for source_column, output_column in _RAW_FIELD_MAPPING:
+        output[output_column] = working[source_column].copy()
+    output["spatial_role"] = _SPATIAL_ROLE
+    output["geometry_status"] = status
+    output["geometry"] = working.geometry.copy()
+
+    normalized = gpd.GeoDataFrame(
+        output.loc[:, list(_OUTPUT_COLUMNS)],
+        geometry="geometry",
+        crs=working.crs,
+    )
+    if len(normalized) != len(frame):
+        raise IgnRoadNormalizationError("IGN road normalization changed the row count")
+    if not isinstance(normalized.index, pd.RangeIndex):
+        raise IgnRoadNormalizationError(
+            "IGN normalized road output must use a RangeIndex"
+        )
+    if (
+        normalized["road_feature_id"].isna().any()
+        or normalized["road_feature_id"].duplicated().any()
+    ):
+        raise IgnRoadNormalizationError(
+            "Normalized IGN road_feature_id values must be non-null and unique"
+        )
+    return normalized
+
+
+def _normalize_ign_roads(
+    source: IgnBdTopoRoadData,
+    config: IgnBdTopoSourceConfig,
+) -> NormalizedIgnRoadData:
+    fresh = _revalidate_ign_bdtopo_road_data(source, config)
+    context = _validate_source_bundle(fresh)
+    return NormalizedIgnRoadData(
+        road_segments=_normalize_road_frame(fresh.road_segments, context)
+    )
+
+
+def normalize_ign_roads(
+    source: IgnBdTopoRoadData,
+    config: IgnBdTopoSourceConfig,
+) -> NormalizedIgnRoadData:
+    """Validate and project one already-loaded IGN road source without interpretation."""
+
+    try:
+        if type(source) is not IgnBdTopoRoadData:
+            raise TypeError("source must be an IgnBdTopoRoadData")
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("config must be an IgnBdTopoSourceConfig")
+        return _normalize_ign_roads(source, config)
+    except IgnRoadNormalizationError:
+        raise
+    except Exception as error:
+        raise IgnRoadNormalizationError(
+            f"IGN road source cannot be normalized safely: {error}"
+        ) from error
 ```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `acces_vehicule_leger` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `cleabs` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `cpx_classement_administratif` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `cpx_gestionnaire` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `date_creation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `date_de_confirmation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `date_modification` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `etat_de_l_objet` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `fictif` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 11 | `identifiants_sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `importance` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `largeur_de_chaussee` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `matieres_dangereuses_interdites` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `methode_d_acquisition_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `nature` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `nature_de_la_restriction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `nombre_de_voies` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 19 | `periode_de_fermeture` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 20 | `position_par_rapport_au_sol` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 21 | `precision_planimetrique` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 22 | `prive` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 23 | `restriction_de_hauteur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 24 | `restriction_de_largeur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 25 | `restriction_de_longueur` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 26 | `restriction_de_poids_par_essieu` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 27 | `restriction_de_poids_total` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 28 | `sens_de_circulation` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 29 | `sources` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 30 | `urbain` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 31 | `vitesse_moyenne_vl` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module defines an exact `__all__` contract:
-
-| Export | Kind | Origin | Included in `__all__` |
-|---|---|---|---|
-| `IgnRoadNormalizationError` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
-| `NormalizedIgnRoadData` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
-| `normalize_ign_roads` | public symbol defined in this module | `defined in `src/landscout/stages/normalize_access_ign.py`` | yes |
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the road flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

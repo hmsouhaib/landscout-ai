@@ -7,6 +7,7 @@ from hashlib import sha256
 from importlib import import_module
 from pathlib import Path
 from re import fullmatch
+from urllib.parse import quote
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd
@@ -19,6 +20,7 @@ from landscout import stages
 from landscout.common.planning_text import (
     normalize_planning_search_text as _normalize_search_text,
 )
+from landscout.sources import gpu_fr as gpu_source_module
 from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -27,8 +29,10 @@ from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuLayerSummary,
     GpuPlanningDocument,
+    GpuSourceConfig,
     GpuSpatialLayerReference,
     GpuWrittenFile,
+    load_gpu_source_config,
 )
 from landscout.stages.index_planning_regulation import (
     PAGE_COLUMNS,
@@ -93,7 +97,9 @@ def _summary(
         crs="EPSG:2154",
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
         null_counts=tuple(
             (str(column), int(frame[column].isna().sum())) for column in frame.columns
         ),
@@ -206,13 +212,22 @@ def _document(
     written_filenames: tuple[str, ...] = (DEFAULT_PDF,),
 ) -> GpuPlanningDocument:
     inventory = tuple(sorted(inventory, key=lambda item: item.relative_path))
+    base_config = load_gpu_source_config(Path("configs/sources/gpu_fr.yaml"))
     written = tuple(
-        GpuWrittenFile(filename=value, title=None, document_path=None, source_url=None)
+        GpuWrittenFile(
+            filename=value,
+            title=None,
+            document_path=None,
+            source_url=(
+                f"{str(base_config.api.base_url).rstrip('/')}/document/"
+                f"{quote(DOCUMENT_ID, safe='')}/files/{quote(value, safe='')}"
+            ),
+        )
         for value in written_filenames
     )
     metadata = GpuDocumentMetadata(
         provider="Géoportail de l'Urbanisme",
-        portal="GPU",
+        portal="G\u00e9oportail de l'Urbanisme",
         commune_code="31395",
         partition="DU_31395",
         document_id=DOCUMENT_ID,
@@ -270,7 +285,12 @@ def _document(
         standard_models=("CNIG PLU v2017",),
         cache_hit=True,
     )
+    config_payload = base_config.model_dump(mode="python")
+    config_payload["spatial_layers"]["zoning"]["match_tokens"] = ["ZONE"]
+    source_config = GpuSourceConfig.model_validate(config_payload)
     return GpuPlanningDocument(
+        source_config=source_config,
+        source_config_sha256=gpu_source_module._source_config_sha256(source_config),
         extraction=extraction,
         all_spatial_layers=(zoning.reference,),
         zoning=zoning,
@@ -289,7 +309,9 @@ def _fixture_document(
     include_nomfic: bool = True,
 ) -> GpuPlanningDocument:
     root = tmp_path / "extraction"
-    inventory_names = (filename,) if inventory_filenames is None else inventory_filenames
+    inventory_names = (
+        (filename,) if inventory_filenames is None else inventory_filenames
+    )
     inventory: list[GpuExtractedFile] = []
     for index, name in enumerate(inventory_names):
         relative = f"written-{index}/{name}"
@@ -311,7 +333,9 @@ def _fixture_document(
         tuple(inventory),
         zoning,
         zoning_filenames=zoning_filenames or [filename],
-        written_filenames=(filename,) if written_filenames is None else written_filenames,
+        written_filenames=(filename,)
+        if written_filenames is None
+        else written_filenames,
     )
 
 
@@ -436,9 +460,7 @@ def test_zoning_source_inventory_integrity_mismatch_is_rejected(
         index for index, item in enumerate(items) if item.category == "SPATIAL_DATA"
     )
     current = items[position]
-    replacement: object = (
-        current.size_bytes + 1 if field == "size_bytes" else "b" * 64
-    )
+    replacement: object = current.size_bytes + 1 if field == "size_bytes" else "b" * 64
     items[position] = replace(current, **{field: replacement})
     corrupted = replace(
         document,
@@ -474,7 +496,16 @@ def test_multiple_nomfic_values_are_ambiguous(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "filename",
-    ["", " file.pdf", "file.pdf ", "../file.pdf", "a/b.pdf", "C:\\a.pdf", "bad\x00.pdf", "file.txt"],
+    [
+        "",
+        " file.pdf",
+        "file.pdf ",
+        "../file.pdf",
+        "a/b.pdf",
+        "C:\\a.pdf",
+        "bad\x00.pdf",
+        "file.txt",
+    ],
 )
 def test_unsafe_explicit_filename_is_rejected(tmp_path: Path, filename: str) -> None:
     document = _fixture_document(tmp_path)
@@ -537,9 +568,7 @@ def test_duplicate_inventory_basename_fails(tmp_path: Path) -> None:
 
 def test_path_outside_root_is_rejected(tmp_path: Path) -> None:
     document = _fixture_document(tmp_path)
-    item = replace(
-        document.extraction.files[0], relative_path=f"../{DEFAULT_PDF}"
-    )
+    item = replace(document.extraction.files[0], relative_path=f"../{DEFAULT_PDF}")
     corrupted = replace(
         document,
         extraction=replace(document.extraction, files=(item,)),
@@ -834,7 +863,9 @@ def test_search_result_envelope_is_valid_and_deterministic(
     assert tuple(first.hits.columns) == SEARCH_HIT_COLUMNS
     assert first.search_normalization_profile == SEARCH_NORMALIZATION_PROFILE
     assert first.index_content_sha256 == index.index_content_sha256
-    assert first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION
+    assert (
+        first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION
+    )
     assert first.hit_count == 2
     assert_frame_equal(first.hits, second.hits)
     assert first.hits_content_sha256 == second.hits_content_sha256

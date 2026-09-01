@@ -21,9 +21,8 @@ from math import isfinite
 from numbers import Real
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from shutil import copy2, copyfileobj
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Literal, Self
 
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -36,6 +35,8 @@ from pydantic import (
 )
 
 from landscout.common.safe_http import SafeHttpsError, open_safe_https
+from landscout.common.strict_json import loads_strict_json_object
+from landscout.common.strict_yaml import loads_strict_yaml
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/inpn_protected_areas_fr.yaml")
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
@@ -209,7 +210,9 @@ class _ExtractionMetadata(BaseModel):
     @classmethod
     def _strict_schema_version(cls, value: object) -> object:
         if type(value) is not int or value != EXTRACTION_METADATA_SCHEMA_VERSION:
-            raise ValueError("Extraction metadata schema_version must be exact integer 1")
+            raise ValueError(
+                "Extraction metadata schema_version must be exact integer 1"
+            )
         return value
 
     @field_validator("files")
@@ -219,7 +222,9 @@ class _ExtractionMetadata(BaseModel):
     ) -> tuple[_ExtractedFileMetadata, ...]:
         paths = tuple(item.relative_path for item in value)
         if paths != tuple(sorted(paths)) or len(set(paths)) != len(paths):
-            raise ValueError("Extraction inventory must be unique and lexically ordered")
+            raise ValueError(
+                "Extraction inventory must be unique and lexically ordered"
+            )
         return value
 
 
@@ -264,12 +269,11 @@ def load_inpn_protected_areas_source_config(
     if not isinstance(path, Path):
         raise InpnProtectedAreasSourceError("Config path must be a pathlib Path")
     try:
-        with path.open(encoding="utf-8") as stream:
-            payload = yaml.safe_load(stream)
+        payload = loads_strict_yaml(path.read_bytes())
         if type(payload) is not dict:
             raise ValueError("Expected a YAML mapping")
         return InpnProtectedAreasSourceConfig.model_validate(payload)
-    except (OSError, TypeError, ValueError, ValidationError, yaml.YAMLError) as error:
+    except (OSError, TypeError, ValueError, ValidationError) as error:
         raise InpnProtectedAreasSourceError(
             f"Cannot load INPN protected-areas source config: {path}"
         ) from error
@@ -307,20 +311,8 @@ def _is_regular_file(path: Path) -> bool:
     return not _is_link_or_junction(path) and path.is_file()
 
 
-def _duplicate_rejecting_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"Duplicate JSON key: {key}")
-        result[key] = value
-    return result
-
-
-def _read_strict_json(path: Path) -> Any:
-    return json.loads(
-        path.read_text(encoding="utf-8"),
-        object_pairs_hook=_duplicate_rejecting_object,
-    )
+def _read_strict_json(path: Path) -> dict[str, object]:
+    return loads_strict_json_object(path.read_bytes())
 
 
 def _windows_component_key(component: str) -> str:
@@ -348,11 +340,15 @@ def _canonical_member_destination(name: str) -> tuple[PurePosixPath, tuple[str, 
     if type(name) is not str or not name or "\x00" in name:
         raise InpnProtectedAreasSourceError("ZIP member name is empty or invalid")
     if any(ord(character) < 32 or ord(character) == 127 for character in name):
-        raise InpnProtectedAreasSourceError("ZIP member name contains control characters")
+        raise InpnProtectedAreasSourceError(
+            "ZIP member name contains control characters"
+        )
     posix = PurePosixPath(name.replace("\\", "/"))
     windows = PureWindowsPath(name)
     if posix.is_absolute() or windows.is_absolute() or bool(windows.drive):
-        raise InpnProtectedAreasSourceError(f"Absolute ZIP member path is unsafe: {name}")
+        raise InpnProtectedAreasSourceError(
+            f"Absolute ZIP member path is unsafe: {name}"
+        )
     if ".." in posix.parts:
         raise InpnProtectedAreasSourceError(f"ZIP member traversal is unsafe: {name}")
     parts = tuple(part for part in posix.parts if part not in {"", "."})
@@ -405,9 +401,7 @@ def _validated_zip_members(path: Path) -> tuple[_ValidatedZipMember, ...]:
                         f"ZIP special files are forbidden: {name}"
                     )
                 is_directory = (
-                    info.is_dir()
-                    or name.endswith(("/", "\\"))
-                    or stat.S_ISDIR(mode)
+                    info.is_dir() or name.endswith(("/", "\\")) or stat.S_ISDIR(mode)
                 )
                 if canonical in explicit:
                     raise InpnProtectedAreasSourceError(
@@ -434,18 +428,14 @@ def _validated_zip_members(path: Path) -> tuple[_ValidatedZipMember, ...]:
                     files.add(canonical)
                     regular_count += 1
                 directories.update(parents)
-                validated.append(
-                    _ValidatedZipMember(info, destination, is_directory)
-                )
+                validated.append(_ValidatedZipMember(info, destination, is_directory))
             if regular_count == 0:
                 raise InpnProtectedAreasSourceError(
                     "ZIP archive contains no regular files"
                 )
             bad_member = archive.testzip()
             if bad_member is not None:
-                raise InpnProtectedAreasSourceError(
-                    f"Corrupt ZIP member: {bad_member}"
-                )
+                raise InpnProtectedAreasSourceError(f"Corrupt ZIP member: {bad_member}")
             return tuple(validated)
     except InpnProtectedAreasSourceError:
         raise
@@ -652,9 +642,7 @@ def download_inpn_protected_areas_archive(
         )
     archive_path = _archive_path(validated_config)
     metadata_path = _metadata_path(archive_path)
-    cached = _load_cached_download(
-        archive_path, metadata_path, validated_config
-    )
+    cached = _load_cached_download(archive_path, metadata_path, validated_config)
     if cached is not None:
         return cached
 
@@ -742,7 +730,9 @@ def _validate_download(
     try:
         if any(getattr(download, key) != value for key, value in expected.items()):
             raise ValueError("Download lineage differs from config")
-        if not isinstance(download.path, Path) or download.path != _archive_path(config):
+        if not isinstance(download.path, Path) or download.path != _archive_path(
+            config
+        ):
             raise ValueError("Download path differs from configured cache identity")
         if type(download.cache_hit) is not bool:
             raise ValueError("Download cache_hit must be boolean")

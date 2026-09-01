@@ -28,6 +28,7 @@ from landscout.common.planning_feature_schema import (
     feature_dtypes,
     relation_dtypes,
 )
+from landscout.sources import gpu_fr as gpu_source_module
 from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
@@ -37,7 +38,9 @@ from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuLayerSummary,
     GpuPlanningDocument,
+    GpuSourceConfig,
     GpuSpatialLayerReference,
+    load_gpu_source_config,
 )
 from landscout.stages.enrich_planning_features import (
     RELATION_COLUMNS,
@@ -248,7 +251,7 @@ def _planning_document(
     related_layers = tuple(physical_layers)
     document = GpuDocumentMetadata(
         provider="Géoportail de l'Urbanisme",
-        portal="https://www.geoportail-urbanisme.gouv.fr",
+        portal="G\u00e9oportail de l'Urbanisme",
         commune_code="31395",
         partition="DU_31395",
         document_id="doc-1",
@@ -306,11 +309,30 @@ def _planning_document(
         standard_models=(standard,),
         cache_hit=True,
     )
+    config_payload = load_gpu_source_config(
+        Path("configs/sources/gpu_fr.yaml")
+    ).model_dump(mode="python")
+    for role in config_payload["spatial_layers"]:
+        config_payload["spatial_layers"][role]["match_tokens"] = [f"unused_{role}"]
+    config_payload["spatial_layers"]["zoning"]["match_tokens"] = ["ZONE"]
+    for layer in related_layers:
+        config_payload["spatial_layers"][layer.logical_name]["match_tokens"] = [
+            layer.reference.source_layer
+        ]
+    source_config = GpuSourceConfig.model_validate(config_payload)
+    related_by_logical_name = {layer.logical_name: layer for layer in related_layers}
+    related_layers = tuple(
+        related_by_logical_name[logical_name]
+        for logical_name in gpu_source_module._GPU_LOGICAL_LAYER_NAMES
+        if logical_name != "zoning" and logical_name in related_by_logical_name
+    )
     return GpuPlanningDocument(
-        extraction,
-        (reference, *(layer.reference for layer in related_layers)),
-        zoning,
-        related_layers,
+        source_config=source_config,
+        source_config_sha256=gpu_source_module._source_config_sha256(source_config),
+        extraction=extraction,
+        all_spatial_layers=gpu_source_module.discover_gpu_spatial_layers(extraction),
+        zoning=zoning,
+        related_layers=related_layers,
     )
 
 
@@ -1323,7 +1345,7 @@ def test_valid_empty_optional_catalogs_preserve_schema_and_crs() -> None:
         for layer in document.related_layers
         if layer.logical_name in {"prescription_surface", "information_surface"}
     )
-    document = replace(document, related_layers=surface_layers)
+    document = _planning_document(related_layers=surface_layers)
     normalized = intersect_parcels_with_gpu_planning_features(parcels, document)
     result = _public_resolve_planning_feature_codes(
         document,

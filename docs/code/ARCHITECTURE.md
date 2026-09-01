@@ -10,11 +10,11 @@ The implemented repository does not yet provide a global parcel score, owner/con
 
 ### `src/landscout/common`
 
-Internal dependency-bottom contracts: safe HTTPS transport, portable artifact paths, deterministic frame signatures, cadastral status vocabulary, planning overlay tolerance, planning text mapping, canonical planning schemas, and intrinsic planning relation/application checks. `common` does not import `landscout.stages`.
+Internal dependency-bottom contracts: duplicate-rejecting strict YAML/JSON parsing, deeply immutable mapping support, safe HTTPS transport, portable artifact paths, deterministic frame signatures, canonical Cadastre validation, planning overlay tolerance, planning text mapping, canonical planning schemas, and intrinsic planning relation/application checks. `common` does not import `landscout.stages`.
 
 ### `src/landscout/config.py` and `configs/`
 
-Pydantic models load scan/profile configuration. Source adapters and policy compilers have their own strict checked-in YAML models. Configuration is an input identity; it does not prove downloaded bytes until an adapter validates those bytes.
+Pydantic models load scan/profile configuration. Source adapters and policy compilers have their own strict checked-in YAML models. Trust-bearing YAML rejects duplicate keys, decision-input models are frozen, and nested mappings/collections are immutable. Public source boundaries reconstruct and revalidate configuration from canonical model data rather than trusting a mutated instance. Configuration is an input identity; it does not prove downloaded bytes until an adapter validates those bytes.
 
 ### `src/landscout/geo`
 
@@ -71,10 +71,10 @@ The planning chain is intentionally branched: zoning geometry, planning-feature 
 
 ## Public source and physical-integrity boundaries
 
-- Cadastre loading consumes an exact `CadastreDownload` and rechecks physical size/SHA/gzip before and after parsing. This is byte/physical-integrity validation against a supplied envelope, not the stronger source-complete boundary used by IGN: the loader does not independently re-pin the official Cadastre authority.
-- IGN grid/road normalizers consume source dataclasses plus `IgnBdTopoSourceConfig`, reproduce configured logical roles from the verified extraction, and exact-compare fresh physical frames/summaries.
+- Cadastre loading binds the exact official commune URL/filename and physical gzip to `CadastreParcelSource`. Normalization source-completely revalidates that object, rereads the gzip, exact-compares the supplied frame, and derives output from the fresh frame.
+- IGN grid/road normalizers consume source dataclasses plus `IgnBdTopoSourceConfig`, reproduce globally distinct configured logical roles from the verified extraction, exact-compare fresh physical frames/summaries, and derive output only from the fresh objects.
 - Public grid/road proximity APIs accept source objects rather than arbitrary normalized frames or upstream result tables.
-- GPU planning stages consume `GpuPlanningDocument` and revalidate referenced spatial files/layers through their integrity envelopes.
+- GPU planning stages consume `GpuPlanningDocument`, validate its retained canonical source-config identity/hash, and revalidate referenced extraction files, configured logical roles, and spatial layers through their integrity envelopes.
 - BESS application artifact loaders require exact upstream result objects and deterministically rebuild expected output before exact comparison.
 - Independent source-complete validators remain separate from lightweight result-envelope validators.
 

@@ -1,10 +1,26 @@
 import geopandas as gpd
 import pandas as pd
 import pytest
+from numpy import sqrt
 from shapely.geometry import Polygon
 
 from landscout.config import ParcelConfig
 from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area
+
+PARCEL_IDS = {
+    name: f"313950000A{index:04d}"
+    for index, name in enumerate(
+        (
+            "at-minimum",
+            "at-maximum",
+            "below-minimum",
+            "above-maximum",
+            "invalid-geometry",
+            "unknown-area",
+        ),
+        start=1,
+    )
+}
 
 
 @pytest.fixture
@@ -14,17 +30,33 @@ def area_config() -> ParcelConfig:
 
 @pytest.fixture
 def parcels() -> gpd.GeoDataFrame:
-    geometry = Polygon([(2.0, 43.0), (2.1, 43.0), (2.1, 43.1), (2.0, 43.0)])
+    areas = [2000.0, 15000.0, 1999.0, 15001.0]
+    projected = gpd.GeoSeries(
+        [
+            Polygon(
+                [
+                    (600000 + index * 1000, 6200000),
+                    (600000 + index * 1000 + sqrt(area), 6200000),
+                    (600000 + index * 1000 + sqrt(area), 6200000 + sqrt(area)),
+                    (600000 + index * 1000, 6200000 + sqrt(area)),
+                ]
+            )
+            for index, area in enumerate(areas)
+        ],
+        crs="EPSG:2154",
+    ).to_crs("EPSG:4326")
+    geometries = [*projected.tolist(), None, Polygon()]
     return gpd.GeoDataFrame(
         {
-            "parcel_id": [
-                "at-minimum",
-                "at-maximum",
-                "below-minimum",
-                "above-maximum",
-                "invalid-geometry",
-                "unknown-area",
-            ],
+            "parcel_id": list(PARCEL_IDS.values()),
+            "commune_code": ["31395"] * 6,
+            "section_prefix": ["000"] * 6,
+            "section": ["A"] * 6,
+            "parcel_number": [str(index) for index in range(1, 7)],
+            "source_contenance": [None] * 6,
+            "source_arpente": [None] * 6,
+            "source_created_at": [None] * 6,
+            "source_updated_at": [None] * 6,
             "geometry_status": [
                 "VALID",
                 "VALID",
@@ -33,10 +65,9 @@ def parcels() -> gpd.GeoDataFrame:
                 "INVALID",
                 "INVALID",
             ],
-            "area_m2": [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None],
-            "commune_code": ["31395"] * 6,
+            "area_m2": [*areas, None, None],
         },
-        geometry=[geometry] * 6,
+        geometry=geometries,
         crs="EPSG:4326",
     )
 
@@ -46,7 +77,7 @@ def test_minimum_boundary_is_included(
 ) -> None:
     candidates, _ = filter_parcels_by_area(parcels, area_config)
 
-    assert "at-minimum" in set(candidates["parcel_id"])
+    assert PARCEL_IDS["at-minimum"] in set(candidates["parcel_id"])
 
 
 def test_maximum_boundary_is_included(
@@ -54,7 +85,7 @@ def test_maximum_boundary_is_included(
 ) -> None:
     candidates, _ = filter_parcels_by_area(parcels, area_config)
 
-    assert "at-maximum" in set(candidates["parcel_id"])
+    assert PARCEL_IDS["at-maximum"] in set(candidates["parcel_id"])
 
 
 @pytest.mark.parametrize(
@@ -74,7 +105,7 @@ def test_rejected_parcel_has_expected_reason(
 ) -> None:
     _, rejected = filter_parcels_by_area(parcels, area_config)
 
-    row = rejected.loc[rejected["parcel_id"] == parcel_id].iloc[0]
+    row = rejected.loc[rejected["parcel_id"] == PARCEL_IDS[parcel_id]].iloc[0]
     assert row["rejection_reason"] == expected_reason
 
 
@@ -96,7 +127,21 @@ def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
 
     candidates, _ = filter_parcels_by_area(parcels, custom_config)
 
-    assert set(candidates["parcel_id"]) == {"below-minimum", "at-minimum"}
+    assert set(candidates["parcel_id"]) == {
+        PARCEL_IDS["below-minimum"],
+        PARCEL_IDS["at-minimum"],
+    }
+
+
+def test_area_filter_revalidates_mutated_config_before_frame_work(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+) -> None:
+    tampered = area_config.model_copy(update={"min_area_m2": -1.0})
+    colliding = parcels.assign(rejection_reason="existing")
+
+    with pytest.raises(ParcelFilterError, match="config"):
+        filter_parcels_by_area(colliding, tampered)
 
 
 def test_missing_parcel_id_fails(
@@ -157,6 +202,39 @@ def test_valid_geometry_requires_strict_positive_finite_area(
     invalid.loc[0, "area_m2"] = area
 
     with pytest.raises(ParcelFilterError, match="strict positive finite numeric"):
+        filter_parcels_by_area(invalid, area_config)
+
+
+def test_valid_geometry_with_forged_positive_area_is_rejected(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "area_m2"] = float(invalid.loc[0, "area_m2"]) + 1.0
+
+    with pytest.raises(ParcelFilterError, match="measured EPSG:2154"):
+        filter_parcels_by_area(invalid, area_config)
+
+
+def test_invalid_geometry_with_recorded_area_is_rejected(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[4, "area_m2"] = 100.0
+
+    with pytest.raises(ParcelFilterError, match="INVALID.*area_m2.*null"):
+        filter_parcels_by_area(invalid, area_config)
+
+
+def test_parcel_id_must_match_its_canonical_source_identity_fields(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "parcel_id"] = "313950000A9999"
+
+    with pytest.raises(ParcelFilterError, match="must equal commune"):
         filter_parcels_by_area(invalid, area_config)
 
 

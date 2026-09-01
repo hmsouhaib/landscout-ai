@@ -8,7 +8,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -19,6 +18,8 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
+
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 
 __all__ = [
     "IgnRoadVehicleProxyPolicy",
@@ -224,9 +225,7 @@ class _SourceValuesConfig(_StrictPolicyModel):
 
     @model_validator(mode="after")
     def _valid_values(self) -> Self:
-        _require_unique(
-            self.known_restriction_review, "known_restriction_review"
-        )
+        _require_unique(self.known_restriction_review, "known_restriction_review")
         return self
 
 
@@ -386,32 +385,6 @@ class IgnRoadVehicleProxyPolicy:
     config_sha256: str
 
 
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-
-
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise IgnRoadVehicleProxyPolicyError(
-                f"Duplicate YAML road-policy key: {key!r}"
-            )
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-
-
-_UniqueKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _construct_unique_mapping,
-)
-
-
 def _compile_policy(
     config: _PolicyConfig,
     config_sha256: str,
@@ -468,9 +441,7 @@ def _compile_policy(
             non_general_vehicle=frozenset(nature.non_general_vehicle),
             special_review=frozenset(nature.special_review),
         ),
-        known_restriction_review=frozenset(
-            source_values.known_restriction_review
-        ),
+        known_restriction_review=frozenset(source_values.known_restriction_review),
         importance=_CompiledImportance(
             known=frozenset(source_values.importance.known),
             limited=frozenset(source_values.importance.limited),
@@ -508,10 +479,7 @@ def load_ign_road_vehicle_proxy_policy(
 
     try:
         policy_bytes = Path(path).read_bytes()
-        payload = yaml.load(
-            policy_bytes.decode("utf-8"),
-            Loader=_UniqueKeyLoader,
-        )
+        payload = loads_strict_yaml(policy_bytes)
         if not isinstance(payload, Mapping):
             raise IgnRoadVehicleProxyPolicyError(
                 "IGN road vehicle-proxy policy must be a mapping"
@@ -520,6 +488,8 @@ def load_ign_road_vehicle_proxy_policy(
         return _compile_policy(config, sha256(policy_bytes).hexdigest())
     except IgnRoadVehicleProxyPolicyError:
         raise
+    except StrictYamlError as error:
+        raise IgnRoadVehicleProxyPolicyError(str(error)) from error
     except Exception as error:
         raise IgnRoadVehicleProxyPolicyError(
             "IGN road vehicle-proxy policy is invalid"

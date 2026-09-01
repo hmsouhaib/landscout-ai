@@ -134,9 +134,7 @@ class _ZoningSourceEvidence:
 
 def _strict_string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise PlanningRegulationIndexError(
-            f"{label} must be a non-empty exact string"
-        )
+        raise PlanningRegulationIndexError(f"{label} must be a non-empty exact string")
     return value
 
 
@@ -275,7 +273,9 @@ def _revalidate_zoning_source(
         ) from error
 
 
-def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[str, str]:
+def _validate_document_lineage(
+    planning_document: GpuPlanningDocument,
+) -> tuple[str, str]:
     if not isinstance(planning_document, GpuPlanningDocument):
         raise PlanningRegulationIndexError(
             "planning_document must be a GpuPlanningDocument"
@@ -304,9 +304,10 @@ def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[
         raise PlanningRegulationIndexError(
             "GPU planning document is not the current effective DU"
         )
-    if type(planning_document.related_layers) is not tuple or type(
-        planning_document.all_spatial_layers
-    ) is not tuple:
+    if (
+        type(planning_document.related_layers) is not tuple
+        or type(planning_document.all_spatial_layers) is not tuple
+    ):
         raise PlanningRegulationIndexError("GPU spatial-layer lineage is invalid")
     if planning_document.zoning.logical_name != "zoning":
         raise PlanningRegulationIndexError("GPU zoning logical layer is invalid")
@@ -334,8 +335,10 @@ def _zoning_regulation_filenames(zoning: gpd.GeoDataFrame) -> tuple[str, ...]:
     try:
         source_values = zoning["NOMFIC"].tolist()
         for value in source_values:
-            if value is None or value is pd.NA or (
-                isinstance(value, float) and pd.isna(value)
+            if (
+                value is None
+                or value is pd.NA
+                or (isinstance(value, float) and pd.isna(value))
             ):
                 continue
             values.add(_validated_pdf_basename(value))
@@ -489,11 +492,7 @@ def _page_error(error: Exception) -> str:
 
 
 def _canonical_page_record(row: dict[str, object]) -> dict[str, object]:
-    record = {
-        key: row[key]
-        for key in PAGE_COLUMNS
-        if key != "page_content_sha256"
-    }
+    record = {key: row[key] for key in PAGE_COLUMNS if key != "page_content_sha256"}
     if bool(pd.isna(record["extraction_error"])):
         record["extraction_error"] = None
     return record
@@ -626,7 +625,9 @@ def _validate_pages(
     if not isinstance(frame, pd.DataFrame):
         raise PlanningRegulationIndexError("Regulation pages must be a DataFrame")
     if tuple(frame.columns) != PAGE_COLUMNS:
-        raise PlanningRegulationIndexError("Regulation page schema is not deterministic")
+        raise PlanningRegulationIndexError(
+            "Regulation page schema is not deterministic"
+        )
     if len(frame) != total_page_count:
         raise PlanningRegulationIndexError("Regulation page count is inconsistent")
     if frame["page_number"].tolist() != list(range(1, total_page_count + 1)):
@@ -666,9 +667,7 @@ def _validate_pages(
             or not extraction_error
         ):
             raise PlanningRegulationIndexError("ERROR page state is inconsistent")
-        checksum = _validated_sha256(
-            row["page_content_sha256"], "page content SHA256"
-        )
+        checksum = _validated_sha256(row["page_content_sha256"], "page content SHA256")
         if checksum != _page_content_sha256(
             row,
             page_hash_schema_version,
@@ -801,9 +800,7 @@ def index_planning_regulation(
 
 def _validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
     if not isinstance(index, PlanningRegulationIndex):
-        raise PlanningRegulationIndexError(
-            "index must be a PlanningRegulationIndex"
-        )
+        raise PlanningRegulationIndexError("index must be a PlanningRegulationIndex")
     _strict_string(index.document_id, "regulation document ID")
     _validated_sha256(index.archive_sha256, "regulation archive SHA256")
     filename = _validated_pdf_basename(index.regulation_filename)
@@ -846,9 +843,7 @@ def _validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
         page_schema,
         index.search_normalization_profile,
     )
-    checksum = _validated_sha256(
-        index.pages_content_sha256, "pages content SHA256"
-    )
+    checksum = _validated_sha256(index.pages_content_sha256, "pages content SHA256")
     if checksum != _pages_content_sha256(
         index.pages,
         page_schema,
@@ -920,17 +915,13 @@ def _build_hits(
         pattern = escape(normalized_term)
         for page in index.pages.to_dict("records"):
             raw_text = page["raw_text"]
-            normalized_text, raw_spans = _normalize_search_text_with_mapping(
-                raw_text
-            )
+            normalized_text, raw_spans = _normalize_search_text_with_mapping(raw_text)
             matches = list(finditer(pattern, normalized_text))
             if not matches:
                 continue
             first = matches[0]
             context_start = max(0, first.start() - context_characters)
-            context_end = min(
-                len(normalized_text), first.end() + context_characters
-            )
+            context_end = min(len(normalized_text), first.end() + context_characters)
             hits.append(
                 {
                     "document_id": index.document_id,
@@ -944,9 +935,7 @@ def _build_hits(
                     "raw_context": _raw_context(
                         raw_text, raw_spans, context_start, context_end
                     ),
-                    "normalized_context": normalized_text[
-                        context_start:context_end
-                    ],
+                    "normalized_context": normalized_text[context_start:context_end],
                 }
             )
     if not hits:
@@ -1024,8 +1013,7 @@ def _validate_planning_regulation_search_result(
         result.document_id != index.document_id
         or result.archive_sha256 != index.archive_sha256
         or result.pdf_sha256 != index.pdf_sha256
-        or result.search_normalization_profile
-        != index.search_normalization_profile
+        or result.search_normalization_profile != index.search_normalization_profile
         or result.index_content_sha256 != index.index_content_sha256
     ):
         raise PlanningRegulationIndexError("Search-result lineage differs from index")
@@ -1057,8 +1045,7 @@ def _validate_planning_regulation_search_result(
             row["document_id"] != index.document_id
             or row["archive_sha256"] != index.archive_sha256
             or row["pdf_sha256"] != index.pdf_sha256
-            or row["search_normalization_profile"]
-            != index.search_normalization_profile
+            or row["search_normalization_profile"] != index.search_normalization_profile
         ):
             raise PlanningRegulationIndexError("Search-hit lineage differs from index")
         normalized_term = _strict_string(
@@ -1071,7 +1058,9 @@ def _validate_planning_regulation_search_result(
             raise PlanningRegulationIndexError("Search hit references an unknown page")
         pair = (normalized_term, page_number)
         if pair in seen:
-            raise PlanningRegulationIndexError("Search hit page/term pair is duplicated")
+            raise PlanningRegulationIndexError(
+                "Search hit page/term pair is duplicated"
+            )
         seen.add(pair)
         _strict_positive_integer(row["occurrence_count"], "occurrence count")
         if not isinstance(row["raw_context"], str) or not isinstance(
@@ -1079,9 +1068,7 @@ def _validate_planning_regulation_search_result(
         ):
             raise PlanningRegulationIndexError("Search contexts must be strings")
     requested = tuple(raw for raw, _ in validated_terms)
-    checksum = _validated_sha256(
-        result.hits_content_sha256, "hits content SHA256"
-    )
+    checksum = _validated_sha256(result.hits_content_sha256, "hits content SHA256")
     if checksum != _hits_content_sha256(
         index,
         requested,

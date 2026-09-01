@@ -11,9 +11,7 @@ import pytest
 from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import Polygon
 
-interpret_module = importlib.import_module(
-    "landscout.stages.interpret_bess_zoning"
-)
+interpret_module = importlib.import_module("landscout.stages.interpret_bess_zoning")
 
 from landscout import stages
 from landscout.stages.index_planning_regulation import (
@@ -56,11 +54,12 @@ def _index() -> PlanningRegulationIndex:
         (
             "ZONE U\nARTICLE U 1 - USES\nTechnical equipment is permitted only when "
             "formal review is required.\nTechnical equipment is permitted only when "
-            "formal review is required."
+            "formal review is required.\nARTICLE U 2 - OTHER\nOther factual text."
         ),
         (
             "ZONE N\nARTICLE N 1 - USES\nBattery facilities are restricted.\n"
-            "Technical equipment is permitted only when formal review is required."
+            "Technical equipment is permitted only when formal review is required.\n"
+            "ARTICLE N 2 - OTHER\nOther factual text."
         ),
     )
     rows: list[dict[str, object]] = []
@@ -151,7 +150,9 @@ def _relations(index: PlanningRegulationIndex) -> pd.DataFrame:
     )
 
 
-def _structure_config(index: PlanningRegulationIndex) -> PlanningRegulationStructureConfig:
+def _structure_config(
+    index: PlanningRegulationIndex,
+) -> PlanningRegulationStructureConfig:
     return PlanningRegulationStructureConfig.model_validate(
         {
             "schema_version": 2,
@@ -174,9 +175,7 @@ def _structure_config(index: PlanningRegulationIndex) -> PlanningRegulationStruc
                 "article": [
                     r"^ARTICLE\s+(?P<zone>[A-Za-z0-9]+)\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$"
                 ],
-                "general_section": [
-                    r"^ARTICLE\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$"
-                ],
+                "general_section": [r"^ARTICLE\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$"],
                 "continuation": [],
             },
             "ignored_patterns": {"page_headers": [], "page_footers": []},
@@ -219,14 +218,14 @@ def _parcels(index: PlanningRegulationIndex) -> gpd.GeoDataFrame:
 
 def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfig:
     sections = structure.sections
-    u_article = sections.loc[
-        sections["section_type"].eq("ARTICLE")
-        & sections["zone_chapter_label"].eq("U")
-    ].iloc[0]
-    n_article = sections.loc[
-        sections["section_type"].eq("ARTICLE")
-        & sections["zone_chapter_label"].eq("N")
-    ].iloc[0]
+    u_articles = sections.loc[
+        sections["section_type"].eq("ARTICLE") & sections["zone_chapter_label"].eq("U")
+    ]
+    n_articles = sections.loc[
+        sections["section_type"].eq("ARTICLE") & sections["zone_chapter_label"].eq("N")
+    ]
+    u_article = u_articles.loc[u_articles["article_number_raw"].eq("1")].iloc[0]
+    n_article = n_articles.loc[n_articles["article_number_raw"].eq("1")].iloc[0]
     fragments = planning_regulation_section_page_fragments(
         index, zones, relations, config, structure
     ).set_index(["section_id", "page_number"])
@@ -257,9 +256,7 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
             "evidence_direction": direction,
             "exact_raw_excerpt": excerpt,
             "excerpt_sha256": sha256(excerpt.encode()).hexdigest(),
-            "section_page_fragment_sha256": fragment[
-                "section_page_fragment_sha256"
-            ],
+            "section_page_fragment_sha256": fragment["section_page_fragment_sha256"],
             "excerpt_start": start,
             "excerpt_end": start + len(excerpt),
             "source_rule_id": source_rule_id,
@@ -291,7 +288,7 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
                 {
                     "resolved_zone_chapter_label": "U",
                     "review_completeness": "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES",
-                    "reviewed_section_ids": [u_article["section_id"]],
+                    "reviewed_section_ids": u_articles["section_id"].tolist(),
                     "review_note": "The required use-control article was reviewed.",
                     "zoning_precheck_status": "CONDITIONAL_REVIEW",
                     "zoning_precheck_confidence": "MEDIUM",
@@ -335,7 +332,7 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
                 {
                     "resolved_zone_chapter_label": "N",
                     "review_completeness": "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES",
-                    "reviewed_section_ids": [n_article["section_id"]],
+                    "reviewed_section_ids": n_articles["section_id"].tolist(),
                     "review_note": "The required use-control article was reviewed.",
                     "zoning_precheck_status": "LIKELY_DIFFICULT",
                     "zoning_precheck_confidence": "HIGH",
@@ -445,7 +442,9 @@ def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> No
     assert tuple(result.route_assessments.columns) == ROUTE_ASSESSMENT_COLUMNS
     assert tuple(result.evidence_route_links.columns) == EVIDENCE_ROUTE_LINK_COLUMNS
     assert tuple(result.source_zone_policy.columns) == SOURCE_ZONE_POLICY_COLUMNS
-    assert tuple(result.parcel_zone_interpretations.columns) == PARCEL_ZONE_POLICY_COLUMNS
+    assert (
+        tuple(result.parcel_zone_interpretations.columns) == PARCEL_ZONE_POLICY_COLUMNS
+    )
     assert len(result.chapter_policy) == 2
     assert len(result.source_zone_policy) == 3
     assert len(result.parcel_zone_interpretations) == 5
@@ -460,7 +459,10 @@ def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> No
     assert len(result.evidence_route_links) == 3
     assert result.touch_only_relation_count == 1
     assert result.document_id == index.document_id
-    assert result.structure_result_content_sha256 == structure.structure_result_content_sha256
+    assert (
+        result.structure_result_content_sha256
+        == structure.structure_result_content_sha256
+    )
     assert result.zoning_relation_hash_columns == tuple(relations.columns)
     assert set(result.source_zone_policy["source_zone_label_raw"]) == set(
         zones["zone_label_raw"]
@@ -493,7 +495,9 @@ def test_missing_and_extra_chapter_are_rejected(inputs) -> None:
     missing_payload = _payload(policy)
     missing_payload["chapters"] = missing_payload["chapters"][:-1]
     with pytest.raises(BessZoningPrecheckError, match="completeness differs"):
-        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(missing_payload))
+        interpret_bess_zoning(
+            *sources, BessZoningPolicyConfig.model_validate(missing_payload)
+        )
     extra_payload = _payload(policy)
     extra = dict(extra_payload["chapters"][0])
     extra["resolved_zone_chapter_label"] = "EXTRA"
@@ -502,23 +506,27 @@ def test_missing_and_extra_chapter_are_rejected(inputs) -> None:
     extra["zoning_precheck_status"] = "UNKNOWN"
     extra_payload["chapters"] = (*extra_payload["chapters"], extra)
     with pytest.raises(BessZoningPrecheckError, match="extra=.*EXTRA"):
-        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(extra_payload))
+        interpret_bess_zoning(
+            *sources, BessZoningPolicyConfig.model_validate(extra_payload)
+        )
 
 
 def test_regulation_zone_chapter_labels_and_ids_must_be_unique(inputs) -> None:
     structure = inputs[1]
     assert len(interpret_module._zone_chapter_rows(structure)) == 2
 
-    used = structure.sections.loc[
-        structure.sections["section_type"].eq("ZONE_CHAPTER")
-        & structure.sections["zone_chapter_label"].eq("U")
-    ].iloc[0].copy()
+    used = (
+        structure.sections.loc[
+            structure.sections["section_type"].eq("ZONE_CHAPTER")
+            & structure.sections["zone_chapter_label"].eq("U")
+        ]
+        .iloc[0]
+        .copy()
+    )
     used["section_id"] = "SECTION-DUPLICATE-U"
     duplicated_used = replace(
         structure,
-        sections=pd.concat(
-            [structure.sections, used.to_frame().T], ignore_index=True
-        ),
+        sections=pd.concat([structure.sections, used.to_frame().T], ignore_index=True),
     )
     with pytest.raises(BessZoningPrecheckError, match="labels must be unique"):
         interpret_module._zone_chapter_rows(duplicated_used)
@@ -560,10 +568,14 @@ def test_regulation_zone_chapter_labels_and_ids_must_be_unique(inputs) -> None:
 def test_source_complete_validator_rejects_later_duplicate_chapter(
     inputs, valid_result
 ) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
-    duplicate = structure.sections.loc[
-        structure.sections["section_type"].eq("ZONE_CHAPTER")
-    ].iloc[0].copy()
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
+    duplicate = (
+        structure.sections.loc[structure.sections["section_type"].eq("ZONE_CHAPTER")]
+        .iloc[0]
+        .copy()
+    )
     duplicate["section_id"] = "SECTION-LATE-DUPLICATE"
     changed = replace(
         structure,
@@ -620,9 +632,10 @@ def test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected(inputs) ->
         *payload["chapters"][0]["evidence"],
         duplicate,
     )
-    payload["chapters"][0]["route_assessments"][0][
-        "positive_evidence_ids"
-    ] = ["E-U-POSITIVE", "E-U-POSITIVE-DUPLICATE"]
+    payload["chapters"][0]["route_assessments"][0]["positive_evidence_ids"] = [
+        "E-U-POSITIVE",
+        "E-U-POSITIVE-DUPLICATE",
+    ]
 
     with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
         BessZoningPolicyConfig.model_validate(payload)
@@ -679,7 +692,7 @@ def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
         "schema_version: 2\nschema_version: 2\n",
         encoding="utf-8",
     )
-    with pytest.raises(BessZoningPrecheckError, match="Duplicate YAML policy key"):
+    with pytest.raises(BessZoningPrecheckError, match="Duplicate YAML.*key"):
         load_bess_zoning_policy_config(path)
 
 
@@ -757,16 +770,15 @@ def test_valid_exact_evidence_is_preserved(inputs, valid_result) -> None:
     policy = inputs[-1]
     excerpt = policy.chapters[0].evidence[0].exact_raw_excerpt
     assert excerpt == "Technical equipment is permitted"
-    assert policy.chapters[0].evidence[0].excerpt_sha256 == sha256(
-        excerpt.encode()
-    ).hexdigest()
+    assert (
+        policy.chapters[0].evidence[0].excerpt_sha256
+        == sha256(excerpt.encode()).hexdigest()
+    )
     assert valid_result.chapter_policy.iloc[0]["evidence_ids"] == (
         "E-U-POSITIVE",
         "E-U-CONDITION",
     )
-    row = valid_result.evidence_catalog.set_index("evidence_id").loc[
-        "E-U-POSITIVE"
-    ]
+    row = valid_result.evidence_catalog.set_index("evidence_id").loc["E-U-POSITIVE"]
     assert "only when" in row["source_rule_excerpt"]
     relative_start = row["excerpt_start"] - row["source_rule_start"]
     relative_end = row["excerpt_end"] - row["source_rule_start"]
@@ -928,9 +940,7 @@ def test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite() -> 
 
     assert route.route_kind == "CONDITIONAL_ROUTE"
     assert route.positive_evidence_ids == ("MURET-AUP-PUBLIC-ROUTE-01",)
-    assert route.condition_evidence_ids == (
-        "MURET-AUP-INFRASTRUCTURE-CONDITION-01",
-    )
+    assert route.condition_evidence_ids == ("MURET-AUP-INFRASTRUCTURE-CONDITION-01",)
     assert route.difficulty_evidence_ids == ()
 
     prerequisite = next(
@@ -1026,7 +1036,9 @@ def test_excerpt_hash_and_length_are_rejected(inputs) -> None:
         BessZoningPolicyConfig.model_validate(payload)
 
 
-@pytest.mark.parametrize("status", ["POTENTIALLY_COMPATIBLE", "LIKELY_DIFFICULT", "UNKNOWN"])
+@pytest.mark.parametrize(
+    "status", ["POTENTIALLY_COMPATIBLE", "LIKELY_DIFFICULT", "UNKNOWN"]
+)
 def test_declared_status_must_equal_derived_route_status(inputs, status: str) -> None:
     payload = _payload(inputs[-1])
     payload["chapters"][0]["zoning_precheck_status"] = status
@@ -1037,9 +1049,7 @@ def test_declared_status_must_equal_derived_route_status(inputs, status: str) ->
 def test_condition_alone_cannot_create_conditional_review(inputs) -> None:
     payload = _payload(inputs[-1])
     payload["chapters"][0]["zoning_precheck_status"] = "CONDITIONAL_REVIEW"
-    payload["chapters"][0]["evidence"] = [
-        payload["chapters"][0]["evidence"][1]
-    ]
+    payload["chapters"][0]["evidence"] = [payload["chapters"][0]["evidence"][1]]
     payload["chapters"][0]["route_assessments"] = []
     with pytest.raises(ValueError, match="coherent linked route"):
         BessZoningPolicyConfig.model_validate(payload)
@@ -1079,13 +1089,14 @@ def test_unlinked_context_only_unknown_succeeds(inputs) -> None:
 
 def test_positive_condition_and_conflict_status_routes(inputs) -> None:
     payload = _payload(inputs[-1])
-    assert BessZoningPolicyConfig.model_validate(payload).chapters[
-        0
-    ].zoning_precheck_status == "CONDITIONAL_REVIEW"
+    assert (
+        BessZoningPolicyConfig.model_validate(payload)
+        .chapters[0]
+        .zoning_precheck_status
+        == "CONDITIONAL_REVIEW"
+    )
     conflict = _payload(inputs[-1])
-    conflict["chapters"][0]["evidence"][1][
-        "evidence_direction"
-    ] = "SUPPORTS_DIFFICULTY"
+    conflict["chapters"][0]["evidence"][1]["evidence_direction"] = "SUPPORTS_DIFFICULTY"
     route = conflict["chapters"][0]["route_assessments"][0]
     route["route_kind"] = "RESTRICTION_EXCEPTION_ROUTE"
     route["condition_evidence_ids"] = []
@@ -1110,18 +1121,16 @@ def test_route_references_must_be_same_chapter_and_role_compatible(inputs) -> No
             route["route_kind"] = "DIRECT_ROUTE"
             route["positive_evidence_ids"] = ["E-U-CONDITION"]
             route["condition_evidence_ids"] = []
-            payload["chapters"][0]["zoning_precheck_status"] = (
-                "POTENTIALLY_COMPATIBLE"
-            )
+            payload["chapters"][0]["zoning_precheck_status"] = "POTENTIALLY_COMPATIBLE"
         with pytest.raises(ValueError, match=message):
             BessZoningPolicyConfig.model_validate(payload)
 
 
 def test_route_ids_are_globally_unique(inputs) -> None:
     payload = _payload(inputs[-1])
-    payload["chapters"][1]["route_assessments"][0]["route_id"] = (
-        payload["chapters"][0]["route_assessments"][0]["route_id"]
-    )
+    payload["chapters"][1]["route_assessments"][0]["route_id"] = payload["chapters"][0][
+        "route_assessments"
+    ][0]["route_id"]
     with pytest.raises(ValueError, match="route IDs must be globally unique"):
         BessZoningPolicyConfig.model_validate(payload)
 
@@ -1176,12 +1185,10 @@ def test_context_only_evidence_must_be_unlinked(inputs) -> None:
     assert policy.chapters[0].evidence[1].evidence_direction == "CONTEXT_ONLY"
 
     payload = _payload(policy)
-    payload["chapters"][0]["route_assessments"][0][
-        "condition_evidence_ids"
-    ] = ["E-U-CONDITION"]
-    payload["chapters"][0]["route_assessments"][0][
-        "route_kind"
-    ] = "CONDITIONAL_ROUTE"
+    payload["chapters"][0]["route_assessments"][0]["condition_evidence_ids"] = [
+        "E-U-CONDITION"
+    ]
+    payload["chapters"][0]["route_assessments"][0]["route_kind"] = "CONDITIONAL_ROUTE"
     payload["chapters"][0]["zoning_precheck_status"] = "CONDITIONAL_REVIEW"
     with pytest.raises(ValueError):
         BessZoningPolicyConfig.model_validate(payload)
@@ -1222,9 +1229,12 @@ def test_difficulty_and_positive_only_status_routes(inputs) -> None:
             "applicability_note": "Only the linked difficulty is assessed.",
         }
     ]
-    assert BessZoningPolicyConfig.model_validate(difficult).chapters[
-        0
-    ].zoning_precheck_status == "LIKELY_DIFFICULT"
+    assert (
+        BessZoningPolicyConfig.model_validate(difficult)
+        .chapters[0]
+        .zoning_precheck_status
+        == "LIKELY_DIFFICULT"
+    )
     potential = _payload(inputs[-1])
     chapter = potential["chapters"][0]
     chapter["zoning_precheck_status"] = "POTENTIALLY_COMPATIBLE"
@@ -1239,9 +1249,12 @@ def test_difficulty_and_positive_only_status_routes(inputs) -> None:
             "applicability_note": "Only the direct linked route is assessed.",
         }
     ]
-    assert BessZoningPolicyConfig.model_validate(potential).chapters[
-        0
-    ].zoning_precheck_status == "POTENTIALLY_COMPATIBLE"
+    assert (
+        BessZoningPolicyConfig.model_validate(potential)
+        .chapters[0]
+        .zoning_precheck_status
+        == "POTENTIALLY_COMPATIBLE"
+    )
 
 
 def test_incomplete_review_requires_unknown_low(inputs) -> None:
@@ -1253,9 +1266,10 @@ def test_incomplete_review_requires_unknown_low(inputs) -> None:
     chapter["evidence"] = []
     chapter["route_assessments"] = []
     chapter["reviewed_section_ids"] = []
-    assert BessZoningPolicyConfig.model_validate(payload).chapters[
-        0
-    ].review_completeness == "INCOMPLETE"
+    assert (
+        BessZoningPolicyConfig.model_validate(payload).chapters[0].review_completeness
+        == "INCOMPLETE"
+    )
     for field, value in (
         ("zoning_precheck_status", "CONDITIONAL_REVIEW"),
         ("zoning_precheck_confidence", "MEDIUM"),
@@ -1289,7 +1303,14 @@ def test_incomplete_review_persists_exact_missing_required_sections(inputs) -> N
     )
     row = result.chapter_policy.set_index("resolved_zone_chapter_label").loc["U"]
     assert row["reviewed_section_ids"] == ()
-    assert row["missing_required_section_ids"] == ("SECTION-0003",)
+    expected_missing = tuple(
+        inputs[1].sections.loc[
+            inputs[1].sections["section_type"].eq("ARTICLE")
+            & inputs[1].sections["zone_chapter_label"].eq("U"),
+            "section_id",
+        ]
+    )
+    assert row["missing_required_section_ids"] == expected_missing
     assert row["zoning_precheck_status"] == "UNKNOWN"
     assert row["zoning_precheck_confidence"] == "LOW"
 
@@ -1317,10 +1338,72 @@ def test_reviewed_sections_cover_required_articles(inputs) -> None:
     ].iloc[0]
     payload["chapters"][0]["reviewed_section_ids"] = [chapter_id]
     with pytest.raises(BessZoningPrecheckError, match="omits required reviewed"):
-        interpret_bess_zoning(
-            *sources, BessZoningPolicyConfig.model_validate(payload)
-        )
+        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
     assert index.document_id == "doc-1"
+
+
+@pytest.mark.parametrize("article_number", ["1", "2"])
+def test_every_configured_article_must_exist_once_in_every_chapter(
+    inputs,
+    article_number: str,
+) -> None:
+    structure = inputs[1]
+    policy = inputs[-1]
+    keep = ~(
+        structure.sections["section_type"].eq("ARTICLE")
+        & structure.sections["zone_chapter_label"].eq("U")
+        & structure.sections["article_number_raw"].eq(article_number)
+    )
+    changed = replace(
+        structure,
+        sections=structure.sections.loc[keep].reset_index(drop=True),
+    )
+
+    with pytest.raises(BessZoningPrecheckError, match="exactly one.*article"):
+        interpret_module._required_section_ids_by_chapter(changed, policy)
+
+
+def test_duplicate_configured_article_is_rejected(inputs) -> None:
+    structure = inputs[1]
+    duplicate = (
+        structure.sections.loc[
+            structure.sections["section_type"].eq("ARTICLE")
+            & structure.sections["zone_chapter_label"].eq("U")
+            & structure.sections["article_number_raw"].eq("2")
+        ]
+        .iloc[0]
+        .copy()
+    )
+    duplicate["section_id"] = "SECTION-DUPLICATE-U-2"
+    changed = replace(
+        structure,
+        sections=pd.concat(
+            [structure.sections, duplicate.to_frame().T], ignore_index=True
+        ),
+    )
+
+    with pytest.raises(BessZoningPrecheckError, match="exactly one.*article"):
+        interpret_module._required_section_ids_by_chapter(changed, inputs[-1])
+
+
+def test_configured_article_with_wrong_chapter_parent_is_rejected(inputs) -> None:
+    structure = inputs[1]
+    sections = structure.sections.copy(deep=True)
+    n_chapter_id = sections.loc[
+        sections["section_type"].eq("ZONE_CHAPTER")
+        & sections["zone_chapter_label"].eq("N"),
+        "section_id",
+    ].iloc[0]
+    target = (
+        sections["section_type"].eq("ARTICLE")
+        & sections["zone_chapter_label"].eq("U")
+        & sections["article_number_raw"].eq("2")
+    )
+    sections.loc[target, "parent_section_id"] = n_chapter_id
+    changed = replace(structure, sections=sections)
+
+    with pytest.raises(BessZoningPrecheckError, match="exactly one.*article"):
+        interpret_module._required_section_ids_by_chapter(changed, inputs[-1])
 
 
 def test_evidence_must_be_inside_reviewed_sections(inputs) -> None:
@@ -1333,11 +1416,15 @@ def test_evidence_must_be_inside_reviewed_sections(inputs) -> None:
         & structure.sections["zone_chapter_label"].eq("U"),
         "section_id",
     ].iloc[0]
-    payload["chapters"][0]["reviewed_section_ids"] = [chapter_id]
+    article_2_id = structure.sections.loc[
+        structure.sections["section_type"].eq("ARTICLE")
+        & structure.sections["zone_chapter_label"].eq("U")
+        & structure.sections["article_number_raw"].eq("2"),
+        "section_id",
+    ].iloc[0]
+    payload["chapters"][0]["reviewed_section_ids"] = [chapter_id, article_2_id]
     with pytest.raises(BessZoningPrecheckError, match="outside reviewed sections"):
-        interpret_bess_zoning(
-            *sources, BessZoningPolicyConfig.model_validate(payload)
-        )
+        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
 
 
 def test_review_cannot_claim_another_chapter_section(inputs) -> None:
@@ -1351,9 +1438,7 @@ def test_review_cannot_claim_another_chapter_section(inputs) -> None:
     ].iloc[0]
     payload["chapters"][0]["reviewed_section_ids"] += (n_article,)
     with pytest.raises(BessZoningPrecheckError, match="another chapter"):
-        interpret_bess_zoning(
-            *sources, BessZoningPolicyConfig.model_validate(payload)
-        )
+        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
 
 
 def test_general_section_review_is_explicit_and_valid(inputs) -> None:
@@ -1374,13 +1459,19 @@ def test_general_section_review_is_explicit_and_valid(inputs) -> None:
 
 
 def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     general = structure.sections.loc[
         structure.sections["section_type"].eq("GENERAL")
     ].iloc[0]
-    fragment = planning_regulation_section_page_fragments(
-        index, zones, relations, config, structure
-    ).set_index(["section_id", "page_number"]).loc[(general["section_id"], 1)]
+    fragment = (
+        planning_regulation_section_page_fragments(
+            index, zones, relations, config, structure
+        )
+        .set_index(["section_id", "page_number"])
+        .loc[(general["section_id"], 1)]
+    )
     excerpt = "General factual text."
     start = fragment["raw_text"].index(excerpt)
     base = {
@@ -1390,9 +1481,7 @@ def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> 
         "evidence_direction": "CONTEXT_ONLY",
         "exact_raw_excerpt": excerpt,
         "excerpt_sha256": sha256(excerpt.encode()).hexdigest(),
-        "section_page_fragment_sha256": fragment[
-            "section_page_fragment_sha256"
-        ],
+        "section_page_fragment_sha256": fragment["section_page_fragment_sha256"],
         "excerpt_start": start,
         "excerpt_end": start + len(excerpt),
         "source_rule_id": "RULE-GENERAL-CONTEXT",
@@ -1442,12 +1531,14 @@ def test_exact_section_page_occurrence_is_auditable(inputs, valid_result) -> Non
     ).set_index(["section_id", "page_number"])
     for row in valid_result.evidence_catalog.to_dict("records"):
         fragment = fragments.loc[(row["section_id"], row["page_number"])]
-        assert row["section_page_fragment_sha256"] == fragment[
-            "section_page_fragment_sha256"
-        ]
-        assert fragment["raw_text"][row["excerpt_start"] : row["excerpt_end"]] == row[
-            "exact_raw_excerpt"
-        ]
+        assert (
+            row["section_page_fragment_sha256"]
+            == fragment["section_page_fragment_sha256"]
+        )
+        assert (
+            fragment["raw_text"][row["excerpt_start"] : row["excerpt_end"]]
+            == row["exact_raw_excerpt"]
+        )
 
 
 def test_repeated_excerpt_occurrence_is_bound_to_policy(inputs, valid_result) -> None:
@@ -1467,9 +1558,7 @@ def test_repeated_excerpt_occurrence_is_bound_to_policy(inputs, valid_result) ->
     catalog = valid_result.evidence_catalog.copy(deep=True)
     catalog.loc[row_index, "excerpt_start"] = second
     catalog.loc[row_index, "excerpt_end"] = second + len(row["exact_raw_excerpt"])
-    coordinated = _result_with_hashes(
-        replace(valid_result, evidence_catalog=catalog)
-    )
+    coordinated = _result_with_hashes(replace(valid_result, evidence_catalog=catalog))
     with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
         _validate(inputs, coordinated)
 
@@ -1490,28 +1579,34 @@ def test_wrong_occurrence_identity_is_rejected(inputs, mutation: str) -> None:
     else:
         evidence["excerpt_end"] -= 1
     with pytest.raises(BessZoningPrecheckError, match="fragment|offset"):
-        interpret_bess_zoning(
-            *sources, BessZoningPolicyConfig.model_validate(payload)
-        )
+        interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
 
 
-def test_exact_and_alias_mappings_are_inherited_without_prefix_logic(valid_result) -> None:
+def test_exact_and_alias_mappings_are_inherited_without_prefix_logic(
+    valid_result,
+) -> None:
     policies = valid_result.source_zone_policy.set_index("source_zone_label_raw")
     assert policies.loc["U", "mapping_status"] == "EXACT"
     assert policies.loc["Ua", "mapping_status"] == "CONFIG_ALIAS"
     assert policies.loc["Ua", "resolved_zone_chapter_label"] == "U"
-    assert policies.loc["Ua", "zoning_precheck_status"] == policies.loc[
-        "U", "zoning_precheck_status"
-    ]
+    assert (
+        policies.loc["Ua", "zoning_precheck_status"]
+        == policies.loc["U", "zoning_precheck_status"]
+    )
 
 
 def test_unmapped_dominant_zone_is_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     mapping = structure.zone_mapping.copy()
-    mapping.loc[mapping["source_zone_label_raw"].eq("U"), [
-        "resolved_zone_chapter_label",
-        "matched_section_id",
-    ]] = None
+    mapping.loc[
+        mapping["source_zone_label_raw"].eq("U"),
+        [
+            "resolved_zone_chapter_label",
+            "matched_section_id",
+        ],
+    ] = None
     mapping.loc[mapping["source_zone_label_raw"].eq("U"), "mapping_status"] = "UNMAPPED"
     mapping.loc[mapping["source_zone_label_raw"].eq("U"), "mapping_method"] = "NONE"
     mutated = _structure_with_hashes(replace(structure, zone_mapping=mapping))
@@ -1551,9 +1646,7 @@ def test_link_table_exactly_reproduces_routes_and_reverse_links(valid_result) ->
     }
     assert actual == expected
     catalog = valid_result.evidence_catalog.set_index("evidence_id")
-    assert catalog.loc["E-U-POSITIVE", "linked_route_ids"] == (
-        "ROUTE-U-CONDITIONAL",
-    )
+    assert catalog.loc["E-U-POSITIVE", "linked_route_ids"] == ("ROUTE-U-CONDITIONAL",)
     assert catalog.loc["E-U-POSITIVE", "linked_route_roles"] == ("POSITIVE",)
     assert bool(catalog["decision_linked"].all())
 
@@ -1613,12 +1706,10 @@ def test_prior_parcel_fields_geometry_order_index_and_crs_are_preserved(
     assert valid_result.parcels["planning_surface_relation_count"].equals(
         original["planning_surface_relation_count"]
     )
-    assert valid_result.parcels["non_zoning_planning_features_interpreted"].eq(
-        False
-    ).all()
-    assert valid_result.parcels["zoning_precheck_requires_formal_review"].eq(
-        True
-    ).all()
+    assert (
+        valid_result.parcels["non_zoning_planning_features_interpreted"].eq(False).all()
+    )
+    assert valid_result.parcels["zoning_precheck_requires_formal_review"].eq(True).all()
 
 
 def test_inputs_are_not_mutated(inputs) -> None:
@@ -1642,7 +1733,9 @@ def test_policy_change_after_result_creation_is_rejected(inputs, valid_result) -
         validate_bess_zoning_precheck(*inputs[:-1], changed, valid_result)
 
 
-def test_evidence_change_after_result_creation_is_rejected(inputs, valid_result) -> None:
+def test_evidence_change_after_result_creation_is_rejected(
+    inputs, valid_result
+) -> None:
     payload = _payload(inputs[-1])
     excerpt = "equipment is permitted"
     evidence = payload["chapters"][0]["evidence"][0]
@@ -1654,8 +1747,12 @@ def test_evidence_change_after_result_creation_is_rejected(inputs, valid_result)
         validate_bess_zoning_precheck(*inputs[:-1], changed, valid_result)
 
 
-def test_zoning_relation_and_zone_mapping_changes_are_rejected(inputs, valid_result) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+def test_zoning_relation_and_zone_mapping_changes_are_rejected(
+    inputs, valid_result
+) -> None:
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     changed_relations = relations.copy()
     changed_relations.loc[0, "intersection_area_m2"] = 99.0
     changed_relations.loc[0, "parcel_share_pct"] = 99.0
@@ -1675,7 +1772,9 @@ def test_zoning_relation_and_zone_mapping_changes_are_rejected(inputs, valid_res
 
 
 def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     changed_config = config.model_copy(update={"structure_profile": "changed"})
     with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"):
         interpret_bess_zoning(
@@ -1809,7 +1908,9 @@ def test_one_build_result_performs_one_factual_structure_rebuild(
     ["parcel_metric_area_m2", "zone_area_m2"],
 )
 def test_relation_area_denominators_are_required(inputs, column: str) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     with pytest.raises(BessZoningPrecheckError):
         interpret_bess_zoning(
             index,
@@ -1828,7 +1929,9 @@ def test_relation_area_denominators_are_required(inputs, column: str) -> None:
     ["parcel_share_pct", "zone_share_pct"],
 )
 def test_relation_percentages_must_match_denominators(inputs, column: str) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     changed = relations.copy(deep=True)
     changed.loc[0, column] += 1.0
     with pytest.raises(BessZoningPrecheckError):
@@ -1845,7 +1948,9 @@ def test_relation_percentages_must_match_denominators(inputs, column: str) -> No
 
 
 def test_factual_zone_mapping_counts_are_recomputed(inputs) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     changed_mapping = structure.zone_mapping.copy(deep=True)
     changed_mapping.loc[0, "candidate_intersection_count"] += 1
     changed_structure = _structure_with_hashes(
@@ -1911,12 +2016,12 @@ def test_coordinated_result_mutation_is_rejected(inputs, valid_result) -> None:
         _validate(inputs, mutated)
 
 
-def test_coordinated_evidence_catalog_mutation_is_rejected(inputs, valid_result) -> None:
+def test_coordinated_evidence_catalog_mutation_is_rejected(
+    inputs, valid_result
+) -> None:
     catalog = valid_result.evidence_catalog.copy(deep=True)
     catalog.loc[0, "interpretation_note"] = "Coordinated mutation."
-    mutated = _result_with_hashes(
-        replace(valid_result, evidence_catalog=catalog)
-    )
+    mutated = _result_with_hashes(replace(valid_result, evidence_catalog=catalog))
     with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
         _validate(inputs, mutated)
 
@@ -1947,9 +2052,7 @@ def test_coordinated_catalog_occurrence_duplicate_is_rejected(
 def test_coordinated_route_table_mutation_is_rejected(inputs, valid_result) -> None:
     routes = valid_result.route_assessments.copy(deep=True)
     routes.loc[0, "applicability_note"] = "Coordinated route mutation."
-    mutated = _result_with_hashes(
-        replace(valid_result, route_assessments=routes)
-    )
+    mutated = _result_with_hashes(replace(valid_result, route_assessments=routes))
     with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
         _validate(inputs, mutated)
 
@@ -1959,9 +2062,7 @@ def test_coordinated_evidence_route_link_mutation_is_rejected(
 ) -> None:
     links = valid_result.evidence_route_links.copy(deep=True)
     links.loc[0, "route_role"] = "BROKEN"
-    mutated = _result_with_hashes(
-        replace(valid_result, evidence_route_links=links)
-    )
+    mutated = _result_with_hashes(replace(valid_result, evidence_route_links=links))
     with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
         _validate(inputs, mutated)
 
@@ -1992,7 +2093,9 @@ def test_old_result_hash_schemas_are_rejected(
 
 
 def test_relation_identity_change_is_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = (
+        inputs
+    )
     changed = relations.copy()
     changed.loc[0, "source_zone_id"] = "SRC-N"
     with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"):

@@ -8,7 +8,7 @@ flowchart TD
     Url --> Download[download_cadastre_parcelles]
     Download --> Envelope[CadastreDownload]
     Envelope --> Load[load_cadastre_parcels]
-    Load --> Source[parsed source attributes plus geometry]
+    Load --> Source[CadastreParcelSource download plus parcels]
     Source --> Normalize[normalize_cadastre_parcels]
     Normalize --> Area[filter_parcels_by_area]
     Area --> Shape[enrich_parcel_shapes]
@@ -20,13 +20,15 @@ flowchart TD
 
 `build_cadastre_parcelles_url` validates a canonical French commune identifier, derives the department path (including Corsican handling), and builds the official Etalab Cadastre parcels gzip URL. `download_cadastre_parcelles` uses shared safe HTTPS, streams exact bytes, validates gzip, computes size/SHA, and creates a frozen `CadastreDownload`. See [CACHE_AND_RECOVERY.md](CACHE_AND_RECOVERY.md) for hit/refresh/rollback behavior.
 
-## Byte/physical-integrity load against a supplied envelope
+## Source-bound load and fresh revalidation
 
-`load_cadastre_parcels(download)` accepts the result object rather than a caller path. `_validate_download` requires the exact `CadastreDownload` runtime type, a real `Path`, an existing file, an exact non-empty source URL with an `http` or `https` scheme, filename/path agreement, strict positive size, and canonical lowercase SHA256. It compares current physical size/SHA, fully reads the gzip to validate it, parses GeoJSON with GeoPandas, rejects an empty dataset/missing active geometry/non-polygon types, and compares size/SHA again after parsing. It does **not** independently pin `cadastre.data.gouv.fr` and does **not** append source identity/URL/timestamp/hash fields to the returned frame. Under LandScout's current trust definition, that makes the loader a byte/physical-integrity validator for a supplied envelope, not an equivalent of IGN's config-bound source-complete revalidation.
+`load_cadastre_parcels(download)` accepts the exact result object rather than a caller path. `_validate_download` binds its canonical commune to the exact URL produced by `build_cadastre_parcelles_url`, requires the exact official filename/path, regular non-linked gzip, strict positive size, canonical lowercase SHA256, UTC timestamp, and current/stable physical size/SHA. It parses only nonempty, exactly 2D Polygon/MultiPolygon GeoJSON and returns `CadastreParcelSource(download, parcels)`.
+
+`revalidate_cadastre_parcel_source(source)` repeats download/physical validation, rereads the gzip, exact-compares the supplied frame's columns, dtypes, index, CRS, active geometry, non-geometry values, WKB, and contractual attrs, then returns the fresh physical frame. `normalize_cadastre_parcels` must use that returned frame; validating one frame and then normalizing the caller's frame is forbidden.
 
 ## Normalization
 
-`normalize_cadastre_parcels` requires a spatial GeoDataFrame in EPSG:4326 and the exact cadastral identity fields. It validates unique exact parcel IDs and canonical commune identities. Output preserves input row order and index labels plus source geometry/CRS; it does not add download lineage.
+`normalize_cadastre_parcels` requires an exact `CadastreParcelSource`. Its fresh frame must use EPSG:4326, contain the exact cadastral identity fields, agree with the download commune, and avoid every normalized/generated target-column collision. It validates unique exact parcel IDs and canonical commune identities. Output preserves source row order and geometry/CRS, resets to deterministic RangeIndex, and does not add download lineage columns.
 
 The complete ordered output has exactly 12 columns:
 
@@ -47,11 +49,11 @@ The complete ordered output has exactly 12 columns:
 
 ## Area filter
 
-`filter_parcels_by_area` validates the exact `geometry_status` vocabulary before masks. It validates parcel IDs, CRS, duplicate columns, and strict positive finite `area_m2` on `VALID` rows. Candidates preserve the input schema. Rejected rows append `rejection_reason`, exactly one of `AREA_UNKNOWN`, `INVALID_GEOMETRY`, `AREA_BELOW_MIN`, or `AREA_ABOVE_MAX`. Both subsets preserve their source-relative order and original index labels. The configured minimum/maximum are policy thresholds, not geometry measurements; no ranking occurs.
+`filter_parcels_by_area` reconstructs and revalidates an exact immutable `ParcelConfig` before masks, rejects a pre-existing `rejection_reason`, and invokes the shared canonical parcel validator. That validator requires the exact 12-column prefix, IDs, WGS84 geometry/status facts, a finite positive EPSG:2154-recomputed area for every `VALID` row, and null area for every `INVALID` row. Candidates preserve the input schema. Rejected rows append `rejection_reason`, exactly one of `AREA_UNKNOWN`, `INVALID_GEOMETRY`, `AREA_BELOW_MIN`, or `AREA_ABOVE_MAX`. Both subsets preserve source-relative order and original index labels. The configured minimum/maximum are policy thresholds, not geometry measurements; no ranking occurs.
 
 ## Shape enrichment
 
-`enrich_parcel_shapes` validates the normalized/area-filtered envelope and exact geometry-status values. For valid geometries it creates EPSG:2154 calculation copies and adds:
+`enrich_parcel_shapes` validates the complete canonical parcel envelope, including recomputed area, and rejects any pre-existing generated shape column. For valid geometries it creates EPSG:2154 calculation copies and adds:
 
 - `length_m` and `width_m` from the minimum rotated rectangle;
 - `length_width_ratio`;
@@ -63,7 +65,7 @@ All input columns/values and row order are preserved, but the result index is re
 
 ## Shape screening and profiling
 
-`filter_parcels_by_shape` applies the configured scenario thresholds to already computed metrics. When disabled, retained is an unchanged copy of every input row and rejected is an empty same-schema copy; no policy columns are added. When enabled, both outputs append `shape_policy_version`, `shape_policy_min_width_m`, and `shape_policy_max_ratio`; rejected rows also append `shape_rejection_reason` (`RATIO_ABOVE_MAX`, `WIDTH_BELOW_MIN`, or `SHAPE_ERROR`). It preserves each subset's input order/index and does not recalculate geometry or infer planning/access/grid/environment meaning. `profile_shape_distribution` validates physical metric domains, excludes error rows from percentiles/buckets, and returns frozen profile dataclasses with scenario counts/percentages.
+`filter_parcels_by_shape` reconstructs and revalidates the exact immutable `ShapeScreeningConfig`, rejects every pre-existing generated policy/reason column, and applies configured thresholds to already computed metrics. When disabled, retained is an unchanged copy of every input row and rejected is an empty same-schema copy; no policy columns are added. When enabled, both outputs append `shape_policy_version`, `shape_policy_min_width_m`, and `shape_policy_max_ratio`; rejected rows also append `shape_rejection_reason` (`RATIO_ABOVE_MAX`, `WIDTH_BELOW_MIN`, or `SHAPE_ERROR`). It preserves each subset's input order/index and does not recalculate geometry or infer planning/access/grid/environment meaning. `profile_shape_distribution` invokes the shared parcel contract, validates physical metric domains, excludes error rows from percentiles/buckets, and returns frozen profile dataclasses with scenario counts/percentages.
 
 ## GIS rules
 

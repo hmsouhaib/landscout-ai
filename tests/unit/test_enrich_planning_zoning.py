@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import json
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
@@ -21,6 +22,7 @@ from shapely.geometry import (
 )
 
 from landscout import stages
+from landscout.sources import gpu_fr as gpu_source_module
 from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
@@ -31,8 +33,10 @@ from landscout.sources.gpu_fr import (
     GpuLayerSummary,
     GpuPlanningDocument,
     GpuSpatialLayerReference,
+    load_gpu_source_config,
 )
 from landscout.stages.enrich_planning_zoning import (
+    PARCEL_ZONING_OUTPUT_COLUMNS,
     ParcelZoningResult,
     PlanningZoningError,
     _stabilize_area_relationships,
@@ -167,9 +171,10 @@ def _planning_document(
     source_layer: str = SOURCE_LAYER,
 ) -> GpuPlanningDocument:
     data = zoning if zoning is not None else _zones()
+    source_config = load_gpu_source_config(Path("configs/sources/gpu_fr.yaml"))
     document = GpuDocumentMetadata(
-        provider="Géoportail de l'Urbanisme",
-        portal="GPU",
+        provider=source_config.provider,
+        portal=source_config.portal,
         commune_code="31395",
         partition="DU_31395",
         document_id=document_id,
@@ -228,7 +233,9 @@ def _planning_document(
         crs="UNKNOWN" if data.crs is None else data.crs.to_string(),
         feature_count=len(data),
         columns=tuple(str(column) for column in data.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in data.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in data.dtypes.items()
+        ),
         null_counts=tuple(
             (str(column), int(data[column].isna().sum())) for column in data.columns
         ),
@@ -247,6 +254,8 @@ def _planning_document(
         summary=summary,
     )
     return GpuPlanningDocument(
+        source_config=source_config,
+        source_config_sha256=gpu_source_module._source_config_sha256(source_config),
         extraction=extraction,
         all_spatial_layers=(reference,),
         zoning=inspected,
@@ -339,10 +348,25 @@ def _row_for_source_zone(result: ParcelZoningResult, source_id: str) -> pd.Serie
 
 
 def test_clean_high_level_api_is_exported() -> None:
+    module = importlib.import_module("landscout.stages.enrich_planning_zoning")
+    expected = {
+        "ParcelZoningResult",
+        "PlanningZoningError",
+        "intersect_parcels_with_gpu_zoning",
+        "validate_normalized_planning_zoning_inputs",
+    }
     assert stages.intersect_parcels_with_gpu_zoning is intersect_parcels_with_gpu_zoning
     assert "intersect_parcels_with_gpu_zoning" in stages.__all__
-    assert not hasattr(stages, "PlanningZoningError")
-    assert not hasattr(stages, "ParcelZoningResult")
+    assert stages.PlanningZoningError is PlanningZoningError
+    assert stages.ParcelZoningResult is ParcelZoningResult
+    assert "PlanningZoningError" in stages.__all__
+    assert "ParcelZoningResult" in stages.__all__
+    assert "PlanningZoningError" in module.__all__
+    assert "ParcelZoningResult" in module.__all__
+    assert set(module.__all__) == expected
+    for name in expected:
+        assert getattr(stages, name) is getattr(module, name)
+        assert name in stages.__all__
 
 
 def test_result_container_is_frozen() -> None:
@@ -379,7 +403,10 @@ def test_one_parcel_fully_inside_one_zone() -> None:
     assert zone["source_document_reference_raw"] == ARCHIVE_NAME
     assert zone["source_validity_date_raw"] == "2024-02-15"
     assert zone["source_provider"] == "Géoportail de l'Urbanisme"
-    assert zone["source_portal"] == "GPU"
+    assert (
+        zone["source_portal"]
+        == load_gpu_source_config(Path("configs/sources/gpu_fr.yaml")).portal
+    )
     assert zone["source_commune_code"] == "31395"
     assert zone["source_document_id"] == DOCUMENT_ID
     assert zone["source_document_type"] == "PLU"
@@ -614,9 +641,7 @@ def test_polygon_and_multipolygon_parcels_are_supported(
     [
         (_rectangle(0, 0, 10, 10), 100.0, 100.0),
         (
-            MultiPolygon(
-                [_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]
-            ),
+            MultiPolygon([_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]),
             80.0,
             80.0,
         ),
@@ -863,9 +888,10 @@ def test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved() ->
 
     assert len(result.parcels) == len(parcels)
     assert result.parcels["parcel_id"].tolist() == parcels["parcel_id"].tolist()
-    assert result.parcels["existing_grid_value"].tolist() == parcels[
-        "existing_grid_value"
-    ].tolist()
+    assert (
+        result.parcels["existing_grid_value"].tolist()
+        == parcels["existing_grid_value"].tolist()
+    )
     assert result.parcels.crs == parcels.crs
     assert result.parcels.geometry.reset_index(drop=True).equals(
         parcels.geometry.reset_index(drop=True)
@@ -964,6 +990,40 @@ def test_source_complete_zoning_validation_accepts_physical_fixture(
         factual.zones,
         factual.intersections,
     )
+
+
+@pytest.mark.parametrize("missing_column", sorted(PARCEL_ZONING_OUTPUT_COLUMNS))
+def test_source_complete_zoning_validation_requires_every_parcel_summary_column(
+    tmp_path: Path,
+    missing_column: str,
+) -> None:
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+
+    with pytest.raises(PlanningZoningError, match="parcel zoning.*column"):
+        validate_normalized_planning_zoning_inputs(
+            document,
+            factual.parcels.drop(columns=[missing_column]),
+            factual.zones,
+            factual.intersections,
+        )
+
+
+def test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries(
+    tmp_path: Path,
+) -> None:
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+
+    with pytest.raises(PlanningZoningError, match="parcel zoning.*column"):
+        validate_normalized_planning_zoning_inputs(
+            document,
+            factual.parcels.drop(columns=list(PARCEL_ZONING_OUTPUT_COLUMNS)),
+            factual.zones,
+            factual.intersections,
+        )
 
 
 @pytest.mark.parametrize(

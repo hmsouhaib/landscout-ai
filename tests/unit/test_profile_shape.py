@@ -1,10 +1,10 @@
 import geopandas as gpd
 import pandas as pd
 import pytest
-from shapely.geometry import Point
+from numpy import sqrt
+from shapely.geometry import Polygon
 
 from landscout.stages.profile_shape import (
-    PROFILE_METRICS,
     ShapeProfileError,
     profile_shape_distribution,
 )
@@ -13,7 +13,14 @@ from landscout.stages.profile_shape import (
 def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     mixed = parcels.copy()
     mixed.loc[9, "shape_status"] = "ERROR"
-    for column in (*PROFILE_METRICS, "centroid_lat", "centroid_lon"):
+    for column in (
+        "length_m",
+        "width_m",
+        "length_width_ratio",
+        "compactness",
+        "centroid_lat",
+        "centroid_lon",
+    ):
         mixed.loc[9, column] = None
     return mixed
 
@@ -21,19 +28,57 @@ def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 @pytest.fixture
 def parcels() -> gpd.GeoDataFrame:
     count = 10
+    target_areas = [100.0 * (index + 1) for index in range(count)]
+    projected = gpd.GeoSeries(
+        [
+            Polygon(
+                [
+                    (600000 + index * 100, 6200000),
+                    (600000 + index * 100 + sqrt(area), 6200000),
+                    (600000 + index * 100 + sqrt(area), 6200000 + sqrt(area)),
+                    (600000 + index * 100, 6200000 + sqrt(area)),
+                ]
+            )
+            for index, area in enumerate(target_areas)
+        ],
+        crs="EPSG:2154",
+    )
+    geometry = projected.to_crs("EPSG:4326")
+    measured_areas = geometry.to_crs("EPSG:2154").area.tolist()
     return gpd.GeoDataFrame(
         {
-            "parcel_id": [f"parcel-{index}" for index in range(count)],
+            "parcel_id": [f"313950000A{index + 1:04d}" for index in range(count)],
+            "commune_code": ["31395"] * count,
+            "section_prefix": ["000"] * count,
+            "section": ["A"] * count,
+            "parcel_number": [str(index + 1) for index in range(count)],
+            "source_contenance": [None] * count,
+            "source_arpente": [None] * count,
+            "source_created_at": [None] * count,
+            "source_updated_at": [None] * count,
+            "geometry_status": ["VALID"] * count,
+            "area_m2": measured_areas,
+            "geometry": geometry,
             "shape_status": ["VALID"] * count,
-            "area_m2": [100.0 * (index + 1) for index in range(count)],
-            "length_m": [4.0, 17.5, 42.0, 76.5, 132.0, 216.0, 420.0, 900.0, 1650.0, 300.0],
+            "length_m": [
+                4.0,
+                17.5,
+                42.0,
+                76.5,
+                132.0,
+                216.0,
+                420.0,
+                900.0,
+                1650.0,
+                300.0,
+            ],
             "width_m": [4.0, 7.0, 12.0, 17.0, 22.0, 27.0, 35.0, 45.0, 55.0, 60.0],
             "length_width_ratio": [1.0, 2.5, 3.5, 4.5, 6.0, 8.0, 12.0, 20.0, 30.0, 5.0],
             "compactness": [0.02, 0.07, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85],
             "centroid_lat": [43.0 + index / 100 for index in range(count)],
             "centroid_lon": [2.0 + index / 100 for index in range(count)],
         },
-        geometry=[Point(2.0 + index / 100, 43.0) for index in range(count)],
+        geometry="geometry",
         crs="EPSG:4326",
     )
 

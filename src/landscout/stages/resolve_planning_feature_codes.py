@@ -17,7 +17,6 @@ from typing import Literal, cast
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
 from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
@@ -32,6 +31,7 @@ from landscout.common.planning_feature_schema import (
     relation_dtypes,
     validate_canonical_frame_schema,
 )
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.enrich_planning_features import (
     PlanningFeatureInputValidation,
@@ -239,37 +239,11 @@ class CnigFeatureCodeProfile(_StrictModel):
         return self
 
 
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-
-
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise PlanningFeatureCodeError(f"Duplicate YAML code-profile key: {key!r}")
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-
-
-_UniqueKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _construct_unique_mapping,
-)
-
-
 def load_cnig_feature_code_profile(path: str | Path) -> CnigFeatureCodeProfile:
     """Load a strict offline CNIG feature-code profile."""
 
     try:
-        payload = yaml.load(
-            Path(path).read_text(encoding="utf-8"), Loader=_UniqueKeyLoader
-        )
+        payload = loads_strict_yaml(Path(path).read_bytes())
         if not isinstance(payload, Mapping):
             raise PlanningFeatureCodeError(
                 "CNIG feature-code profile must be a mapping"
@@ -277,6 +251,8 @@ def load_cnig_feature_code_profile(path: str | Path) -> CnigFeatureCodeProfile:
         return CnigFeatureCodeProfile.model_validate(payload)
     except PlanningFeatureCodeError:
         raise
+    except StrictYamlError as error:
+        raise PlanningFeatureCodeError(str(error)) from error
     except Exception as error:
         raise PlanningFeatureCodeError(
             "CNIG feature-code profile is invalid"

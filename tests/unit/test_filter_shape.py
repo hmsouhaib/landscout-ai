@@ -10,6 +10,22 @@ from landscout.stages.filter_parcels import (
     filter_parcels_by_shape,
 )
 
+CASE_NAMES = (
+    "at-boundaries",
+    "passing",
+    "width-below",
+    "ratio-above",
+    "shape-error",
+    "width-unknown",
+    "ratio-unknown",
+    "both-unknown",
+    "ratio-unknown-width-below",
+    "both-thresholds-fail",
+)
+PARCEL_IDS = {
+    name: f"313950000A{index:04d}" for index, name in enumerate(CASE_NAMES, start=1)
+}
+
 
 def _shape_config(
     *,
@@ -40,23 +56,24 @@ def shape_config() -> ShapeScreeningConfig:
 
 @pytest.fixture
 def parcels() -> gpd.GeoDataFrame:
-    geometry = Polygon(
-        [(2.0, 43.0), (2.01, 43.0), (2.01, 43.01), (2.0, 43.0)]
+    geometry = Polygon([(2.0, 43.0), (2.01, 43.0), (2.01, 43.01), (2.0, 43.0)])
+    measured_area = float(
+        gpd.GeoSeries([geometry], crs="EPSG:4326").to_crs("EPSG:2154").area.iloc[0]
     )
     return gpd.GeoDataFrame(
         {
-            "parcel_id": [
-                "at-boundaries",
-                "passing",
-                "width-below",
-                "ratio-above",
-                "shape-error",
-                "width-unknown",
-                "ratio-unknown",
-                "both-unknown",
-                "ratio-unknown-width-below",
-                "both-thresholds-fail",
-            ],
+            "parcel_id": list(PARCEL_IDS.values()),
+            "commune_code": ["31395"] * 10,
+            "section_prefix": ["000"] * 10,
+            "section": ["A"] * 10,
+            "parcel_number": [str(index) for index in range(1, 11)],
+            "source_contenance": [None] * 10,
+            "source_arpente": [None] * 10,
+            "source_created_at": [None] * 10,
+            "source_updated_at": [None] * 10,
+            "geometry_status": ["VALID"] * 10,
+            "area_m2": [measured_area] * 10,
+            "geometry": [geometry] * 10,
             "shape_status": [
                 "VALID",
                 "VALID",
@@ -84,7 +101,7 @@ def parcels() -> gpd.GeoDataFrame:
             ],
             "compactness": [0.5] * 10,
         },
-        geometry=[geometry] * 10,
+        geometry="geometry",
         crs="EPSG:4326",
     )
 
@@ -94,7 +111,18 @@ def test_exact_width_and_ratio_boundaries_are_retained(
 ) -> None:
     retained, _ = filter_parcels_by_shape(parcels, shape_config)
 
-    assert "at-boundaries" in set(retained["parcel_id"])
+    assert PARCEL_IDS["at-boundaries"] in set(retained["parcel_id"])
+
+
+def test_shape_filter_revalidates_mutated_config_before_frame_work(
+    parcels: gpd.GeoDataFrame,
+    shape_config: ShapeScreeningConfig,
+) -> None:
+    tampered = shape_config.model_copy(update={"min_width_m": -1.0})
+    colliding = parcels.assign(shape_rejection_reason="existing")
+
+    with pytest.raises(ParcelFilterError, match="config"):
+        filter_parcels_by_shape(colliding, tampered)
 
 
 @pytest.mark.parametrize(
@@ -115,7 +143,7 @@ def test_rejected_parcel_has_expected_primary_reason(
 ) -> None:
     _, rejected = filter_parcels_by_shape(parcels, shape_config)
 
-    row = rejected.loc[rejected["parcel_id"] == parcel_id].iloc[0]
+    row = rejected.loc[rejected["parcel_id"] == PARCEL_IDS[parcel_id]].iloc[0]
     assert row["shape_rejection_reason"] == expected_reason
 
 
@@ -136,7 +164,9 @@ def test_rejection_reason_precedence_is_deterministic(
 ) -> None:
     _, rejected = filter_parcels_by_shape(parcels, shape_config)
 
-    reason = rejected.set_index("parcel_id").loc[parcel_id, "shape_rejection_reason"]
+    reason = rejected.set_index("parcel_id").loc[
+        PARCEL_IDS[parcel_id], "shape_rejection_reason"
+    ]
     assert reason == expected_reason
 
 
@@ -148,14 +178,14 @@ def test_shape_error_precedence_does_not_inspect_metrics(
     with_error_payload["length_width_ratio"] = with_error_payload[
         "length_width_ratio"
     ].astype(object)
-    error_row = with_error_payload["parcel_id"] == "shape-error"
+    error_row = with_error_payload["parcel_id"] == PARCEL_IDS["shape-error"]
     with_error_payload.loc[error_row, "width_m"] = "unavailable"
     with_error_payload.loc[error_row, "length_width_ratio"] = "unavailable"
 
     _, rejected = filter_parcels_by_shape(with_error_payload, shape_config)
 
     reason = rejected.set_index("parcel_id").loc[
-        "shape-error", "shape_rejection_reason"
+        PARCEL_IDS["shape-error"], "shape_rejection_reason"
     ]
     assert reason == "SHAPE_ERROR"
 
@@ -312,7 +342,9 @@ def test_negative_ratio_cannot_pass_permissive_thresholds(
     invalid.loc[0, "width_m"] = 20
     invalid.loc[0, "length_width_ratio"] = -1
 
-    with pytest.raises(ParcelFilterError, match="length_width_ratio must be at least one"):
+    with pytest.raises(
+        ParcelFilterError, match="length_width_ratio must be at least one"
+    ):
         filter_parcels_by_shape(invalid, shape_config)
 
 
@@ -351,13 +383,13 @@ def test_different_configs_change_results_for_same_parcels(
     restrictive_retained, _ = filter_parcels_by_shape(parcels, restrictive)
 
     assert set(permissive_retained["parcel_id"]) == {
-        "at-boundaries",
-        "passing",
-        "width-below",
-        "ratio-above",
-        "both-thresholds-fail",
+        PARCEL_IDS["at-boundaries"],
+        PARCEL_IDS["passing"],
+        PARCEL_IDS["width-below"],
+        PARCEL_IDS["ratio-above"],
+        PARCEL_IDS["both-thresholds-fail"],
     }
-    assert set(restrictive_retained["parcel_id"]) == {"passing"}
+    assert set(restrictive_retained["parcel_id"]) == {PARCEL_IDS["passing"]}
 
 
 @pytest.mark.parametrize("column", ["width_m", "length_width_ratio"])

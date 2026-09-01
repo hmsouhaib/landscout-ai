@@ -3,7 +3,6 @@ from numbers import Real
 from pathlib import Path
 from typing import Annotated, Any
 
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -15,6 +14,8 @@ from pydantic import (
 )
 from pydantic_core import PydanticCustomError
 from pyproj import CRS
+
+from landscout.common.strict_yaml import loads_strict_yaml
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 CommuneCode = Annotated[
@@ -44,7 +45,7 @@ StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
 
 
 class _ConfigModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class ParcelConfig(_ConfigModel):
@@ -131,7 +132,7 @@ class ScanMetadata(_ConfigModel):
 
 
 class AoiConfig(_ConfigModel):
-    commune_codes: list[CommuneCode] = Field(min_length=1)
+    commune_codes: tuple[CommuneCode, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
     def validate_unique_communes(self) -> "AoiConfig":
@@ -170,9 +171,8 @@ class LoadedScanConfig(_ConfigModel):
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as stream:
-        content = yaml.safe_load(stream)
-    if not isinstance(content, dict):
+    content = loads_strict_yaml(path.read_bytes())
+    if type(content) is not dict:
         raise TypeError(f"Expected a YAML mapping in {path}")
     return content
 

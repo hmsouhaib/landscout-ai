@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pytest
 from shapely.affinity import rotate
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 
 from landscout.geo import LAMBERT93, parcel_shape_metrics_m
@@ -17,9 +17,37 @@ def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
     wgs84 = projected.to_crs("EPSG:4326")
     return gpd.GeoDataFrame(
         {
-            "parcel_id": [f"parcel-{index}" for index in range(len(geometries))],
-            "geometry_status": ["VALID"] * len(geometries),
-            "area_m2": list(projected.area),
+            "parcel_id": [
+                f"313950000A{index + 1:04d}" for index in range(len(geometries))
+            ],
+            "commune_code": ["31395"] * len(geometries),
+            "section_prefix": ["000"] * len(geometries),
+            "section": ["A"] * len(geometries),
+            "parcel_number": [str(index + 1) for index in range(len(geometries))],
+            "source_contenance": [None] * len(geometries),
+            "source_arpente": [None] * len(geometries),
+            "source_created_at": [None] * len(geometries),
+            "source_updated_at": [None] * len(geometries),
+            "geometry_status": [
+                "VALID"
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else "INVALID"
+                for geometry in geometries
+            ],
+            "area_m2": [
+                float(area)
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else None
+                for geometry, area in zip(
+                    geometries,
+                    wgs84.to_crs("EPSG:2154").area,
+                    strict=True,
+                )
+            ],
         },
         geometry=wgs84,
         crs="EPSG:4326",
@@ -79,7 +107,9 @@ def test_elongated_parcel() -> None:
 
 
 def test_centroid_coordinates(square: Polygon) -> None:
-    expected = gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
+    expected = (
+        gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
+    )
 
     row = enrich_parcel_shapes(_candidate_frame([square])).iloc[0]
 
@@ -154,8 +184,7 @@ def test_valid_candidate_area_requires_strict_positive_finite_number(
 
 
 def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
-    source = _candidate_frame([square, Point(600000, 6200000)])
-    source.loc[1, "geometry_status"] = "INVALID"
+    source = _candidate_frame([square, Polygon()])
 
     enriched = enrich_parcel_shapes(source)
 
@@ -164,8 +193,7 @@ def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
 
 
 def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
-    source = _candidate_frame([square, Point(600000, 6200000)])
-    source.loc[1, "geometry_status"] = "INVALID"
+    source = _candidate_frame([square, Polygon()])
 
     enriched = enrich_parcel_shapes(source)
 

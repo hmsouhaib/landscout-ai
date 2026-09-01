@@ -234,14 +234,14 @@ def validate_canonical_frame_schema(
         tuple(frame.columns) != columns
         or tuple(str(dtype) for dtype in frame.dtypes) != dtypes
     ):
-        raise ValueError(
-            f"{label} canonical column, geometry, or dtype schema differs"
-        )
+        raise ValueError(f"{label} canonical column, geometry, or dtype schema differs")
     index = frame.index
     expected_index_type = pd.Index if index_class == "Index" else pd.RangeIndex
-    if type(index) is not expected_index_type or list(index.names) != [None] or str(
-        index.dtype
-    ) != "int64":
+    if (
+        type(index) is not expected_index_type
+        or list(index.names) != [None]
+        or str(index.dtype) != "int64"
+    ):
         raise ValueError(f"{label} canonical index schema differs")
     if index_class == "RangeIndex" and (
         index.start != 0 or index.stop != len(frame) or index.step != 1

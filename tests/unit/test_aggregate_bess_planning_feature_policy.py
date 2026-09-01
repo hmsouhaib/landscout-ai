@@ -28,6 +28,7 @@ from landscout.common.bess_application_contract import (
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.common.planning_feature_schema import relation_columns, relation_dtypes
+from landscout.common.strict_json import loads_strict_json_object
 from landscout.stages.aggregate_bess_planning_feature_policy import (
     BessPlanningFeatureParcelAggregationArtifactManifest,
     BessPlanningFeatureParcelAggregationError,
@@ -145,10 +146,7 @@ def _load_legacy_local_aggregation_artifacts(
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
     )
-    payload = json.loads(
-        Path(manifest_path).read_text(encoding="utf-8"),
-        object_pairs_hook=module._unique_json_object,
-    )
+    payload = loads_strict_json_object(Path(manifest_path).read_bytes())
     manifest = BessPlanningFeatureParcelAggregationArtifactManifest.model_validate(
         payload
     )
@@ -1651,20 +1649,56 @@ def test_artifact_manifest_corruption_is_rejected(
         )
 
 
-def test_duplicate_json_and_physical_replacement_are_rejected(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "document",
+    [
+        '{"schema_version":1,"schema_version":1}',
+        '{"schema_version":NaN}',
+        '{"schema_version":Infinity}',
+        "[]",
+    ],
+    ids=["duplicate-key", "nan", "infinity", "non-object"],
+)
+def test_aggregation_manifest_uses_strict_json_before_artifact_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    document: str,
+) -> None:
     _, _, _, _, _, result = _aggregation_fixture()
     manifest_path, paths, _ = _write_artifacts(tmp_path, result)
-    original = manifest_path.read_text(encoding="utf-8")
-    manifest_path.write_text(
-        '{"schema_version":1,"schema_version":1}', encoding="utf-8"
+    manifest_path.write_text(document, encoding="utf-8")
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
     )
+    artifact_reads = 0
+    original_read_bytes = Path.read_bytes
+
+    def counted_bytes(path: Path) -> bytes:
+        nonlocal artifact_reads
+        if path in paths.values():
+            artifact_reads += 1
+        return original_read_bytes(path)
+
+    def counted(*args: object, **kwargs: object) -> object:
+        nonlocal artifact_reads
+        artifact_reads += 1
+        raise AssertionError("Artifact read preceded strict manifest validation")
+
+    monkeypatch.setattr(Path, "read_bytes", counted_bytes)
+    monkeypatch.setattr(module.pd, "read_parquet", counted)
     with pytest.raises(
-        BessPlanningFeatureParcelAggregationError, match="Duplicate JSON"
+        BessPlanningFeatureParcelAggregationError,
+        match="Duplicate JSON|finite|top-level|invalid",
     ):
         load_bess_planning_feature_parcel_aggregation_artifacts(
             manifest_path, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
         )
-    manifest_path.write_text(original, encoding="utf-8")
+    assert artifact_reads == 0
+
+
+def test_aggregation_physical_replacement_is_rejected(tmp_path: Path) -> None:
+    _, _, _, _, _, result = _aggregation_fixture()
+    manifest_path, paths, _ = _write_artifacts(tmp_path, result)
     paths["RELATION_ASSESSMENTS"].write_bytes(
         paths["RELATION_ASSESSMENTS"].read_bytes() + b"tamper"
     )

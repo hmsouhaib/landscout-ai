@@ -11,9 +11,7 @@ def test_crs_constants() -> None:
 
 
 def test_reproject_to_lambert93_and_back_to_latlon() -> None:
-    polygon = Polygon(
-        [(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)]
-    )
+    polygon = Polygon([(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)])
 
     projected = reproject_to_lambert93(polygon, WGS84)
     latitude, longitude = centroid_to_latlon(projected, LAMBERT93)

@@ -28,7 +28,6 @@ from xml.etree import ElementTree
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pyogrio  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -41,6 +40,12 @@ from pydantic import (
 from pyproj import CRS
 
 from landscout.common.safe_http import open_safe_https
+from landscout.common.strict_json import (
+    StrictJsonError,
+    loads_strict_json,
+    loads_strict_json_object,
+)
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/gpu_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/gpu")
@@ -67,10 +72,11 @@ LogicalLayerName = Literal[
 FileCategory = Literal[
     "SPATIAL_DATA", "METADATA", "WRITTEN_REGULATION", "OTHER_ATTACHMENT"
 ]
+GpuOfficialSourceIdentity = Literal["G\u00e9oportail de l'Urbanisme"]
 
 
 class GpuApiConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     base_url: HttpUrl
 
@@ -94,7 +100,7 @@ class GpuApiConfig(BaseModel):
 
 
 class GpuDownloadConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     strategy: DownloadStrategy
     partition_template: NonEmptyString
@@ -116,19 +122,32 @@ class GpuDownloadConfig(BaseModel):
 
 
 class GpuCacheConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     max_age_hours: float = Field(ge=0, allow_inf_nan=False)
 
+    @field_validator("max_age_hours", mode="before")
+    @classmethod
+    def _strict_finite_number(cls, value: object) -> object:
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or type(value) not in {int, float}
+        ):
+            raise ValueError("max_age_hours must be an exact finite number")
+        if not math.isfinite(value):
+            raise ValueError("max_age_hours must be finite")
+        return value
+
 
 class GpuPilotConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     commune_code: CommuneCode
 
 
 class GpuLogicalLayerConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     class_label: NonEmptyString
     match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)
@@ -145,7 +164,7 @@ class GpuLogicalLayerConfig(BaseModel):
 
 
 class GpuSpatialLayersConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     zoning: GpuLogicalLayerConfig
     prescription_surface: GpuLogicalLayerConfig
@@ -159,10 +178,10 @@ class GpuSpatialLayersConfig(BaseModel):
 class GpuSourceConfig(BaseModel):
     """Strict configuration for official French GPU ingestion."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
-    provider: NonEmptyString
-    portal: NonEmptyString
+    provider: GpuOfficialSourceIdentity
+    portal: GpuOfficialSourceIdentity
     country: Literal["FR"]
     api: GpuApiConfig
     download: GpuDownloadConfig
@@ -318,6 +337,8 @@ class GpuValidatedSpatialLayerSource:
 
 @dataclass(frozen=True)
 class GpuPlanningDocument:
+    source_config: GpuSourceConfig
+    source_config_sha256: str
     extraction: GpuExtraction
     all_spatial_layers: tuple[GpuSpatialLayerReference, ...]
     zoning: GpuInspectedLayer
@@ -326,7 +347,9 @@ class GpuPlanningDocument:
 
 def _normalize_words(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value)
-    ascii_value = "".join(char for char in decomposed if not unicodedata.combining(char))
+    ascii_value = "".join(
+        char for char in decomposed if not unicodedata.combining(char)
+    )
     return "_".join(re.findall(r"[a-z0-9]+", ascii_value.casefold()))
 
 
@@ -336,11 +359,11 @@ def load_gpu_source_config(path: Path = DEFAULT_CONFIG_PATH) -> GpuSourceConfig:
     if not path.is_file():
         raise GpuConfigError(f"GPU source configuration does not exist: {path}")
     try:
-        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
+        payload = loads_strict_yaml(path.read_bytes())
+        if type(payload) is not dict:
             raise TypeError("GPU source configuration must be a mapping")
         return GpuSourceConfig.model_validate(payload)
-    except (OSError, TypeError, yaml.YAMLError, ValidationError) as error:
+    except (OSError, TypeError, StrictYamlError, ValidationError) as error:
         raise GpuConfigError(f"Invalid GPU source configuration: {path}") from error
 
 
@@ -355,7 +378,29 @@ def _validated_source_config(config: object) -> GpuSourceConfig:
         ) from error
 
 
-def build_gpu_partition(config: GpuSourceConfig, commune_code: str | None = None) -> str:
+def _source_config_sha256(config: object) -> str:
+    """Return the private canonical identity of one validated GPU config."""
+
+    validated = _validated_source_config(config)
+    try:
+        payload = json.dumps(
+            {
+                "domain": "landscout.gpu.source_config",
+                "config": validated.model_dump(mode="json"),
+            },
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise GpuConfigError("GPU source config cannot be serialized safely") from error
+    return sha256(payload).hexdigest()
+
+
+def build_gpu_partition(
+    config: GpuSourceConfig, commune_code: str | None = None
+) -> str:
     validated_config = _validated_source_config(config)
     code = commune_code or validated_config.pilot.commune_code
     if not isinstance(code, str) or re.fullmatch(r"[0-9]{5}", code) is None:
@@ -386,9 +431,7 @@ def build_gpu_partition_download_url(
 ) -> str:
     validated_config = _validated_source_config(config)
     partition = quote(build_gpu_partition(validated_config, commune_code), safe="")
-    return _api_url(
-        validated_config, f"document/download-by-partition/{partition}"
-    )
+    return _api_url(validated_config, f"document/download-by-partition/{partition}")
 
 
 def _request_json(url: str, timeout: float) -> Any:
@@ -398,8 +441,8 @@ def _request_json(url: str, timeout: float) -> Any:
             timeout=timeout,
             headers={"Accept": "application/json", "User-Agent": USER_AGENT},
         ) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            return loads_strict_json(response.read())
+    except (HTTPError, URLError, OSError, StrictJsonError) as error:
         raise GpuDiscoveryError(f"GPU metadata request failed: {url}") from error
 
 
@@ -444,8 +487,7 @@ def _written_files(
         seen.add(filename)
         expected_source_url = _api_url(
             config,
-            "document/"
-            f"{quote(document_id, safe='')}/files/{quote(filename, safe='')}",
+            f"document/{quote(document_id, safe='')}/files/{quote(filename, safe='')}",
         )
         source_url = material_urls.get(filename)
         if source_url is not None and source_url != expected_source_url:
@@ -521,7 +563,9 @@ def discover_current_gpu_document(
         raise GpuDiscoveryError("GPU document details are not an object")
     details = details_payload
     if details.get("id") != document_id or details.get("originalName") != archive_name:
-        raise GpuDiscoveryError("GPU document details do not match the selected document")
+        raise GpuDiscoveryError(
+            "GPU document details do not match the selected document"
+        )
     expected_state = {
         "status": "document.production",
         "legalStatus": "APPROVED",
@@ -563,7 +607,9 @@ def discover_current_gpu_document(
         document_title=_optional_string(details, "title"),
         status=_required_string(details, "status", "status"),
         legal_status=_required_string(details, "legalStatus", "legal status"),
-        effective_status=_required_string(details, "effectiveStatus", "effective status"),
+        effective_status=_required_string(
+            details, "effectiveStatus", "effective status"
+        ),
         version=_optional_string(details, "version"),
         archive_name=archive_name,
         publication_timestamp=_optional_string(details, "publicationDate"),
@@ -640,10 +686,12 @@ def _safe_gpu_archive_filename(archive_name: object) -> str:
 def _validate_gpu_document_for_config(
     document: GpuDocumentMetadata, config: GpuSourceConfig
 ) -> str:
-    if not isinstance(document, GpuDocumentMetadata):
+    if type(document) is not GpuDocumentMetadata:
         raise GpuDownloadError("GPU document metadata object is invalid")
     if document.provider != config.provider or document.portal != config.portal:
-        raise GpuDownloadError("GPU document provider/portal does not match configuration")
+        raise GpuDownloadError(
+            "GPU document provider/portal does not match configuration"
+        )
     if (
         type(document.document_id) is not str
         or not document.document_id
@@ -666,8 +714,7 @@ def _validate_gpu_document_for_config(
             or not filename
             or filename != filename.strip()
             or any(
-                ord(character) < 32 or ord(character) == 127
-                for character in filename
+                ord(character) < 32 or ord(character) == 127 for character in filename
             )
             or filename in written_filenames
         ):
@@ -695,7 +742,15 @@ def _validate_gpu_document_for_config(
         raise GpuDownloadError("GPU document commune/partition is invalid") from error
     if document.partition != expected_partition:
         raise GpuDownloadError("GPU document partition does not match configuration")
-    if document.document_family != "DU":
+    if document.document_family != "DU" or (
+        type(document.document_type) is not str
+        or not document.document_type
+        or document.document_type != document.document_type.strip()
+        or any(
+            ord(character) < 32 or ord(character) == 127
+            for character in document.document_type
+        )
+    ):
         raise GpuDownloadError("GPU document family is not a planning document")
     if (
         document.status != "document.production"
@@ -704,7 +759,9 @@ def _validate_gpu_document_for_config(
     ):
         raise GpuDownloadError("GPU document is not current, approved, and in force")
     if not isinstance(document.source_url, str) or document.source_url != expected_url:
-        raise GpuDownloadError("GPU document source URL is not the official partition URL")
+        raise GpuDownloadError(
+            "GPU document source URL is not the official partition URL"
+        )
     parsed = urlparse(document.source_url)
     expected_parsed = urlparse(expected_url)
     if (
@@ -736,9 +793,9 @@ def _is_link_or_junction(path: Path) -> bool:
 def _validate_gpu_archive_download(
     download: GpuArchiveDownload,
 ) -> tuple[str, ...]:
-    if not isinstance(download, GpuArchiveDownload):
+    if type(download) is not GpuArchiveDownload:
         raise GpuArchiveError("GPU archive download object is invalid")
-    if not isinstance(download.document, GpuDocumentMetadata):
+    if type(download.document) is not GpuDocumentMetadata:
         raise GpuArchiveError("GPU archive document lineage object is invalid")
     path = download.path
     if not isinstance(path, Path) or _is_link_or_junction(path) or not path.is_file():
@@ -832,12 +889,16 @@ def _validated_zip_destinations(
             stat.S_IFREG,
             stat.S_IFDIR,
         }:
-            raise GpuArchiveError(f"Special files are not allowed in GPU archive: {raw_name}")
+            raise GpuArchiveError(
+                f"Special files are not allowed in GPU archive: {raw_name}"
+            )
 
         destination = PurePosixPath(raw_name.replace("\\", "/"))
         parts = tuple(part for part in destination.parts if part not in {"", "."})
         if not parts:
-            raise GpuArchiveError(f"GPU ZIP member has no extraction target: {raw_name}")
+            raise GpuArchiveError(
+                f"GPU ZIP member has no extraction target: {raw_name}"
+            )
         canonical = tuple(_windows_member_component(part) for part in parts)
         if canonical[0] == EXTRACTION_MANIFEST_NAME.casefold():
             raise GpuArchiveError("GPU ZIP member collides with extraction manifest")
@@ -892,7 +953,10 @@ def validate_gpu_archive(path: Path) -> tuple[str, ...]:
     except (OSError, zipfile.BadZipFile, RuntimeError) as error:
         raise GpuArchiveError(f"Cannot validate GPU ZIP archive: {path}") from error
     return tuple(
-        sorted((destination.as_posix() for _, destination in destinations), key=str.casefold)
+        sorted(
+            (destination.as_posix() for _, destination in destinations),
+            key=str.casefold,
+        )
     )
 
 
@@ -936,10 +1000,7 @@ def _require_no_cache_recovery_material(
     metadata_path: Path,
 ) -> None:
     recovery_paths = _cache_recovery_paths(archive_path, metadata_path)
-    if any(
-        path.exists() or _is_link_or_junction(path)
-        for path in recovery_paths
-    ):
+    if any(path.exists() or _is_link_or_junction(path) for path in recovery_paths):
         raise GpuDownloadError(
             "GPU cache recovery backup already exists; manual recovery is required"
         )
@@ -948,14 +1009,10 @@ def _require_no_cache_recovery_material(
 def _prepare_temporary_cache_file(path: Path) -> None:
     try:
         if _is_link_or_junction(path):
-            raise GpuDownloadError(
-                "GPU cache temporary path is a link or junction"
-            )
+            raise GpuDownloadError("GPU cache temporary path is a link or junction")
         if path.exists():
             if not path.is_file():
-                raise GpuDownloadError(
-                    "GPU cache temporary path is not a regular file"
-                )
+                raise GpuDownloadError("GPU cache temporary path is not a regular file")
             path.unlink()
     except GpuDownloadError:
         raise
@@ -1040,9 +1097,7 @@ def _load_cached_archive(
     if not archive_path.is_file() or not metadata_path.is_file():
         return None
     try:
-        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
-            return None
+        payload = loads_strict_json_object(metadata_path.read_bytes())
         cached_document = _document_from_dict(payload["document"])
         timestamp = payload["download_timestamp"]
         if not isinstance(timestamp, str):
@@ -1059,9 +1114,11 @@ def _load_cached_archive(
             and cached_document == document
             and payload.get("filename") == archive_path.name
             and payload.get("archive_format") == "zip"
-            and payload.get("file_size") == size
+            and type(payload.get("file_size")) is int
+            and payload["file_size"] == size
             and payload.get("sha256") == checksum
-            and payload.get("member_count") == len(members)
+            and type(payload.get("member_count")) is int
+            and payload["member_count"] == len(members)
         ):
             return None
         return GpuArchiveDownload(
@@ -1079,7 +1136,7 @@ def _load_cached_archive(
         OSError,
         TypeError,
         ValueError,
-        json.JSONDecodeError,
+        StrictJsonError,
         GpuArchiveError,
     ):
         return None
@@ -1121,7 +1178,7 @@ def download_gpu_document(
                 timeout=timeout,
                 headers={"User-Agent": USER_AGENT},
             ) as response,
-            temporary_archive.open("wb") as output,
+            temporary_archive.open("xb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
         members = validate_gpu_archive(temporary_archive)
@@ -1144,10 +1201,10 @@ def download_gpu_document(
             "sha256": result.sha256,
             "member_count": len(members),
         }
-        temporary_metadata.write_text(
-            json.dumps(lineage, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        with temporary_metadata.open("x", encoding="utf-8") as output:
+            output.write(
+                json.dumps(lineage, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+            )
         _publish_cache_pair(
             temporary_archive, temporary_metadata, archive_path, metadata_path
         )
@@ -1191,6 +1248,10 @@ def _inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
     for path in root.rglob("*"):
         if _is_link_or_junction(path):
             raise GpuArchiveError(f"Extracted GPU symbolic link is forbidden: {path}")
+        if not path.is_file() and not path.is_dir():
+            raise GpuArchiveError(
+                f"Extracted GPU special filesystem entry is forbidden: {path}"
+            )
     files: list[GpuExtractedFile] = []
     for path in sorted((item for item in root.rglob("*") if item.is_file()), key=str):
         if path.parent == root and path.name == EXTRACTION_MANIFEST_NAME:
@@ -1199,7 +1260,9 @@ def _inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
         try:
             relative = resolved.relative_to(root.resolve())
         except ValueError as error:
-            raise GpuArchiveError(f"Extracted GPU file escapes cache: {path}") from error
+            raise GpuArchiveError(
+                f"Extracted GPU file escapes cache: {path}"
+            ) from error
         files.append(
             GpuExtractedFile(
                 relative_path=relative.as_posix(),
@@ -1239,10 +1302,10 @@ def _validate_extraction_manifest(
     if _is_link_or_junction(marker) or not marker.is_file():
         raise GpuArchiveError("GPU extraction manifest is missing or unsafe")
     try:
-        payload = json.loads(marker.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        payload = loads_strict_json_object(marker.read_bytes())
+    except (OSError, StrictJsonError) as error:
         raise GpuArchiveError("GPU extraction manifest is unreadable") from error
-    if not isinstance(payload, dict) or set(payload) != {
+    if set(payload) != {
         "schema_version",
         "archive_sha256",
         "files",
@@ -1308,14 +1371,57 @@ def _remove_extraction_path(path: Path) -> None:
         shutil.rmtree(path)
 
 
+def _cleanup_temporary_extraction_directory(
+    path: Path,
+    primary_error: BaseException | None,
+) -> None:
+    try:
+        _remove_extraction_path(path)
+    except OSError as error:
+        if primary_error is None:
+            raise GpuArchiveError(
+                "GPU extraction temporary directory could not be cleaned safely"
+            ) from error
+
+
+def _require_no_extraction_recovery_material(root: Path) -> None:
+    backup = root.with_name(f"{root.name}.bak")
+    if backup.exists() or _is_link_or_junction(backup):
+        raise GpuArchiveError(
+            "GPU extraction recovery backup exists; manual recovery is required"
+        )
+
+
+def _prepare_temporary_extraction_directory(path: Path) -> None:
+    try:
+        if _is_link_or_junction(path):
+            raise GpuArchiveError("GPU extraction temporary path is a link or junction")
+        if path.exists():
+            raise GpuArchiveError(
+                "GPU extraction temporary path already exists; manual recovery is required"
+            )
+        path.mkdir()
+    except GpuArchiveError:
+        raise
+    except OSError as error:
+        raise GpuArchiveError(
+            "GPU extraction temporary path cannot be prepared safely"
+        ) from error
+
+
 def _publish_extraction_directory(temporary_root: Path, root: Path) -> None:
     backup = root.with_name(f"{root.name}.bak")
-    _remove_extraction_path(backup)
+    _require_no_extraction_recovery_material(root)
     old_moved = False
-    try:
-        if root.exists() or _is_link_or_junction(root):
+    if root.exists() or _is_link_or_junction(root):
+        try:
             shutil.move(str(root), str(backup))
             old_moved = True
+        except OSError as error:
+            raise GpuArchiveError(
+                "GPU extraction backup publication failed before replacement"
+            ) from error
+    try:
         shutil.move(str(temporary_root), str(root))
     except OSError as error:
         try:
@@ -1352,6 +1458,7 @@ def extract_gpu_document(
 
     _validate_gpu_archive_download(download)
     root = cache_dir / "x" / download.sha256[:16]
+    _require_no_extraction_recovery_material(root)
     if root.is_dir() and not _is_link_or_junction(root):
         try:
             files = _validate_extraction_manifest(root, download)
@@ -1366,8 +1473,7 @@ def extract_gpu_document(
             pass
     root.parent.mkdir(parents=True, exist_ok=True)
     temporary_root = root.with_name(f"{root.name}.part")
-    _remove_extraction_path(temporary_root)
-    temporary_root.mkdir()
+    _prepare_temporary_extraction_directory(temporary_root)
     try:
         with zipfile.ZipFile(download.path) as archive:
             destinations = _validated_zip_destinations(archive.infolist())
@@ -1382,13 +1488,11 @@ def extract_gpu_document(
         files = _inventory(temporary_root)
         _validate_gpu_archive_download(download)
         marker = temporary_root / EXTRACTION_MANIFEST_NAME
-        marker.write_text(
-            json.dumps(
-                _manifest_payload(download, files), indent=2, sort_keys=True
+        with marker.open("x", encoding="utf-8") as output:
+            output.write(
+                json.dumps(_manifest_payload(download, files), indent=2, sort_keys=True)
+                + "\n"
             )
-            + "\n",
-            encoding="utf-8",
-        )
         files = _validate_extraction_manifest(temporary_root, download)
         standard_models = _discover_standard_models(temporary_root)
         _publish_extraction_directory(temporary_root, root)
@@ -1404,7 +1508,10 @@ def extract_gpu_document(
             raise
         raise GpuArchiveError("Cannot safely extract GPU document") from error
     finally:
-        _remove_extraction_path(temporary_root)
+        _cleanup_temporary_extraction_directory(
+            temporary_root,
+            sys.exception(),
+        )
 
 
 def discover_gpu_spatial_layers(
@@ -1425,13 +1532,13 @@ def discover_gpu_spatial_layers(
             ) from error
         for raw_name in layers[:, 0].tolist():
             if isinstance(raw_name, str) and raw_name:
-                references.append(
-                    GpuSpatialLayerReference(path, raw_name, "GPKG")
-                )
+                references.append(GpuSpatialLayerReference(path, raw_name, "GPKG"))
     for path in shp_paths:
         references.append(GpuSpatialLayerReference(path, path.stem, "ESRI Shapefile"))
     if not references:
-        raise GpuSpatialInspectionError("GPU document contains no supported spatial data")
+        raise GpuSpatialInspectionError(
+            "GPU document contains no supported spatial data"
+        )
     unique = {(item.dataset_path.resolve(), item.source_layer) for item in references}
     if len(unique) != len(references):
         raise GpuSpatialInspectionError("GPU document exposes duplicate spatial layers")
@@ -1468,6 +1575,165 @@ def _discover_logical_layer(
             f"Expected {adjective} {logical_name} layer, found {len(matches)}"
         )
     return matches[0]
+
+
+_GPU_LOGICAL_LAYER_NAMES: tuple[LogicalLayerName, ...] = (
+    "zoning",
+    "prescription_surface",
+    "prescription_line",
+    "prescription_point",
+    "information_surface",
+    "information_line",
+    "information_point",
+)
+
+
+def _configured_logical_references(
+    references: tuple[GpuSpatialLayerReference, ...],
+    config: GpuSourceConfig,
+) -> tuple[tuple[LogicalLayerName, GpuSpatialLayerReference], ...]:
+    if type(references) is not tuple or any(
+        type(reference) is not GpuSpatialLayerReference for reference in references
+    ):
+        raise GpuSpatialInspectionError(
+            "GPU spatial-layer inventory must be an exact immutable tuple"
+        )
+    selected: list[tuple[LogicalLayerName, GpuSpatialLayerReference]] = []
+    for logical_name in _GPU_LOGICAL_LAYER_NAMES:
+        reference = _discover_logical_layer(
+            references,
+            config,
+            logical_name,
+            required=logical_name == "zoning",
+        )
+        if reference is not None:
+            selected.append((logical_name, reference))
+    physical_roles = [
+        (reference.dataset_path.resolve(), reference.source_layer)
+        for _, reference in selected
+    ]
+    if len(physical_roles) != len(set(physical_roles)):
+        raise GpuSpatialInspectionError(
+            "Two GPU logical roles resolve to the same physical layer"
+        )
+    return tuple(selected)
+
+
+def _validate_gpu_extraction_for_config(
+    extraction: object,
+    config: GpuSourceConfig,
+) -> None:
+    try:
+        if type(extraction) is not GpuExtraction:
+            raise GpuSpatialInspectionError(
+                "GPU extraction must be exactly a GpuExtraction"
+            )
+        if type(extraction.archive) is not GpuArchiveDownload:
+            raise GpuSpatialInspectionError(
+                "GPU extraction archive must be exactly a GpuArchiveDownload"
+            )
+        if type(extraction.archive.document) is not GpuDocumentMetadata:
+            raise GpuSpatialInspectionError(
+                "GPU extraction document must be exactly a GpuDocumentMetadata"
+            )
+        _validate_gpu_document_for_config(extraction.archive.document, config)
+        _validate_gpu_archive_download(extraction.archive)
+        root, _ = _validated_spatial_root(extraction)
+        manifest_files = _validate_extraction_manifest(root, extraction.archive)
+        if extraction.files != manifest_files:
+            raise GpuSpatialInspectionError(
+                "GPU extraction inventory differs from its verified manifest"
+            )
+        if type(extraction.standard_models) is not tuple or (
+            extraction.standard_models != _discover_standard_models(root)
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU extraction standard-model inventory differs from source"
+            )
+        _validate_gpu_archive_download(extraction.archive)
+    except GpuSpatialInspectionError:
+        raise
+    except (GpuArchiveError, GpuDownloadError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU extraction does not match its configured physical source"
+        ) from error
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "GPU extraction/config lineage cannot be validated safely"
+        ) from error
+
+
+def _validate_gpu_planning_document_config_identity(
+    planning_document: object,
+) -> GpuSourceConfig:
+    try:
+        if type(planning_document) is not GpuPlanningDocument:
+            raise GpuSpatialInspectionError(
+                "planning_document must be exactly a GpuPlanningDocument"
+            )
+        if (
+            type(planning_document.extraction) is not GpuExtraction
+            or type(planning_document.extraction.archive) is not GpuArchiveDownload
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU planning-document extraction lineage is malformed"
+            )
+        config = _validated_source_config(planning_document.source_config)
+        checksum = planning_document.source_config_sha256
+        if (
+            type(checksum) is not str
+            or re.fullmatch(r"[0-9a-f]{64}", checksum) is None
+            or checksum != _source_config_sha256(config)
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU planning-document config SHA256 differs"
+            )
+        _validate_gpu_document_for_config(
+            planning_document.extraction.archive.document,
+            config,
+        )
+        root, _ = _validated_spatial_root(planning_document.extraction)
+        manifest_files = _validate_extraction_manifest(
+            root,
+            planning_document.extraction.archive,
+        )
+        if planning_document.extraction.files != manifest_files:
+            raise GpuSpatialInspectionError(
+                "GPU extraction inventory differs from its verified manifest"
+            )
+        physical_references = discover_gpu_spatial_layers(planning_document.extraction)
+        if planning_document.all_spatial_layers != physical_references:
+            raise GpuSpatialInspectionError(
+                "GPU planning-document spatial inventory differs from its "
+                "physical extraction"
+            )
+        configured = _configured_logical_references(
+            planning_document.all_spatial_layers,
+            config,
+        )
+        inspected = (planning_document.zoning, *planning_document.related_layers)
+        if type(planning_document.related_layers) is not tuple or any(
+            type(layer) is not GpuInspectedLayer for layer in inspected
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU planning-document inspected layers are malformed"
+            )
+        actual = tuple((layer.logical_name, layer.reference) for layer in inspected)
+        if actual != configured:
+            raise GpuSpatialInspectionError(
+                "GPU planning-document logical roles differ from its config"
+            )
+        return config
+    except GpuSpatialInspectionError:
+        raise
+    except (GpuArchiveError, GpuConfigError, GpuDownloadError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU planning-document source config is invalid"
+        ) from error
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "GPU planning-document config identity cannot be validated safely"
+        ) from error
 
 
 def _load_reference(reference: GpuSpatialLayerReference) -> gpd.GeoDataFrame:
@@ -1660,9 +1926,7 @@ def _spatial_source_family(
         parent = root.joinpath(*pure.parent.parts)
         try:
             actual_paths = {
-                candidate.resolve(strict=True)
-                .relative_to(root_resolved)
-                .as_posix()
+                candidate.resolve(strict=True).relative_to(root_resolved).as_posix()
                 for candidate in parent.iterdir()
                 if candidate.name.casefold() in family_names
             }
@@ -1733,9 +1997,7 @@ def _compare_inspected_spatial_layer(
         if not isinstance(loaded, gpd.GeoDataFrame) or not isinstance(
             reread, gpd.GeoDataFrame
         ):
-            raise GpuSpatialInspectionError(
-                "GPU spatial layer must be a GeoDataFrame"
-            )
+            raise GpuSpatialInspectionError("GPU spatial layer must be a GeoDataFrame")
         if len(loaded) != len(reread):
             raise GpuSpatialInspectionError(
                 "Loaded GPU spatial row count differs from its source"
@@ -1762,8 +2024,10 @@ def _compare_inspected_spatial_layer(
             )
         geometry_column = reread.geometry.name
         attributes = [column for column in reread.columns if column != geometry_column]
-        if not loaded[attributes].reset_index(drop=True).equals(
-            reread[attributes].reset_index(drop=True)
+        if (
+            not loaded[attributes]
+            .reset_index(drop=True)
+            .equals(reread[attributes].reset_index(drop=True))
         ):
             raise GpuSpatialInspectionError(
                 "Loaded GPU spatial attributes or row order differ from its source"
@@ -1789,8 +2053,9 @@ def _revalidate_gpu_spatial_layer_source(
     """Verify and freshly reload one extracted GPU spatial-layer source."""
 
     try:
-        if not isinstance(planning_document, GpuPlanningDocument) or not isinstance(
-            inspected_layer, GpuInspectedLayer
+        if (
+            type(planning_document) is not GpuPlanningDocument
+            or type(inspected_layer) is not GpuInspectedLayer
         ):
             raise GpuSpatialInspectionError(
                 "GPU planning document or inspected layer is invalid"
@@ -1816,19 +2081,7 @@ def _revalidate_gpu_spatial_layer_source(
                 "Inspected GPU reference must occur exactly once in the spatial inventory"
             )
         if verify_extraction_manifest:
-            root, _ = _validated_spatial_root(planning_document.extraction)
-            try:
-                manifest_files = _validate_extraction_manifest(
-                    root, planning_document.extraction.archive
-                )
-            except GpuArchiveError as error:
-                raise GpuSpatialInspectionError(
-                    "GPU extraction manifest cannot verify the spatial source"
-                ) from error
-            if planning_document.extraction.files != manifest_files:
-                raise GpuSpatialInspectionError(
-                    "GPU extraction inventory differs from its verified manifest"
-                )
+            _validate_gpu_planning_document_config_identity(planning_document)
         reference = inspected_layer.reference
         relative, family = _spatial_source_family(
             reference, planning_document.extraction
@@ -1838,14 +2091,9 @@ def _revalidate_gpu_spatial_layer_source(
             layer=reference.source_layer,
             fid_as_index=True,
         )
-        if (
-            not with_fids.index.is_unique
-            or any(
-                isinstance(value, bool)
-                or not isinstance(value, Integral)
-                or int(value) < 0
-                for value in with_fids.index
-            )
+        if not with_fids.index.is_unique or any(
+            isinstance(value, bool) or not isinstance(value, Integral) or int(value) < 0
+            for value in with_fids.index
         ):
             raise GpuSpatialInspectionError(
                 "GPU spatial source exposes invalid source FIDs"
@@ -1919,10 +2167,7 @@ def _revalidate_gpu_spatial_layer_sources(
     planning_document: GpuPlanningDocument,
     inspected_layers: tuple[GpuInspectedLayer, ...],
 ) -> tuple[GpuValidatedSpatialLayerSource, ...]:
-    if not isinstance(planning_document, GpuPlanningDocument):
-        raise GpuSpatialInspectionError(
-            "planning_document must be a GpuPlanningDocument"
-        )
+    _validate_gpu_planning_document_config_identity(planning_document)
     if type(inspected_layers) is not tuple:
         raise GpuSpatialInspectionError(
             "Inspected GPU spatial layers must be an immutable tuple"
@@ -1931,24 +2176,9 @@ def _revalidate_gpu_spatial_layer_sources(
         raise GpuSpatialInspectionError(
             "Every inspected GPU spatial layer must be a GpuInspectedLayer"
         )
-    if len({layer.logical_name for layer in inspected_layers}) != len(
-        inspected_layers
-    ):
+    if len({layer.logical_name for layer in inspected_layers}) != len(inspected_layers):
         raise GpuSpatialInspectionError(
             "Inspected GPU spatial layers contain a duplicate logical name"
-        )
-    try:
-        root, _ = _validated_spatial_root(planning_document.extraction)
-        manifest_files = _validate_extraction_manifest(
-            root, planning_document.extraction.archive
-        )
-    except (AttributeError, TypeError, GpuArchiveError) as error:
-        raise GpuSpatialInspectionError(
-            "GPU extraction manifest cannot verify the spatial sources"
-        ) from error
-    if planning_document.extraction.files != manifest_files:
-        raise GpuSpatialInspectionError(
-            "GPU extraction inventory differs from its verified manifest"
         )
     return tuple(
         _revalidate_gpu_spatial_layer_source(
@@ -2000,7 +2230,10 @@ def _summarize_layer(
     invalid = non_empty & ~geometry.is_valid
     geometry_types = tuple(
         (str(key), int(value))
-        for key, value in geometry[non_null].geom_type.value_counts().sort_index().items()
+        for key, value in geometry[non_null]
+        .geom_type.value_counts()
+        .sort_index()
+        .items()
     )
     return GpuLayerSummary(
         source_document_id=extraction.archive.document.document_id,
@@ -2009,7 +2242,9 @@ def _summarize_layer(
         crs=_crs_text(frame),
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
         null_counts=tuple(
             (str(column), int(frame[column].isna().sum())) for column in frame.columns
         ),
@@ -2025,11 +2260,17 @@ def inspect_gpu_planning_document(
 ) -> GpuPlanningDocument:
     """Discover and inspect zoning/prescription layers without interpretation."""
 
+    try:
+        validated_config = _validated_source_config(config)
+        _validate_gpu_extraction_for_config(extraction, validated_config)
+    except (GpuConfigError, GpuSpatialInspectionError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU planning source/config validation failed before inspection"
+        ) from error
     references = discover_gpu_spatial_layers(extraction)
-    zoning_reference = _discover_logical_layer(
-        references, config, "zoning", required=True
-    )
-    assert zoning_reference is not None
+    configured = _configured_logical_references(references, validated_config)
+    configured_by_name = dict(configured)
+    zoning_reference = configured_by_name["zoning"]
     zoning_data = _load_reference(zoning_reference)
     zoning = GpuInspectedLayer(
         logical_name="zoning",
@@ -2038,20 +2279,7 @@ def inspect_gpu_planning_document(
         summary=_summarize_layer(zoning_data, zoning_reference, extraction),
     )
     related: list[GpuInspectedLayer] = []
-    logical_names: tuple[LogicalLayerName, ...] = (
-        "prescription_surface",
-        "prescription_line",
-        "prescription_point",
-        "information_surface",
-        "information_line",
-        "information_point",
-    )
-    for logical_name in logical_names:
-        reference = _discover_logical_layer(
-            references, config, logical_name, required=False
-        )
-        if reference is None:
-            continue
+    for logical_name, reference in configured[1:]:
         data = _load_reference(reference)
         related.append(
             GpuInspectedLayer(
@@ -2062,6 +2290,8 @@ def inspect_gpu_planning_document(
             )
         )
     return GpuPlanningDocument(
+        source_config=validated_config,
+        source_config_sha256=_source_config_sha256(validated_config),
         extraction=extraction,
         all_spatial_layers=references,
         zoning=zoning,

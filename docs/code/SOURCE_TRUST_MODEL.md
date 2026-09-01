@@ -6,7 +6,8 @@ LandScout distinguishes a self-consistent in-memory object from evidence that co
 
 ```mermaid
 flowchart TD
-    Config[Strict checked-in source config] --> Url[Validated official HTTPS URL]
+    Serialized[Duplicate-safe YAML or JSON] --> Config[Deeply immutable validated config]
+    Config --> Url[Validated official HTTPS URL]
     Url --> Transport[Shared safe HTTPS transport]
     Transport --> Bytes[Exact response bytes]
     Bytes --> Cache[Byte and metadata verified cache]
@@ -17,6 +18,12 @@ flowchart TD
     Frame --> Result[Immutable source object]
     Result --> Revalidate[Source-complete consumer revalidation]
 ```
+
+## Strict serialization and immutable configuration
+
+Trust-bearing YAML is decoded through the shared SafeLoader-based parser, which rejects duplicate keys at every mapping depth. Trust-bearing JSON is decoded as strict UTF-8 and rejects duplicate object keys, non-finite numbers, float overflow, malformed text, and non-object top-level values where a model/manifest requires an object. Pydantic validation still owns each source-specific schema after parsing.
+
+Decision-input configuration, profile, and policy models are frozen. Nested mappings and collections are converted to immutable forms where freezing a Pydantic shell would otherwise leave mutable state. Public source boundaries reconstruct and validate exact models from canonical dumps before using their authority; a caller-mutated or forged model copy cannot become source identity merely because it has the expected class.
 
 ## Shared HTTPS boundary
 
@@ -29,21 +36,22 @@ flowchart TD
 5. `_BoundHTTPSConnection` creates a socket for one validated numeric address; it does not ask the socket layer to resolve the hostname again.
 6. The peer address is compared with the selected validated address.
 7. A default verifying TLS context wraps the socket with the original hostname as SNI/certificate identity.
-8. HTTP `Host` uses the original canonical hostname and optional non-default port. Caller-supplied `Host` is forbidden and header names are token-validated.
-9. Environment proxy settings are bypassed because the implementation uses the numeric bound socket directly.
-10. Redirects are manual, finite, loop-detected, and each target repeats the complete validation before its request.
-11. Only final 2xx responses are exposed; `SafeHttpsResponse` streams bytes and owns response/connection cleanup.
+8. HTTP `Host` uses the original canonical hostname and optional non-default port; the transport owns `Host` and `Connection: close`.
+9. Caller headers are case-insensitively unique. `Authorization`, `Proxy-Authorization`, `Cookie`, `Cookie2`, and caller-owned hop-by-hop headers are rejected before DNS, so redirects cannot forward them. Ordinary `User-Agent` and `Accept` may cross a validated redirect.
+10. Environment proxy settings are bypassed because the implementation uses the numeric bound socket directly.
+11. Redirects are manual, finite, loop-detected, and each target repeats the complete validation before its request.
+12. Only final 2xx responses are exposed; `SafeHttpsResponse` streams bytes and owns response/connection cleanup.
 
 The transport proves an outbound HTTPS exchange reached one address from the validated DNS snapshot under the requested hostname's TLS identity. It does not know dataset IDs, expected file hashes, archive formats, or business semantics; adapters add those checks.
 
 ## Cadastre
 
 - The official parcels URL is derived from an exact canonical commune code.
-- The download result binds URL, timestamp, filename, physical size, SHA256, cache path, and cache-hit state.
-- Cached bytes must match the sidecar, freshness rule, source URL, physical size/SHA, and valid gzip structure.
-- `load_cadastre_parcels` requires the exact `CadastreDownload` runtime type; a `Path` that exists; an exact non-empty source URL whose scheme is currently either HTTP or HTTPS; filename/path agreement; strict positive size; canonical lowercase SHA256; current physical size/SHA agreement; valid gzip; and stable size/SHA after parsing. It then validates non-empty polygonal GeoJSON geometry.
-- The loader does **not** independently re-pin the official Cadastre host, and it does not add the download URL/provider/timestamp/size/SHA to the returned GeoDataFrame. Normalization therefore has no download-lineage columns to propagate. Physical trust is held by the validated call boundary and download object, not embedded in parcel rows.
-- Consequently, `load_cadastre_parcels` alone is byte/physical-integrity validation against a supplied Cadastre envelope. It is not equivalent to IGN's stronger config-bound source-complete revalidation, which independently reproduces source identity and physical logical-layer selection.
+- The download result binds canonical commune code, exact official HTTPS URL/filename, timestamp, physical size, SHA256, cache path, and cache-hit state.
+- Cached bytes must match the strict sidecar schema, freshness rule, official commune/source identity, physical size/SHA, and valid gzip structure.
+- `load_cadastre_parcels` returns `CadastreParcelSource`, retaining the exact validated `CadastreDownload` beside the parsed GeoDataFrame.
+- `revalidate_cadastre_parcel_source` revalidates official download identity and current bytes, rereads the gzip, exact-compares columns/dtypes/index/CRS/active geometry/non-geometry values/WKB/contractual attrs, and returns the fresh frame.
+- `normalize_cadastre_parcels` derives from that fresh frame, accepts only 2D Polygon/MultiPolygon source geometry, and rejects generated-column collisions. Downstream parcel consumers share a canonical validator that recomputes VALID areas in EPSG:2154 and requires INVALID areas to remain null.
 
 ## RTE / ODRÉ
 
@@ -57,22 +65,23 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 
 - Configuration fixes provider/product/department/edition/version/projection/package/archive identity, official source/checksum URLs, checksum/size locks, and logical role selection rules.
 - Download verifies the pinned archive checksum/size and source metadata; cache reuse rehashes bytes.
-- Extraction accepts the expected GeoPackage package shape, inventories physical layers, and stores a marker binding archive and GeoPackage bytes.
+- Extraction accepts the expected GeoPackage package shape, validates the full Windows-compatible 7z destination inventory before extraction, inventories the resulting physical layers, and stores a marker binding archive and GeoPackage bytes.
 - `_validate_extraction_envelope` checks marker, paths, inventory, roles, source archive, and current GeoPackage size/SHA. Verified layer reads hash before and after batched physical access.
 - Config-aware loaders reproduce electricity line/post, road, and department coverage roles from `IgnBdTopoSourceConfig`; source summaries are not allowed to select their own authoritative layer.
-- Grid and road normalizers call config-aware fresh loaders and exact-compare supplied versus physical frames, columns, dtypes, index, CRS, geometry WKB, attrs, and summaries.
+- Grid and road normalizers call config-aware fresh loaders, exact-compare supplied versus physical frames, columns, dtypes, index, CRS, geometry WKB, attrs, and summaries, then derive output only from the returned fresh objects.
 - Coverage objects are bound to the same extraction object/configured layer and department field before diagnostic use.
+- All electricity, road, and department logical roles are globally distinct. Existing extraction `.bak` recovery material fails closed and is never automatically discarded; temporary extraction paths are link/junction-safe.
 
 ## GPU
 
-- Configuration locks the official GPU API origin, pilot commune/document type, partition request, cache roots, and logical spatial-layer match rules.
+- Immutable configuration locks the exact GPU provider/portal/country, official API origin, pilot commune/document type, partition request, cache roots, and logical spatial-layer match rules.
 - Current-document discovery validates response structure, exact commune/document status/identity, official document-specific archive URL, and official per-written-file URL provenance.
 - Caller-supplied `GpuDocumentMetadata` is revalidated, including every written-file item, before cache/network use.
 - Archive cache binds document identity, selected source URL, byte size, SHA256, ZIP structure, and strict sidecar.
 - ZIP validation rejects traversal, absolute paths, normalized/case collisions, Windows reserved/forbidden names, symlinks/special files, duplicate destinations, file-directory conflicts, and marker collisions before extraction.
-- Extraction inventory binds every regular file's relative path, size, SHA, category, and archive identity; publication is transactional.
-- Spatial inspection identifies actual layers and summaries, then `GpuValidatedSpatialLayerSource` binds each source file/layer to physical file integrity.
-- Planning consumers call GPU revalidation helpers that reread/compare current physical layers rather than accepting textual lineage alone.
+- Extraction inventory binds every regular file's relative path, size, SHA, category, and archive identity; publication is transactional, `.bak` recovery material fails closed, and temporary archive/metadata/extraction paths are link/junction-safe.
+- Spatial inspection identifies actual layers and summaries, enforces global uniqueness across every populated logical role, then `GpuValidatedSpatialLayerSource` binds each source file/layer to physical file integrity. Source-complete revalidation freshly rediscovers the complete physical layer inventory and exact-compares it with `GpuPlanningDocument.all_spatial_layers`, so a coordinated in-memory omission cannot narrow the authoritative package.
+- `GpuPlanningDocument` retains the validated source config plus its deterministic canonical SHA256. Planning consumers verify that config identity, extraction/config lineage, and physical layer contents rather than accepting provider strings or textual lineage alone.
 
 ## INPN / PatriNat
 

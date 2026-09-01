@@ -79,6 +79,14 @@ def _write_policy(tmp_path: Path, payload: object) -> Path:
     return path
 
 
+def test_duplicate_yaml_policy_key_is_rejected(tmp_path: Path) -> None:
+    path = tmp_path / "duplicate.yaml"
+    path.write_text("schema_version: 2\nschema_version: 2\n", encoding="utf-8")
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError, match="Duplicate YAML.*key"):
+        load_ign_road_vehicle_proxy_policy(path)
+
+
 def _load_payload(tmp_path: Path, payload: object) -> IgnRoadVehicleProxyPolicy:
     return load_ign_road_vehicle_proxy_policy(_write_policy(tmp_path, payload))
 
@@ -144,9 +152,7 @@ def test_public_api_exports_only_stable_policy_symbols() -> None:
     [
         (lambda payload: payload.update(unexpected=True), "invalid"),
         (
-            lambda payload: payload["references"]["navigation"].update(
-                unexpected=True
-            ),
+            lambda payload: payload["references"]["navigation"].update(unexpected=True),
             "invalid",
         ),
         (lambda payload: payload.pop("policy_id"), "invalid"),
@@ -170,9 +176,7 @@ def test_invalid_config_structure_is_rejected(
 
 
 @pytest.mark.parametrize("version", [0, 1, 3, 999])
-def test_unsupported_schema_version_is_rejected(
-    tmp_path: Path, version: int
-) -> None:
+def test_unsupported_schema_version_is_rejected(tmp_path: Path, version: int) -> None:
     payload = _payload()
     payload["schema_version"] = version
 
@@ -204,9 +208,7 @@ def test_wrong_policy_identity_is_rejected(
 
 
 @pytest.mark.parametrize("reference", ["navigation", "bdtopo_product"])
-def test_both_evidence_references_are_required(
-    tmp_path: Path, reference: str
-) -> None:
+def test_both_evidence_references_are_required(tmp_path: Path, reference: str) -> None:
     payload = _payload()
     payload["references"].pop(reference)
 
@@ -244,14 +246,14 @@ def test_asset_state_groups_cover_exact_v2_domain() -> None:
     )
     assert policy.asset_state.under_construction == frozenset({"En construction"})
     assert set().union(*groups) == {"En service", "En projet", "En construction"}
-    assert all(sum(value in group for group in groups) == 1 for value in set().union(*groups))
+    assert all(
+        sum(value in group for group in groups) == 1 for value in set().union(*groups)
+    )
 
 
 def test_asset_state_group_overlap_is_rejected(tmp_path: Path) -> None:
     payload = _payload()
-    payload["source_values"]["asset_state"]["under_construction"] = [
-        "En projet"
-    ]
+    payload["source_values"]["asset_state"]["under_construction"] = ["En projet"]
 
     with pytest.raises(IgnRoadVehicleProxyPolicyError):
         _load_payload(tmp_path, payload)
@@ -398,9 +400,7 @@ def test_importance_domains_expose_known_without_positive_classification() -> No
 
 
 @pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "reorder"])
-def test_decision_precedence_must_be_exact(
-    tmp_path: Path, mutation: str
-) -> None:
+def test_decision_precedence_must_be_exact(tmp_path: Path, mutation: str) -> None:
     payload = _payload()
     precedence = payload["decision_precedence"]
     if mutation == "missing":
@@ -424,9 +424,7 @@ def test_decision_precedence_and_rule_outcomes_are_approved() -> None:
     assert policy.decision_outcomes.project_geometry_not_significant == (
         "NOT_DISTANCE_PROXY"
     )
-    assert policy.decision_outcomes.not_in_service == (
-        "NOT_GENERAL_VEHICLE_PROXY"
-    )
+    assert policy.decision_outcomes.not_in_service == ("NOT_GENERAL_VEHICLE_PROXY")
     assert policy.decision_outcomes.private_road == "RESTRICTED_REVIEW"
     assert policy.decision_outcomes.rights_restricted == "RESTRICTED_REVIEW"
     assert policy.decision_outcomes.temporal_closure == "RESTRICTED_REVIEW"
@@ -442,18 +440,14 @@ def test_project_geometry_rule_has_exact_precedence_position() -> None:
     policy = load_ign_road_vehicle_proxy_policy()
 
     fictitious = policy.decision_precedence.index("FICTITIOUS_GEOMETRY")
-    project = policy.decision_precedence.index(
-        "PROJECT_GEOMETRY_NOT_SIGNIFICANT"
-    )
+    project = policy.decision_precedence.index("PROJECT_GEOMETRY_NOT_SIGNIFICANT")
     not_in_service = policy.decision_precedence.index("NOT_IN_SERVICE")
     assert fictitious < project < not_in_service
     assert len(policy.decision_precedence) == 16
 
 
 @pytest.mark.parametrize("mutation", ["missing", "extra", "wrong"])
-def test_output_class_vocabulary_must_be_exact(
-    tmp_path: Path, mutation: str
-) -> None:
+def test_output_class_vocabulary_must_be_exact(tmp_path: Path, mutation: str) -> None:
     payload = _payload()
     classes = payload["classes"]
     if mutation == "missing":
@@ -474,9 +468,7 @@ def test_approved_class_vocabulary_has_no_heavy_or_legal_claim() -> None:
     assert policy.classes.values == EXPECTED_CLASSES
     assert policy.heavy_vehicle_access == "NOT_PROVEN"
     assert all(
-        token not in value
-        for value in policy.classes.values
-        for token in forbidden
+        token not in value for value in policy.classes.values for token in forbidden
     )
 
 
@@ -490,7 +482,9 @@ def test_observed_d031_natures_are_covered_exactly_once() -> None:
     )
 
     assert set().union(*groups) >= OBSERVED_NATURES
-    assert all(sum(value in group for group in groups) == 1 for value in OBSERVED_NATURES)
+    assert all(
+        sum(value in group for group in groups) == 1 for value in OBSERVED_NATURES
+    )
 
 
 def test_observed_d031_access_and_importance_vocabularies_are_compatible() -> None:
@@ -536,9 +530,7 @@ def test_malformed_yaml_has_controlled_error(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("payload", [None, [], "policy"])
-def test_non_mapping_yaml_has_controlled_error(
-    tmp_path: Path, payload: object
-) -> None:
+def test_non_mapping_yaml_has_controlled_error(tmp_path: Path, payload: object) -> None:
     with pytest.raises(IgnRoadVehicleProxyPolicyError):
         _load_payload(tmp_path, payload)
 

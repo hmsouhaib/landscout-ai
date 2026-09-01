@@ -16,12 +16,12 @@ from typing import Literal
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
 from pyproj import CRS
 from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.enrich_planning_zoning import (
     PlanningZoningError,
@@ -309,7 +309,10 @@ class PolicyEvidence(_StrictConfigModel):
             (self.interpretation_note, "interpretation note"),
         ):
             _config_string(value, label)
-        if sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest() != self.excerpt_sha256:
+        if (
+            sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest()
+            != self.excerpt_sha256
+        ):
             raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
         if self.excerpt_end <= self.excerpt_start:
             raise ValueError("evidence excerpt offsets must be ordered")
@@ -387,7 +390,9 @@ class RouteAssessment(_StrictConfigModel):
         }
         combined: list[str] = []
         for role, values in roles.items():
-            normalized = [_config_string(value, f"{role} evidence ID") for value in values]
+            normalized = [
+                _config_string(value, f"{role} evidence ID") for value in values
+            ]
             if len(set(normalized)) != len(normalized):
                 raise ValueError(f"{role} evidence IDs must be unique within a route")
             combined.extend(normalized)
@@ -482,7 +487,9 @@ class BessZoningPolicyConfig(_StrictConfigModel):
     @model_validator(mode="after")
     def _validate_policy(self) -> BessZoningPolicyConfig:
         if self.schema_version != POLICY_SCHEMA_VERSION:
-            raise ValueError(f"unsupported BESS zoning policy schema: {self.schema_version}")
+            raise ValueError(
+                f"unsupported BESS zoning policy schema: {self.schema_version}"
+            )
         _config_string(self.policy_profile, "policy profile")
         _config_string(self.source_lock.document_id, "policy document ID")
         _config_string(self.source_lock.structure_profile, "policy structure profile")
@@ -547,7 +554,10 @@ class BessZoningPolicyConfig(_StrictConfigModel):
                 source_rules[evidence.source_rule_id] = rule_identity
                 occurrence = rule_identity[:5]
                 prior_rule_id = source_rule_occurrences.get(occurrence)
-                if prior_rule_id is not None and prior_rule_id != evidence.source_rule_id:
+                if (
+                    prior_rule_id is not None
+                    and prior_rule_id != evidence.source_rule_id
+                ):
                     raise ValueError(
                         "one exact source-rule occurrence must use one source rule ID"
                     )
@@ -604,7 +614,9 @@ class BessZoningPolicyConfig(_StrictConfigModel):
             for evidence in chapter.evidence:
                 is_linked = evidence.evidence_id in linked_evidence_ids
                 if evidence.evidence_direction == "CONTEXT_ONLY" and is_linked:
-                    raise ValueError("CONTEXT_ONLY evidence must not be linked to a route")
+                    raise ValueError(
+                        "CONTEXT_ONLY evidence must not be linked to a route"
+                    )
                 if evidence.evidence_direction != "CONTEXT_ONLY" and not is_linked:
                     raise ValueError(
                         "decision evidence must be linked to at least one route"
@@ -650,30 +662,6 @@ class BessZoningPrecheckResult:
     parcels: gpd.GeoDataFrame
 
 
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-
-
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise BessZoningPrecheckError(f"Duplicate YAML policy key: {key!r}")
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-
-
-_UniqueKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _construct_unique_mapping,
-)
-
-
 def _config_string(value: str, label: str) -> str:
     if not value or value != value.strip():
         raise ValueError(f"{label} must be a non-empty exact string")
@@ -684,12 +672,14 @@ def load_bess_zoning_policy_config(path: str | Path) -> BessZoningPolicyConfig:
     """Load a strict policy while rejecting duplicate YAML keys."""
 
     try:
-        payload = yaml.load(Path(path).read_text(encoding="utf-8"), Loader=_UniqueKeyLoader)
+        payload = loads_strict_yaml(Path(path).read_bytes())
         if not isinstance(payload, Mapping):
             raise BessZoningPrecheckError("BESS zoning policy must be a mapping")
         return BessZoningPolicyConfig.model_validate(payload)
     except BessZoningPrecheckError:
         raise
+    except StrictYamlError as error:
+        raise BessZoningPrecheckError(str(error)) from error
     except Exception as error:
         raise BessZoningPrecheckError("BESS zoning policy is invalid") from error
 
@@ -773,7 +763,9 @@ def _canonical_sha256(value: object) -> str:
     except BessZoningPrecheckError:
         raise
     except Exception as error:
-        raise BessZoningPrecheckError("Canonical integrity serialization failed") from error
+        raise BessZoningPrecheckError(
+            "Canonical integrity serialization failed"
+        ) from error
     return sha256(serialized).hexdigest()
 
 
@@ -799,7 +791,9 @@ def _frame_payload(frame: pd.DataFrame, columns: Sequence[str]) -> dict[str, obj
     except BessZoningPrecheckError:
         raise
     except Exception as error:
-        raise BessZoningPrecheckError("DataFrame integrity serialization failed") from error
+        raise BessZoningPrecheckError(
+            "DataFrame integrity serialization failed"
+        ) from error
 
 
 def _frame_sha256(domain: str, frame: pd.DataFrame, columns: Sequence[str]) -> str:
@@ -1008,29 +1002,44 @@ def _validate_relations(
     )
     missing = [column for column in required if column not in relations.columns]
     if missing:
-        raise BessZoningPrecheckError(f"Zoning relations are missing columns: {missing}")
+        raise BessZoningPrecheckError(
+            f"Zoning relations are missing columns: {missing}"
+        )
     result = relations.copy(deep=True)
     if result.duplicated(["parcel_id", "planning_zone_id"]).any():
         raise BessZoningPrecheckError("Parcel/zone relations must be unique")
     parcel_ids = set(_exact_id_series(parcels["parcel_id"], "parcel ID", unique=True))
-    if not set(_exact_id_series(result["parcel_id"], "relation parcel ID", unique=False)).issubset(parcel_ids):
+    if not set(
+        _exact_id_series(result["parcel_id"], "relation parcel ID", unique=False)
+    ).issubset(parcel_ids):
         raise BessZoningPrecheckError("Zoning relation references an unknown parcel")
     zone_records = zones.set_index("planning_zone_id")[
         ["source_zone_id", "zone_label_raw", "source_layer"]
     ].to_dict("index")
     for row in result.to_dict("records"):
-        planning_id = _strict_string(row["planning_zone_id"], "relation planning zone ID")
+        planning_id = _strict_string(
+            row["planning_zone_id"], "relation planning zone ID"
+        )
         source_id = _strict_string(row["source_zone_id"], "relation source zone ID")
         label = _strict_string(row["zone_label_raw"], "relation raw zone label")
         expected_zone = zone_records.get(planning_id)
         if expected_zone is None:
             raise BessZoningPrecheckError("Zoning relation references an unknown zone")
-        if source_id != expected_zone["source_zone_id"] or label != expected_zone["zone_label_raw"]:
-            raise BessZoningPrecheckError("Zoning relation zone identity is inconsistent")
+        if (
+            source_id != expected_zone["source_zone_id"]
+            or label != expected_zone["zone_label_raw"]
+        ):
+            raise BessZoningPrecheckError(
+                "Zoning relation zone identity is inconsistent"
+            )
         if row["source_layer"] != expected_zone["source_layer"]:
-            raise BessZoningPrecheckError("Zoning relation source layer is inconsistent")
+            raise BessZoningPrecheckError(
+                "Zoning relation source layer is inconsistent"
+            )
         relation_type = _strict_string(row["relation_type"], "zoning relation type")
-        area = _strict_nonnegative_number(row["intersection_area_m2"], "intersection area")
+        area = _strict_nonnegative_number(
+            row["intersection_area_m2"], "intersection area"
+        )
         if relation_type == "AREA_OVERLAP" and area <= 0:
             raise BessZoningPrecheckError("AREA_OVERLAP requires positive area")
         if relation_type == "TOUCH_ONLY" and area != 0:
@@ -1052,9 +1061,7 @@ def _validate_relations(
             ("zone_area_m2", "zone_share_pct"),
         )
         for area_column, percentage_column in percentage_checks:
-            reference_area = _strict_nonnegative_number(
-                row[area_column], area_column
-            )
+            reference_area = _strict_nonnegative_number(row[area_column], area_column)
             observed_percentage = _strict_nonnegative_number(
                 row[percentage_column], percentage_column
             )
@@ -1108,16 +1115,13 @@ def _zone_chapter_rows(
         structure.sections["section_type"].eq("ZONE_CHAPTER")
     ].to_dict("records")
     labels = [
-        _strict_string(row["zone_chapter_label"], "zone chapter label")
-        for row in rows
+        _strict_string(row["zone_chapter_label"], "zone chapter label") for row in rows
     ]
     section_ids = [
         _strict_string(row["section_id"], "zone chapter section ID") for row in rows
     ]
     if len(set(labels)) != len(labels):
-        raise BessZoningPrecheckError(
-            "Regulation zone chapter labels must be unique"
-        )
+        raise BessZoningPrecheckError("Regulation zone chapter labels must be unique")
     if len(set(section_ids)) != len(section_ids):
         raise BessZoningPrecheckError(
             "Regulation zone chapter section IDs must be unique"
@@ -1129,7 +1133,6 @@ def _required_section_ids_by_chapter(
     structure: PlanningRegulationStructureResult,
     policy: BessZoningPolicyConfig,
 ) -> dict[str, tuple[str, ...]]:
-    required_numbers = set(policy.required_zone_article_numbers)
     chapter_ids = {
         row["zone_chapter_label"]: row["section_id"]
         for row in _zone_chapter_rows(structure)
@@ -1137,13 +1140,28 @@ def _required_section_ids_by_chapter(
     result: dict[str, tuple[str, ...]] = {}
     section_rows = structure.sections.to_dict("records")
     for label, chapter_id in chapter_ids.items():
-        result[str(label)] = tuple(
-            str(row["section_id"])
-            for row in section_rows
-            if row["section_type"] == "ARTICLE"
-            and row["parent_section_id"] == chapter_id
-            and row["article_number_raw"] in required_numbers
-        )
+        required_ids: list[str] = []
+        for article_number in policy.required_zone_article_numbers:
+            matches = [
+                row
+                for row in section_rows
+                if row["section_type"] == "ARTICLE"
+                and row["parent_section_id"] == chapter_id
+                and row["zone_chapter_label"] == label
+                and row["article_number_raw"] == article_number
+            ]
+            if len(matches) != 1:
+                raise BessZoningPrecheckError(
+                    f"Chapter {label} must contain exactly one configured article "
+                    f"{article_number!r}; found {len(matches)}"
+                )
+            required_ids.append(
+                _strict_string(
+                    matches[0]["section_id"],
+                    f"required article {article_number} section ID",
+                )
+            )
+        result[str(label)] = tuple(required_ids)
     return result
 
 
@@ -1272,13 +1290,18 @@ def _validate_policy_evidence(
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} fragment text is invalid"
                 )
-            if fragment["section_page_fragment_sha256"] != evidence.section_page_fragment_sha256:
+            if (
+                fragment["section_page_fragment_sha256"]
+                != evidence.section_page_fragment_sha256
+            ):
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} fragment SHA256 differs"
                 )
-            if evidence.excerpt_end > len(raw_fragment) or raw_fragment[
-                evidence.excerpt_start : evidence.excerpt_end
-            ] != excerpt:
+            if (
+                evidence.excerpt_end > len(raw_fragment)
+                or raw_fragment[evidence.excerpt_start : evidence.excerpt_end]
+                != excerpt
+            ):
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} offsets do not identify its exact excerpt"
                 )
@@ -1287,9 +1310,11 @@ def _validate_policy_evidence(
                     f"Evidence {evidence.evidence_id} excerpt SHA256 differs"
                 )
             rule = evidence.source_rule_excerpt
-            if evidence.source_rule_end > len(raw_fragment) or raw_fragment[
-                evidence.source_rule_start : evidence.source_rule_end
-            ] != rule:
+            if (
+                evidence.source_rule_end > len(raw_fragment)
+                or raw_fragment[evidence.source_rule_start : evidence.source_rule_end]
+                != rule
+            ):
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} source-rule offsets differ"
                 )
@@ -1375,7 +1400,9 @@ def _validate_mapping(
         )
     )
     if mapped_labels != source_labels:
-        raise BessZoningPrecheckError("Factual zone mapping is incomplete or has extras")
+        raise BessZoningPrecheckError(
+            "Factual zone mapping is incomplete or has extras"
+        )
     chapters = {
         row["zone_chapter_label"]: row["section_id"]
         for row in _zone_chapter_rows(structure)
@@ -1391,7 +1418,9 @@ def _validate_mapping(
             row["resolved_zone_chapter_label"], "resolved zone chapter"
         )
         if chapters.get(resolved) != row["matched_section_id"]:
-            raise BessZoningPrecheckError("Zone mapping chapter identity is inconsistent")
+            raise BessZoningPrecheckError(
+                "Zone mapping chapter identity is inconsistent"
+            )
     return mapping
 
 
@@ -1583,16 +1612,12 @@ def _build_source_zone_policy(
         rows.append(
             {
                 "source_zone_label_raw": source["source_zone_label_raw"],
-                "resolved_zone_chapter_label": source[
-                    "resolved_zone_chapter_label"
-                ],
+                "resolved_zone_chapter_label": source["resolved_zone_chapter_label"],
                 "mapping_status": source["mapping_status"],
                 "matched_section_id": source["matched_section_id"],
                 "source_layer": layers_by_label[source["source_zone_label_raw"]],
                 "zoning_precheck_status": chapter["zoning_precheck_status"],
-                "zoning_precheck_confidence": chapter[
-                    "zoning_precheck_confidence"
-                ],
+                "zoning_precheck_confidence": chapter["zoning_precheck_confidence"],
                 "evidence_ids": tuple(chapter["evidence_ids"]),
                 "decision_evidence_ids": tuple(chapter["decision_evidence_ids"]),
                 "context_evidence_ids": tuple(chapter["context_evidence_ids"]),
@@ -1622,15 +1647,11 @@ def _build_parcel_zone_interpretations(
                 "planning_zone_id": source["planning_zone_id"],
                 "source_zone_id": source["source_zone_id"],
                 "source_zone_label_raw": source["zone_label_raw"],
-                "resolved_zone_chapter_label": item[
-                    "resolved_zone_chapter_label"
-                ],
+                "resolved_zone_chapter_label": item["resolved_zone_chapter_label"],
                 "intersection_area_m2": float(source["intersection_area_m2"]),
                 "parcel_share_pct": float(source["parcel_share_pct"]),
                 "zoning_precheck_status": item["zoning_precheck_status"],
-                "zoning_precheck_confidence": item[
-                    "zoning_precheck_confidence"
-                ],
+                "zoning_precheck_confidence": item["zoning_precheck_confidence"],
                 "evidence_ids": tuple(item["evidence_ids"]),
                 "decision_evidence_ids": tuple(item["decision_evidence_ids"]),
                 "context_evidence_ids": tuple(item["context_evidence_ids"]),
@@ -1683,7 +1704,9 @@ def _build_parcel_output(
         .size()
         .to_dict()
     )
-    summary: dict[str, list[object]] = {column: [] for column in PARCEL_PRECHECK_COLUMNS}
+    summary: dict[str, list[object]] = {
+        column: [] for column in PARCEL_PRECHECK_COLUMNS
+    }
     for parcel in parcels.to_dict("records"):
         parcel_id = parcel["parcel_id"]
         group = positive_by_parcel.get(parcel_id)
@@ -1718,9 +1741,7 @@ def _build_parcel_output(
             statuses = tuple(group["zoning_precheck_status"].tolist())
             distinct_statuses = set(statuses)
             overall_status = (
-                statuses[0]
-                if len(distinct_statuses) == 1
-                else "MIXED_REVIEW_REQUIRED"
+                statuses[0] if len(distinct_statuses) == 1 else "MIXED_REVIEW_REQUIRED"
             )
             positive_count = len(group)
             distinct_count = len(distinct_statuses)
@@ -1756,14 +1777,10 @@ def _build_parcel_output(
         summary["dominant_zone_precheck_confidence"].append(dominant_confidence)
         summary["positive_area_zone_count"].append(positive_count)
         summary["distinct_zone_status_count"].append(distinct_count)
-        summary["non_dominant_different_status_count"].append(
-            non_dominant_different
-        )
+        summary["non_dominant_different_status_count"].append(non_dominant_different)
         summary["touch_only_zone_count"].append(int(touch_counts.get(parcel_id, 0)))
         summary["zoning_precheck_evidence_ids"].append(evidence_ids)
-        summary["zoning_precheck_context_evidence_ids"].append(
-            context_evidence_ids
-        )
+        summary["zoning_precheck_context_evidence_ids"].append(context_evidence_ids)
         summary["zoning_precheck_requires_formal_review"].append(True)
         summary["planning_precheck_scope"].append(PLANNING_PRECHECK_SCOPE)
         summary["review_scope"].append(REVIEW_SCOPE)
@@ -1831,9 +1848,7 @@ def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
         {
             "domain": "landscout.bess_zoning.precheck_result",
             **_result_component_metadata(result),
-            "evidence_catalog_content_sha256": (
-                result.evidence_catalog_content_sha256
-            ),
+            "evidence_catalog_content_sha256": (result.evidence_catalog_content_sha256),
             "evidence_route_links_content_sha256": (
                 result.evidence_route_links_content_sha256
             ),
@@ -1931,9 +1946,7 @@ def _build_result(
     )
     mapping = _validate_mapping(structure, zone_copy)
     policy_hash = _policy_sha256(policy)
-    route_assessments = _build_route_assessments(
-        index, structure, policy, policy_hash
-    )
+    route_assessments = _build_route_assessments(index, structure, policy, policy_hash)
     evidence_route_links = _build_evidence_route_links(
         index, structure, policy, policy_hash
     )
@@ -1945,9 +1958,7 @@ def _build_result(
         policy_hash,
         evidence_route_links,
     )
-    chapter_policy = _build_chapter_policy(
-        index, structure, policy, policy_hash
-    )
+    chapter_policy = _build_chapter_policy(index, structure, policy, policy_hash)
     source_policy = _build_source_zone_policy(
         index,
         structure,
@@ -2022,7 +2033,9 @@ def _compare_frames(
     columns: Sequence[str],
     label: str,
 ) -> None:
-    if tuple(actual.columns) != tuple(expected.columns) or tuple(actual.columns) != tuple(columns):
+    if tuple(actual.columns) != tuple(expected.columns) or tuple(
+        actual.columns
+    ) != tuple(columns):
         raise BessZoningPrecheckError(f"{label} schema differs from rebuilt result")
     if _canonical_value(_frame_payload(actual, columns)) != _canonical_value(
         _frame_payload(expected, columns)
@@ -2161,17 +2174,15 @@ def _compare_results(
     original_columns = tuple(original_parcels.columns)
     if tuple(result.parcels.columns[: len(original_columns)]) != original_columns:
         raise BessZoningPrecheckError("Existing parcel columns are not preserved")
-    if _canonical_value(_frame_payload(result.parcels, original_columns)) != _canonical_value(
-        _frame_payload(original_parcels, original_columns)
-    ):
+    if _canonical_value(
+        _frame_payload(result.parcels, original_columns)
+    ) != _canonical_value(_frame_payload(original_parcels, original_columns)):
         raise BessZoningPrecheckError(
             "Parcel count, IDs, order, index, geometry, CRS, or prior fields changed"
         )
     statuses = set(result.chapter_policy["zoning_precheck_status"].tolist())
     parcel_statuses = set(result.parcels["zoning_precheck_status"].tolist())
-    confidences = set(
-        result.chapter_policy["zoning_precheck_confidence"].tolist()
-    )
+    confidences = set(result.chapter_policy["zoning_precheck_confidence"].tolist())
     if not statuses.issubset(_CHAPTER_STATUSES):
         raise BessZoningPrecheckError("Chapter policy status is invalid")
     if not parcel_statuses.issubset(_PARCEL_STATUSES):
@@ -2208,7 +2219,10 @@ def _compare_results(
         )
         for row in result.evidence_route_links.to_dict("records")
     }
-    if len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links:
+    if (
+        len(actual_links) != len(result.evidence_route_links)
+        or actual_links != expected_links
+    ):
         raise BessZoningPrecheckError(
             "Evidence-route links do not exactly reproduce route evidence arrays"
         )
@@ -2226,9 +2240,13 @@ def _compare_results(
         if tuple(row["linked_route_ids"]) != tuple(item[0] for item in links):
             raise BessZoningPrecheckError("Evidence reverse route IDs are inconsistent")
         if tuple(row["linked_route_roles"]) != tuple(item[1] for item in links):
-            raise BessZoningPrecheckError("Evidence reverse route roles are inconsistent")
+            raise BessZoningPrecheckError(
+                "Evidence reverse route roles are inconsistent"
+            )
         if bool(row["decision_linked"]) != bool(links):
-            raise BessZoningPrecheckError("Evidence reverse decision link is inconsistent")
+            raise BessZoningPrecheckError(
+                "Evidence reverse decision link is inconsistent"
+            )
         if row["evidence_direction"] == "CONTEXT_ONLY":
             context_ids.add(evidence_id)
             if links:
@@ -2262,7 +2280,9 @@ def _compare_results(
         for row in frame.to_dict("records"):
             retained = set(row["evidence_ids"])
             if set(row["decision_evidence_ids"]) != retained.intersection(decision_ids):
-                raise BessZoningPrecheckError("Decision evidence output is inconsistent")
+                raise BessZoningPrecheckError(
+                    "Decision evidence output is inconsistent"
+                )
             if set(row["context_evidence_ids"]) != retained.intersection(context_ids):
                 raise BessZoningPrecheckError("Context evidence output is inconsistent")
     for row in result.parcels.to_dict("records"):

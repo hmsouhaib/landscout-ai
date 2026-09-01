@@ -37,7 +37,7 @@ def _load_temporary_profile(tmp_path: Path, profile_data: dict):
 def test_valid_config_loads() -> None:
     loaded = load_scan_config(SCAN_PATH)
 
-    assert loaded.scan_config.aoi.commune_codes == ["31395"]
+    assert loaded.scan_config.aoi.commune_codes == ("31395",)
     assert loaded.profile.technology == "BESS"
     assert loaded.profile_path == PROFILE_PATH
 
@@ -55,6 +55,44 @@ def test_valid_config_loads() -> None:
     assert calibration.calibrated_at == "2026-08-11"
     assert calibration.target_retention_pct == 90
     assert calibration.observed_retention_pct == 90.655370
+
+
+@pytest.mark.parametrize("document", ["scan", "profile"])
+def test_trust_bearing_yaml_rejects_duplicate_mapping_keys(
+    tmp_path: Path,
+    document: str,
+) -> None:
+    scan_data = _yaml_data(SCAN_PATH)
+    scan_data["profile"]["path"] = str(PROFILE_PATH)
+    if document == "scan":
+        duplicate = yaml.safe_dump(scan_data, sort_keys=False) + yaml.safe_dump(
+            {"scan": scan_data["scan"]}, sort_keys=False
+        )
+        path = tmp_path / "scan.yaml"
+        path.write_text(duplicate, encoding="utf-8")
+        action = lambda: load_scan_config(path)
+    else:
+        profile_data = _yaml_data(PROFILE_PATH)
+        duplicate = yaml.safe_dump(profile_data, sort_keys=False) + yaml.safe_dump(
+            {"parcel": profile_data["parcel"]}, sort_keys=False
+        )
+        profile_path = tmp_path / "profile.yaml"
+        profile_path.write_text(duplicate, encoding="utf-8")
+        action = lambda: load_scan_config(_temporary_scan(tmp_path, profile_path))
+
+    with pytest.raises((TypeError, ValueError), match="(?i)duplicate"):
+        action()
+
+
+def test_loaded_scan_and_profile_models_are_immutable() -> None:
+    loaded = load_scan_config(SCAN_PATH)
+
+    with pytest.raises(ValidationError, match="frozen"):
+        loaded.scan_config.scan.name = "mutated"
+    with pytest.raises(ValidationError, match="frozen"):
+        loaded.profile.parcel.min_area_m2 = 1.0
+    with pytest.raises(AttributeError):
+        loaded.scan_config.aoi.commune_codes.append("75056")
 
 
 def test_invalid_commune_code_fails(tmp_path: Path) -> None:
@@ -293,7 +331,7 @@ def test_canonical_france_commune_codes_are_accepted(
     scan_path = tmp_path / "scan.yaml"
     _write_yaml(scan_path, scan_data)
 
-    assert load_scan_config(scan_path).scan_config.aoi.commune_codes == [code]
+    assert load_scan_config(scan_path).scan_config.aoi.commune_codes == (code,)
 
 
 @pytest.mark.parametrize(

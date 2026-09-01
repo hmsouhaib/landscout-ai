@@ -3,29 +3,33 @@
 ## File identity
 
 - Repository path: `tests/unit/test_package.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
-- Responsibility: Provides complete unit and regression coverage for the `package` contracts exercised in this file.
-- Source SHA256: `444807b61903045b7d275df0f84d23e31a92fb62ba8928386d147aa75b48bfce`
+- Domain: isolated contract test evidence
+- Responsibility: Verifies exact package exports and equality between `landscout.__version__` and `project.version`.
+- Source SHA256: `217cdd39bf3105ba5d546c822ba2a3d8a13344abf91812f408cec981eb6d8057`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
 
-Provides complete unit and regression coverage for the `package` contracts exercised in this file.
+- Refreshes permanent STEP 7F.1A.4 regression coverage for package; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
-## 2. Position in LandScout architecture
+## 2. Purpose and architectural position
 
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+Verifies exact package exports and equality between `landscout.__version__` and `project.version`.
+
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
 ### Python 3.12 standard library
 
-- `None.`
+- `from pathlib import Path`
+- `from tomllib import loads`
 
 ### Third-party packages
 
-- `None.`
+- None.
 
 ### Internal LandScout imports
 
@@ -33,117 +37,121 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-No meaningful module constant is declared.
+No module-level constant, alias, schema, mapping, or meaningful dunder assignment is declared.
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
+## 5. Classes, models, dataclasses, and fields
 
-No meaningful module-level dunder contract is declared.
+No top-level class/model/dataclass is declared.
 
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-No class/model/dataclass is declared.
-
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `test_package_import_and_version`
 
-**Purpose**
+**Purpose:** Regression invariant: package import and version. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `package import and version`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-# No separate setup statement.
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-assert landscout.__version__
-```
-
-**Regression protected**
-
-Locks `package import and version` through the exact asserted conditions: `landscout.__version__`.
-
-**Test boundary**
-
-- In-memory/local unit boundary defined entirely by the reproduced setup.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_package_import_and_version() -> None:
-    assert landscout.__version__
 ```
 
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-## 7. Data contracts
+**Inputs**
 
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+- No parameters.
 
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+**Return and exception contract**
 
-## 8. Interfaces
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert landscout.__version__ == project["version"]`
 
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
+**Qualified relationships**
 
-## 9. Error handling
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `loads` | `tomllib.loads` |
+| `Path("pyproject.toml").read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `Path` | `pathlib.Path` |
 
-## 10. Side effects
+**Source-observed side-effect matrix**
 
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
 
-## 11. Security / trust boundaries
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `Path("pyproject.toml").read_text` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+**Complete source-ordered implementation**
+
+```python
+def test_package_import_and_version() -> None:
+    project = loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert landscout.__version__ == project["version"]
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 12. GIS / CRS rules
+## 7. Test-specific regression contract
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
+- Test functions: **1**.
+- Pytest fixtures (decorator-proven): **0**.
 
-## 13. Provenance rules
+### Per-test regression index
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_package_import_and_version` | none | none | 1 | Proves package import and version using the exact source reproduced in section 7. |
 
-## 14. Business meaning
+## 8. Public exports and package ownership
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-## 15. Explicit non-goals
+## 9. Trust, provenance, side effects, and business boundary
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-## 16. Tests
+## 10. Change impact
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
 
-## 17. Change impact
+## 11. Exact complete current file content
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+from pathlib import Path
+from tomllib import loads
+
+import landscout
+
+
+def test_package_import_and_version() -> None:
+    project = loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert landscout.__version__ == project["version"]
+```

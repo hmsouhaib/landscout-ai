@@ -103,8 +103,7 @@ def _object_scalar_mask(
 
 def _is_strict_numeric_scalar(value: object) -> bool:
     return type(value) in {int, float} or (
-        isinstance(value, (np.integer, np.floating))
-        and not isinstance(value, np.bool_)
+        isinstance(value, (np.integer, np.floating)) and not isinstance(value, np.bool_)
     )
 
 
@@ -249,9 +248,7 @@ def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
     outcomes = policy.decision_outcomes
     return {
         "FICTITIOUS_GEOMETRY": outcomes.fictitious_geometry,
-        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (
-            outcomes.project_geometry_not_significant
-        ),
+        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (outcomes.project_geometry_not_significant),
         "NOT_IN_SERVICE": outcomes.not_in_service,
         "PHYSICALLY_IMPOSSIBLE": outcomes.physically_impossible,
         "NON_GENERAL_VEHICLE_NATURE": outcomes.non_general_vehicle_nature,
@@ -284,6 +281,12 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
             "Normalized IGN roads are missing policy input columns: "
             + ", ".join(sorted(missing))
         )
+    collisions = set(_APPLICATION_COLUMNS) & set(frame.columns)
+    if collisions:
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads collide with generated policy columns: "
+            + ", ".join(sorted(collisions))
+        )
     if frame.active_geometry_name != "geometry" or frame.crs is None:
         raise IgnRoadVehicleProxyApplicationError(
             "Normalized IGN roads require active geometry and CRS"
@@ -293,9 +296,7 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
             "Normalized IGN roads must retain a RangeIndex"
         )
     statuses = frame["geometry_status"]
-    if statuses.isna().any() or not set(statuses.unique()).issubset(
-        _GEOMETRY_STATUSES
-    ):
+    if statuses.isna().any() or not set(statuses.unique()).issubset(_GEOMETRY_STATUSES):
         raise IgnRoadVehicleProxyApplicationError(
             "Normalized IGN roads contain an impossible geometry_status"
         )
@@ -366,9 +367,9 @@ def _classify_road_frame(
     restriction_present, restriction_unknown = _optional_exact_string_masks(
         output["restriction_nature_raw"]
     )
-    restriction_known = restriction_present & output[
-        "restriction_nature_raw"
-    ].isin(policy.known_restriction_review)
+    restriction_known = restriction_present & output["restriction_nature_raw"].isin(
+        policy.known_restriction_review
+    )
     restriction_other = restriction_present & ~restriction_known
     narrow, width_unknown = _width_masks(
         output["carriageway_width_raw"], policy.width_below_m
@@ -411,9 +412,7 @@ def _classify_road_frame(
         "KNOWN_RESTRICTION": restriction_known,
         "OTHER_RECORDED_RESTRICTION": restriction_other,
         "SPECIAL_NATURE": output["nature_raw"].isin(nature_values.special_review),
-        "LIMITED_NATURE": output["nature_raw"].isin(
-            nature_values.limited_motor_proxy
-        ),
+        "LIMITED_NATURE": output["nature_raw"].isin(nature_values.limited_motor_proxy),
         "IMPORTANCE_6": output["importance_raw"].isin(policy.importance.limited),
         "NARROW_CARRIAGEWAY": narrow,
     }
@@ -481,9 +480,9 @@ def _classify_road_frame(
     output["road_proxy_class"] = proxy_class
     output["road_proxy_rule_trace_json"] = trace
     output["road_proxy_unknown_fields_json"] = unknown_fields
-    output["road_proxy_toll_evidence"] = output[
-        "light_vehicle_access_raw"
-    ].isin(access_values.toll)
+    output["road_proxy_toll_evidence"] = output["light_vehicle_access_raw"].isin(
+        access_values.toll
+    )
     output["road_proxy_policy_id"] = policy.policy_id
     output["road_proxy_policy_schema_version"] = policy.schema_version
     output["road_proxy_policy_config_sha256"] = policy.config_sha256
@@ -514,13 +513,14 @@ def _apply_ign_road_vehicle_proxy_policy(
         raise IgnRoadVehicleProxyApplicationError(
             "IGN road normalization returned an invalid result type"
         )
+    normalized_roads = _validate_normalized_frame(normalized.road_segments)
     policy = (
         load_ign_road_vehicle_proxy_policy()
         if policy_path is None
         else load_ign_road_vehicle_proxy_policy(policy_path)
     )
     return IgnRoadVehicleProxyApplicationResult(
-        roads=_classify_road_frame(normalized.road_segments, policy)
+        roads=_classify_road_frame(normalized_roads, policy)
     )
 
 
@@ -538,9 +538,7 @@ def apply_ign_road_vehicle_proxy_policy(
             raise TypeError("source_config must be an IgnBdTopoSourceConfig")
         if policy_path is not None and not isinstance(policy_path, Path):
             raise TypeError("policy_path must be a pathlib.Path or None")
-        return _apply_ign_road_vehicle_proxy_policy(
-            source, source_config, policy_path
-        )
+        return _apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)
     except IgnRoadVehicleProxyApplicationError:
         raise
     except Exception as error:

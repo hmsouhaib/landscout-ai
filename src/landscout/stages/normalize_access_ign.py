@@ -177,16 +177,12 @@ def _required_exact_string(value: object, label: str) -> str:
 
 def _validate_source_context(context: _IgnRoadSourceContext) -> None:
     _required_exact_string(context.source_layer, "source_layer")
-    department_code = _required_exact_string(
-        context.department_code, "department_code"
-    )
+    department_code = _required_exact_string(context.department_code, "department_code")
     edition = _required_exact_string(context.edition, "edition")
     timestamp_raw = _required_exact_string(
         context.download_timestamp, "download_timestamp"
     )
-    archive_sha256 = _required_exact_string(
-        context.archive_sha256, "archive_sha256"
-    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
     source_url = _required_exact_string(context.source_url, "source_url")
 
     try:
@@ -243,9 +239,7 @@ def _normalized_identity(value: object, label: str) -> str:
         raise IgnRoadNormalizationError(f"IGN archive {label} must be a string")
     decomposed = unicodedata.normalize("NFKD", value.casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(re.findall(r"[a-z0-9]+", without_accents))
 
@@ -280,9 +274,7 @@ def _validate_layer_summary(
             "IGN road summary schema contract is invalid"
         ) from error
     if summary.logical_name != "road_segments":
-        raise IgnRoadNormalizationError(
-            "IGN road summary has the wrong logical name"
-        )
+        raise IgnRoadNormalizationError("IGN road summary has the wrong logical name")
     source_layer = _required_exact_string(
         summary.source_layer_name, "summary physical layer"
     )
@@ -509,9 +501,10 @@ def _normalize_road_frame(
         raise IgnRoadNormalizationError(
             "IGN normalized road output must use a RangeIndex"
         )
-    if normalized["road_feature_id"].isna().any() or normalized[
-        "road_feature_id"
-    ].duplicated().any():
+    if (
+        normalized["road_feature_id"].isna().any()
+        or normalized["road_feature_id"].duplicated().any()
+    ):
         raise IgnRoadNormalizationError(
             "Normalized IGN road_feature_id values must be non-null and unique"
         )
@@ -522,10 +515,10 @@ def _normalize_ign_roads(
     source: IgnBdTopoRoadData,
     config: IgnBdTopoSourceConfig,
 ) -> NormalizedIgnRoadData:
-    context = _validate_source_bundle(source)
-    _revalidate_ign_bdtopo_road_data(source, config)
+    fresh = _revalidate_ign_bdtopo_road_data(source, config)
+    context = _validate_source_bundle(fresh)
     return NormalizedIgnRoadData(
-        road_segments=_normalize_road_frame(source.road_segments, context)
+        road_segments=_normalize_road_frame(fresh.road_segments, context)
     )
 
 
@@ -545,5 +538,5 @@ def normalize_ign_roads(
         raise
     except Exception as error:
         raise IgnRoadNormalizationError(
-            "IGN road source cannot be normalized safely"
+            f"IGN road source cannot be normalized safely: {error}"
         ) from error

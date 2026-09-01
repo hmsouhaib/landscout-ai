@@ -1332,13 +1332,47 @@ def test_artifact_manifest_rejects_invalid_contract(
         )
 
 
-def test_manifest_rejects_duplicate_json_key(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "document",
+    [
+        '{"schema_version": 2, "schema_version": 2}\n',
+        '{"schema_version": NaN}\n',
+        '{"schema_version": Infinity}\n',
+        "[]\n",
+    ],
+    ids=["duplicate-key", "nan", "infinity", "non-object"],
+)
+def test_application_manifest_uses_strict_json_before_artifact_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    document: str,
+) -> None:
     _, _, _, _, result = _application_fixture()
     manifest_path, paths, _ = _write_application_artifacts(tmp_path, result)
-    manifest_path.write_text(
-        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
+    manifest_path.write_text(document, encoding="utf-8")
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
     )
-    with pytest.raises(BessPlanningFeatureApplicationError, match="Duplicate JSON"):
+    artifact_reads = 0
+    original_read_bytes = Path.read_bytes
+
+    def counted_bytes(path: Path) -> bytes:
+        nonlocal artifact_reads
+        if path in paths.values():
+            artifact_reads += 1
+        return original_read_bytes(path)
+
+    def counted(*args: object, **kwargs: object) -> object:
+        nonlocal artifact_reads
+        artifact_reads += 1
+        raise AssertionError("Artifact read preceded strict manifest validation")
+
+    monkeypatch.setattr(Path, "read_bytes", counted_bytes)
+    monkeypatch.setattr(module.pd, "read_parquet", counted)
+    with pytest.raises(
+        BessPlanningFeatureApplicationError,
+        match="Duplicate JSON|finite|top-level|invalid",
+    ):
         load_bess_planning_feature_application_artifacts(
             manifest_path,
             paths["SURFACE_FEATURES"],
@@ -1346,6 +1380,7 @@ def test_manifest_rejects_duplicate_json_key(tmp_path: Path) -> None:
             paths["POINT_FEATURES"],
             paths["RELATIONS"],
         )
+    assert artifact_reads == 0
 
 
 def test_artifact_loader_parses_only_verified_bytes(

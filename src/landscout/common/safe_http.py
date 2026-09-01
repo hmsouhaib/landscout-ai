@@ -25,6 +25,22 @@ _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 _DEFAULT_MAX_REDIRECTS = 10
 _NUMERIC_HOST_PATTERN = re.compile(r"^[0-9A-Fa-fxX.]+$")
 _HEADER_NAME_PATTERN = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+_FORBIDDEN_CALLER_HEADER_NAMES = frozenset(
+    {
+        "authorization",
+        "proxy-authorization",
+        "cookie",
+        "cookie2",
+        "host",
+        "connection",
+        "proxy-connection",
+        "keep-alive",
+        "transfer-encoding",
+        "te",
+        "trailer",
+        "upgrade",
+    }
+)
 
 
 class SafeHttpsError(OSError):
@@ -103,9 +119,9 @@ def _strict_literal_address(
 
     # A host made entirely from numeric-IP syntax must not fall through to
     # ordinary DNS merely because its numeric representation is malformed.
-    if any(character.isdigit() for character in hostname) and _NUMERIC_HOST_PATTERN.fullmatch(
-        hostname
-    ):
+    if any(
+        character.isdigit() for character in hostname
+    ) and _NUMERIC_HOST_PATTERN.fullmatch(hostname):
         raise SafeHttpsError("Malformed numeric IP destination")
     return None
 
@@ -160,9 +176,7 @@ def _resolve_public_addresses(
             if address.version != expected_version:
                 raise ValueError("DNS address family does not match its IP address")
             if not _is_globally_routable_address(address):
-                raise SafeHttpsError(
-                    f"DNS resolved {hostname} to a non-public address"
-                )
+                raise SafeHttpsError(f"DNS resolved {hostname} to a non-public address")
             addresses[(address.version, int(address))] = _ResolvedAddress(
                 family=family,
                 address=address,
@@ -188,9 +202,7 @@ def _canonical_hostname(hostname: str) -> str:
     if not hostname:
         raise SafeHttpsError("HTTPS URL hostname is empty")
     try:
-        canonical = (
-            hostname.encode("idna").decode("ascii").casefold().rstrip(".")
-        )
+        canonical = hostname.encode("idna").decode("ascii").casefold().rstrip(".")
     except UnicodeError as error:
         raise SafeHttpsError("HTTPS URL hostname is malformed") from error
     if not canonical:
@@ -202,7 +214,9 @@ def _canonical_hostname(hostname: str) -> str:
 
 def _canonical_url(parsed: SplitResult, hostname: str, port: int) -> str:
     address = _strict_literal_address(hostname)
-    host_text = f"[{hostname}]" if address is not None and address.version == 6 else hostname
+    host_text = (
+        f"[{hostname}]" if address is not None and address.version == 6 else hostname
+    )
     netloc = host_text if port == 443 else f"{host_text}:{port}"
     return urlunsplit(("https", netloc, parsed.path or "/", parsed.query, ""))
 
@@ -366,24 +380,31 @@ def _request_parts(
         if value.data is not None or value.get_method().upper() != "GET":
             raise SafeHttpsError("Safe HTTPS source transport supports GET only")
         url = value.full_url
-        combined = dict(value.header_items())
+        combined = list(value.header_items())
     elif type(value) is str:
         url = value
-        combined = {}
+        combined = []
     else:
         raise SafeHttpsError("HTTPS request must be an exact URL string or Request")
     if supplied_headers is not None:
         if not isinstance(supplied_headers, Mapping):
             raise SafeHttpsError("HTTPS request headers must be a mapping")
-        combined.update(supplied_headers)
+        combined.extend(supplied_headers.items())
     output: dict[str, str] = {}
-    for name, header_value in combined.items():
+    seen_names: set[str] = set()
+    for name, header_value in combined:
         if type(name) is not str or type(header_value) is not str:
             raise SafeHttpsError("HTTPS header names and values must be exact strings")
         if _HEADER_NAME_PATTERN.fullmatch(name) is None:
             raise SafeHttpsError("HTTPS header name is invalid")
-        if name.casefold() == "host":
-            raise SafeHttpsError("Caller-supplied Host headers are forbidden")
+        normalized_name = name.casefold()
+        if normalized_name in seen_names:
+            raise SafeHttpsError(
+                "HTTPS header names must not be duplicate or ambiguous"
+            )
+        seen_names.add(normalized_name)
+        if normalized_name in _FORBIDDEN_CALLER_HEADER_NAMES:
+            raise SafeHttpsError("Caller-supplied HTTPS header is forbidden")
         if any(
             ord(character) < 32 or ord(character) == 127
             for character in name + header_value

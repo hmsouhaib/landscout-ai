@@ -9,7 +9,7 @@
 - Cache hit: returned only after current physical bytes and sidecar satisfy the adapter contract.
 - Manual recovery state: any existing recovery backup/link/junction that stops automatic cache/network work.
 
-The adapters share safety principles but not identical cache layouts, metadata schemas, expiry rules, archive formats, or extraction implementations.
+The adapters share safety principles but not identical cache layouts, metadata schemas, expiry rules, archive formats, or extraction implementations. Every trust-bearing JSON sidecar/marker is parsed through the shared duplicate-rejecting, finite-number, strict-UTF-8 object decoder before its source-specific schema is validated.
 
 ## Cadastre
 
@@ -52,7 +52,7 @@ The pair publisher fails closed on stale `.bak`, uses safe/exclusive `.part` pat
 
 ### Extraction cache
 
-Extraction uses a deterministic directory and marker. The marker binds archive identity, GeoPackage relative path, byte size/SHA, layer inventory, configured logical roles, and schema. Cache reuse verifies the marker and current GeoPackage bytes. Rebuild occurs in a separate `.part` directory; the old directory is moved to `.bak`, the verified replacement is published, and rollback restores the old tree if publication fails. Recovery material is not interpreted as source data.
+Extraction uses a deterministic directory and marker. The marker binds archive identity, GeoPackage relative path, byte size/SHA, layer inventory, globally distinct configured logical roles, and schema. Cache reuse verifies the marker and current GeoPackage bytes. Before rebuild, a pre-existing `.bak` of any path kind stops work for manual recovery, and a `.part` path must be proven non-linked and transaction-safe. The complete Windows-compatible 7z destination inventory is validated before extraction and exact-compared with the actual extracted inventory. Publication moves the old directory to `.bak`; success removes the transaction backup, rollback restores the old tree, and a failed rollback preserves recovery material for the next fail-closed run.
 
 ## GPU
 
@@ -62,7 +62,7 @@ GPU archive cache identity includes the validated document identity and official
 
 ### Extraction cache
 
-The extraction marker inventories every extracted regular file with path/category/size/SHA and source document/archive identity. A hit rescans the directory and exact-compares inventory. Rebuild validates the complete ZIP member set before copying, extracts manually under a temporary root, writes/verifies the marker, and transactionally replaces the prior directory. Planning spatial source validation subsequently rechecks actual physical files and layers; an extraction cache hit alone is not the final planning-stage trust proof.
+The extraction marker inventories every extracted regular file with path/category/size/SHA and archive identity; the enclosing extraction retains the source document through its archive object. A hit rescans the directory and exact-compares inventory. Rebuild validates the complete ZIP member set before copying, requires link/junction-safe temporary paths, extracts manually under a temporary root, writes/verifies the marker, and transactionally replaces the prior directory. A pre-existing extraction `.bak` stops the run; rollback failure preserves it. Planning spatial source validation subsequently rechecks the planning document's canonical config hash, actual physical files, and globally unique configured layer roles; an extraction cache hit alone is not the final planning-stage trust proof.
 
 ## INPN / PatriNat
 

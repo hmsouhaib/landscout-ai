@@ -4,18 +4,21 @@
 
 - Repository path: `src/landscout/stages/apply_road_vehicle_proxy_policy.py`
 - File type: Python source
-- Layer: policy application/precheck stage
-- Domain: road
+- Layer: pipeline stage
+- Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
-- Source SHA256: `b51c6465f7e2ae3ca455724ffaad0c6cd0472950cbca70d14c8e4cff5d50e076`
+- Source SHA256: `09d3aee41ca6878faba39e2f3165dce174f22fa64014913edc281ce6c3458b4c`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Revalidates the immutable source/policy inputs at the public application boundary while preserving factual rows and policy precedence.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **policy application/precheck stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -56,25 +59,56 @@ This file belongs to the **policy application/precheck stage** layer and the **r
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `_GEOMETRY_STATUSES`
+### `__all__`
+
+- Category: explicit package/module export list.
+- Exact declaration:
+
+```python
+__all__ = [
+    "IgnRoadVehicleProxyApplicationError",
+    "IgnRoadVehicleProxyApplicationResult",
+    "apply_ign_road_vehicle_proxy_policy",
+]
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `IgnRoadVehicleProxyApplicationError`
+  - `IgnRoadVehicleProxyApplicationResult`
+  - `apply_ign_road_vehicle_proxy_policy`
+
+### `_GEOMETRY_STATUSES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _GEOMETRY_STATUSES = frozenset({"VALID", "NULL", "EMPTY", "INVALID"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_TECHNICAL_GEOMETRY_RULE`
+### `_TECHNICAL_GEOMETRY_RULE`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _TECHNICAL_GEOMETRY_RULE = "SOURCE_GEOMETRY_NOT_VALID"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_CRITICAL_FIELDS`
+### `_CRITICAL_FIELDS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _CRITICAL_FIELDS = (
@@ -87,9 +121,20 @@ _CRITICAL_FIELDS = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `fictitious_raw`
+  - `asset_status_raw`
+  - `nature_raw`
+  - `light_vehicle_access_raw`
+  - `private_raw`
+  - `importance_raw`
 
-#### `_UNKNOWN_FIELD_ORDER`
+### `_UNKNOWN_FIELD_ORDER`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _UNKNOWN_FIELD_ORDER = (
@@ -100,9 +145,13 @@ _UNKNOWN_FIELD_ORDER = (
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` (value reference), `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_REQUIRED_COLUMNS`
+### `_REQUIRED_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _REQUIRED_COLUMNS = frozenset(
@@ -114,9 +163,13 @@ _REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_APPLICATION_COLUMNS`
+### `_APPLICATION_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _APPLICATION_COLUMNS = (
@@ -135,73 +188,75 @@ _APPLICATION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `road_proxy_primary_rule`
+  - `road_proxy_class`
+  - `road_proxy_rule_trace_json`
+  - `road_proxy_unknown_fields_json`
+  - `road_proxy_toll_evidence`
+  - `road_proxy_policy_id`
+  - `road_proxy_policy_schema_version`
+  - `road_proxy_policy_config_sha256`
+  - `road_proxy_policy_scope`
+  - `road_proxy_policy_evidence_checked_on`
+  - `road_proxy_vehicle_scope`
+  - `road_proxy_heavy_vehicle_access`
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
-
-- `__all__` — explicit public export allow-list.
-```python
-__all__ = [
-    "IgnRoadVehicleProxyApplicationError",
-    "IgnRoadVehicleProxyApplicationResult",
-    "apply_ign_road_vehicle_proxy_policy",
-]
-```
-
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
+## 5. Classes, models, dataclasses, and fields
 
 ### `IgnRoadVehicleProxyApplicationError`
 
-**Purpose:** Raised when factual roads cannot receive the approved policy safely.
+**Source purpose:** Raised when factual roads cannot receive the approved policy safely.
 
-**Kind:** controlled exception.
+- Exact decorators: none.
+- Exact bases: `ValueError`.
 
-**Inheritance:** `ValueError`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+No direct class/model/dataclass or `self` field assignment is declared.
 
-**Fields:** none declared directly on this class.
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- constructor call: `landscout.stages.apply_road_vehicle_proxy_policy::_validate_normalized_frame` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_validate_normalized_frame` via `IgnRoadVehicleProxyApplicationError`
+- constructor call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `IgnRoadVehicleProxyApplicationError`
+- constructor call: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`
+- constructor call: `landscout.stages.apply_road_vehicle_proxy_policy::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`
+- import: `tests.unit.test_apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_type_has_controlled_error` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_config_type_has_controlled_error` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_malformed_policy_path_has_controlled_error` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_normalization_failure_stops_policy_loading` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_generated_policy_column_collision_fails_before_policy_loading` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_unknown_geometry_status_is_rejected` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_policy_path_must_be_path_or_none` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_config_is_exact_pydantic_type` via `IgnRoadVehicleProxyApplicationError`
+- import: `tests.unit.test_enrich_road_proximity::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
-)`.
-- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_validate_normalized_frame` via `IgnRoadVehicleProxyApplicationError`.
-- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `IgnRoadVehicleProxyApplicationError`.
-- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
-- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationError`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_unknown_geometry_status_is_rejected` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- expected exception type: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `pytest.raises(IgnRoadVehicleProxyApplicationError)`.
-- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_failure_stops_proximity` via `IgnRoadVehicleProxyApplicationError`.
+)`
+- constructor call: `tests.unit.test_enrich_road_proximity::test_application_failure_stops_proximity` via `IgnRoadVehicleProxyApplicationError`
+- value/type reference: `tests.unit.test_enrich_road_proximity::test_application_failure_stops_proximity` via `IgnRoadVehicleProxyApplicationError`
 
 **Exact class source**
 
@@ -212,47 +267,50 @@ class IgnRoadVehicleProxyApplicationError(ValueError):
 
 ### `IgnRoadVehicleProxyApplicationResult`
 
-**Purpose:** Normalized factual roads plus deterministic general-car proxy evidence.
+**Source purpose:** Normalized factual roads plus deterministic general-car proxy evidence.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `roads` | `gpd.GeoDataFrame` | `required` | `roads: gpd.GeoDataFrame` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `roads` | `roads: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- constructor call: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`
+- import: `landscout.stages.enrich_road_proximity::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- value/type reference: `landscout.stages.enrich_road_proximity::_validate_application_roads` via `IgnRoadVehicleProxyApplicationResult`
+- import: `tests.unit.test_apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::_apply` via `IgnRoadVehicleProxyApplicationResult`
+- import: `tests.unit.test_enrich_road_proximity::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
-)`.
-- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
-- constructor call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
-- type annotation: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyApplicationResult`.
-- type annotation: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `IgnRoadVehicleProxyApplicationResult`.
-- constructor call: `tests/unit/test_enrich_road_proximity.py::_enrich` via `IgnRoadVehicleProxyApplicationResult`.
-- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_stage_is_invoked_exactly_once` via `IgnRoadVehicleProxyApplicationResult`.
-- constructor call: `tests/unit/test_enrich_road_proximity.py::test_application_roads_must_be_geodataframe` via `IgnRoadVehicleProxyApplicationResult`.
+)`
+- constructor call: `tests.unit.test_enrich_road_proximity::_enrich` via `IgnRoadVehicleProxyApplicationResult`
+- value/type reference: `tests.unit.test_enrich_road_proximity::_enrich` via `IgnRoadVehicleProxyApplicationResult`
+- constructor call: `tests.unit.test_enrich_road_proximity::test_application_stage_is_invoked_exactly_once` via `IgnRoadVehicleProxyApplicationResult`
+- value/type reference: `tests.unit.test_enrich_road_proximity::test_application_stage_is_invoked_exactly_once` via `IgnRoadVehicleProxyApplicationResult`
+- constructor call: `tests.unit.test_enrich_road_proximity::test_application_roads_must_be_geodataframe` via `IgnRoadVehicleProxyApplicationResult`
+- value/type reference: `tests.unit.test_enrich_road_proximity::test_application_roads_must_be_geodataframe` via `IgnRoadVehicleProxyApplicationResult`
 
 **Exact class source**
 
@@ -264,9 +322,11 @@ class IgnRoadVehicleProxyApplicationResult:
 ```
 
 
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_false_mask`
+
+**Purpose:** Implements `false mask` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -274,42 +334,56 @@ class IgnRoadVehicleProxyApplicationResult:
 def _false_mask(index: pd.Index) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `road` helper for false mask; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-pd.Series(False, index=index, dtype='bool')
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `pd.Index` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `pd.Series(False, index=index, dtype="bool")`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_false_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_false_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_exact_string_mask` via `_false_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_false_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_json_array_from_masks` via `_false_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_false_mask`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_boolean_masks` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_boolean_masks` via `_false_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_private_masks` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_private_masks` via `_false_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_exact_string_mask` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_exact_string_mask` via `_false_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_width_masks` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_width_masks` via `_false_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_json_array_from_masks` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_json_array_from_masks` via `_false_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_false_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_false_mask`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pd.Series` | `pandas.Series` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -320,9 +394,11 @@ def _false_mask(index: pd.Index) -> pd.Series:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_object_scalar_mask`
+
+**Purpose:** Apply a strict scalar type gate only for heterogeneous object fixtures.
 
 **Exact signature**
 
@@ -333,39 +409,55 @@ def _object_scalar_mask(
 ) -> pd.Series:
 ```
 
-**Purpose**
-
-Apply a strict scalar type gate only for heterogeneous object fixtures.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-pd.Series(np.asarray(values, dtype=bool), index=series.index)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
+| `predicate` | positional-or-keyword | `Callable[[object], bool]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `pd.Series(np.asarray(values, dtype=bool), index=series.index)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_boolean_masks` via `_object_scalar_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_boolean_masks` via `_object_scalar_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_boolean_masks` via `_object_scalar_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_private_masks` via `_object_scalar_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_private_masks` via `_object_scalar_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_width_masks` via `_object_scalar_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_width_masks` via `_object_scalar_mask`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `np.frompyfunc` | `numpy.frompyfunc` |
+| `function` | `unresolved local/third-party receiver; no ownership inferred` |
+| `series.to_numpy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.Series` | `pandas.Series` |
+| `np.asarray` | `numpy.asarray` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -383,9 +475,11 @@ def _object_scalar_mask(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_is_strict_numeric_scalar`
+
+**Purpose:** Implements `is strict numeric scalar` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -393,54 +487,66 @@ def _object_scalar_mask(
 def _is_strict_numeric_scalar(value: object) -> bool:
 ```
 
-**Purpose**
-
-Tests whether strict numeric scalar; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-type(value) in {int, float} or (isinstance(value, (np.integer, np.floating)) and (not isinstance(value, np.bool_)))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `type(value) in {int, float} or (<br>        isinstance(value, (np.integer, np.floating)) and not isinstance(value, np.bool_)<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_binary_numeric` via `_is_strict_numeric_scalar`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_is_strict_positive_numeric` via `_is_strict_numeric_scalar`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_is_strict_binary_numeric` via `_is_strict_numeric_scalar`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_is_strict_binary_numeric` via `_is_strict_numeric_scalar`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_is_strict_positive_numeric` via `_is_strict_numeric_scalar`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_is_strict_positive_numeric` via `_is_strict_numeric_scalar`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def _is_strict_numeric_scalar(value: object) -> bool:
     return type(value) in {int, float} or (
-        isinstance(value, (np.integer, np.floating))
-        and not isinstance(value, np.bool_)
+        isinstance(value, (np.integer, np.floating)) and not isinstance(value, np.bool_)
     )
 ```
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_is_strict_binary_numeric`
+
+**Purpose:** Implements `is strict binary numeric` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -448,39 +554,49 @@ def _is_strict_numeric_scalar(value: object) -> bool:
 def _is_strict_binary_numeric(value: object) -> bool:
 ```
 
-**Purpose**
-
-Tests whether strict binary numeric; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-math.isfinite(numeric) and numeric in {0.0, 1.0}
 
-False
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `False`
+  - `math.isfinite(numeric) and numeric in {0.0, 1.0}`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_strict_private_masks` via `_is_strict_binary_numeric`
 
-- function object argument: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_strict_private_masks` via `_object_scalar_mask(series, _is_strict_binary_numeric)`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_is_strict_numeric_scalar` | `landscout.stages.apply_road_vehicle_proxy_policy._is_strict_numeric_scalar` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `cast` | `typing.cast` |
+| `math.isfinite` | `math.isfinite` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -494,9 +610,11 @@ def _is_strict_binary_numeric(value: object) -> bool:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_is_strict_positive_numeric`
+
+**Purpose:** Implements `is strict positive numeric` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -504,39 +622,49 @@ def _is_strict_binary_numeric(value: object) -> bool:
 def _is_strict_positive_numeric(value: object) -> bool:
 ```
 
-**Purpose**
-
-Tests whether strict positive numeric; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-math.isfinite(numeric) and numeric > 0
 
-False
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `False`
+  - `math.isfinite(numeric) and numeric > 0`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_width_masks` via `_is_strict_positive_numeric`
 
-- function object argument: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_width_masks` via `_object_scalar_mask(series, _is_strict_positive_numeric)`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_is_strict_numeric_scalar` | `landscout.stages.apply_road_vehicle_proxy_policy._is_strict_numeric_scalar` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `cast` | `typing.cast` |
+| `math.isfinite` | `math.isfinite` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -550,9 +678,11 @@ def _is_strict_positive_numeric(value: object) -> bool:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_strict_boolean_masks`
+
+**Purpose:** Implements `strict boolean masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -562,41 +692,52 @@ def _strict_boolean_masks(
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
 ```
 
-**Purpose**
-
-Private `road` helper for strict boolean masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.Series, pd.Series, pd.Series]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(known, known.copy(), known.copy())
 
-(known, true, false)
+**Inputs**
 
-(known, true, false)
-```
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
 
-**Validation and exceptions**
+**Return and exception contract**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+- Exact observed return expressions:
+  - `known, true, false`
+  - `known, known.copy(), known.copy()`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Side effects**
+**Qualified relationships**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_strict_boolean_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_strict_boolean_masks`
 
-**Repository interfaces and consumers**
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `is_bool_dtype` | `pandas.api.types.is_bool_dtype` |
+| `series.notna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `series.eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_object_scalar_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._object_scalar_mask` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
+| `known.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_boolean_masks`.
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -625,9 +766,11 @@ def _strict_boolean_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_strict_private_masks`
+
+**Purpose:** Implements `strict private masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -637,43 +780,59 @@ def _strict_private_masks(
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
 ```
 
-**Purpose**
-
-Private `road` helper for strict private masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.Series, pd.Series, pd.Series]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(known, known.copy(), known.copy())
 
-(known, known & series.eq(True), known & series.eq(False))
+**Inputs**
 
-(known, known & series.eq(1), known & series.eq(0))
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
 
-(known, true, false)
-```
+**Return and exception contract**
 
-**Validation and exceptions**
+- Exact observed return expressions:
+  - `known, known & series.eq(True), known & series.eq(False)`
+  - `known, known & series.eq(1), known & series.eq(0)`
+  - `known, true, false`
+  - `known, known.copy(), known.copy()`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Qualified relationships**
 
-**Side effects**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_strict_private_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_strict_private_masks`
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `is_bool_dtype` | `pandas.api.types.is_bool_dtype` |
+| `series.notna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `series.eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `is_numeric_dtype` | `pandas.api.types.is_numeric_dtype` |
+| `pd.to_numeric` | `pandas.to_numeric` |
+| `pd.Series` | `pandas.Series` |
+| `np.isfinite` | `numpy.isfinite` |
+| `numeric.to_numpy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_object_scalar_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._object_scalar_mask` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
+| `known.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Repository interfaces and consumers**
+**Source-observed side-effect matrix**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_strict_private_masks`.
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -714,9 +873,11 @@ def _strict_private_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_exact_string_mask`
+
+**Purpose:** Implements `exact string mask` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -724,40 +885,55 @@ def _strict_private_masks(
 def _exact_string_mask(series: pd.Series) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `road` helper for exact string mask; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-series.notna() & stripped.notna() & stripped.ne('') & series.eq(stripped)
 
-_false_mask(series.index)
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `_false_mask(series.index)`
+  - `series.notna() & stripped.notna() & stripped.ne("") & series.eq(stripped)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_known_string_masks` via `_exact_string_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_known_string_masks` via `_exact_string_mask`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_optional_exact_string_masks` via `_exact_string_mask`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_optional_exact_string_masks` via `_exact_string_mask`
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_known_string_masks` via `_exact_string_mask`.
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_optional_exact_string_masks` via `_exact_string_mask`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
+| `series.str.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `series.notna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `stripped.notna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `stripped.ne` | `unresolved local/third-party receiver; no ownership inferred` |
+| `series.eq` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -771,9 +947,11 @@ def _exact_string_mask(series: pd.Series) -> pd.Series:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_known_string_masks`
+
+**Purpose:** Implements `known string masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -784,37 +962,48 @@ def _known_string_masks(
 ) -> tuple[pd.Series, pd.Series]:
 ```
 
-**Purpose**
-
-Private `road` helper for known string masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.Series, pd.Series]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(known, ~known)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
+| `known_values` | positional-or-keyword | `frozenset[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `known, ~known`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_known_string_masks`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_known_string_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_known_string_masks`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_exact_string_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._exact_string_mask` |
+| `series.isin` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -830,9 +1019,11 @@ def _known_string_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_optional_exact_string_masks`
+
+**Purpose:** Implements `optional exact string masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -842,37 +1033,47 @@ def _optional_exact_string_masks(
 ) -> tuple[pd.Series, pd.Series]:
 ```
 
-**Purpose**
-
-Private `road` helper for optional exact string masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.Series, pd.Series]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(exact_present, invalid)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `exact_present, invalid`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_optional_exact_string_masks`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_optional_exact_string_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_optional_exact_string_masks`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `series.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_exact_string_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._exact_string_mask` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -888,9 +1089,11 @@ def _optional_exact_string_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_width_masks`
+
+**Purpose:** Implements `width masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -901,41 +1104,60 @@ def _width_masks(
 ) -> tuple[pd.Series, pd.Series]:
 ```
 
-**Purpose**
-
-Private `road` helper for width masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.Series, pd.Series]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(_false_mask(series.index), ~missing)
 
-(narrow, ~valid)
+**Inputs**
 
-(narrow, ~missing & ~numeric)
-```
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
+| `threshold` | positional-or-keyword | `float` | `required` |
 
-**Validation and exceptions**
+**Return and exception contract**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+- Exact observed return expressions:
+  - `narrow, ~valid`
+  - `narrow, ~missing & ~numeric`
+  - `_false_mask(series.index), ~missing`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Side effects**
+**Qualified relationships**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_width_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_width_masks`
 
-**Repository interfaces and consumers**
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `series.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `is_numeric_dtype` | `pandas.api.types.is_numeric_dtype` |
+| `is_bool_dtype` | `pandas.api.types.is_bool_dtype` |
+| `series.to_numpy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.Series` | `pandas.Series` |
+| `np.isfinite` | `numpy.isfinite` |
+| `series.lt` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_object_scalar_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._object_scalar_mask` |
+| `pd.to_numeric` | `pandas.to_numeric` |
+| `series.where` | `unresolved local/third-party receiver; no ownership inferred` |
+| `numeric_values.lt` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_width_masks`.
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -969,9 +1191,11 @@ def _width_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_json_array_from_masks`
+
+**Purpose:** Implements `json array from masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -982,37 +1206,51 @@ def _json_array_from_masks(
 ) -> pd.Series:
 ```
 
-**Purpose**
-
-Private `road` helper for json array from masks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.Series`.
-- Every observed return expression is reproduced without truncation:
-```python
-output + ']'
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `pd.Index` | `required` |
+| `ordered_masks` | positional-or-keyword | `tuple[tuple[str, pd.Series], ...]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `output + "]"`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_json_array_from_masks`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_json_array_from_masks`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_json_array_from_masks`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pd.Series` | `pandas.Series` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
+| `raw_mask.fillna(False).astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `raw_mask.fillna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `output.loc[mask & ~populated] += token`<br>`output.loc[mask & populated] += f",{token}"` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1034,9 +1272,11 @@ def _json_array_from_masks(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_rule_outcomes`
+
+**Purpose:** Implements `rule outcomes` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -1044,37 +1284,44 @@ def _json_array_from_masks(
 def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
 ```
 
-**Purpose**
-
-Private `road` helper for rule outcomes; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `Mapping[str, str]`.
-- Every observed return expression is reproduced without truncation:
-```python
-{'FICTITIOUS_GEOMETRY': outcomes.fictitious_geometry, 'PROJECT_GEOMETRY_NOT_SIGNIFICANT': outcomes.project_geometry_not_significant, 'NOT_IN_SERVICE': outcomes.not_in_service, 'PHYSICALLY_IMPOSSIBLE': outcomes.physically_impossible, 'NON_GENERAL_VEHICLE_NATURE': outcomes.non_general_vehicle_nature, 'RIGHTS_RESTRICTED': outcomes.rights_restricted, 'PRIVATE_ROAD': outcomes.private_road, 'TEMPORAL_CLOSURE': outcomes.temporal_closure, 'KNOWN_RESTRICTION': outcomes.known_restriction, 'OTHER_RECORDED_RESTRICTION': outcomes.other_recorded_restriction, 'SPECIAL_NATURE': outcomes.special_nature, 'LIMITED_NATURE': outcomes.limited_nature, 'IMPORTANCE_6': outcomes.importance_6, 'NARROW_CARRIAGEWAY': outcomes.narrow_carriageway, 'OPEN_OR_TOLL': outcomes.open_or_toll, 'UNKNOWN': outcomes.unknown}
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `policy` | positional-or-keyword | `IgnRoadVehicleProxyPolicy` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `{<br>        "FICTITIOUS_GEOMETRY": outcomes.fictitious_geometry,<br>        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (outcomes.project_geometry_not_significant),<br>        "NOT_IN_SERVICE": outcomes.not_in_service,<br>        "PHYSICALLY_IMPOSSIBLE": outcomes.physically_impossible,<br>        "NON_GENERAL_VEHICLE_NATURE": outcomes.non_general_vehicle_nature,<br>        "RIGHTS_RESTRICTED": outcomes.rights_restricted,<br>        "PRIVATE_ROAD": outcomes.private_road,<br>        "TEMPORAL_CLOSURE": outcomes.temporal_closure,<br>        "KNOWN_RESTRICTION": outcomes.known_restriction,<br>        "OTHER_RECORDED_RESTRICTION": outcomes.other_recorded_restriction,<br>        "SPECIAL_NATURE": outcomes.special_nature,<br>        "LIMITED_NATURE": outcomes.limited_nature,<br>        "IMPORTANCE_6": outcomes.importance_6,<br>        "NARROW_CARRIAGEWAY": outcomes.narrow_carriageway,<br>        "OPEN_OR_TOLL": outcomes.open_or_toll,<br>        "UNKNOWN": outcomes.unknown,<br>    }`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_rule_outcomes`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_rule_outcomes`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_rule_outcomes`
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1083,9 +1330,7 @@ def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
     outcomes = policy.decision_outcomes
     return {
         "FICTITIOUS_GEOMETRY": outcomes.fictitious_geometry,
-        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (
-            outcomes.project_geometry_not_significant
-        ),
+        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (outcomes.project_geometry_not_significant),
         "NOT_IN_SERVICE": outcomes.not_in_service,
         "PHYSICALLY_IMPOSSIBLE": outcomes.physically_impossible,
         "NON_GENERAL_VEHICLE_NATURE": outcomes.non_general_vehicle_nature,
@@ -1105,9 +1350,11 @@ def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_normalized_frame`
+
+**Purpose:** Implements `validate normalized frame` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -1115,42 +1362,65 @@ def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
 def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent normalized frame; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(frame, gpd.GeoDataFrame)`.
-- Guard with a raise path: `frame.columns.duplicated().any()`.
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `frame.active_geometry_name != 'geometry' or frame.crs is None`.
-- Guard with a raise path: `not isinstance(frame.index, pd.RangeIndex)`.
-- Guard with a raise path: `statuses.isna().any() or not set(statuses.unique()).issubset(_GEOMETRY_STATUSES)`.
-- Explicit raise expressions: `IgnRoadVehicleProxyApplicationError('Normalized IGN road columns must not contain duplicates')`, `IgnRoadVehicleProxyApplicationError('Normalized IGN roads are missing policy input columns: ' + ', '.join(sorted(missing)))`, `IgnRoadVehicleProxyApplicationError('Normalized IGN roads contain an impossible geometry_status')`, `IgnRoadVehicleProxyApplicationError('Normalized IGN roads must be a GeoDataFrame')`, `IgnRoadVehicleProxyApplicationError('Normalized IGN roads must retain a RangeIndex')`, `IgnRoadVehicleProxyApplicationError('Normalized IGN roads require active geometry and CRS')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `object` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `frame`
+- Explicit raise paths:
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads must be a GeoDataFrame"<br>        )` under lexical guard `not isinstance(frame, gpd.GeoDataFrame)`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN road columns must not contain duplicates"<br>        )` under lexical guard `frame.columns.duplicated().any()`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads are missing policy input columns: "<br>            + ", ".join(sorted(missing))<br>        )` under lexical guard `missing`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads collide with generated policy columns: "<br>            + ", ".join(sorted(collisions))<br>        )` under lexical guard `collisions`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads require active geometry and CRS"<br>        )` under lexical guard `frame.active_geometry_name != "geometry" or frame.crs is None`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads must retain a RangeIndex"<br>        )` under lexical guard `not isinstance(frame.index, pd.RangeIndex)`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Normalized IGN roads contain an impossible geometry_status"<br>        )` under lexical guard `statuses.isna().any() or not set(statuses.unique()).issubset(_GEOMETRY_STATUSES)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `_validate_normalized_frame`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_validate_normalized_frame`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_classify_road_frame` via `_validate_normalized_frame`
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `_validate_normalized_frame`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `_validate_normalized_frame`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadVehicleProxyApplicationError` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` |
+| `frame.columns.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.columns.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `statuses.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `statuses.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set(statuses.unique()).issubset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `statuses.unique` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1170,6 +1440,12 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
             "Normalized IGN roads are missing policy input columns: "
             + ", ".join(sorted(missing))
         )
+    collisions = set(_APPLICATION_COLUMNS) & set(frame.columns)
+    if collisions:
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads collide with generated policy columns: "
+            + ", ".join(sorted(collisions))
+        )
     if frame.active_geometry_name != "geometry" or frame.crs is None:
         raise IgnRoadVehicleProxyApplicationError(
             "Normalized IGN roads require active geometry and CRS"
@@ -1179,9 +1455,7 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
             "Normalized IGN roads must retain a RangeIndex"
         )
     statuses = frame["geometry_status"]
-    if statuses.isna().any() or not set(statuses.unique()).issubset(
-        _GEOMETRY_STATUSES
-    ):
+    if statuses.isna().any() or not set(statuses.unique()).issubset(_GEOMETRY_STATUSES):
         raise IgnRoadVehicleProxyApplicationError(
             "Normalized IGN roads contain an impossible geometry_status"
         )
@@ -1190,9 +1464,11 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_classify_road_frame`
+
+**Purpose:** Implements `classify road frame` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -1203,39 +1479,82 @@ def _classify_road_frame(
 ) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Private `road` helper for classify road frame; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `set(outcomes) != set(policy.decision_precedence)`.
-- Guard with a raise path: `primary.isna().any() or proxy_class.isna().any()`.
-- Guard with a raise path: `len(result) != len(source) or not result.index.equals(source.index)`.
-- Explicit raise expressions: `IgnRoadVehicleProxyApplicationError('Compiled policy precedence and outcomes do not agree')`, `IgnRoadVehicleProxyApplicationError('Every normalized IGN road must receive one primary policy result')`, `IgnRoadVehicleProxyApplicationError('IGN road policy application changed row count or order')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `normalized` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
+| `policy` | positional-or-keyword | `IgnRoadVehicleProxyPolicy` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `output['geometry_status'].eq`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output['road_proxy_class']`, `output['road_proxy_heavy_vehicle_access']`, `output['road_proxy_policy_config_sha256']`, `output['road_proxy_policy_evidence_checked_on']`, `output['road_proxy_policy_id']`, `output['road_proxy_policy_schema_version']`, `output['road_proxy_policy_scope']`, `output['road_proxy_primary_rule']`, `output['road_proxy_rule_trace_json']`, `output['road_proxy_toll_evidence']`, `output['road_proxy_unknown_fields_json']`, `output['road_proxy_vehicle_scope']`, `primary.loc[first]`, `primary.loc[technical_geometry]`, `proxy_class.loc[first]`, `proxy_class.loc[technical_geometry]`, `rule_masks['OPEN_OR_TOLL']`, `rule_masks['UNKNOWN']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- Explicit raise paths:
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Compiled policy precedence and outcomes do not agree"<br>        )` under lexical guard `set(outcomes) != set(policy.decision_precedence)`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "Every normalized IGN road must receive one primary policy result"<br>        )` under lexical guard `primary.isna().any() or proxy_class.isna().any()`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "IGN road policy application changed row count or order"<br>        )` under lexical guard `len(result) != len(source) or not result.index.equals(source.index)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `_classify_road_frame`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `_classify_road_frame`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::_apply_ign_road_vehicle_proxy_policy` via `_classify_road_frame`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_validate_normalized_frame` | `landscout.stages.apply_road_vehicle_proxy_policy._validate_normalized_frame` |
+| `source.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `output["geometry_status"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_boolean_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._strict_boolean_masks` |
+| `_strict_private_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._strict_private_masks` |
+| `frozenset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_known_string_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._known_string_masks` |
+| `_optional_exact_string_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._optional_exact_string_masks` |
+| `output["restriction_nature_raw"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_width_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._width_masks` |
+| `_false_mask` | `landscout.stages.apply_road_vehicle_proxy_policy._false_mask` |
+| `unknown_masks.values` | `unresolved local/third-party receiver; no ownership inferred` |
+| `mask.fillna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `output["asset_status_raw"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `output["light_vehicle_access_raw"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `output["nature_raw"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `output["importance_raw"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `rule_masks.values` | `unresolved local/third-party receiver; no ownership inferred` |
+| `mask.fillna(False).astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `rule_masks.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_rule_outcomes` | `landscout.stages.apply_road_vehicle_proxy_policy._rule_outcomes` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadVehicleProxyApplicationError` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` |
+| `pd.Series` | `pandas.Series` |
+| `primary.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `primary.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `proxy_class.isna().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `proxy_class.isna` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_json_array_from_masks` | `landscout.stages.apply_road_vehicle_proxy_policy._json_array_from_masks` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `result.index.equals` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `output["geometry_status"].eq` |
+| External process/environment | None directly present. |
+| In-memory mutation | `rule_masks["OPEN_OR_TOLL"] = open_or_toll`<br>`rule_masks["UNKNOWN"] = unknown_any \| ~determined`<br>`primary.loc[technical_geometry] = _TECHNICAL_GEOMETRY_RULE`<br>`proxy_class.loc[technical_geometry] = policy.classes.not_distance_proxy`<br>`primary.loc[first] = rule`<br>`proxy_class.loc[first] = outcomes[rule]`<br>`output["road_proxy_primary_rule"] = primary`<br>`output["road_proxy_class"] = proxy_class`<br>`output["road_proxy_rule_trace_json"] = trace`<br>`output["road_proxy_unknown_fields_json"] = unknown_fields`<br>`output["road_proxy_toll_evidence"] = output["light_vehicle_access_raw"].isin(<br>        access_values.toll<br>    )`<br>`output["road_proxy_policy_id"] = policy.policy_id`<br>`output["road_proxy_policy_schema_version"] = policy.schema_version`<br>`output["road_proxy_policy_config_sha256"] = policy.config_sha256`<br>`output["road_proxy_policy_scope"] = policy.scope`<br>`output["road_proxy_policy_evidence_checked_on"] = policy.evidence_checked_on`<br>`output["road_proxy_vehicle_scope"] = policy.vehicle_scope`<br>`output["road_proxy_heavy_vehicle_access"] = policy.heavy_vehicle_access` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1304,9 +1623,9 @@ def _classify_road_frame(
     restriction_present, restriction_unknown = _optional_exact_string_masks(
         output["restriction_nature_raw"]
     )
-    restriction_known = restriction_present & output[
-        "restriction_nature_raw"
-    ].isin(policy.known_restriction_review)
+    restriction_known = restriction_present & output["restriction_nature_raw"].isin(
+        policy.known_restriction_review
+    )
     restriction_other = restriction_present & ~restriction_known
     narrow, width_unknown = _width_masks(
         output["carriageway_width_raw"], policy.width_below_m
@@ -1349,9 +1668,7 @@ def _classify_road_frame(
         "KNOWN_RESTRICTION": restriction_known,
         "OTHER_RECORDED_RESTRICTION": restriction_other,
         "SPECIAL_NATURE": output["nature_raw"].isin(nature_values.special_review),
-        "LIMITED_NATURE": output["nature_raw"].isin(
-            nature_values.limited_motor_proxy
-        ),
+        "LIMITED_NATURE": output["nature_raw"].isin(nature_values.limited_motor_proxy),
         "IMPORTANCE_6": output["importance_raw"].isin(policy.importance.limited),
         "NARROW_CARRIAGEWAY": narrow,
     }
@@ -1419,9 +1736,9 @@ def _classify_road_frame(
     output["road_proxy_class"] = proxy_class
     output["road_proxy_rule_trace_json"] = trace
     output["road_proxy_unknown_fields_json"] = unknown_fields
-    output["road_proxy_toll_evidence"] = output[
-        "light_vehicle_access_raw"
-    ].isin(access_values.toll)
+    output["road_proxy_toll_evidence"] = output["light_vehicle_access_raw"].isin(
+        access_values.toll
+    )
     output["road_proxy_policy_id"] = policy.policy_id
     output["road_proxy_policy_schema_version"] = policy.schema_version
     output["road_proxy_policy_config_sha256"] = policy.config_sha256
@@ -1444,9 +1761,11 @@ def _classify_road_frame(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_apply_ign_road_vehicle_proxy_policy`
+
+**Purpose:** Implements `apply ign road vehicle proxy policy` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 **Exact signature**
 
@@ -1458,37 +1777,55 @@ def _apply_ign_road_vehicle_proxy_policy(
 ) -> IgnRoadVehicleProxyApplicationResult:
 ```
 
-**Purpose**
-
-Applies the configured policy to ign road vehicle proxy policy; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `IgnRoadVehicleProxyApplicationResult`.
-- Every observed return expression is reproduced without truncation:
-```python
-IgnRoadVehicleProxyApplicationResult(roads=_classify_road_frame(normalized.road_segments, policy))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(normalized) is not NormalizedIgnRoadData`.
-- Explicit raise expressions: `IgnRoadVehicleProxyApplicationError('IGN road normalization returned an invalid result type')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoRoadData` | `required` |
+| `source_config` | positional-or-keyword | `IgnBdTopoSourceConfig` | `required` |
+| `policy_path` | positional-or-keyword | `Path \| None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `IgnRoadVehicleProxyApplicationResult(<br>        roads=_classify_road_frame(normalized_roads, policy)<br>    )`
+- Explicit raise paths:
+  - `IgnRoadVehicleProxyApplicationError(<br>            "IGN road normalization returned an invalid result type"<br>        )` under lexical guard `type(normalized) is not NormalizedIgnRoadData`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::apply_ign_road_vehicle_proxy_policy` via `_apply_ign_road_vehicle_proxy_policy`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.apply_road_vehicle_proxy_policy::apply_ign_road_vehicle_proxy_policy` via `_apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `landscout.stages.apply_road_vehicle_proxy_policy::apply_ign_road_vehicle_proxy_policy` via `_apply_ign_road_vehicle_proxy_policy`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `normalize_ign_roads` | `landscout.stages.normalize_access_ign.normalize_ign_roads` |
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `IgnRoadVehicleProxyApplicationError` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` |
+| `_validate_normalized_frame` | `landscout.stages.apply_road_vehicle_proxy_policy._validate_normalized_frame` |
+| `load_ign_road_vehicle_proxy_policy` | `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy` |
+| `IgnRoadVehicleProxyApplicationResult` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationResult` |
+| `_classify_road_frame` | `landscout.stages.apply_road_vehicle_proxy_policy._classify_road_frame` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1503,21 +1840,24 @@ def _apply_ign_road_vehicle_proxy_policy(
         raise IgnRoadVehicleProxyApplicationError(
             "IGN road normalization returned an invalid result type"
         )
+    normalized_roads = _validate_normalized_frame(normalized.road_segments)
     policy = (
         load_ign_road_vehicle_proxy_policy()
         if policy_path is None
         else load_ign_road_vehicle_proxy_policy(policy_path)
     )
     return IgnRoadVehicleProxyApplicationResult(
-        roads=_classify_road_frame(normalized.road_segments, policy)
+        roads=_classify_road_frame(normalized_roads, policy)
     )
 ```
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `apply_ign_road_vehicle_proxy_policy`
+
+**Purpose:** Source-completely normalize roads and apply the exact policy bytes once.
 
 **Exact signature**
 
@@ -1529,63 +1869,93 @@ def apply_ign_road_vehicle_proxy_policy(
 ) -> IgnRoadVehicleProxyApplicationResult:
 ```
 
-**Purpose**
-
-Source-completely normalize roads and apply the exact policy bytes once.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `IgnRoadVehicleProxyApplicationResult`.
-- Every observed return expression is reproduced without truncation:
-```python
-_apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `type(source) is not IgnBdTopoRoadData`.
-- Guard with a raise path: `type(source_config) is not IgnBdTopoSourceConfig`.
-- Guard with a raise path: `policy_path is not None and (not isinstance(policy_path, Path))`.
-- Explicit raise expressions: `IgnRoadVehicleProxyApplicationError('IGN road vehicle-proxy policy cannot be applied safely')`, `TypeError('policy_path must be a pathlib.Path or None')`, `TypeError('source must be an IgnBdTopoRoadData')`, `TypeError('source_config must be an IgnBdTopoSourceConfig')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `IgnBdTopoRoadData` | `required` |
+| `source_config` | positional-or-keyword | `IgnBdTopoSourceConfig` | `required` |
+| `policy_path` | positional-or-keyword | `Path \| None` | `None` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)`
+- Explicit raise paths:
+  - `TypeError("source must be an IgnBdTopoRoadData")` under lexical guard `type(source) is not IgnBdTopoRoadData`.
+  - `TypeError("source_config must be an IgnBdTopoSourceConfig")` under lexical guard `type(source_config) is not IgnBdTopoSourceConfig`.
+  - `TypeError("policy_path must be a pathlib.Path or None")` under lexical guard `policy_path is not None and not isinstance(policy_path, Path)`.
+  - `re-raise`.
+  - `IgnRoadVehicleProxyApplicationError(<br>            "IGN road vehicle-proxy policy cannot be applied safely"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- import: `landscout.stages.enrich_road_proximity::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- import: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
+)`
+- direct call: `landscout.stages.enrich_road_proximity::_enrich_parcel_road_proximity` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `landscout.stages.enrich_road_proximity::_enrich_parcel_road_proximity` via `apply_ign_road_vehicle_proxy_policy`
+- import: `tests.unit.test_apply_road_vehicle_proxy_policy::<module>` via `from landscout.stages.apply_road_vehicle_proxy_policy import (
     IgnRoadVehicleProxyApplicationError,
     IgnRoadVehicleProxyApplicationResult,
     apply_ign_road_vehicle_proxy_policy,
-)`.
-- direct call: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_config_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` via `apply_ign_road_vehicle_proxy_policy`.
-- direct call: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_config_is_exact_pydantic_type` via `apply_ign_road_vehicle_proxy_policy`.
+)`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::_apply` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::_apply` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_config_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_wrong_source_config_type_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_malformed_policy_path_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_malformed_policy_path_has_controlled_error` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_complete_normalization_is_invoked_exactly_once` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_complete_normalization_is_invoked_exactly_once` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_normalization_failure_stops_policy_loading` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_normalization_failure_stops_policy_loading` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_generated_policy_column_collision_fails_before_policy_loading` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_generated_policy_column_collision_fails_before_policy_loading` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_object_is_not_mutated` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_object_is_not_mutated` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_policy_path_must_be_path_or_none` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_policy_path_must_be_path_or_none` via `apply_ign_road_vehicle_proxy_policy`
+- direct call: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_config_is_exact_pydantic_type` via `apply_ign_road_vehicle_proxy_policy`
+- value/type reference: `tests.unit.test_apply_road_vehicle_proxy_policy::test_source_config_is_exact_pydantic_type` via `apply_ign_road_vehicle_proxy_policy`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_apply_ign_road_vehicle_proxy_policy` | `landscout.stages.apply_road_vehicle_proxy_policy._apply_ign_road_vehicle_proxy_policy` |
+| `IgnRoadVehicleProxyApplicationError` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1604,9 +1974,7 @@ def apply_ign_road_vehicle_proxy_policy(
             raise TypeError("source_config must be an IgnBdTopoSourceConfig")
         if policy_path is not None and not isinstance(policy_path, Path):
             raise TypeError("policy_path must be a pathlib.Path or None")
-        return _apply_ign_road_vehicle_proxy_policy(
-            source, source_config, policy_path
-        )
+        return _apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)
     except IgnRoadVehicleProxyApplicationError:
         raise
     except Exception as error:
@@ -1617,20 +1985,93 @@ def apply_ign_road_vehicle_proxy_policy(
 
 **Business boundary**
 
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
-## 7. Data contracts
+## 7. Validation and data-contract summary
 
-### Frame-preservation and semantic notes
+- Canonical schema/mapping declarations inventoried above: `_CRITICAL_FIELDS`, `_REQUIRED_COLUMNS`, `_APPLICATION_COLUMNS`.
+- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
-- All normalized road columns pass through unchanged. Only `road_proxy_*` evidence columns are appended. Policy rule names and class values are values in those columns, not additional columns.
-- `road_proxy_heavy_vehicle_access=NOT_PROVEN` is explicit unresolved evidence and never claims truck, legal, or BESS access.
-- `OPEN_OR_TOLL` and `UNKNOWN` are keys in the internal policy-rule mask mapping and values in evidence traces; neither is a DataFrame column.
+## 8. Public exports and package ownership
 
-### `_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+Exact `__all__` members and local origins:
+
+| Export | Local origin binding |
+|---|---|
+| `IgnRoadVehicleProxyApplicationError` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationError` |
+| `IgnRoadVehicleProxyApplicationResult` | `landscout.stages.apply_road_vehicle_proxy_policy.IgnRoadVehicleProxyApplicationResult` |
+| `apply_ign_road_vehicle_proxy_policy` | `landscout.stages.apply_road_vehicle_proxy_policy.apply_ign_road_vehicle_proxy_policy` |
+
+## 9. Trust, provenance, side effects, and business boundary
+
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+
+## 10. Change impact
+
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
+
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
 
 ```python
+"""Apply the checked-in IGN general-vehicle proxy policy to factual roads."""
+
+from __future__ import annotations
+
+import json
+import math
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, cast
+
+import geopandas as gpd  # type: ignore[import-untyped]
+import numpy as np
+import pandas as pd  # type: ignore[import-untyped]
+from pandas.api.types import (  # type: ignore[import-untyped]
+    is_bool_dtype,
+    is_numeric_dtype,
+)
+
+from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoRoadData,
+    IgnBdTopoSourceConfig,
+)
+from landscout.stages.normalize_access_ign import (
+    NormalizedIgnRoadData,
+    normalize_ign_roads,
+)
+from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)
+
+__all__ = [
+    "IgnRoadVehicleProxyApplicationError",
+    "IgnRoadVehicleProxyApplicationResult",
+    "apply_ign_road_vehicle_proxy_policy",
+]
+
+_GEOMETRY_STATUSES = frozenset({"VALID", "NULL", "EMPTY", "INVALID"})
+_TECHNICAL_GEOMETRY_RULE = "SOURCE_GEOMETRY_NOT_VALID"
+_CRITICAL_FIELDS = (
+    "fictitious_raw",
+    "asset_status_raw",
+    "nature_raw",
+    "light_vehicle_access_raw",
+    "private_raw",
+    "importance_raw",
+)
+_UNKNOWN_FIELD_ORDER = (
+    *_CRITICAL_FIELDS,
+    "carriageway_width_raw",
+    "closure_period_raw",
+    "restriction_nature_raw",
+)
 _REQUIRED_COLUMNS = frozenset(
     {
         "geometry_status",
@@ -1638,25 +2079,6 @@ _REQUIRED_COLUMNS = frozenset(
         *_UNKNOWN_FIELD_ORDER,
     }
 )
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `carriageway_width_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `closure_period_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `fictitious_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 6 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 7 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `light_vehicle_access_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 10 | `private_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 11 | `restriction_nature_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-
-### `_APPLICATION_COLUMNS` — canonical or derived frame-column schema
-
-```python
 _APPLICATION_COLUMNS = (
     "road_proxy_primary_rule",
     "road_proxy_class",
@@ -1671,69 +2093,476 @@ _APPLICATION_COLUMNS = (
     "road_proxy_vehicle_scope",
     "road_proxy_heavy_vehicle_access",
 )
+
+
+class IgnRoadVehicleProxyApplicationError(ValueError):
+    """Raised when factual roads cannot receive the approved policy safely."""
+
+
+@dataclass(frozen=True)
+class IgnRoadVehicleProxyApplicationResult:
+    """Normalized factual roads plus deterministic general-car proxy evidence."""
+
+    roads: gpd.GeoDataFrame
+
+
+def _false_mask(index: pd.Index) -> pd.Series:
+    return pd.Series(False, index=index, dtype="bool")
+
+
+def _object_scalar_mask(
+    series: pd.Series,
+    predicate: Callable[[object], bool],
+) -> pd.Series:
+    """Apply a strict scalar type gate only for heterogeneous object fixtures."""
+
+    function = np.frompyfunc(predicate, 1, 1)
+    values = function(series.to_numpy(dtype=object))
+    return pd.Series(np.asarray(values, dtype=bool), index=series.index)
+
+
+def _is_strict_numeric_scalar(value: object) -> bool:
+    return type(value) in {int, float} or (
+        isinstance(value, (np.integer, np.floating)) and not isinstance(value, np.bool_)
+    )
+
+
+def _is_strict_binary_numeric(value: object) -> bool:
+    if not _is_strict_numeric_scalar(value):
+        return False
+    numeric = float(cast(Any, value))
+    return math.isfinite(numeric) and numeric in {0.0, 1.0}
+
+
+def _is_strict_positive_numeric(value: object) -> bool:
+    if not _is_strict_numeric_scalar(value):
+        return False
+    numeric = float(cast(Any, value))
+    return math.isfinite(numeric) and numeric > 0
+
+
+def _strict_boolean_masks(
+    series: pd.Series,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    if is_bool_dtype(series.dtype):
+        known = series.notna()
+        true = known & series.eq(True)
+        false = known & series.eq(False)
+        return known, true, false
+
+    if series.dtype == "object":
+        known = _object_scalar_mask(
+            series,
+            lambda value: type(value) is bool or isinstance(value, np.bool_),
+        )
+        true = known & series.eq(True)
+        false = known & series.eq(False)
+        return known, true, false
+
+    known = _false_mask(series.index)
+    return known, known.copy(), known.copy()
+
+
+def _strict_private_masks(
+    series: pd.Series,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    if is_bool_dtype(series.dtype):
+        known = series.notna()
+        return known, known & series.eq(True), known & series.eq(False)
+
+    if is_numeric_dtype(series.dtype):
+        numeric = pd.to_numeric(series, errors="raise")
+        finite = pd.Series(
+            np.isfinite(numeric.to_numpy(dtype="float64", na_value=np.nan)),
+            index=series.index,
+        )
+        known = series.notna() & finite & (series.eq(0) | series.eq(1))
+        return known, known & series.eq(1), known & series.eq(0)
+
+    if series.dtype == "object":
+        boolean = _object_scalar_mask(
+            series,
+            lambda value: type(value) is bool or isinstance(value, np.bool_),
+        )
+        numeric = _object_scalar_mask(
+            series,
+            _is_strict_binary_numeric,
+        )
+        known = boolean | numeric
+        true = known & series.eq(1)
+        false = known & series.eq(0)
+        return known, true, false
+
+    known = _false_mask(series.index)
+    return known, known.copy(), known.copy()
+
+
+def _exact_string_mask(series: pd.Series) -> pd.Series:
+    if not (isinstance(series.dtype, pd.StringDtype) or series.dtype == "object"):
+        return _false_mask(series.index)
+    stripped = series.str.strip()
+    return series.notna() & stripped.notna() & stripped.ne("") & series.eq(stripped)
+
+
+def _known_string_masks(
+    series: pd.Series,
+    known_values: frozenset[str],
+) -> tuple[pd.Series, pd.Series]:
+    exact = _exact_string_mask(series)
+    known = exact & series.isin(known_values)
+    return known, ~known
+
+
+def _optional_exact_string_masks(
+    series: pd.Series,
+) -> tuple[pd.Series, pd.Series]:
+    missing = series.isna()
+    exact_present = _exact_string_mask(series)
+    invalid = ~missing & ~exact_present
+    return exact_present, invalid
+
+
+def _width_masks(
+    series: pd.Series,
+    threshold: float,
+) -> tuple[pd.Series, pd.Series]:
+    missing = series.isna()
+    if is_numeric_dtype(series.dtype) and not is_bool_dtype(series.dtype):
+        numeric = series.to_numpy(dtype="float64", na_value=np.nan)
+        finite_positive = pd.Series(
+            np.isfinite(numeric) & (numeric > 0),
+            index=series.index,
+        )
+        valid = missing | finite_positive
+        narrow = finite_positive & series.lt(threshold)
+        return narrow, ~valid
+
+    if series.dtype == "object":
+        numeric = _object_scalar_mask(
+            series,
+            _is_strict_positive_numeric,
+        )
+        numeric_values = pd.to_numeric(series.where(numeric), errors="coerce")
+        narrow = numeric & numeric_values.lt(threshold)
+        return narrow, ~missing & ~numeric
+
+    return _false_mask(series.index), ~missing
+
+
+def _json_array_from_masks(
+    index: pd.Index,
+    ordered_masks: tuple[tuple[str, pd.Series], ...],
+) -> pd.Series:
+    output = pd.Series("[", index=index, dtype="object")
+    populated = _false_mask(index)
+    for value, raw_mask in ordered_masks:
+        mask = raw_mask.fillna(False).astype(bool)
+        token = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        output.loc[mask & ~populated] += token
+        output.loc[mask & populated] += f",{token}"
+        populated |= mask
+    return output + "]"
+
+
+def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
+    outcomes = policy.decision_outcomes
+    return {
+        "FICTITIOUS_GEOMETRY": outcomes.fictitious_geometry,
+        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": (outcomes.project_geometry_not_significant),
+        "NOT_IN_SERVICE": outcomes.not_in_service,
+        "PHYSICALLY_IMPOSSIBLE": outcomes.physically_impossible,
+        "NON_GENERAL_VEHICLE_NATURE": outcomes.non_general_vehicle_nature,
+        "RIGHTS_RESTRICTED": outcomes.rights_restricted,
+        "PRIVATE_ROAD": outcomes.private_road,
+        "TEMPORAL_CLOSURE": outcomes.temporal_closure,
+        "KNOWN_RESTRICTION": outcomes.known_restriction,
+        "OTHER_RECORDED_RESTRICTION": outcomes.other_recorded_restriction,
+        "SPECIAL_NATURE": outcomes.special_nature,
+        "LIMITED_NATURE": outcomes.limited_nature,
+        "IMPORTANCE_6": outcomes.importance_6,
+        "NARROW_CARRIAGEWAY": outcomes.narrow_carriageway,
+        "OPEN_OR_TOLL": outcomes.open_or_toll,
+        "UNKNOWN": outcomes.unknown,
+    }
+
+
+def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads must be a GeoDataFrame"
+        )
+    if frame.columns.duplicated().any():
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN road columns must not contain duplicates"
+        )
+    missing = _REQUIRED_COLUMNS - set(frame.columns)
+    if missing:
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads are missing policy input columns: "
+            + ", ".join(sorted(missing))
+        )
+    collisions = set(_APPLICATION_COLUMNS) & set(frame.columns)
+    if collisions:
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads collide with generated policy columns: "
+            + ", ".join(sorted(collisions))
+        )
+    if frame.active_geometry_name != "geometry" or frame.crs is None:
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads require active geometry and CRS"
+        )
+    if not isinstance(frame.index, pd.RangeIndex):
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads must retain a RangeIndex"
+        )
+    statuses = frame["geometry_status"]
+    if statuses.isna().any() or not set(statuses.unique()).issubset(_GEOMETRY_STATUSES):
+        raise IgnRoadVehicleProxyApplicationError(
+            "Normalized IGN roads contain an impossible geometry_status"
+        )
+    return frame
+
+
+def _classify_road_frame(
+    normalized: gpd.GeoDataFrame,
+    policy: IgnRoadVehicleProxyPolicy,
+) -> gpd.GeoDataFrame:
+    source = _validate_normalized_frame(normalized)
+    output = source.copy(deep=True)
+    index = output.index
+    valid_geometry = output["geometry_status"].eq("VALID")
+    technical_geometry = ~valid_geometry
+
+    fictitious_known, fictitious_true, _ = _strict_boolean_masks(
+        output["fictitious_raw"]
+    )
+    private_known, private_true, private_false = _strict_private_masks(
+        output["private_raw"]
+    )
+
+    asset_values = policy.asset_state
+    asset_domain = frozenset(
+        {
+            *asset_values.in_service,
+            *asset_values.project_geometry_not_significant,
+            *asset_values.under_construction,
+        }
+    )
+    asset_known, asset_unknown = _known_string_masks(
+        output["asset_status_raw"], asset_domain
+    )
+
+    nature_values = policy.nature
+    nature_domain = frozenset(
+        {
+            *nature_values.general_motor_road,
+            *nature_values.limited_motor_proxy,
+            *nature_values.non_general_vehicle,
+            *nature_values.special_review,
+        }
+    )
+    nature_known, nature_unknown = _known_string_masks(
+        output["nature_raw"], nature_domain
+    )
+
+    access_values = policy.light_vehicle_access
+    access_domain = frozenset(
+        {
+            *access_values.open,
+            *access_values.toll,
+            *access_values.rights_restricted,
+            *access_values.physically_impossible,
+        }
+    )
+    access_known, access_unknown = _known_string_masks(
+        output["light_vehicle_access_raw"], access_domain
+    )
+    importance_known, importance_unknown = _known_string_masks(
+        output["importance_raw"], policy.importance.known
+    )
+
+    closure_present, closure_unknown = _optional_exact_string_masks(
+        output["closure_period_raw"]
+    )
+    restriction_present, restriction_unknown = _optional_exact_string_masks(
+        output["restriction_nature_raw"]
+    )
+    restriction_known = restriction_present & output["restriction_nature_raw"].isin(
+        policy.known_restriction_review
+    )
+    restriction_other = restriction_present & ~restriction_known
+    narrow, width_unknown = _width_masks(
+        output["carriageway_width_raw"], policy.width_below_m
+    )
+
+    unknown_masks = {
+        "fictitious_raw": ~fictitious_known,
+        "asset_status_raw": asset_unknown,
+        "nature_raw": nature_unknown,
+        "light_vehicle_access_raw": access_unknown,
+        "private_raw": ~private_known,
+        "importance_raw": importance_unknown,
+        "carriageway_width_raw": width_unknown,
+        "closure_period_raw": closure_unknown,
+        "restriction_nature_raw": restriction_unknown,
+    }
+    unknown_any = _false_mask(index)
+    for mask in unknown_masks.values():
+        unknown_any |= mask.fillna(False)
+
+    rule_masks: dict[str, pd.Series] = {
+        "FICTITIOUS_GEOMETRY": fictitious_true,
+        "PROJECT_GEOMETRY_NOT_SIGNIFICANT": output["asset_status_raw"].isin(
+            asset_values.project_geometry_not_significant
+        ),
+        "NOT_IN_SERVICE": output["asset_status_raw"].isin(
+            asset_values.under_construction
+        ),
+        "PHYSICALLY_IMPOSSIBLE": output["light_vehicle_access_raw"].isin(
+            access_values.physically_impossible
+        ),
+        "NON_GENERAL_VEHICLE_NATURE": output["nature_raw"].isin(
+            nature_values.non_general_vehicle
+        ),
+        "RIGHTS_RESTRICTED": output["light_vehicle_access_raw"].isin(
+            access_values.rights_restricted
+        ),
+        "PRIVATE_ROAD": private_true,
+        "TEMPORAL_CLOSURE": closure_present,
+        "KNOWN_RESTRICTION": restriction_known,
+        "OTHER_RECORDED_RESTRICTION": restriction_other,
+        "SPECIAL_NATURE": output["nature_raw"].isin(nature_values.special_review),
+        "LIMITED_NATURE": output["nature_raw"].isin(nature_values.limited_motor_proxy),
+        "IMPORTANCE_6": output["importance_raw"].isin(policy.importance.limited),
+        "NARROW_CARRIAGEWAY": narrow,
+    }
+    higher_rule = _false_mask(index)
+    for mask in rule_masks.values():
+        higher_rule |= mask.fillna(False)
+
+    open_or_toll = (
+        fictitious_known
+        & ~fictitious_true
+        & asset_known
+        & output["asset_status_raw"].isin(asset_values.in_service)
+        & nature_known
+        & output["nature_raw"].isin(nature_values.general_motor_road)
+        & access_known
+        & output["light_vehicle_access_raw"].isin(
+            access_values.open | access_values.toll
+        )
+        & private_known
+        & private_false
+        & importance_known
+        & ~unknown_any
+        & ~higher_rule
+    )
+    rule_masks["OPEN_OR_TOLL"] = open_or_toll
+    determined = higher_rule | open_or_toll
+    rule_masks["UNKNOWN"] = unknown_any | ~determined
+    rule_masks = {
+        rule: valid_geometry & mask.fillna(False).astype(bool)
+        for rule, mask in rule_masks.items()
+    }
+
+    outcomes = _rule_outcomes(policy)
+    if set(outcomes) != set(policy.decision_precedence):
+        raise IgnRoadVehicleProxyApplicationError(
+            "Compiled policy precedence and outcomes do not agree"
+        )
+
+    primary = pd.Series(pd.NA, index=index, dtype="string")
+    proxy_class = pd.Series(pd.NA, index=index, dtype="string")
+    primary.loc[technical_geometry] = _TECHNICAL_GEOMETRY_RULE
+    proxy_class.loc[technical_geometry] = policy.classes.not_distance_proxy
+    for rule in policy.decision_precedence:
+        first = rule_masks[rule] & primary.isna()
+        primary.loc[first] = rule
+        proxy_class.loc[first] = outcomes[rule]
+    if primary.isna().any() or proxy_class.isna().any():
+        raise IgnRoadVehicleProxyApplicationError(
+            "Every normalized IGN road must receive one primary policy result"
+        )
+
+    policy_trace_masks = tuple(
+        (rule, rule_masks[rule]) for rule in policy.decision_precedence
+    )
+    trace = _json_array_from_masks(
+        index,
+        ((_TECHNICAL_GEOMETRY_RULE, technical_geometry), *policy_trace_masks),
+    )
+    unknown_fields = _json_array_from_masks(
+        index,
+        tuple((field, unknown_masks[field]) for field in _UNKNOWN_FIELD_ORDER),
+    )
+
+    output["road_proxy_primary_rule"] = primary
+    output["road_proxy_class"] = proxy_class
+    output["road_proxy_rule_trace_json"] = trace
+    output["road_proxy_unknown_fields_json"] = unknown_fields
+    output["road_proxy_toll_evidence"] = output["light_vehicle_access_raw"].isin(
+        access_values.toll
+    )
+    output["road_proxy_policy_id"] = policy.policy_id
+    output["road_proxy_policy_schema_version"] = policy.schema_version
+    output["road_proxy_policy_config_sha256"] = policy.config_sha256
+    output["road_proxy_policy_scope"] = policy.scope
+    output["road_proxy_policy_evidence_checked_on"] = policy.evidence_checked_on
+    output["road_proxy_vehicle_scope"] = policy.vehicle_scope
+    output["road_proxy_heavy_vehicle_access"] = policy.heavy_vehicle_access
+
+    result = gpd.GeoDataFrame(
+        output.loc[:, [*source.columns, *_APPLICATION_COLUMNS]],
+        geometry=source.active_geometry_name,
+        crs=source.crs,
+    )
+    if len(result) != len(source) or not result.index.equals(source.index):
+        raise IgnRoadVehicleProxyApplicationError(
+            "IGN road policy application changed row count or order"
+        )
+    return result
+
+
+def _apply_ign_road_vehicle_proxy_policy(
+    source: IgnBdTopoRoadData,
+    source_config: IgnBdTopoSourceConfig,
+    policy_path: Path | None,
+) -> IgnRoadVehicleProxyApplicationResult:
+    normalized = normalize_ign_roads(source, source_config)
+    if type(normalized) is not NormalizedIgnRoadData:
+        raise IgnRoadVehicleProxyApplicationError(
+            "IGN road normalization returned an invalid result type"
+        )
+    normalized_roads = _validate_normalized_frame(normalized.road_segments)
+    policy = (
+        load_ign_road_vehicle_proxy_policy()
+        if policy_path is None
+        else load_ign_road_vehicle_proxy_policy(policy_path)
+    )
+    return IgnRoadVehicleProxyApplicationResult(
+        roads=_classify_road_frame(normalized_roads, policy)
+    )
+
+
+def apply_ign_road_vehicle_proxy_policy(
+    source: IgnBdTopoRoadData,
+    source_config: IgnBdTopoSourceConfig,
+    policy_path: Path | None = None,
+) -> IgnRoadVehicleProxyApplicationResult:
+    """Source-completely normalize roads and apply the exact policy bytes once."""
+
+    try:
+        if type(source) is not IgnBdTopoRoadData:
+            raise TypeError("source must be an IgnBdTopoRoadData")
+        if type(source_config) is not IgnBdTopoSourceConfig:
+            raise TypeError("source_config must be an IgnBdTopoSourceConfig")
+        if policy_path is not None and not isinstance(policy_path, Path):
+            raise TypeError("policy_path must be a pathlib.Path or None")
+        return _apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path)
+    except IgnRoadVehicleProxyApplicationError:
+        raise
+    except Exception as error:
+        raise IgnRoadVehicleProxyApplicationError(
+            "IGN road vehicle-proxy policy cannot be applied safely"
+        ) from error
 ```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `road_proxy_primary_rule` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 2 | `road_proxy_class` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 3 | `road_proxy_rule_trace_json` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `road_proxy_unknown_fields_json` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `road_proxy_toll_evidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `road_proxy_policy_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 7 | `road_proxy_policy_schema_version` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `road_proxy_policy_config_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 9 | `road_proxy_policy_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `road_proxy_policy_evidence_checked_on` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `road_proxy_vehicle_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `road_proxy_heavy_vehicle_access` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module defines an exact `__all__` contract:
-
-| Export | Kind | Origin | Included in `__all__` |
-|---|---|---|---|
-| `IgnRoadVehicleProxyApplicationError` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
-| `IgnRoadVehicleProxyApplicationResult` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
-| `apply_ign_road_vehicle_proxy_policy` | public symbol defined in this module | `defined in `src/landscout/stages/apply_road_vehicle_proxy_policy.py`` | yes |
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the road flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

@@ -21,9 +21,9 @@ flowchart TD
 
 ## Source-complete road normalization
 
-`load_ign_bdtopo_roads(extraction, config)` discovers the physical road layer from configured access match tokens, validates the same extraction/GeoPackage contract used by other IGN consumers, reads the physical frame, and creates a summary. The summary is evidence, not authority for choosing its own layer.
+`load_ign_bdtopo_roads(extraction, config)` reconstructs the immutable config, validates complete download/extraction/config lineage and global uniqueness across the four configured roles, discovers the physical road layer from configured access match tokens, reads a fresh physical frame, and creates a summary. The summary is evidence, not authority for choosing its own layer.
 
-`normalize_ign_roads(source, config)` asks the config-aware loader for a fresh expected road result and exact-compares the supplied frame/summary. It then creates:
+`normalize_ign_roads(source, config)` asks the config-aware loader for a fresh expected road result and exact-compares the supplied frame/summary. It derives context, lineage, and normalized rows from that returned fresh object only, then creates:
 
 - `road_feature_id = IGN_BDTOPO:ROAD_SEGMENT:<cleabs>`;
 - `road_feature_type = ROAD_SEGMENT`;
@@ -83,6 +83,8 @@ Current approved classes are `GENERAL_VEHICLE_PROXY`, `LIMITED_VEHICLE_PROXY`, `
 `assess_road_proximity_coverage` invokes the public proximity chain exactly once, validates its unchanged parcels/class table, loads configured department coverage from the same road extraction exactly once, and appends per-parcel boundary position/distance and per-class status. `NO_MATCH` wins over geometry position; equality of nearest-road distance and source-boundary margin is boundary-limited.
 
 The output preserves the original proximity prefix exactly and returns the unchanged source coverage object for auditability. It does not build another road STRtree or reconstruct road distances.
+
+The road and coverage source paths share the hardened IGN extraction contract: pre-existing `.bak` recovery material fails closed, temporary extraction paths are link/junction-safe, 7z destinations are validated under Windows-compatible rules before extraction, and the actual inventory is verified before transactional publication.
 
 ## Explicit non-goals
 

@@ -79,9 +79,7 @@ def _metric_parcels(
     identifiers: list[object] | None = None,
     index: list[object] | None = None,
 ) -> gpd.GeoDataFrame:
-    values = geometries or [
-        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    ]
+    values = geometries or [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]
     count = len(values)
     ids = identifiers or [f"PARCEL-{position + 1}" for position in range(count)]
     frame_index = index or [100 + position for position in range(count)]
@@ -99,9 +97,9 @@ def _parcels(
     identifiers: list[object] | None = None,
     index: list[object] | None = None,
 ) -> gpd.GeoDataFrame:
-    return _metric_parcels(
-        geometries, identifiers=identifiers, index=index
-    ).to_crs("EPSG:4326")
+    return _metric_parcels(geometries, identifiers=identifiers, index=index).to_crs(
+        "EPSG:4326"
+    )
 
 
 def _road_row(
@@ -154,16 +152,10 @@ def _roads(
     rows: list[dict[str, object]] | None = None,
 ) -> gpd.GeoDataFrame:
     values = rows or [
-        _road_row(
-            "GENERAL_VEHICLE_PROXY", 20, identifier="ROAD-GENERAL"
-        ),
-        _road_row(
-            "LIMITED_VEHICLE_PROXY", 30, identifier="ROAD-LIMITED"
-        ),
+        _road_row("GENERAL_VEHICLE_PROXY", 20, identifier="ROAD-GENERAL"),
+        _road_row("LIMITED_VEHICLE_PROXY", 30, identifier="ROAD-LIMITED"),
         _road_row("RESTRICTED_REVIEW", 15, identifier="ROAD-RESTRICTED"),
-        _road_row(
-            "NOT_GENERAL_VEHICLE_PROXY", 40, identifier="ROAD-NOT-GENERAL"
-        ),
+        _road_row("NOT_GENERAL_VEHICLE_PROXY", 40, identifier="ROAD-NOT-GENERAL"),
         _road_row("NOT_DISTANCE_PROXY", 11, identifier="ROAD-NOT-DISTANCE"),
         _road_row("UNKNOWN_REVIEW", 50, identifier="ROAD-UNKNOWN"),
     ]
@@ -229,16 +221,12 @@ def test_wrong_parcel_type_has_controlled_error() -> None:
 
 def test_wrong_road_source_type_has_controlled_error() -> None:
     with pytest.raises(RoadProximityError):
-        enrich_parcel_road_proximity(
-            _parcels(), cast(Any, object()), SOURCE_CONFIG
-        )
+        enrich_parcel_road_proximity(_parcels(), cast(Any, object()), SOURCE_CONFIG)
 
 
 def test_wrong_source_config_type_has_controlled_error() -> None:
     with pytest.raises(RoadProximityError):
-        enrich_parcel_road_proximity(
-            _parcels(), _source(), cast(Any, object())
-        )
+        enrich_parcel_road_proximity(_parcels(), _source(), cast(Any, object()))
 
 
 def test_wrong_policy_path_type_has_controlled_error() -> None:
@@ -260,12 +248,14 @@ def test_application_stage_is_invoked_exactly_once() -> None:
 
 
 def test_application_failure_stops_proximity() -> None:
-    with patch(
-        "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
-        side_effect=IgnRoadVehicleProxyApplicationError("bad source"),
-    ), patch(
-        "landscout.stages.enrich_road_proximity.STRtree"
-    ) as spatial_index, pytest.raises(RoadProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
+            side_effect=IgnRoadVehicleProxyApplicationError("bad source"),
+        ),
+        patch("landscout.stages.enrich_road_proximity.STRtree") as spatial_index,
+        pytest.raises(RoadProximityError),
+    ):
         enrich_parcel_road_proximity(_parcels(), _source(), SOURCE_CONFIG)
 
     spatial_index.assert_not_called()
@@ -275,9 +265,12 @@ def test_malformed_policy_stops_before_application(tmp_path: Path) -> None:
     path = tmp_path / "policy.yaml"
     path.write_text("policy_id: [", encoding="utf-8")
 
-    with patch(
-        "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy"
-    ) as source_application, pytest.raises(RoadProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy"
+        ) as source_application,
+        pytest.raises(RoadProximityError),
+    ):
         enrich_parcel_road_proximity(_parcels(), _source(), SOURCE_CONFIG, path)
 
     source_application.assert_not_called()
@@ -301,9 +294,7 @@ def test_independent_policy_sha_mismatch_is_rejected() -> None:
         (lambda frame: frame.assign(parcel_id=" BAD "), "parcel_id"),
     ],
 )
-def test_invalid_parcel_identity_is_rejected(
-    mutation: Any, message: str
-) -> None:
+def test_invalid_parcel_identity_is_rejected(mutation: Any, message: str) -> None:
     with pytest.raises(RoadProximityError, match=message):
         _enrich(parcels=mutation(_parcels()))
 
@@ -376,9 +367,7 @@ def test_wrong_parcel_geometry_kind_is_rejected(geometry: object) -> None:
         ),
     ],
 )
-def test_bad_parcel_geometry_is_rejected(
-    geometry: object, message: str
-) -> None:
+def test_bad_parcel_geometry_is_rejected(geometry: object, message: str) -> None:
     with pytest.raises(RoadProximityError, match=message):
         _enrich(parcels=_parcels([geometry]))
 
@@ -387,9 +376,7 @@ def test_bad_parcel_geometry_is_rejected(
     "geometry",
     [
         Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
-        MultiPolygon(
-            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]
-        ),
+        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),
     ],
 )
 def test_polygon_and_multipolygon_are_accepted(geometry: object) -> None:
@@ -397,10 +384,13 @@ def test_polygon_and_multipolygon_are_accepted(geometry: object) -> None:
 
 
 def test_wrong_application_result_type_is_rejected() -> None:
-    with patch(
-        "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
-        return_value=object(),
-    ), pytest.raises(RoadProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
+            return_value=object(),
+        ),
+        pytest.raises(RoadProximityError),
+    ):
         enrich_parcel_road_proximity(_parcels(), _source(), SOURCE_CONFIG)
 
 
@@ -408,10 +398,13 @@ def test_application_roads_must_be_geodataframe() -> None:
     application = IgnRoadVehicleProxyApplicationResult(
         cast(Any, pd.DataFrame(_roads().drop(columns="geometry")))
     )
-    with patch(
-        "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
-        return_value=application,
-    ), pytest.raises(RoadProximityError):
+    with (
+        patch(
+            "landscout.stages.enrich_road_proximity.apply_ign_road_vehicle_proxy_policy",
+            return_value=application,
+        ),
+        pytest.raises(RoadProximityError),
+    ):
         enrich_parcel_road_proximity(_parcels(), _source(), SOURCE_CONFIG)
 
 
@@ -464,9 +457,9 @@ def test_eligible_class_rejects_unsupported_geometry() -> None:
 
 def test_not_distance_road_is_counted_but_never_indexed() -> None:
     roads = _roads()
-    roads.loc[
-        roads["road_proxy_class"].eq("NOT_DISTANCE_PROXY"), "geometry_status"
-    ] = "INVALID"
+    roads.loc[roads["road_proxy_class"].eq("NOT_DISTANCE_PROXY"), "geometry_status"] = (
+        "INVALID"
+    )
     result = _enrich(roads=roads)
     coverage = {item.road_proxy_class: item for item in result.class_coverage}
 
@@ -485,9 +478,7 @@ def test_known_polygon_to_line_distance_is_ten_metres() -> None:
 
 @pytest.mark.parametrize("x", [5.0, 10.0])
 def test_intersecting_or_touching_road_has_zero_distance(x: float) -> None:
-    roads = _roads(
-        [_road_row("GENERAL_VEHICLE_PROXY", x, identifier="ROAD-GENERAL")]
-    )
+    roads = _roads([_road_row("GENERAL_VEHICLE_PROXY", x, identifier="ROAD-GENERAL")])
 
     assert _row(
         _enrich(roads=roads), "GENERAL_VEHICLE_PROXY"
@@ -495,9 +486,7 @@ def test_intersecting_or_touching_road_has_zero_distance(x: float) -> None:
 
 
 def test_distance_uses_full_polygon_not_centroid() -> None:
-    distance = _row(
-        _enrich(), "GENERAL_VEHICLE_PROXY"
-    ).nearest_road_proxy_distance_m
+    distance = _row(_enrich(), "GENERAL_VEHICLE_PROXY").nearest_road_proxy_distance_m
 
     assert distance == pytest.approx(10.0, abs=1e-5)
     assert distance != pytest.approx(15.0, abs=1e-5)
@@ -547,9 +536,7 @@ def test_near_not_distance_road_cannot_change_general_distance() -> None:
 
 
 def test_single_nearest_road_has_tie_count_one() -> None:
-    assert _row(
-        _enrich(), "GENERAL_VEHICLE_PROXY"
-    ).nearest_road_tie_count == 1
+    assert _row(_enrich(), "GENERAL_VEHICLE_PROXY").nearest_road_tie_count == 1
 
 
 def test_exact_tie_counts_two_and_lexical_id_wins() -> None:
@@ -592,15 +579,18 @@ def test_unequal_distance_wins_regardless_of_identifier() -> None:
         ]
     )
 
-    assert _row(
-        _enrich(roads=roads), "GENERAL_VEHICLE_PROXY"
-    ).nearest_road_feature_id == "Z-NEAR"
+    assert (
+        _row(_enrich(roads=roads), "GENERAL_VEHICLE_PROXY").nearest_road_feature_id
+        == "Z-NEAR"
+    )
 
 
 def test_empty_eligible_class_emits_null_row_per_parcel() -> None:
-    roads = _roads().loc[
-        ~_roads()["road_proxy_class"].eq("UNKNOWN_REVIEW")
-    ].reset_index(drop=True)
+    roads = (
+        _roads()
+        .loc[~_roads()["road_proxy_class"].eq("UNKNOWN_REVIEW")]
+        .reset_index(drop=True)
+    )
     parcels = _parcels(
         [
             Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
@@ -633,9 +623,9 @@ def test_output_shape_columns_and_order_are_deterministic() -> None:
     assert result.class_proximity.parcel_id.tolist() == [
         value for parcel_id in ("SECOND", "FIRST") for value in [parcel_id] * 5
     ]
-    assert result.class_proximity.road_proxy_class.tolist() == list(
-        ELIGIBLE_CLASSES
-    ) * 2
+    assert (
+        result.class_proximity.road_proxy_class.tolist() == list(ELIGIBLE_CLASSES) * 2
+    )
 
 
 def test_class_coverage_is_complete_and_strict() -> None:
@@ -697,8 +687,9 @@ def _corrupt_nearest_output(column: str, value: object) -> None:
             output.at[0, column] = value
         return output
 
-    with patch.object(module, "_nearest_class_rows", side_effect=corrupted), pytest.raises(
-        RoadProximityError
+    with (
+        patch.object(module, "_nearest_class_rows", side_effect=corrupted),
+        pytest.raises(RoadProximityError),
     ):
         _enrich()
 
@@ -773,9 +764,10 @@ def test_policy_sha_mismatch_does_not_construct_spatial_index() -> None:
     roads = _roads()
     roads["road_proxy_policy_config_sha256"] = "b" * 64
 
-    with patch(
-        "landscout.stages.enrich_road_proximity.STRtree"
-    ) as spatial_index, pytest.raises(RoadProximityError):
+    with (
+        patch("landscout.stages.enrich_road_proximity.STRtree") as spatial_index,
+        pytest.raises(RoadProximityError),
+    ):
         _enrich(roads=roads)
 
     spatial_index.assert_not_called()

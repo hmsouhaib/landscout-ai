@@ -137,6 +137,8 @@ def _extraction() -> IgnBdTopoExtraction:
         ),
         electric_lines_layer="ligne_electrique",
         transformation_posts_layer="poste_de_transformation",
+        road_segments_layer="troncon_de_route",
+        department_layer="departement",
         cache_hit=True,
     )
 
@@ -183,13 +185,13 @@ def _coverage(
     package = extraction or _extraction()
     values = geometries
     if values is None:
-        values = [
-            Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])
-        ]
+        values = [Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]
     raw = gpd.GeoDataFrame(
         {
             "code_insee": [department_code] * len(values),
-            "nom_officiel": [f"Department {position}" for position in range(len(values))],
+            "nom_officiel": [
+                f"Department {position}" for position in range(len(values))
+            ],
         },
         geometry=values,
         crs=crs,
@@ -216,9 +218,7 @@ def _coverage(
         source_feature_count=len(raw),
         selected_feature_count=len(raw),
         columns=tuple(str(column) for column in raw.columns),
-        dtypes=tuple(
-            (str(column), str(dtype)) for column, dtype in raw.dtypes.items()
-        ),
+        dtypes=tuple((str(column), str(dtype)) for column, dtype in raw.dtypes.items()),
         null_geometry_count=int(geometry.isna().sum()),
         empty_geometry_count=int((non_null & geometry.is_empty).sum()),
         invalid_geometry_count=int((non_empty & ~geometry.is_valid).sum()),
@@ -322,12 +322,10 @@ def _proximity(
     table["nearest_road_proxy_distance_m"] = table[
         "nearest_road_proxy_distance_m"
     ].astype("float64")
-    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype(
-        "Int64"
+    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype("Int64")
+    table["nearest_road_toll_evidence"] = table["nearest_road_toll_evidence"].astype(
+        "boolean"
     )
-    table["nearest_road_toll_evidence"] = table[
-        "nearest_road_toll_evidence"
-    ].astype("boolean")
     coverage = tuple(
         RoadProxyClassCoverage(
             road_proxy_class=road_class,
@@ -350,16 +348,12 @@ def _without_match(
     table["nearest_road_proxy_distance_m"] = table[
         "nearest_road_proxy_distance_m"
     ].astype("float64")
-    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype(
-        "Int64"
+    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype("Int64")
+    table["nearest_road_toll_evidence"] = table["nearest_road_toll_evidence"].astype(
+        "boolean"
     )
-    table["nearest_road_toll_evidence"] = table[
-        "nearest_road_toll_evidence"
-    ].astype("boolean")
     coverage = tuple(
-        replace(item, feature_count=0)
-        if item.road_proxy_class == road_class
-        else item
+        replace(item, feature_count=0) if item.road_proxy_class == road_class else item
         for item in proximity.class_coverage
     )
     return replace(proximity, class_proximity=table, class_coverage=coverage)
@@ -388,12 +382,15 @@ def _assess(
     )
     selected_coverage = coverage or _coverage()
     selected_source = road_source or _road_source(selected_coverage.extraction)
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        return_value=selected_proximity,
-    ), patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
-        return_value=selected_coverage,
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            return_value=selected_proximity,
+        ),
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+            return_value=selected_coverage,
+        ),
     ):
         return assess_road_proximity_coverage(
             selected_parcels,
@@ -426,7 +423,9 @@ def test_public_api_exports_only_stable_symbols() -> None:
     assert not hasattr(stages, "_coverage_positions")
 
 
-@pytest.mark.parametrize("argument", ["parcels", "road_source", "source_config", "policy_path"])
+@pytest.mark.parametrize(
+    "argument", ["parcels", "road_source", "source_config", "policy_path"]
+)
 def test_wrong_public_input_type_is_controlled_and_fast(argument: str) -> None:
     kwargs: dict[str, object] = {
         "parcels": _parcels(),
@@ -435,11 +434,15 @@ def test_wrong_public_input_type_is_controlled_and_fast(argument: str) -> None:
         "policy_path": None,
     }
     kwargs[argument] = pd.DataFrame() if argument == "parcels" else object()
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity"
-    ) as proximity_stage, patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
-    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity"
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+        ) as coverage_loader,
+        pytest.raises(RoadProximityCoverageError),
+    ):
         assess_road_proximity_coverage(**cast(Any, kwargs))
     proximity_stage.assert_not_called()
     coverage_loader.assert_not_called()
@@ -451,16 +454,17 @@ def test_source_chain_calls_proximity_then_coverage_exactly_once() -> None:
     parcels = _parcels()
     proximity = _proximity(parcels)
     policy_path = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        return_value=proximity,
-    ) as proximity_stage, patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
-        return_value=coverage,
-    ) as coverage_loader:
-        assess_road_proximity_coverage(
-            parcels, road_source, SOURCE_CONFIG, policy_path
-        )
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            return_value=proximity,
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+            return_value=coverage,
+        ) as coverage_loader,
+    ):
+        assess_road_proximity_coverage(parcels, road_source, SOURCE_CONFIG, policy_path)
     proximity_stage.assert_called_once_with(
         parcels, road_source, SOURCE_CONFIG, policy_path
     )
@@ -468,25 +472,33 @@ def test_source_chain_calls_proximity_then_coverage_exactly_once() -> None:
 
 
 def test_proximity_failure_stops_coverage_loading() -> None:
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        side_effect=ValueError("bad proximity"),
-    ), patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
-    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            side_effect=ValueError("bad proximity"),
+        ),
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+        ) as coverage_loader,
+        pytest.raises(RoadProximityCoverageError),
+    ):
         assess_road_proximity_coverage(_parcels(), _road_source(), SOURCE_CONFIG)
     coverage_loader.assert_not_called()
 
 
 def test_coverage_loader_failure_is_controlled() -> None:
     parcels = _parcels()
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        return_value=_proximity(parcels),
-    ), patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
-        side_effect=ValueError("bad coverage"),
-    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            return_value=_proximity(parcels),
+        ),
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+            side_effect=ValueError("bad coverage"),
+        ) as coverage_loader,
+        pytest.raises(RoadProximityCoverageError),
+    ):
         assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
     coverage_loader.assert_called_once()
 
@@ -494,9 +506,9 @@ def test_coverage_loader_failure_is_controlled() -> None:
 def test_stage_does_not_construct_a_road_spatial_index() -> None:
     with patch("shapely.STRtree", side_effect=AssertionError("forbidden")):
         _assess()
-    source = Path(
-        "src/landscout/stages/assess_road_proximity_coverage.py"
-    ).read_text(encoding="utf-8")
+    source = Path("src/landscout/stages/assess_road_proximity_coverage.py").read_text(
+        encoding="utf-8"
+    )
     assert "STRtree(" not in source
     assert "query_nearest(" not in source
 
@@ -517,13 +529,15 @@ def test_stage_does_not_construct_a_road_spatial_index() -> None:
         ),
         lambda result: replace(
             result,
-            class_proximity=result.class_proximity.iloc[[1, 0, *range(2, 5)]].reset_index(
-                drop=True
-            ),
+            class_proximity=result.class_proximity.iloc[
+                [1, 0, *range(2, 5)]
+            ].reset_index(drop=True),
         ),
         lambda result: replace(
             result,
-            class_proximity=result.class_proximity.assign(proximity_scope="GLOBAL_NEAREST"),
+            class_proximity=result.class_proximity.assign(
+                proximity_scope="GLOBAL_NEAREST"
+            ),
         ),
         lambda result: replace(
             result,
@@ -532,17 +546,29 @@ def test_stage_does_not_construct_a_road_spatial_index() -> None:
             ),
         ),
     ],
-    ids=["wrong-type", "bad-parcels", "missing-column", "row-count", "order", "scope", "policy-sha"],
+    ids=[
+        "wrong-type",
+        "bad-parcels",
+        "missing-column",
+        "row-count",
+        "order",
+        "scope",
+        "policy-sha",
+    ],
 )
 def test_malformed_upstream_result_fails_before_coverage_load(mutation: Any) -> None:
     parcels = _parcels()
     malformed = mutation(_proximity(parcels))
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        return_value=malformed,
-    ), patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
-    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            return_value=malformed,
+        ),
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+        ) as coverage_loader,
+        pytest.raises(RoadProximityCoverageError),
+    ):
         assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
     coverage_loader.assert_not_called()
 
@@ -570,7 +596,9 @@ def test_coverage_package_lineage_must_match_road_archive(
     else:
         summary = coverage.summary
     forged = replace(coverage, coverage=frame, summary=summary, **{field: value})
-    with pytest.raises(RoadProximityCoverageError, match="package|lineage|provider|product"):
+    with pytest.raises(
+        RoadProximityCoverageError, match="package|lineage|provider|product"
+    ):
         _assess(coverage=forged, road_source=_road_source(coverage.extraction))
 
 
@@ -610,13 +638,17 @@ def test_coverage_spatial_role_and_source_type_are_controlled() -> None:
         _assess(coverage=wrong_role)
 
     parcels = _parcels()
-    with patch(
-        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
-        return_value=_proximity(parcels),
-    ), patch(
-        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
-        return_value=object(),
-    ), pytest.raises(RoadProximityCoverageError):
+    with (
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+            return_value=_proximity(parcels),
+        ),
+        patch(
+            "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+            return_value=object(),
+        ),
+        pytest.raises(RoadProximityCoverageError),
+    ):
         assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
 
 
@@ -631,7 +663,11 @@ def test_coverage_must_retain_same_extraction_object() -> None:
     ("geometries", "crs", "message"),
     [
         ([], "EPSG:2154", "one|exactly"),
-        ([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])] * 2, "EPSG:2154", "one|exactly"),
+        (
+            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])] * 2,
+            "EPSG:2154",
+            "one|exactly",
+        ),
         ([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])], None, "CRS"),
         ([Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])], "EPSG:4326", "2154"),
         ([None], "EPSG:2154", "null"),
@@ -640,7 +676,17 @@ def test_coverage_must_retain_same_extraction_object() -> None:
         ([Point(0, 0)], "EPSG:2154", "Polygon"),
         ([LineString([(0, 0), (10, 10)])], "EPSG:2154", "Polygon"),
     ],
-    ids=["zero", "two", "no-crs", "wrong-crs", "null", "empty", "invalid", "point", "line"],
+    ids=[
+        "zero",
+        "two",
+        "no-crs",
+        "wrong-crs",
+        "null",
+        "empty",
+        "invalid",
+        "point",
+        "line",
+    ],
 )
 def test_invalid_coverage_geometry_is_rejected(
     geometries: list[object], crs: str | None, message: str
@@ -654,9 +700,7 @@ def test_invalid_coverage_geometry_is_rejected(
     "geometry",
     [
         Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),
-        MultiPolygon(
-            [Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]
-        ),
+        MultiPolygon([Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]),
     ],
 )
 def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
@@ -666,10 +710,22 @@ def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
 @pytest.mark.parametrize(
     ("geometry", "position"),
     [
-        (Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]), "FULLY_COVERED"),
-        (Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]), "OUTSIDE_OR_CROSSING_COVERAGE"),
-        (Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]), "OUTSIDE_OR_CROSSING_COVERAGE"),
-        (Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]), "OUTSIDE_OR_CROSSING_COVERAGE"),
+        (
+            Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),
+            "FULLY_COVERED",
+        ),
+        (
+            Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),
+            "OUTSIDE_OR_CROSSING_COVERAGE",
+        ),
+        (
+            Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]),
+            "OUTSIDE_OR_CROSSING_COVERAGE",
+        ),
+        (
+            Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),
+            "OUTSIDE_OR_CROSSING_COVERAGE",
+        ),
     ],
     ids=["inside", "touching", "crossing", "outside"],
 )
@@ -718,7 +774,8 @@ def test_strict_boundary_status_logic(offset: float, expected: str) -> None:
     coverage = _coverage()
     margin = _measured_boundary_distance(parcels, coverage)
     proximity = _proximity(
-        parcels, distances={road_class: margin + offset for road_class in ELIGIBLE_CLASSES}
+        parcels,
+        distances={road_class: margin + offset for road_class in ELIGIBLE_CLASSES},
     )
     result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
     assert result.class_proximity["road_proximity_coverage_status"].eq(expected).all()
@@ -736,9 +793,11 @@ def test_strict_boundary_status_logic(offset: float, expected: str) -> None:
 def test_matched_outside_or_crossing_status(geometry: Polygon) -> None:
     parcels = _parcels([geometry])
     result = _assess(parcels=parcels, proximity=_proximity(parcels))
-    assert result.class_proximity["road_proximity_coverage_status"].eq(
-        "OUTSIDE_OR_CROSSING_COVERAGE"
-    ).all()
+    assert (
+        result.class_proximity["road_proximity_coverage_status"]
+        .eq("OUTSIDE_OR_CROSSING_COVERAGE")
+        .all()
+    )
 
 
 @pytest.mark.parametrize(
@@ -753,7 +812,10 @@ def test_no_match_takes_precedence_over_coverage_position(geometry: Polygon) -> 
     parcels = _parcels([geometry])
     proximity = _without_match(_proximity(parcels))
     result = _assess(parcels=parcels, proximity=proximity)
-    assert _first_row(result, "UNKNOWN_REVIEW").road_proximity_coverage_status == "NO_MATCH"
+    assert (
+        _first_row(result, "UNKNOWN_REVIEW").road_proximity_coverage_status
+        == "NO_MATCH"
+    )
 
 
 def test_classes_are_diagnosed_independently() -> None:
@@ -768,8 +830,14 @@ def test_classes_are_diagnosed_independently() -> None:
         },
     )
     result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
-    assert _first_row(result, "GENERAL_VEHICLE_PROXY").road_proximity_coverage_status == "NOT_BOUNDARY_LIMITED"
-    assert _first_row(result, "RESTRICTED_REVIEW").road_proximity_coverage_status == "BOUNDARY_LIMITED"
+    assert (
+        _first_row(result, "GENERAL_VEHICLE_PROXY").road_proximity_coverage_status
+        == "NOT_BOUNDARY_LIMITED"
+    )
+    assert (
+        _first_row(result, "RESTRICTED_REVIEW").road_proximity_coverage_status
+        == "BOUNDARY_LIMITED"
+    )
 
 
 def test_exact_coverage_lineage_is_appended_to_every_row() -> None:
@@ -797,9 +865,7 @@ def test_exact_coverage_lineage_is_appended_to_every_row() -> None:
         ("nearest_source_archive_sha256", "c" * 64),
     ],
 )
-def test_matched_road_lineage_must_match_coverage(
-    column: str, value: str
-) -> None:
+def test_matched_road_lineage_must_match_coverage(column: str, value: str) -> None:
     proximity = _proximity()
     table = proximity.class_proximity.copy()
     table[column] = value
@@ -848,8 +914,14 @@ def test_result_preserves_every_upstream_fact_and_input_object() -> None:
         check_dtype=True,
         check_index_type=True,
     )
-    assert tuple(result.class_proximity.columns[: len(CLASS_PROXIMITY_COLUMNS)]) == CLASS_PROXIMITY_COLUMNS
-    assert tuple(result.class_proximity.columns[len(CLASS_PROXIMITY_COLUMNS) :]) == DIAGNOSTIC_COLUMNS
+    assert (
+        tuple(result.class_proximity.columns[: len(CLASS_PROXIMITY_COLUMNS)])
+        == CLASS_PROXIMITY_COLUMNS
+    )
+    assert (
+        tuple(result.class_proximity.columns[len(CLASS_PROXIMITY_COLUMNS) :])
+        == DIAGNOSTIC_COLUMNS
+    )
     assert result.class_coverage is proximity.class_coverage
     assert result.source_coverage is coverage
 
@@ -872,9 +944,10 @@ def _corrupt_generated(column: str, value: object, *, outside: bool = False) -> 
         output.at[0, column] = value
         return output
 
-    with patch.object(
-        module, "_diagnosed_class_proximity", side_effect=corrupt
-    ), pytest.raises(RoadProximityCoverageError):
+    with (
+        patch.object(module, "_diagnosed_class_proximity", side_effect=corrupt),
+        pytest.raises(RoadProximityCoverageError),
+    ):
         _assess(parcels=parcels, proximity=proximity)
 
 
@@ -912,9 +985,10 @@ def test_inconsistent_generated_status_is_rejected(
         output.at[0, "road_proximity_coverage_status"] = wrong_status
         return output
 
-    with patch.object(
-        module, "_diagnosed_class_proximity", side_effect=corrupt
-    ), pytest.raises(RoadProximityCoverageError):
+    with (
+        patch.object(module, "_diagnosed_class_proximity", side_effect=corrupt),
+        pytest.raises(RoadProximityCoverageError),
+    ):
         _assess(parcels=parcels, proximity=proximity)
 
 

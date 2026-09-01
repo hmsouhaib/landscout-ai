@@ -15,6 +15,7 @@ from typing import Any, Self
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from landscout import sources
 from landscout.common import safe_http
@@ -42,6 +43,8 @@ EXPECTED_EXPORTS = {
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
 }
+
+
 class _Response:
     def __init__(
         self,
@@ -59,7 +62,9 @@ class _Response:
 
     @property
     def is_redirect(self) -> bool:
-        return self.status_code in {301, 302, 303, 307, 308} and "Location" in self.headers
+        return (
+            self.status_code in {301, 302, 303, 307, 308} and "Location" in self.headers
+        )
 
     def raise_for_status(self) -> None:
         if self.status_code >= 400:
@@ -294,13 +299,33 @@ def test_checked_in_config_loads_with_exact_source_identity() -> None:
     assert config.dataset_name == "Base de référence des espaces protégés français"
     assert config.declared_version == "07/2026"
     assert str(config.reference_page_url).startswith("https://www.patrinat.fr/")
-    assert str(config.archive_url) == "https://assets.patrinat.fr/files/donnees/ep/EP.zip"
+    assert (
+        str(config.archive_url) == "https://assets.patrinat.fr/files/donnees/ep/EP.zip"
+    )
     assert config.archive_filename == "EP.zip"
     assert config.expected_archive_size_bytes == 99_835_011
     assert (
         config.expected_archive_sha256
         == "73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"
     )
+
+
+def test_source_config_yaml_rejects_duplicate_keys(tmp_path: Path) -> None:
+    path = tmp_path / "source.yaml"
+    path.write_text(
+        CONFIG_PATH.read_text(encoding="utf-8") + "\nprovider: PatriNat\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="config"):
+        load_inpn_protected_areas_source_config(path)
+
+
+def test_loaded_source_config_is_immutable() -> None:
+    config = load_inpn_protected_areas_source_config()
+
+    with pytest.raises(ValidationError, match="frozen"):
+        config.declared_version = "08/2026"
 
 
 @pytest.mark.parametrize(
@@ -310,6 +335,10 @@ def test_checked_in_config_loads_with_exact_source_identity() -> None:
         ("expected_archive_size_bytes", -1),
         ("expected_archive_size_bytes", True),
         ("expected_archive_size_bytes", 1.0),
+        ("expected_archive_size_bytes", "99835011"),
+        ("expected_archive_size_bytes", float("nan")),
+        ("expected_archive_size_bytes", float("inf")),
+        ("expected_archive_size_bytes", float("-inf")),
         ("expected_archive_sha256", "0" * 63),
         ("expected_archive_sha256", "A" * 64),
         ("expected_archive_sha256", None),
@@ -388,9 +417,10 @@ def test_download_timeout_is_strict_finite_positive(timeout: object) -> None:
 
 
 def test_download_api_has_no_arbitrary_http_session_injection() -> None:
-    assert "session" not in inspect.signature(
-        download_inpn_protected_areas_archive
-    ).parameters
+    assert (
+        "session"
+        not in inspect.signature(download_inpn_protected_areas_archive).parameters
+    )
 
 
 def test_download_cache_setup_failure_is_controlled(tmp_path: Path) -> None:
@@ -465,7 +495,9 @@ def test_cold_download_must_match_configured_snapshot_before_publication(
         assert sha256(downloaded).digest() != sha256(expected).digest()
     config = _config(tmp_path, expected)
 
-    with pytest.raises(InpnProtectedAreasSourceError, match="size|SHA|snapshot|integrity"):
+    with pytest.raises(
+        InpnProtectedAreasSourceError, match="size|SHA|snapshot|integrity"
+    ):
         _download_with_session(config, _session(config, downloaded))
 
     assert not list(Path(config.cache_root).rglob("EP.zip"))
@@ -633,7 +665,11 @@ def test_invalid_download_cache_is_a_miss(
     elif mutation == "metadata_version":
         metadata["declared_version"] = "06/2026"
         _write_json(metadata_path, metadata)
-    elif mutation in {"metadata_schema", "metadata_schema_bool", "metadata_schema_float"}:
+    elif mutation in {
+        "metadata_schema",
+        "metadata_schema_bool",
+        "metadata_schema_float",
+    }:
         schema_values: dict[str, object] = {
             "metadata_schema": 2,
             "metadata_schema_bool": True,
@@ -1039,6 +1075,7 @@ def test_valid_extraction_cache_is_reused(tmp_path: Path) -> None:
         "schema_float",
         "unknown",
         "boolean_file_size",
+        "duplicate_key",
     ],
 )
 def test_invalid_extraction_cache_is_rebuilt(
@@ -1086,12 +1123,19 @@ def test_invalid_extraction_cache_is_rebuilt(
     elif mutation == "unknown":
         metadata["unexpected"] = True
         _write_json(metadata_path, metadata)
-    else:
+    elif mutation == "boolean_file_size":
         file_entries = metadata["files"]
         assert isinstance(file_entries, list)
         assert isinstance(file_entries[0], dict)
         file_entries[0]["file_size"] = True
         _write_json(metadata_path, metadata)
+    else:
+        encoded = json.dumps(metadata, separators=(",", ":"))
+        marker = '"schema_version":1'
+        metadata_path.write_text(
+            encoded.replace(marker, f"{marker},{marker}", 1),
+            encoding="utf-8",
+        )
 
     refreshed = extract_inpn_protected_areas_archive(download, config)
 
@@ -1144,7 +1188,11 @@ def test_extraction_replacement_failure_restores_old_tree(
 
     def fail_once(source: Path, target: Path) -> None:
         nonlocal failed
-        if source.name.endswith(".part") and target == first.extraction_path and not failed:
+        if (
+            source.name.endswith(".part")
+            and target == first.extraction_path
+            and not failed
+        ):
             failed = True
             raise OSError("publication failed")
         original_replace(source, target)
@@ -1250,7 +1298,9 @@ def test_extraction_rejects_stale_download_bytes(tmp_path: Path) -> None:
     replacement = _zip_bytes({"EP/readme.txt": b"forged contents"})
     download.path.write_bytes(replacement)
 
-    with pytest.raises(InpnProtectedAreasSourceError, match="SHA|size|archive|download"):
+    with pytest.raises(
+        InpnProtectedAreasSourceError, match="SHA|size|archive|download"
+    ):
         extract_inpn_protected_areas_archive(download, config)
 
 
@@ -1269,7 +1319,9 @@ def test_result_dataclasses_are_frozen(tmp_path: Path) -> None:
 def test_public_api_exports_only_stable_high_level_symbols() -> None:
     assert set(inpn.__all__) == EXPECTED_EXPORTS
     assert EXPECTED_EXPORTS <= set(sources.__all__)
-    assert all(getattr(sources, name) is getattr(inpn, name) for name in EXPECTED_EXPORTS)
+    assert all(
+        getattr(sources, name) is getattr(inpn, name) for name in EXPECTED_EXPORTS
+    )
     assert not hasattr(sources, "_validated_zip_members")
     assert not hasattr(sources, "_inventory")
     assert not hasattr(sources, "validate_inpn_protected_area_geometry")
@@ -1315,9 +1367,7 @@ def test_result_schemas_are_factual_inventory_only() -> None:
         "bess",
     }
     assert not any(
-        fragment in name.casefold()
-        for name in inpn.__all__
-        for fragment in forbidden
+        fragment in name.casefold() for name in inpn.__all__ for fragment in forbidden
     )
 
 

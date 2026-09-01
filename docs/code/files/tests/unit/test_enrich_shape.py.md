@@ -3,32 +3,35 @@
 ## File identity
 
 - Repository path: `tests/unit/test_enrich_shape.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
+- Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
-- Source SHA256: `ad4f6b2997ac30b29a5aaa182b882cc7aac0a50abf55b4d97126934b187af21b`
+- Source SHA256: `4803e1c4fce5eb152b1005842702fb77b5e13de2be61a882e7d8128d0fb28901`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Refreshes permanent STEP 7F.1A.4 regression coverage for enrich shape; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
 ### Python 3.12 standard library
 
-- `None.`
+- None.
 
 ### Third-party packages
 
 - `import geopandas as gpd`
 - `import pytest`
 - `from shapely.affinity import rotate`
-- `from shapely.geometry import Point, Polygon`
+- `from shapely.geometry import Polygon`
 - `from shapely.geometry.base import BaseGeometry`
 
 ### Internal LandScout imports
@@ -42,30 +45,23 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-No meaningful module constant is declared.
+No module-level constant, alias, schema, mapping, or meaningful dunder assignment is declared.
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
+## 5. Classes, models, dataclasses, and fields
 
-No meaningful module-level dunder contract is declared.
+No top-level class/model/dataclass is declared.
 
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-No class/model/dataclass is declared.
-
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_candidate_frame`
+
+**Purpose:** Implements `candidate frame` within the file role: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
 
 **Exact signature**
 
@@ -73,52 +69,84 @@ No class/model/dataclass is declared.
 def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
 ```
 
-**Purpose**
-
-Private `test` helper for candidate frame; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-gpd.GeoDataFrame({'parcel_id': [f'parcel-{index}' for index in range(len(geometries))], 'geometry_status': ['VALID'] * len(geometries), 'area_m2': list(projected.area)}, geometry=wgs84, crs='EPSG:4326')
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `geometries` | positional-or-keyword | `list[BaseGeometry]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `projected.to_crs`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `gpd.GeoDataFrame(<br>        {<br>            "parcel_id": [<br>                f"313950000A{index + 1:04d}" for index in range(len(geometries))<br>            ],<br>            "commune_code": ["31395"] * len(geometries),<br>            "section_prefix": ["000"] * len(geometries),<br>            "section": ["A"] * len(geometries),<br>            "parcel_number": [str(index + 1) for index in range(len(geometries))],<br>            "source_contenance": [None] * len(geometries),<br>            "source_arpente": [None] * len(geometries),<br>            "source_created_at": [None] * len(geometries),<br>            "source_updated_at": [None] * len(geometries),<br>            "geometry_status": [<br>                "VALID"<br>                if geometry.geom_type in {"Polygon", "MultiPolygon"}<br>                and not geometry.is_empty<br>                and geometry.is_valid<br>                else "INVALID"<br>                for geometry in geometries<br>            ],<br>            "area_m2": [<br>                float(area)<br>                if geometry.geom_type in {"Polygon", "MultiPolygon"}<br>                and not geometry.is_empty<br>                and geometry.is_valid<br>                else None<br>                for geometry, area in zip(<br>                    geometries,<br>                    wgs84.to_crs("EPSG:2154").area,<br>                    strict=True,<br>                )<br>            ],<br>        },<br>        geometry=wgs84,<br>        crs="EPSG:4326",<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_enrich_shape.py::test_square_metrics` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_rectangle_metrics` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_rotated_rectangle_metrics` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_elongated_parcel` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_centroid_coordinates` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_output_geometry_remains_wgs84` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_missing_crs_fails` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_missing_parcel_id_fails` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_null_parcel_id_fails` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_duplicate_parcel_id_fails` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_requires_exact_non_empty_parcel_ids` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_valid_candidate_area_requires_strict_positive_finite_number` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_failed_geometry_does_not_remove_other_rows` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_exact_parcel_ids_are_preserved` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` via `_candidate_frame`.
-- direct call: `tests/unit/test_enrich_shape.py::test_shape_enrichment_rejects_noncanonical_geometry_status` via `_candidate_frame`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_enrich_shape::test_square_metrics` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_square_metrics` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_rectangle_metrics` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_rectangle_metrics` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_rotated_rectangle_metrics` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_rotated_rectangle_metrics` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_elongated_parcel` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_elongated_parcel` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_centroid_coordinates` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_centroid_coordinates` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_output_geometry_remains_wgs84` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_output_geometry_remains_wgs84` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_missing_crs_fails` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_missing_crs_fails` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_missing_parcel_id_fails` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_missing_parcel_id_fails` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_null_parcel_id_fails` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_null_parcel_id_fails` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_duplicate_parcel_id_fails` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_duplicate_parcel_id_fails` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_enrichment_requires_exact_non_empty_parcel_ids` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_enrichment_requires_exact_non_empty_parcel_ids` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_valid_candidate_area_requires_strict_positive_finite_number` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_valid_candidate_area_requires_strict_positive_finite_number` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_failed_geometry_does_not_remove_other_rows` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_failed_geometry_does_not_remove_other_rows` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_exact_parcel_ids_are_preserved` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_exact_parcel_ids_are_preserved` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_enrichment_matches_centralized_shape_metrics` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_enrichment_matches_centralized_shape_metrics` via `_candidate_frame`
+- direct call: `tests.unit.test_enrich_shape::test_shape_enrichment_rejects_noncanonical_geometry_status` via `_candidate_frame`
+- value/type reference: `tests.unit.test_enrich_shape::test_shape_enrichment_rejects_noncanonical_geometry_status` via `_candidate_frame`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `gpd.GeoSeries` | `geopandas.GeoSeries` |
+| `projected.to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
+| `range` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `wgs84.to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `projected.to_crs`<br>`wgs84.to_crs` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -128,9 +156,37 @@ def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
     wgs84 = projected.to_crs("EPSG:4326")
     return gpd.GeoDataFrame(
         {
-            "parcel_id": [f"parcel-{index}" for index in range(len(geometries))],
-            "geometry_status": ["VALID"] * len(geometries),
-            "area_m2": list(projected.area),
+            "parcel_id": [
+                f"313950000A{index + 1:04d}" for index in range(len(geometries))
+            ],
+            "commune_code": ["31395"] * len(geometries),
+            "section_prefix": ["000"] * len(geometries),
+            "section": ["A"] * len(geometries),
+            "parcel_number": [str(index + 1) for index in range(len(geometries))],
+            "source_contenance": [None] * len(geometries),
+            "source_arpente": [None] * len(geometries),
+            "source_created_at": [None] * len(geometries),
+            "source_updated_at": [None] * len(geometries),
+            "geometry_status": [
+                "VALID"
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else "INVALID"
+                for geometry in geometries
+            ],
+            "area_m2": [
+                float(area)
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else None
+                for geometry, area in zip(
+                    geometries,
+                    wgs84.to_crs("EPSG:2154").area,
+                    strict=True,
+                )
+            ],
         },
         geometry=wgs84,
         crs="EPSG:4326",
@@ -139,15 +195,69 @@ def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
-### `square` — pytest fixture
+### `square`
 
-- Scope: `function` (decorator `pytest.fixture`).
-- Returned/yielded object expression(s): `Polygon([(600000, 6200000), (600010, 6200000), (600010, 6200010), (600000, 6200010)])`.
-- Tests requesting it by parameter injection: `test_square_metrics`, `test_centroid_coordinates`, `test_output_geometry_remains_wgs84`, `test_missing_crs_fails`, `test_missing_parcel_id_fails`, `test_null_parcel_id_fails`, `test_duplicate_parcel_id_fails`, `test_enrichment_requires_exact_non_empty_parcel_ids`, `test_valid_candidate_area_requires_strict_positive_finite_number`, `test_failed_geometry_does_not_remove_other_rows`, `test_exact_parcel_ids_are_preserved`, `test_enrichment_matches_centralized_shape_metrics`, `test_shape_enrichment_rejects_noncanonical_geometry_status`.
+**Purpose:** Implements `square` within the file role: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
 
-**Complete fixture implementation**
+**Exact signature**
+
+```python
+def square() -> Polygon:
+```
+
+- Exact decorators: `pytest.fixture`.
+- Declared return annotation: `Polygon`.
+
+**Inputs**
+
+- No parameters.
+
+**Return and exception contract**
+
+- Exact observed return expressions:
+  - `Polygon(<br>        [(600000, 6200000), (600010, 6200000), (600010, 6200010), (600000, 6200010)]<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- value/type reference: `tests.unit.test_enrich_shape::test_square_metrics` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_centroid_coordinates` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_output_geometry_remains_wgs84` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_missing_crs_fails` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_missing_parcel_id_fails` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_null_parcel_id_fails` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_duplicate_parcel_id_fails` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_enrichment_requires_exact_non_empty_parcel_ids` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_valid_candidate_area_requires_strict_positive_finite_number` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_failed_geometry_does_not_remove_other_rows` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_exact_parcel_ids_are_preserved` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_enrichment_matches_centralized_shape_metrics` via `square`
+- value/type reference: `tests.unit.test_enrich_shape::test_shape_enrichment_rejects_noncanonical_geometry_status` via `square`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def square() -> Polygon:
@@ -156,48 +266,68 @@ def square() -> Polygon:
     )
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_square_metrics`
 
-**Purpose**
+**Purpose:** Regression invariant: square metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `square metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-row = enriched.iloc[0]
+def test_square_metrics(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-enriched = enrich_parcel_shapes(_candidate_frame([square]))
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-assert row["shape_status"] == "VALID"
-assert row["length_m"] == pytest.approx(10.0, abs=0.01)
-assert row["width_m"] == pytest.approx(10.0, abs=0.01)
-assert row["length_width_ratio"] == pytest.approx(1.0, abs=0.001)
-assert row["compactness"] == pytest.approx(0.785398)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["shape_status"] == "VALID"`
+  - `assert row["length_m"] == pytest.approx(10.0, abs=0.01)`
+  - `assert row["width_m"] == pytest.approx(10.0, abs=0.01)`
+  - `assert row["length_width_ratio"] == pytest.approx(1.0, abs=0.001)`
+  - `assert row["compactness"] == pytest.approx(0.785398)`
 
-Locks `square metrics` through the exact asserted conditions: `row['shape_status'] == 'VALID'`; `row['length_m'] == pytest.approx(10.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(1.0, abs=0.001)`; plus 1 additional reproduced assertion(s).
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.approx` | `pytest.approx` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_square_metrics(square: Polygon) -> None:
@@ -211,48 +341,65 @@ def test_square_metrics(square: Polygon) -> None:
     assert row["compactness"] == pytest.approx(0.785398)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_rectangle_metrics`
 
-**Purpose**
+**Purpose:** Regression invariant: rectangle metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `rectangle metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-rectangle = Polygon(
-        [(600000, 6200000), (600020, 6200000), (600020, 6200010), (600000, 6200010)]
-    )
+def test_rectangle_metrics() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-row = enrich_parcel_shapes(_candidate_frame([rectangle])).iloc[0]
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-assert row["length_m"] == pytest.approx(20.0, abs=0.01)
-assert row["width_m"] == pytest.approx(10.0, abs=0.01)
-assert row["length_width_ratio"] == pytest.approx(2.0, abs=0.001)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["length_m"] == pytest.approx(20.0, abs=0.01)`
+  - `assert row["width_m"] == pytest.approx(10.0, abs=0.01)`
+  - `assert row["length_width_ratio"] == pytest.approx(2.0, abs=0.001)`
 
-Locks `rectangle metrics` through the exact asserted conditions: `row['length_m'] == pytest.approx(20.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(2.0, abs=0.001)`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.approx` | `pytest.approx` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_rectangle_metrics() -> None:
@@ -266,49 +413,66 @@ def test_rectangle_metrics() -> None:
     assert row["length_width_ratio"] == pytest.approx(2.0, abs=0.001)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_rotated_rectangle_metrics`
 
-**Purpose**
+**Purpose:** Regression invariant: rotated rectangle metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `rotated rectangle metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-rectangle = Polygon(
-        [(600000, 6200000), (600030, 6200000), (600030, 6200010), (600000, 6200010)]
-    )
-rotated = rotate(rectangle, 37)
+def test_rotated_rectangle_metrics() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-row = enrich_parcel_shapes(_candidate_frame([rotated])).iloc[0]
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-assert row["length_m"] == pytest.approx(30.0, abs=0.01)
-assert row["width_m"] == pytest.approx(10.0, abs=0.01)
-assert row["length_width_ratio"] == pytest.approx(3.0, abs=0.001)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["length_m"] == pytest.approx(30.0, abs=0.01)`
+  - `assert row["width_m"] == pytest.approx(10.0, abs=0.01)`
+  - `assert row["length_width_ratio"] == pytest.approx(3.0, abs=0.001)`
 
-Locks `rotated rectangle metrics` through the exact asserted conditions: `row['length_m'] == pytest.approx(30.0, abs=0.01)`; `row['width_m'] == pytest.approx(10.0, abs=0.01)`; `row['length_width_ratio'] == pytest.approx(3.0, abs=0.001)`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+| `rotate` | `shapely.affinity.rotate` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.approx` | `pytest.approx` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_rotated_rectangle_metrics() -> None:
@@ -323,48 +487,65 @@ def test_rotated_rectangle_metrics() -> None:
     assert row["length_width_ratio"] == pytest.approx(3.0, abs=0.001)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_elongated_parcel`
 
-**Purpose**
+**Purpose:** Regression invariant: elongated parcel. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `elongated parcel`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-elongated = Polygon(
-        [(600000, 6200000), (600100, 6200000), (600100, 6200002), (600000, 6200002)]
-    )
+def test_elongated_parcel() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-row = enrich_parcel_shapes(_candidate_frame([elongated])).iloc[0]
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-assert row["length_width_ratio"] == pytest.approx(50.0, abs=0.01)
-assert row["length_m"] >= row["width_m"]
-assert 0 <= row["compactness"] <= 1
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["length_width_ratio"] == pytest.approx(50.0, abs=0.01)`
+  - `assert row["length_m"] >= row["width_m"]`
+  - `assert 0 <= row["compactness"] <= 1`
 
-Locks `elongated parcel` through the exact asserted conditions: `row['length_width_ratio'] == pytest.approx(50.0, abs=0.01)`; `row['length_m'] >= row['width_m']`; `0 <= row['compactness'] <= 1`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.approx` | `pytest.approx` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_elongated_parcel() -> None:
@@ -378,49 +559,73 @@ def test_elongated_parcel() -> None:
     assert 0 <= row["compactness"] <= 1
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_centroid_coordinates`
 
-**Purpose**
+**Purpose:** Regression invariant: centroid coordinates. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `centroid coordinates`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-expected = gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
-```
-
-**Action**
-
-```python
-row = enrich_parcel_shapes(_candidate_frame([square])).iloc[0]
-```
-
-**Expected result**
-
-```python
-assert row["centroid_lat"] == pytest.approx(expected.y)
-assert row["centroid_lon"] == pytest.approx(expected.x)
-```
-
-**Regression protected**
-
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
-
-**Test boundary**
-
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_centroid_coordinates(square: Polygon) -> None:
-    expected = gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["centroid_lat"] == pytest.approx(expected.y)`
+  - `assert row["centroid_lon"] == pytest.approx(expected.x)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
+| `gpd.GeoSeries` | `geopandas.GeoSeries` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.approx` | `pytest.approx` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_centroid_coordinates(square: Polygon) -> None:
+    expected = (
+        gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
+    )
 
     row = enrich_parcel_shapes(_candidate_frame([square])).iloc[0]
 
@@ -428,46 +633,67 @@ def test_centroid_coordinates(square: Polygon) -> None:
     assert row["centroid_lon"] == pytest.approx(expected.x)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_output_geometry_remains_wgs84`
 
-**Purpose**
+**Purpose:** Regression invariant: output geometry remains wgs84. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `output geometry remains wgs84`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square])
+def test_output_geometry_remains_wgs84(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-enriched = enrich_parcel_shapes(source)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-assert enriched.crs is not None
-assert enriched.crs.to_epsg() == 4326
-assert enriched.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert enriched.crs is not None`
+  - `assert enriched.crs.to_epsg() == 4326`
+  - `assert enriched.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)`
 
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `enriched.crs.to_epsg` | `unresolved local/third-party receiver; no ownership inferred` |
+| `enriched.geometry.iloc[0].equals_exact` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `enriched.geometry.iloc[0].equals_exact` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_output_geometry_remains_wgs84(square: Polygon) -> None:
@@ -480,45 +706,65 @@ def test_output_geometry_remains_wgs84(square: Polygon) -> None:
     assert enriched.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_missing_crs_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: missing crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `missing crs fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square]).set_crs(None, allow_override=True)
+def test_missing_crs_fails(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="CRS"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="CRS")`
 
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame([square]).set_crs` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `_candidate_frame([square]).set_crs` |
+| External process/environment | None directly present. |
+| In-memory mutation | `_candidate_frame([square]).set_crs(None, allow_override=True)` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_missing_crs_fails(square: Polygon) -> None:
@@ -528,45 +774,65 @@ def test_missing_crs_fails(square: Polygon) -> None:
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_missing_parcel_id_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: missing parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `missing parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square]).drop(columns=["parcel_id"])
+def test_missing_parcel_id_fails(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="parcel_id"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="parcel_id")`
 
-Locks `missing parcel id fails`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame([square]).drop` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `_candidate_frame([square]).drop(columns=["parcel_id"])` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_missing_parcel_id_fails(square: Polygon) -> None:
@@ -576,46 +842,64 @@ def test_missing_parcel_id_fails(square: Polygon) -> None:
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_null_parcel_id_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: null parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `null parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square])
-source.loc[0, "parcel_id"] = None
+def test_null_parcel_id_fails(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="null"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="null")`
 
-Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `source.loc[0, "parcel_id"] = None` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_null_parcel_id_fails(square: Polygon) -> None:
@@ -626,46 +910,64 @@ def test_null_parcel_id_fails(square: Polygon) -> None:
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose**
+**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `duplicate parcel id fails`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square, square])
-source.loc[1, "parcel_id"] = source.loc[0, "parcel_id"]
+def test_duplicate_parcel_id_fails(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="unique"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="unique")`
 
-Locks `duplicate parcel id fails`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `source.loc[1, "parcel_id"] = source.loc[0, "parcel_id"]` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_duplicate_parcel_id_fails(square: Polygon) -> None:
@@ -676,47 +978,70 @@ def test_duplicate_parcel_id_fails(square: Polygon) -> None:
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_enrichment_requires_exact_non_empty_parcel_ids`
 
-**Purpose**
+**Purpose:** Regression invariant: enrichment requires exact non empty parcel ids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `enrichment requires exact non empty parcel ids`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: `parcel_id`.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square])
-source["parcel_id"] = source["parcel_id"].astype(object)
-source.loc[0, "parcel_id"] = parcel_id
+def test_enrichment_requires_exact_non_empty_parcel_ids(
+    square: Polygon,
+    parcel_id: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "])`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+| `parcel_id` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="exact non-empty strings"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="exact non-empty strings")`
 
-Locks `enrichment requires exact non empty parcel ids`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `source["parcel_id"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `source["parcel_id"] = source["parcel_id"].astype(object)`<br>`source.loc[0, "parcel_id"] = parcel_id` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_enrichment_requires_exact_non_empty_parcel_ids(
@@ -731,47 +1056,71 @@ def test_enrichment_requires_exact_non_empty_parcel_ids(
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_valid_candidate_area_requires_strict_positive_finite_number`
 
-**Purpose**
+**Purpose:** Regression invariant: valid candidate area requires strict positive finite number. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `valid candidate area requires strict positive finite number`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: `area`.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square])
-source["area_m2"] = source["area_m2"].astype(object)
-source.loc[0, "area_m2"] = area
+def test_valid_candidate_area_requires_strict_positive_finite_number(
+    square: Polygon,
+    area: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True])`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+| `area` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric"):
-        enrich_parcel_shapes(source)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric")`
 
-Locks `valid candidate area requires strict positive finite number`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `source["area_m2"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `source["area_m2"] = source["area_m2"].astype(object)`<br>`source.loc[0, "area_m2"] = area` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_valid_candidate_area_requires_strict_positive_finite_number(
@@ -786,51 +1135,72 @@ def test_valid_candidate_area_requires_strict_positive_finite_number(
         enrich_parcel_shapes(source)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_failed_geometry_does_not_remove_other_rows`
 
-**Purpose**
+**Purpose:** Regression invariant: failed geometry does not remove other rows. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `failed geometry does not remove other rows`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-source = _candidate_frame([square, Point(600000, 6200000)])
-source.loc[1, "geometry_status"] = "INVALID"
-```
-
-**Action**
-
-```python
-enriched = enrich_parcel_shapes(source)
-```
-
-**Expected result**
-
-```python
-assert list(enriched["shape_status"]) == ["VALID", "ERROR"]
-assert enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()
-```
-
-**Regression protected**
-
-Locks `failed geometry does not remove other rows` through the exact asserted conditions: `list(enriched['shape_status']) == ['VALID', 'ERROR']`; `enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()`.
-
-**Test boundary**
-
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
-    source = _candidate_frame([square, Point(600000, 6200000)])
-    source.loc[1, "geometry_status"] = "INVALID"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert list(enriched["shape_status"]) == ["VALID", "ERROR"]`
+  - `assert enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `Polygon` | `shapely.geometry.Polygon` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
+    source = _candidate_frame([square, Polygon()])
 
     enriched = enrich_parcel_shapes(source)
 
@@ -838,51 +1208,71 @@ def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
     assert enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_exact_parcel_ids_are_preserved`
 
-**Purpose**
+**Purpose:** Regression invariant: exact parcel ids are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `exact parcel ids are preserved`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-source = _candidate_frame([square, Point(600000, 6200000)])
-source.loc[1, "geometry_status"] = "INVALID"
-```
-
-**Action**
-
-```python
-enriched = enrich_parcel_shapes(source)
-```
-
-**Expected result**
-
-```python
-assert len(enriched) == len(source)
-assert set(enriched["parcel_id"]) == set(source["parcel_id"])
-```
-
-**Regression protected**
-
-Locks `exact parcel ids are preserved` through the exact asserted conditions: `len(enriched) == len(source)`; `set(enriched['parcel_id']) == set(source['parcel_id'])`.
-
-**Test boundary**
-
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
-    source = _candidate_frame([square, Point(600000, 6200000)])
-    source.loc[1, "geometry_status"] = "INVALID"
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert len(enriched) == len(source)`
+  - `assert set(enriched["parcel_id"]) == set(source["parcel_id"])`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `Polygon` | `shapely.geometry.Polygon` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
+    source = _candidate_frame([square, Polygon()])
 
     enriched = enrich_parcel_shapes(source)
 
@@ -890,49 +1280,69 @@ def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
     assert set(enriched["parcel_id"]) == set(source["parcel_id"])
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_enrichment_matches_centralized_shape_metrics`
 
-**Purpose**
+**Purpose:** Regression invariant: enrichment matches centralized shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `enrichment matches centralized shape metrics`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-source = _candidate_frame([square])
-expected_geometry = source.to_crs(LAMBERT93).geometry.iloc[0]
+def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-expected = parcel_shape_metrics_m(expected_geometry, LAMBERT93)
-row = enrich_parcel_shapes(source).iloc[0]
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
 
-```python
-assert row["length_m"] == pytest.approx(expected.length_m)
-assert row["width_m"] == pytest.approx(expected.width_m)
-assert row["length_width_ratio"] == pytest.approx(expected.length_width_ratio)
-assert row["compactness"] == pytest.approx(expected.compactness)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert row["length_m"] == pytest.approx(expected.length_m)`
+  - `assert row["width_m"] == pytest.approx(expected.width_m)`
+  - `assert row["length_width_ratio"] == pytest.approx(expected.length_width_ratio)`
+  - `assert row["compactness"] == pytest.approx(expected.compactness)`
 
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `source.to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
+| `parcel_shape_metrics_m` | `landscout.geo.parcel_shape_metrics_m` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `pytest.approx` | `pytest.approx` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `source.to_crs` |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
@@ -948,47 +1358,73 @@ def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
     assert row["compactness"] == pytest.approx(expected.compactness)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_shape_enrichment_rejects_noncanonical_geometry_status`
 
-**Purpose**
+**Purpose:** Regression invariant: shape enrichment rejects noncanonical geometry status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `shape enrichment rejects noncanonical geometry status`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `square` (local fixture, scope `function`).
-- `pytest.mark.parametrize` arguments: `geometry_status`.
-
-**Setup**
+**Exact signature**
 
 ```python
-invalid = _candidate_frame([square])
-invalid["geometry_status"] = invalid["geometry_status"].astype(object)
-invalid.loc[0, "geometry_status"] = geometry_status
+def test_shape_enrichment_rejects_noncanonical_geometry_status(
+    square: Polygon,
+    geometry_status: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "geometry_status",
+    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `square` | positional-or-keyword | `Polygon` | `required` |
+| `geometry_status` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(ShapeEnrichmentError, match="geometry_status"):
-        enrich_parcel_shapes(invalid)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ShapeEnrichmentError, match="geometry_status")`
 
-Locks `shape enrichment rejects noncanonical geometry status`: the reproduced adversarial input must raise `ShapeEnrichmentError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_candidate_frame` | `tests.unit.test_enrich_shape._candidate_frame` |
+| `invalid["geometry_status"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `enrich_parcel_shapes` | `landscout.stages.enrich_shape.enrich_parcel_shapes` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | `invalid["geometry_status"].astype` |
+| External process/environment | None directly present. |
+| In-memory mutation | `invalid["geometry_status"] = invalid["geometry_status"].astype(object)`<br>`invalid.loc[0, "geometry_status"] = geometry_status` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_shape_enrichment_rejects_noncanonical_geometry_status(
@@ -1003,50 +1439,288 @@ def test_shape_enrichment_rejects_noncanonical_geometry_status(
         enrich_parcel_shapes(invalid)
 ```
 
+**Business boundary**
 
-## 7. Data contracts
-
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 12. GIS / CRS rules
+## 7. Test-specific regression contract
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
+- Test functions: **16**.
+- Pytest fixtures (decorator-proven): **1**.
 
-## 13. Provenance rules
+### Fixtures
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
+- `square` — decorators: `pytest.fixture`.
 
-## 14. Business meaning
+### Per-test regression index
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_square_metrics` | none | none | 5 | Proves square metrics using the exact source reproduced in section 7. |
+| `test_rectangle_metrics` | none | none | 3 | Proves rectangle metrics using the exact source reproduced in section 7. |
+| `test_rotated_rectangle_metrics` | none | none | 3 | Proves rotated rectangle metrics using the exact source reproduced in section 7. |
+| `test_elongated_parcel` | none | none | 3 | Proves elongated parcel using the exact source reproduced in section 7. |
+| `test_centroid_coordinates` | none | none | 2 | Proves centroid coordinates using the exact source reproduced in section 7. |
+| `test_output_geometry_remains_wgs84` | none | none | 3 | Proves output geometry remains wgs84 using the exact source reproduced in section 7. |
+| `test_missing_crs_fails` | none | pytest.raises(ShapeEnrichmentError, match="CRS") | 0 | Proves missing crs fails using the exact source reproduced in section 7. |
+| `test_missing_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="parcel_id") | 0 | Proves missing parcel id fails using the exact source reproduced in section 7. |
+| `test_null_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="null") | 0 | Proves null parcel id fails using the exact source reproduced in section 7. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
+| `test_enrichment_requires_exact_non_empty_parcel_ids` | pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "]) | pytest.raises(ShapeEnrichmentError, match="exact non-empty strings") | 0 | Proves enrichment requires exact non empty parcel ids using the exact source reproduced in section 7. |
+| `test_valid_candidate_area_requires_strict_positive_finite_number` | pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True]) | pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric") | 0 | Proves valid candidate area requires strict positive finite number using the exact source reproduced in section 7. |
+| `test_failed_geometry_does_not_remove_other_rows` | none | none | 2 | Proves failed geometry does not remove other rows using the exact source reproduced in section 7. |
+| `test_exact_parcel_ids_are_preserved` | none | none | 2 | Proves exact parcel ids are preserved using the exact source reproduced in section 7. |
+| `test_enrichment_matches_centralized_shape_metrics` | none | none | 4 | Proves enrichment matches centralized shape metrics using the exact source reproduced in section 7. |
+| `test_shape_enrichment_rejects_noncanonical_geometry_status` | pytest.mark.parametrize(<br>    "geometry_status",<br>    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],<br>) | pytest.raises(ShapeEnrichmentError, match="geometry_status") | 0 | Proves shape enrichment rejects noncanonical geometry status using the exact source reproduced in section 7. |
 
-## 15. Explicit non-goals
+## 8. Public exports and package ownership
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-## 16. Tests
+## 9. Trust, provenance, side effects, and business boundary
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-## 17. Change impact
+## 10. Change impact
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
+
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+import geopandas as gpd
+import pytest
+from shapely.affinity import rotate
+from shapely.geometry import Polygon
+from shapely.geometry.base import BaseGeometry
+
+from landscout.geo import LAMBERT93, parcel_shape_metrics_m
+from landscout.stages.enrich_shape import (
+    DERIVED_METRIC_COLUMNS,
+    ShapeEnrichmentError,
+    enrich_parcel_shapes,
+)
+
+
+def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
+    projected = gpd.GeoSeries(geometries, crs="EPSG:2154")
+    wgs84 = projected.to_crs("EPSG:4326")
+    return gpd.GeoDataFrame(
+        {
+            "parcel_id": [
+                f"313950000A{index + 1:04d}" for index in range(len(geometries))
+            ],
+            "commune_code": ["31395"] * len(geometries),
+            "section_prefix": ["000"] * len(geometries),
+            "section": ["A"] * len(geometries),
+            "parcel_number": [str(index + 1) for index in range(len(geometries))],
+            "source_contenance": [None] * len(geometries),
+            "source_arpente": [None] * len(geometries),
+            "source_created_at": [None] * len(geometries),
+            "source_updated_at": [None] * len(geometries),
+            "geometry_status": [
+                "VALID"
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else "INVALID"
+                for geometry in geometries
+            ],
+            "area_m2": [
+                float(area)
+                if geometry.geom_type in {"Polygon", "MultiPolygon"}
+                and not geometry.is_empty
+                and geometry.is_valid
+                else None
+                for geometry, area in zip(
+                    geometries,
+                    wgs84.to_crs("EPSG:2154").area,
+                    strict=True,
+                )
+            ],
+        },
+        geometry=wgs84,
+        crs="EPSG:4326",
+    )
+
+
+@pytest.fixture
+def square() -> Polygon:
+    return Polygon(
+        [(600000, 6200000), (600010, 6200000), (600010, 6200010), (600000, 6200010)]
+    )
+
+
+def test_square_metrics(square: Polygon) -> None:
+    enriched = enrich_parcel_shapes(_candidate_frame([square]))
+    row = enriched.iloc[0]
+
+    assert row["shape_status"] == "VALID"
+    assert row["length_m"] == pytest.approx(10.0, abs=0.01)
+    assert row["width_m"] == pytest.approx(10.0, abs=0.01)
+    assert row["length_width_ratio"] == pytest.approx(1.0, abs=0.001)
+    assert row["compactness"] == pytest.approx(0.785398)
+
+
+def test_rectangle_metrics() -> None:
+    rectangle = Polygon(
+        [(600000, 6200000), (600020, 6200000), (600020, 6200010), (600000, 6200010)]
+    )
+    row = enrich_parcel_shapes(_candidate_frame([rectangle])).iloc[0]
+
+    assert row["length_m"] == pytest.approx(20.0, abs=0.01)
+    assert row["width_m"] == pytest.approx(10.0, abs=0.01)
+    assert row["length_width_ratio"] == pytest.approx(2.0, abs=0.001)
+
+
+def test_rotated_rectangle_metrics() -> None:
+    rectangle = Polygon(
+        [(600000, 6200000), (600030, 6200000), (600030, 6200010), (600000, 6200010)]
+    )
+    rotated = rotate(rectangle, 37)
+    row = enrich_parcel_shapes(_candidate_frame([rotated])).iloc[0]
+
+    assert row["length_m"] == pytest.approx(30.0, abs=0.01)
+    assert row["width_m"] == pytest.approx(10.0, abs=0.01)
+    assert row["length_width_ratio"] == pytest.approx(3.0, abs=0.001)
+
+
+def test_elongated_parcel() -> None:
+    elongated = Polygon(
+        [(600000, 6200000), (600100, 6200000), (600100, 6200002), (600000, 6200002)]
+    )
+    row = enrich_parcel_shapes(_candidate_frame([elongated])).iloc[0]
+
+    assert row["length_width_ratio"] == pytest.approx(50.0, abs=0.01)
+    assert row["length_m"] >= row["width_m"]
+    assert 0 <= row["compactness"] <= 1
+
+
+def test_centroid_coordinates(square: Polygon) -> None:
+    expected = (
+        gpd.GeoSeries([square.centroid], crs="EPSG:2154").to_crs("EPSG:4326").iloc[0]
+    )
+
+    row = enrich_parcel_shapes(_candidate_frame([square])).iloc[0]
+
+    assert row["centroid_lat"] == pytest.approx(expected.y)
+    assert row["centroid_lon"] == pytest.approx(expected.x)
+
+
+def test_output_geometry_remains_wgs84(square: Polygon) -> None:
+    source = _candidate_frame([square])
+
+    enriched = enrich_parcel_shapes(source)
+
+    assert enriched.crs is not None
+    assert enriched.crs.to_epsg() == 4326
+    assert enriched.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)
+
+
+def test_missing_crs_fails(square: Polygon) -> None:
+    source = _candidate_frame([square]).set_crs(None, allow_override=True)
+
+    with pytest.raises(ShapeEnrichmentError, match="CRS"):
+        enrich_parcel_shapes(source)
+
+
+def test_missing_parcel_id_fails(square: Polygon) -> None:
+    source = _candidate_frame([square]).drop(columns=["parcel_id"])
+
+    with pytest.raises(ShapeEnrichmentError, match="parcel_id"):
+        enrich_parcel_shapes(source)
+
+
+def test_null_parcel_id_fails(square: Polygon) -> None:
+    source = _candidate_frame([square])
+    source.loc[0, "parcel_id"] = None
+
+    with pytest.raises(ShapeEnrichmentError, match="null"):
+        enrich_parcel_shapes(source)
+
+
+def test_duplicate_parcel_id_fails(square: Polygon) -> None:
+    source = _candidate_frame([square, square])
+    source.loc[1, "parcel_id"] = source.loc[0, "parcel_id"]
+
+    with pytest.raises(ShapeEnrichmentError, match="unique"):
+        enrich_parcel_shapes(source)
+
+
+@pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "])
+def test_enrichment_requires_exact_non_empty_parcel_ids(
+    square: Polygon,
+    parcel_id: object,
+) -> None:
+    source = _candidate_frame([square])
+    source["parcel_id"] = source["parcel_id"].astype(object)
+    source.loc[0, "parcel_id"] = parcel_id
+
+    with pytest.raises(ShapeEnrichmentError, match="exact non-empty strings"):
+        enrich_parcel_shapes(source)
+
+
+@pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True])
+def test_valid_candidate_area_requires_strict_positive_finite_number(
+    square: Polygon,
+    area: object,
+) -> None:
+    source = _candidate_frame([square])
+    source["area_m2"] = source["area_m2"].astype(object)
+    source.loc[0, "area_m2"] = area
+
+    with pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric"):
+        enrich_parcel_shapes(source)
+
+
+def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
+    source = _candidate_frame([square, Polygon()])
+
+    enriched = enrich_parcel_shapes(source)
+
+    assert list(enriched["shape_status"]) == ["VALID", "ERROR"]
+    assert enriched.loc[1, list(DERIVED_METRIC_COLUMNS)].isna().all()
+
+
+def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
+    source = _candidate_frame([square, Polygon()])
+
+    enriched = enrich_parcel_shapes(source)
+
+    assert len(enriched) == len(source)
+    assert set(enriched["parcel_id"]) == set(source["parcel_id"])
+
+
+def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
+    source = _candidate_frame([square])
+    expected_geometry = source.to_crs(LAMBERT93).geometry.iloc[0]
+    expected = parcel_shape_metrics_m(expected_geometry, LAMBERT93)
+
+    row = enrich_parcel_shapes(source).iloc[0]
+
+    assert row["length_m"] == pytest.approx(expected.length_m)
+    assert row["width_m"] == pytest.approx(expected.width_m)
+    assert row["length_width_ratio"] == pytest.approx(expected.length_width_ratio)
+    assert row["compactness"] == pytest.approx(expected.compactness)
+
+
+@pytest.mark.parametrize(
+    "geometry_status",
+    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],
+)
+def test_shape_enrichment_rejects_noncanonical_geometry_status(
+    square: Polygon,
+    geometry_status: object,
+) -> None:
+    invalid = _candidate_frame([square])
+    invalid["geometry_status"] = invalid["geometry_status"].astype(object)
+    invalid.loc[0, "geometry_status"] = geometry_status
+
+    with pytest.raises(ShapeEnrichmentError, match="geometry_status"):
+        enrich_parcel_shapes(invalid)
+```

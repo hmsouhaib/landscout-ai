@@ -3,36 +3,311 @@
 ## File identity
 
 - Repository path: `docs/DEV_LOG.md`
-- File type: Markdown
+- File type: Markdown engineering history
+- Layer: engineering history
+- Domain: repository history
 - Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `558deb28047465c0b3de72bffc1173eab97390e9e0332eda94e25036154b0385`
+- Source SHA256: `21853e1cfc59a6fb743c55abacecfaae0ee59994d13de1ef4cb508f39e9afba2`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Adds the source-faithful STEP 7F.1A.4 engineering record while leaving final validation gates explicitly pending for the root run.
+
+## 2. Purpose and authority
 
 Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
 
-## 2. Position in LandScout architecture
+- This is historical evidence. Current production source, checked-in configuration, tests, and verified artifacts remain authoritative.
 
-This is human engineering documentation/history, consumed by engineers and repository documentation readers.
+## 3. Source-specific structure
 
-## 3. Imports and dependencies
+Chronological headings present in the exact current history:
 
-Not applicable: this is not Python source.
+- `# LandScout AI development log`
+- `## Current project state`
+- `## STEP 7F.1A.4 — Close end-to-end source authority and planning-completeness gaps`
+- `## STEP 7F.1A.3.2 — Correct qualified-reference ownership and semantic documentation`
+- `### CODE FOLLOW-UP OBSERVATIONS`
+- `## STEP 7F.1A.3.1 — Rebuild documentation fidelity from source semantics`
+- `### CODE FOLLOW-UP OBSERVATIONS`
+- `## STEP 7F.1A.3 — Build complete living code documentation`
+- `## STEP 7F.1A.2.1 — Complete source cache-recovery safety parity`
+- `## STEP 7F.1A.2 — Close repository trust-boundary review findings`
+- `## STEP 7F.1A.1 — Close DNS-resolved redirect network-safety gap`
+- `## STEP 7F.1A — Acquire PatriNat / INPN protected-areas reference archive`
+- `## STEP 7E.3B — Diagnose parcel-road proximity against source-package boundary`
+- `## STEP 7E.3A — Compute parcel-to-road proximity by proxy class`
+- `## STEP 7E.2B — Apply IGN road vehicle proxy policy`
+- `## STEP 7E.2A.1 — Correct IGN road proxy policy source semantics and evidence lineage`
+- `## STEP 7E.2A — Compile official IGN general-vehicle proxy policy`
+- `## GLOBAL HARDENING REVIEW CORRECTION.1 - Config-bound IGN non-electric roles`
+- `## GLOBAL HARDENING REVIEW CORRECTION - Source-boundary and adversarial contracts`
+- `## STEP 0 — Environment check`
+- `## STEP 1 — Python and Git setup`
+- `## STEP 2 — GIS dependencies`
+- `## STEP 3 — Quality tools`
+- `## STEP 4 — Configuration system`
+- `## STEP 5 — GIS geometry core`
+- `## STEP 7A — French cadastre downloader`
+- `## STEP 7A.1 — Package installation fix`
+- `## STEP 7A.2 — Cadastre cache freshness`
+- `## STEP 7A.3 — Cadastre gzip integrity`
+- `## STEP 7B.1 — Load French cadastral parcels`
+- `### Observed Muret schema (`31395`)`
+- `## STEP 7B.2 — Normalize Muret parcels`
+- `### Real Muret normalization (`31395`)`
+- `## STEP 7B.3 — Filter BESS parcels by area`
+- `### Real Muret BESS area filter (`31395`)`
+- `## STEP 7B.3.1 — Strengthen parcel filter validation`
+- `## STEP 7B.4 — Enrich BESS parcel shape metrics`
+- `### Real Muret BESS shape enrichment (`31395`)`
+- `## STEP 7B.4.1 — Centralize parcel shape metrics`
+- `### Real Muret refactor verification`
+- `## STEP 7B.5 — Profile BESS parcel shape distribution`
+- `### Real Muret shape distribution (4,013 candidates)`
+- `## STEP 7B.5.1 — Explicit VALID and ERROR profiling`
+- `### Real Muret regression`
+- `## STEP 7B.6 — Configurable calibrated BESS shape screening`
+- `### Active calibration`
+- `### Real Muret shape screening (`31395`)`
+- `## STEP 7C.1 — RTE / ODRÉ grid source ingestion`
+- `### Source and cache configuration`
+- `### `sites` — official electrical sites`
+- `### `overhead_lines` — official overhead lines`
+- `### `underground_lines` — official underground lines`
+- `## STEP 7C.1.1 — Strengthen RTE / ODRÉ source integrity`
+- `### Persisted integrity model`
+- `### Transaction and rollback verification`
+- `### Real RTE cache regression`
+- `## STEP 7C.2 — IGN BD TOPO electricity spatial source ingestion`
+- `### Official source package and lineage`
+- `### Archive and GeoPackage inspection`
+- `### `ligne_electrique` — electricity-line proxy geometry`
+- `### `poste_de_transformation` — transformation-post proxy geometry`
+- `### Spatial semantics and explicit limitations`
+- `## STEP 7C.3 — Normalize IGN electricity proxy layers`
+- `### Stable normalization semantics`
+- `### Real D031 electric-line regression`
+- `### Real D031 transformation-post regression`
+- `### Explicit spatial interpretation`
+- `## STEP 7C.3.1 — Harden IGN grid normalization lineage, geometry semantics, and numeric integrity`
+- `### Lineage and bundle integrity`
+- `### Geometry, numeric, and identity semantics`
+- `### Real D031 high-level regression`
+- `## STEP 7C.3.2 — Close IGN normalization API boundary and validate lineage context`
+- `### API and lineage validation`
+- `### Real D031 regression and GeoParquet read-back`
+- `## STEP 7C.4 — Parcel-to-IGN grid proxy proximity`
+- `### Inputs and integrity`
+- `### Nearest electric-line proxy profile`
+- `### Nearest exact-voltage electric-line proxy profile`
+- `### Nearest transformation-post proxy profile`
+- `### Exact-voltage proximity profiles`
+- `#### 63 kV`
+- `#### 150 kV`
+- `#### 225 kV`
+- `#### 400 kV`
+- `### Outputs and semantics`
+- `## STEP 7C.4.1 — Harden grid-proximity integrity contracts`
+- `### Integrity contracts`
+- `### Real Muret/D031 regression and read-back`
+- `## GLOBAL HARDENING — Close source-integrity and adversarial validation gaps`
+- `### A–C — IGN physical source, role, summary, and coverage contracts`
+- `### D — GPU-bound written zoning validation`
+- `### E — Strict scan/profile configuration`
+- `### F–G — Cadastre cache and normalized parcel contracts`
+- `### H — Parcel and shape numeric domains`
+- `### I — RTE/ODRE GeoJSON fail-closed parsing`
+- `### J — Public geometry and CRS error contracts`
+- `### Consolidated evidence and retained safety boundaries`
+- `### Mandatory final gates and real-data regression`
+- `## STEP 7D.5B.2B.2 — Seal relation identity and global policy mapping`
+- `### Shared relation identity and policy mapping contract`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7D.5B.2B.3 — Seal feature catalogs and factual relation semantics`
+- `### Shared factual and feature contracts`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7D.5B.2B.4 — Seal local source lineage and canonical schemas`
+- `### Common dependency and canonical-prefix contracts`
+- `### Row lineage, official semantics, and parcel-area binding`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7D.5B.2B.5 — Bind artifacts to exact upstream results`
+- `### Lightweight upstream binding`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7D.5B.2B.5.1 — Finalize upstream envelopes and portable filenames`
+- `### Intrinsic upstream envelopes`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7D.5B.2B.5.2 — Close empty envelopes and Windows device names`
+- `### Closed intrinsic gaps`
+- `### Unchanged real Muret artifacts`
+- `## STEP 7E.1A — Add factual IGN BD TOPO road-layer loading`
+- `### Configuration and loading contract`
+- `### Cached D031 factual result`
+- `## STEP 7E.1B — Normalize factual IGN road access attributes`
+- `### Normalization contract`
+- `### Cached D031 normalization`
+- `## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes`
+- `### Observed pairs and official labels`
+- `### Integrity and outputs`
+- `## STEP 7D.5A.1 — Harden CNIG snapshot fidelity and public coding contracts`
+- `### Catalog, relation, and public contracts`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.5A.2 — Close normalized planning-feature input contracts`
+- `### One factual contract`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.5A.3 — Bind normalized planning facts to GPU and parcel identity`
+- `### Source-complete factual boundary`
+- `### Schema-v3 source and result integrity`
+- `### Real Muret regression, outputs, and read-back`
+- `## STEP 7D.5B.1 — Define a strict BESS policy for official CNIG feature codes`
+- `### Policy identity and boundaries`
+- `### Exact Muret policy verification`
+- `### Outputs and read-back`
+- `## STEP 7D.5B.1.1 — Harden BESS CNIG policy snapshot and persisted artifacts`
+- `### Runtime and immutable policy contract`
+- `### Strict artifacts and validation order`
+- `## STEP 7D.5B.1.2 — Finalize BESS CNIG policy hash and artifact integrity`
+- `### Immutable result hashes`
+- `### Verified bytes and compiler ordering`
+- `## STEP 7D.5B.2A — Apply BESS CNIG policy to features and relations`
+- `### Exact propagation and source locks`
+- `### Real Muret propagation`
+- `### Result hashes and strict artifacts`
+- `## STEP 7D.5B.2B — Aggregate BESS CNIG feature evidence to parcels`
+- `### Conservative aggregation semantics`
+- `### Real Muret aggregation`
+- `### Hashes and artifact read-back`
+- `## STEP 7D.5B.2B.1 — Seal intrinsic parcel-aggregation contracts`
+- `### Intrinsic contracts and fast-fail boundary`
+- `### Unchanged real Muret result and artifacts`
+- `## STEP 7D.5B.2A.1 — Finalize feature-policy application integrity`
+- `### Row audit and local contracts`
+- `### Canonical geometry and dimension-aware integrity`
+- `### Real Muret schema-v2 regression`
+- `## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries`
+- `### Deterministic frame schemas`
+- `### GPU and resolver boundaries`
+- `### Real Muret regression and schema-v5 read-back`
+- `## STEP 7D.5A.4 — Prove GPU-source and parcel-feature relation completeness`
+- `### Verified physical GPU sources`
+- `### Complete spatial relation and parcel-summary reconstruction`
+- `### Schema-v4 outputs and read-back`
+- `## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.4C.3 — Close evidence-to-route coverage and chapter identity`
+- `### Real Muret regression and integrity`
+- `## STEP 7D.4C.2 — Link BESS zoning evidence into coherent decision routes`
+- `### Route and review semantics`
+- `### Complete exact source-rule context`
+- `### Real Muret regression`
+- `### Integrity, outputs, and read-back`
+- `## STEP 7D.4C.1 — Harden BESS zoning-policy semantics and evidence auditability`
+- `### Review and evidence contracts`
+- `### Real Muret re-review`
+- `### Integrity, outputs, and read-back`
+- `## STEP 7D.4A — Extract and index the Muret PLU written regulation`
+- `### Validated source and extraction`
+- `### Factual diagnostic searches`
+- `### Outputs and read-back`
+- `## STEP 7D.4A.1 — Generalize and harden planning-regulation indexing`
+- `### Real Muret regression`
+- `### Outputs and read-back`
+- `## STEP 7D.4A.2 — Seal regulation-source selection and index lineage`
+- `### Real Muret regression`
+- `### Outputs and read-back`
+- `## STEP 7D.4B — Build factual regulation structure and zone evidence`
+- `### Real document-structure inspection`
+- `### Real sections and zone mapping`
+- `### Factual topic evidence`
+- `### Integrity, outputs, and read-back`
+- `## STEP 7D.4B.1 — Harden regulation structure and evidence fidelity`
+- `### Positional source fidelity`
+- `### Complete input and result integrity`
+- `### Corrected literal topic evidence`
+- `### Outputs and read-back`
+- `## STEP 7D.4B.2 — Finalize structure schema and deterministic edge handling`
+- `### Versioned and deterministic contracts`
+- `### Real Muret regression`
+- `### Outputs and read-back`
+- `## STEP 7D.4B.3 — Finalize factual structure edge integrity`
+- `### Scope, page, and source-record fidelity`
+- `### Complete intersection-input lineage`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.4B.4 — Reject ambiguous structural heading matches`
+- `### Heading ambiguity contract`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.4C — Evidence-backed BESS zoning precheck`
+- `### Scope and policy semantics`
+- `### Integrity and parcel aggregation`
+- `### Real Muret regression`
+- `### Outputs and read-back`
+- `## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels`
+- `### Real inputs and lineage`
+- `### Integrity and performance`
+- `### Factual zoning results`
+- `### Outputs and read-back`
+- `## STEP 7D.3 — Normalize and intersect GPU planning features`
+- `### Real schemas and source identities`
+- `### Raw source-code diagnostics`
+- `### Real relations, metrics, and integrity`
+- `### Outputs and read-back`
+- `## STEP 7D.3.1 — Harden GPU planning-feature identity and result contracts`
+- `### Strengthened contracts`
+- `### Real Muret regression and read-back`
+- `## STEP 7D.1.1 — Harden GPU source and extraction integrity`
+- `### Listing/details and document/config identity`
+- `### Archive, ZIP-target, and extraction-manifest integrity`
+- `### Real Muret regression`
+- `## STEP 7D.1 — GPU Muret urban-planning source ingestion`
+- `### Current official document and archive lineage`
+- `### Complete extracted-file inventory`
+- `### Spatial layer inventory and geometry evidence`
+- `### Written regulation inventory`
+- `## STEP 7C.5 — Diagnose IGN grid proxy coverage boundaries`
+- `### Real department-layer inspection`
+- `### Diagnostic semantics`
+- `### Real Muret/D031 results`
+- `### Outputs and read-back`
+- `## STEP 7C.4.2 — Cross-validate exact-line proximity representations`
+- `### Exact representation contract`
+- `### Real Muret/D031 regression and read-back`
 
-## 4. Contract taxonomy
+The current STEP 7F.1A.4 entry deliberately labels final integrated validation as pending. Historical completed-step counts and evidence are not rewritten as current-run results.
 
-Its exact content is reproduced below. No Python alias, frame column, model field, or runtime business semantic is inferred from passive text.
+## 4. Side effects and change impact
 
-````text
+- This declarative/history file performs no runtime network, filesystem, CRS, geometry, policy, or parcel operation by itself.
+- Any byte change invalidates the SHA above and requires updating this companion; project-tool changes also require lock/tool validation where applicable.
+
+## 5. Exact complete current file content
+
+The following UTF-8 snapshot is complete and byte-bound, not an excerpt.
+
+````markdown
 # LandScout AI development log
 
 ## Current project state
 
-- Current phase: Technical-reference fidelity correction
-- Latest completed step: STEP 7F.1A.3.2
+- Current phase: End-to-end source-authority and planning-completeness hardening
+- Latest completed step: STEP 7F.1A.4
+- Current step: STEP 7F.1A.4 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of STEP 7F.1A.3.2; no functional step selected
+- Next step waiting for review: none selected
+
+## STEP 7F.1A.4 — Close end-to-end source authority and planning-completeness gaps
+
+- Status: Complete. Implementation, permanent regressions, focused/integration/complete execution, static gates, and the definitive living-documentation audit all pass.
+- Independent-review findings: Cadastre authority loss; mutable configuration; non-strict trust-bearing serialization; redirect header forwarding; IGN fresh-object TOCTOU; IGN Road/Coverage lineage asymmetry; IGN/GPU extraction-recovery gaps; IGN 7z destination gaps; GPU config authority and logical-role collision; amputated zoning-summary acceptance; self-referential required-article completeness; and missing true planning integration coverage.
+- Strict configuration and serialization: shared YAML decoding rejects duplicate mapping keys at every depth. Shared JSON decoding rejects duplicate object keys, malformed UTF-8, non-finite/overflow numbers, and a non-object root where a trust model requires an object. Source, profile, and policy decision models are frozen, nested decision mappings/collections are immutable, and public boundaries reconstruct/revalidate models rather than trusting a possibly mutated instance. Exact RTE/ODRÉ and GPU identities and strict finite numeric source/cache fields are retained.
+- Safe HTTPS headers: caller header names are case-insensitively unique. Credential headers and caller-owned `Host`, connection, proxy, transfer, trailer, and upgrade headers fail before DNS. The transport owns `Host` and `Connection: close`; ordinary `User-Agent` and `Accept` remain usable across a fully revalidated redirect. DNS-to-socket/TLS binding, peer verification, proxy bypass, manual redirects, and adapter-specific source locks are unchanged.
+- Cadastre authority and canonical parcels: `CadastreDownload` now binds canonical commune to the exact official HTTPS URL and generated filename under a strict cache-metadata schema. `load_cadastre_parcels` returns a frozen `CadastreParcelSource`; source-complete revalidation rereads the gzip, exact-compares the supplied frame, and returns the fresh physical frame consumed by normalization. Only 2D Polygon/MultiPolygon source geometry is accepted, generated-column collisions fail closed, and the shared normalized parcel validator binds identity/status to real geometry and EPSG:2154 area. Area/shape config and generated-output boundaries are independently revalidated.
+- IGN authority and recovery: the exact immutable config validates complete download lineage, all electricity/road/coverage roles must be globally distinct, and Road/Coverage receive the same config-bound authority as Electricity. Normalizers derive context and rows only from fresh revalidated objects. Extraction treats any pre-existing `.bak` as manual-recovery state, validates `.part` path kind, validates the complete Windows-compatible 7z destination inventory before extraction, exact-compares actual inventory, uses exclusive temporary files, and preserves recovery material after double failure.
+- GPU authority and recovery: exact provider/portal/country and the full immutable source config have a deterministic canonical SHA256 retained by `GpuPlanningDocument`. Inspection and every spatial revalidator prove document/archive/extraction/config identity; populated logical roles cannot share a physical dataset/layer, and a fresh complete physical layer inventory must equal `all_spatial_layers`. Strict JSON covers discovery, detail, written-file, cache, and extraction-manifest inputs. Pre-existing extraction backups fail closed, rollback material survives double failure, and archive/metadata/extraction temporary paths are link/junction-safe.
+- Planning completeness: factual zoning validation requires every member of `PARCEL_ZONING_OUTPUT_COLUMNS` and exact-compares the complete reconstruction while allowing unrelated pass-through parcel columns. Applicable body pages with `extraction_status=ERROR` fail before a complete review; blank successfully extracted pages remain allowed. Every configured zone chapter requires exactly one child article for every configured required article number, and reviewed sections must remain chapter-correct and source-closed. A physical synthetic integration regression covers GPU archive/extraction, configured inspection, parcel/zoning intersection, PDF index/structure, source-locked policy, interpretation, result validation, and physical/config/article mutations without bypassing zoning validation.
+- Public surface and compatibility: the approved source-bound Cadastre API and factual zoning result/error are intentionally exported; raw-path inspection helpers are not presented as equivalent source authority. Package tests bind `landscout.__version__` exactly to `project.version`. Business/output/policy/artifact schema and hash versions, checked-in policy semantics, valid factual outputs, source snapshots, and artifact bytes remain compatibility locks. The internal IGN extraction marker alone intentionally advances from schema 2 to schema 3 so it can bind all four configured logical roles and the complete extracted-file inventory.
+- Final validation: the configuration/source focused group passed 557 tests in 14.10 seconds; shared safe HTTPS passed 74 tests in 0.07 seconds; Cadastre passed 294 tests in 2.70 seconds; grid/road passed 715 tests with 2 expected warnings in 34.08 seconds; planning passed 1,355 tests with 2 expected warnings in 802.70 seconds; the physical GPU-planning integration passed 4 tests in 1.81 seconds; and the complete repository passed 3,059 tests with 4 expected warnings in 903.68 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 100 files already formatted; `uv run mypy src` reported no issues in 48 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed. The definitive independent documentation audit found exactly 105 source files, 105 companions, and 105 `FILE_INDEX` rows; 105 correct raw SHA bindings; 83 complete snapshots; 2,875 lexical Python symbols; 1,360 tests; 14 fixtures; 436 exact parametrization decorators; 308 exports; 1,129 YAML leaves; 16 TOML leaves; and zero set, SHA, raw-payload, symbol, decorator, import, export, fence, encoding, conflict, or stale-block mismatches. All 11 trust-bearing YAML companions include complete readable YAML plus Base64 authoritative raw bytes whose decoded lengths and SHA256 values match, including the zoning policy's 655 CRLF and 68 lone-LF positions.
+- Boundary: no source was redownloaded for this hardening. No protected-area interpretation, parcel/environment overlay, cross-criterion combination, global score, ranking, new parcel decision, owner/contact workflow, legal conclusion, road/heavy-vehicle conclusion, grid-capacity conclusion, or planning authorization/prohibition was introduced.
 
 ## STEP 7F.1A.3.2 — Correct qualified-reference ownership and semantic documentation
 
@@ -4045,55 +4320,3 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 ````
-
-## 5. Classes / models / dataclasses
-
-Not applicable.
-
-## 6. Functions and methods
-
-Not applicable.
-
-## 7. Data contracts
-
-Interpreted only as human engineering documentation/history by engineers and repository documentation readers; not a Pandas/GeoPandas schema.
-
-## 8. Interfaces
-
-Consumer: engineers and repository documentation readers.
-
-## 9. Error handling
-
-Not applicable to the passive file itself; its consumer reports malformed or unsupported content.
-
-## 10. Side effects
-
-The passive file performs no operation. Reads/resolution belong to its named consumer.
-
-## 11. Security / trust boundaries
-
-The companion SHA binds exact bytes. No source authority is inferred unless a runtime adapter validates it.
-
-## 12. GIS / CRS rules
-
-Not applicable unless an exact configuration field in the reproduced content is consumed by a GIS validator.
-
-## 13. Provenance rules
-
-The path and SHA identify this repository snapshot; passive prose/history is not implementation proof.
-
-## 14. Business meaning
-
-No business decision is executed by this passive file.
-
-## 15. Explicit non-goals
-
-- Does not independently run a source adapter, GIS calculation, policy, score, ranking, or legal decision.
-
-## 16. Tests
-
-Not applicable directly; repository/tool configuration may be exercised by the mandated validation commands.
-
-## 17. Change impact
-
-Review engineers and repository documentation readers, repository workflows, and this companion SHA after any byte change.

@@ -31,9 +31,9 @@ The written-zoning result and feature-policy aggregation are not combined with o
 
 ## GPU acquisition and inspection
 
-`load_gpu_source_config` revalidates exact official API origin, pilot partition, logical spatial roles, and cache policy. `discover_current_gpu_document` queries the partition, selects the unique current PLU document for the configured commune/type/status, validates official archive and written-file URLs, and returns `GpuDocumentMetadata`.
+`load_gpu_source_config` uses duplicate-rejecting YAML and returns a frozen, deeply immutable config with exact provider/portal/country, official API origin, pilot partition, logical spatial roles, and cache policy. A deterministic canonical SHA256 identifies the validated model. `discover_current_gpu_document` reconstructs the config, queries the partition, selects the unique current PLU document for the configured commune/type/status, validates official archive and written-file URLs, and returns `GpuDocumentMetadata`.
 
-`download_gpu_document` revalidates caller-supplied document metadata and every written-file identity before network/cache access. Cache/ZIP checks bind physical bytes to the document. `extract_gpu_document` validates all members before manual extraction and inventories every file. Spatial discovery/inspection identifies actual dataset layers and returns summaries and `GpuValidatedSpatialLayerSource` integrity envelopes. `ingest_gpu_planning_document` packages extraction, inspected logical layers, written-file records, and source identity into `GpuPlanningDocument`.
+`download_gpu_document` revalidates caller-supplied document metadata and every written-file identity before network/cache access. Cache/ZIP checks bind physical bytes to the document. `extract_gpu_document` validates all members before manual extraction, inventories every file, fails closed on pre-existing `.bak`, and uses link/junction-safe temporary paths. Spatial discovery/inspection proves extraction-to-config lineage, identifies actual dataset layers, and rejects any dataset-path/source-layer collision across zoning, prescription, and information roles. `ingest_gpu_planning_document` packages the validated source config, canonical config SHA256, extraction, complete physical layer inventory, inspected logical layers, written-file records, and source identity into `GpuPlanningDocument`. Every later GPU spatial revalidator checks that retained config identity and freshly rediscovers/exact-compares the complete physical layer inventory.
 
 ## Zoning spatial facts
 
@@ -48,7 +48,7 @@ The written-zoning result and feature-policy aggregation are not combined with o
 7. creates deterministic parcel summaries;
 8. validates the rebuilt result and preserves source inputs.
 
-`ParcelZoningResult` is factual spatial evidence. A zone label or overlap alone is not a BESS decision.
+`ParcelZoningResult` is factual spatial evidence. Its public/source-complete validator requires exact result/frame types, unique complete schemas, CRS/active geometry/index/dtypes/WKB/lineage, and every member of `PARCEL_ZONING_OUTPUT_COLUMNS`. It strips that complete summary set from the pass-through parcel frame, reconstructs the result from the physical zoning layer, and exact-compares every summary value. An amputated or coordinated partial summary cannot pass. A zone label or overlap alone is not a BESS decision.
 
 ## Planning feature spatial facts
 
@@ -68,7 +68,7 @@ The stage validates feature identity, global uniqueness, source type/subtype val
 
 `load_planning_regulation_structure_config` loads exact document/profile locks, layout/header/footer patterns, structural heading grammars, zone aliases, and topic terms. `structure_planning_regulation`:
 
-1. validates the index and zoning inputs/source locks;
+1. validates the index and zoning inputs/source locks and fails if any applicable body page has `extraction_status=ERROR`;
 2. filters configured page headers/footers without altering body source records;
 3. classifies general, zone, article, TOC, continuation, blank, and other records under non-ambiguous grammar;
 4. preserves a lossless ordered record partition;
@@ -77,13 +77,15 @@ The stage validates feature identity, global uniqueness, source type/subtype val
 7. derives topic-evidence flags/scope from exact configured terms and section type;
 8. carries exact page/offset/hash lineage and validates hashes/result closure.
 
-`PlanningRegulationStructureResult` is structured evidence, not a legal conclusion. `planning_regulation_section_page_fragments` exposes exact source fragments needed by policy validation.
+An applicable body page begins at configured `body_start_page` and excludes configured table-of-contents pages. A blank page whose extraction succeeded remains allowed; a failed extraction is not treated as blank source text. `PlanningRegulationStructureResult` is structured evidence, not a legal conclusion. `planning_regulation_section_page_fragments` exposes exact source fragments needed by policy validation.
 
 ## Written BESS zoning policy
 
 `configs/planning/muret_bess_zoning_policy.yaml` is a source-locked, schema-v5 profile. `load_bess_zoning_policy_config` rejects duplicate keys, unsupported versions, source-lock drift, malformed references, unclosed routes, invalid evidence direction/kind, and noncanonical source excerpts/hashes. The current profile is `muret_bess_written_zoning_v6`.
 
-`interpret_bess_zoning` source-completely validates structure/zoning inputs, verifies every configured evidence occurrence against exact PDF-derived fragments, evaluates configured chapter routes, maps source zones to chapter decisions, applies those decisions to parcel zoning relations, and returns hashed frames/scalars under `BessZoningPrecheckResult`.
+`interpret_bess_zoning` source-completely validates structure/zoning inputs and treats `required_zone_article_numbers` as requirements rather than filters over observed data. Every zone chapter must contain exactly one child `ARTICLE` for each configured number, with the expected chapter label and valid page/source closure. Every required section must be reviewed, and reviewed article sections cannot come from another chapter. It then verifies every configured evidence occurrence against exact PDF-derived fragments, evaluates configured chapter routes, maps source zones to chapter decisions, applies those decisions to parcel zoning relations, and returns hashed frames/scalars under `BessZoningPrecheckResult`.
+
+The permanent synthetic physical integration regression runs the real config-bound GPU archive/extraction and inspection, real parcel/zoning intersection, real PDF index and structure, source-locked synthetic policy, interpretation, and final result validation without monkeypatching `validate_normalized_planning_zoning_inputs`. It also proves physical mutation, config mismatch, and a missing required article fail closed.
 
 The current `CONDITIONAL_REVIEW` outcomes retain unresolved category/ICPE applicability and infrastructure/restriction/exception evidence. `CONTEXT_ONLY` evidence stays visible but cannot qualify a route. No code claims that BESS is categorically an ICPE use or that a route's condition is satisfied.
 

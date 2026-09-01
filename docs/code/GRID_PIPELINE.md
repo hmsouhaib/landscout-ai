@@ -20,13 +20,13 @@ flowchart TD
 
 ## Physical IGN source
 
-The checked-in IGN configuration identifies BD TOPO D031 package lineage and logical match rules for an electric-line layer, a transformation-post layer, road access, and department coverage. `load_ign_bdtopo_electricity` validates the extraction envelope and reproduces configured line/post physical roles from the verified GeoPackage inventory. It reads both layers in one verified batch, with GeoPackage hash checks before and after access, and returns frames plus deterministic `IgnBdTopoLayerSummary` objects.
+The frozen checked-in IGN configuration identifies exact BD TOPO D031 download lineage and logical match rules for an electric-line layer, a transformation-post layer, road access, and department coverage. All four physical roles must be globally distinct. `load_ign_bdtopo_electricity` reconstructs the config model, validates complete archive/extraction/config lineage, and reproduces configured line/post roles from the verified GeoPackage inventory. It reads both layers in one verified batch, with GeoPackage hash checks before and after access, and returns frames plus deterministic `IgnBdTopoLayerSummary` objects.
 
 An IGN transformation post is an IGN mapped feature. It is not an RTE connection node, an offered substation bay, or proof that the feature can accept a BESS connection.
 
 ## Source-complete normalization
 
-`normalize_ign_electricity(source, config)` validates exact public types and calls a config-aware physical revalidator. Fresh configured line/post frames and summaries are exact-compared with the supplied source, so a coherent object for another physical layer cannot pass.
+`normalize_ign_electricity(source, config)` validates exact public types and calls a config-aware physical revalidator. Fresh configured line/post frames and summaries are exact-compared with the supplied source, so a coherent object for another physical layer cannot pass. Context, lineage, summaries, and normalized rows are derived from the returned fresh object only; a later mutation of the supplied object cannot reach output.
 
 Normalization creates stable identities and factual lineage while preserving row order, geometry, CRS, Z coordinates, null/empty/invalid rows, and source attributes. Output includes separate electric-line and transformation-post GeoDataFrames with deterministic column order and RangeIndex.
 
@@ -44,7 +44,7 @@ The parser is a factual vocabulary normalizer, not a capacity or compatibility m
 
 ## Public proximity boundary
 
-`enrich_parcel_grid_proximity(parcels, electricity_source, source_config)` accepts verified `IgnBdTopoElectricityData`, not normalized caller frames. It invokes source-complete normalization exactly once, validates parcels and normalized catalogs, and then calls a private frame-computation helper.
+`enrich_parcel_grid_proximity(parcels, electricity_source, source_config)` accepts verified `IgnBdTopoElectricityData`, not normalized caller frames. It invokes source-complete normalization exactly once, validates parcels and normalized catalogs, rejects every pre-existing parcel column that it would generate, and then calls a private frame-computation helper.
 
 For each parcel it computes:
 
@@ -69,7 +69,7 @@ For each parcel it computes:
 
 ## Coverage boundary
 
-`assess_grid_coverage(parcels, electricity_source, source_config)` owns one public proximity call and one `load_ign_bdtopo_department_coverage(electricity_source.extraction, config)` call. It validates that coverage is the configured layer/department-field selection from the same extraction.
+`assess_grid_coverage(parcels, electricity_source, source_config)` owns one public proximity call and one `load_ign_bdtopo_department_coverage(electricity_source.extraction, config)` call. It rejects collisions with every generated coverage/lineage column and validates that coverage is a fresh read of the configured layer/department-field selection from the same verified extraction; a supplied summary cannot choose its own authority.
 
 On calculation copies it evaluates full parcels against the one EPSG:2154 department Polygon/MultiPolygon. Strictly interior parcels receive a distance to the coverage boundary. Touching/crossing/outside parcels receive zero and an outside/crossing position. For a matched grid feature:
 
@@ -79,6 +79,8 @@ On calculation copies it evaluates full parcels against the one EPSG:2154 depart
 - no selected feature -> `NO_MATCH` with precedence.
 
 Coverage diagnosis warns about the finite verified package boundary. It does not search outside D031 or prove a global nearest feature.
+
+IGN extraction is part of this source boundary: a pre-existing extraction `.bak` stops the run for manual recovery, `.part` must be link/junction-safe, the full Windows-compatible 7z destination inventory is validated before extraction, and actual extracted entries are exact-compared before publication.
 
 ## RTE / ODRÉ role
 

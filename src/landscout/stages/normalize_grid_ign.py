@@ -136,9 +136,7 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
 LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 TRANSFORMATION_POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 
-_EXACT_VOLTAGE_PATTERN = re.compile(
-    r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE
-)
+_EXACT_VOLTAGE_PATTERN = re.compile(r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE)
 _BELOW_VOLTAGE_PATTERN = re.compile(
     r"^<\s*(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE
 )
@@ -195,9 +193,7 @@ class NormalizedIgnElectricityData:
 def _normalized_term(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value.strip().casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(without_accents.split())
 
@@ -275,16 +271,12 @@ def _required_exact_string(value: object, label: str) -> str:
 
 def _validate_source_context(context: _IgnGridSourceContext) -> None:
     _required_exact_string(context.source_layer, "source_layer")
-    department_code = _required_exact_string(
-        context.department_code, "department_code"
-    )
+    department_code = _required_exact_string(context.department_code, "department_code")
     edition = _required_exact_string(context.edition, "edition")
     download_timestamp = _required_exact_string(
         context.download_timestamp, "download_timestamp"
     )
-    archive_sha256 = _required_exact_string(
-        context.archive_sha256, "archive_sha256"
-    )
+    archive_sha256 = _required_exact_string(context.archive_sha256, "archive_sha256")
     source_url = _required_exact_string(context.source_url, "source_url")
 
     try:
@@ -378,7 +370,9 @@ def _validate_input(
             f"IGN {source_layer} cleabs values must not contain ':'"
         )
     if identifiers.map(
-        lambda value: any(unicodedata.category(character) == "Cc" for character in value)
+        lambda value: any(
+            unicodedata.category(character) == "Cc" for character in value
+        )
     ).any():
         raise IgnGridNormalizationError(
             f"IGN {source_layer} cleabs values must not contain control characters"
@@ -544,9 +538,7 @@ def _normalize_ign_electric_lines(
         "methode_d_acquisition_planimetrique"
     ].copy()
     output["planimetric_precision_m"] = precision
-    return _validated_geodataframe(
-        output, working, status, LINE_OUTPUT_COLUMNS
-    )
+    return _validated_geodataframe(output, working, status, LINE_OUTPUT_COLUMNS)
 
 
 def _normalize_ign_transformation_posts(
@@ -660,9 +652,7 @@ def _normalized_identity(value: object, label: str) -> str:
         raise IgnGridNormalizationError(f"IGN archive {label} must be a string")
     decomposed = unicodedata.normalize("NFKD", value.casefold())
     without_accents = "".join(
-        character
-        for character in decomposed
-        if not unicodedata.combining(character)
+        character for character in decomposed if not unicodedata.combining(character)
     )
     return " ".join(re.findall(r"[a-z0-9]+", without_accents))
 
@@ -691,16 +681,15 @@ def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
         raise IgnGridNormalizationError("IGN electricity extraction type is invalid")
     if type(source.extraction.archive) is not IgnBdTopoDownload:
         raise IgnGridNormalizationError("IGN electricity archive type is invalid")
-    if type(source.electric_lines_summary) is not IgnBdTopoLayerSummary or type(
-        source.transformation_posts_summary
-    ) is not IgnBdTopoLayerSummary:
+    if (
+        type(source.electric_lines_summary) is not IgnBdTopoLayerSummary
+        or type(source.transformation_posts_summary) is not IgnBdTopoLayerSummary
+    ):
         raise IgnGridNormalizationError("IGN electricity summary type is invalid")
     if not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(
         source.transformation_posts, gpd.GeoDataFrame
     ):
-        raise IgnGridNormalizationError(
-            "IGN electricity layers must be GeoDataFrames"
-        )
+        raise IgnGridNormalizationError("IGN electricity layers must be GeoDataFrames")
     extraction = source.extraction
     layer_names = extraction.all_layer_names
     if (
@@ -780,25 +769,23 @@ def normalize_ign_electricity(
             raise IgnGridNormalizationError(
                 "IGN electricity source config type is invalid"
             )
-        _validate_source_bundle(source)
-        _revalidate_ign_bdtopo_electricity_data(source, config)
-        line_context = _source_context(
-            source, source.extraction.electric_lines_layer
-        )
+        fresh = _revalidate_ign_bdtopo_electricity_data(source, config)
+        _validate_source_bundle(fresh)
+        line_context = _source_context(fresh, fresh.extraction.electric_lines_layer)
         post_context = _source_context(
-            source, source.extraction.transformation_posts_layer
+            fresh, fresh.extraction.transformation_posts_layer
         )
         return NormalizedIgnElectricityData(
             electric_lines=_normalize_ign_electric_lines(
-                source.electric_lines, line_context
+                fresh.electric_lines, line_context
             ),
             transformation_posts=_normalize_ign_transformation_posts(
-                source.transformation_posts, post_context
+                fresh.transformation_posts, post_context
             ),
         )
     except IgnGridNormalizationError:
         raise
     except Exception as error:
         raise IgnGridNormalizationError(
-            "IGN electricity source cannot be normalized safely"
+            f"IGN electricity source cannot be normalized safely: {error}"
         ) from error

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import io
 import json
+import os
+import shutil
 import warnings
 import zipfile
 from dataclasses import replace
@@ -104,7 +106,9 @@ def _files() -> list[dict[str, object]]:
     return [{"name": "reglement.pdf", "title": "Règlement écrit", "path": "Règlements"}]
 
 
-def _patch_json_responses(monkeypatch: pytest.MonkeyPatch, values: list[object]) -> None:
+def _patch_json_responses(
+    monkeypatch: pytest.MonkeyPatch, values: list[object]
+) -> None:
     responses = iter(values)
 
     def opener(*args: object, **kwargs: object) -> _Response:
@@ -142,7 +146,11 @@ def _download(
     archive_bytes: bytes | None = None,
 ) -> GpuArchiveDownload:
     document = _document(monkeypatch)
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(archive_bytes or _zip_bytes()))
+    monkeypatch.setattr(
+        gpu,
+        "open_safe_https",
+        lambda *args, **kwargs: _Response(archive_bytes or _zip_bytes()),
+    )
     return download_gpu_document(document, _config(), tmp_path)
 
 
@@ -157,9 +165,7 @@ def _planning_archive(tmp_path: Path) -> Path:
         geometry=[valid, invalid, None],
         crs="EPSG:2154",
     )
-    prescription = gpd.GeoDataFrame(
-        {"TYPEPSC": [5]}, geometry=[valid], crs="EPSG:2154"
-    )
+    prescription = gpd.GeoDataFrame({"TYPEPSC": [5]}, geometry=[valid], crs="EPSG:2154")
     zoning.to_file(gpkg, layer="zone_urba", driver="GPKG", engine="pyogrio")
     prescription.to_file(
         gpkg, layer="prescription_surf", driver="GPKG", engine="pyogrio", mode="a"
@@ -185,6 +191,18 @@ def test_valid_config_and_urls() -> None:
     )
 
 
+def test_duplicate_gpu_yaml_key_is_rejected(tmp_path: Path) -> None:
+    config_path = tmp_path / "gpu.yaml"
+    config_path.write_bytes(
+        Path("configs/sources/gpu_fr.yaml").read_bytes() + b"\nprovider: UNTRUSTED\n"
+    )
+
+    with pytest.raises(gpu.GpuConfigError) as captured:
+        load_gpu_source_config(config_path)
+
+    assert "duplicate" in str(captured.value.__cause__).casefold()
+
+
 @pytest.mark.parametrize(
     ("path", "value"),
     [
@@ -199,7 +217,9 @@ def test_valid_config_and_urls() -> None:
         (("cache", "max_age_hours"), -1),
     ],
 )
-def test_invalid_config_values_are_rejected(path: tuple[str, str], value: object) -> None:
+def test_invalid_config_values_are_rejected(
+    path: tuple[str, str], value: object
+) -> None:
     payload = _config().model_dump(mode="json")
     payload[path[0]][path[1]] = value
     with pytest.raises(ValidationError):
@@ -210,7 +230,12 @@ def test_mutated_loaded_api_origin_is_rejected_before_discovery_network(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config = _config()
-    config.api.base_url = HttpUrl("https://unrelated.example/api")
+    with pytest.raises(ValidationError, match="frozen"):
+        config.api.base_url = HttpUrl("https://unrelated.example/api")
+    forged_api = config.api.model_copy(
+        update={"base_url": HttpUrl("https://unrelated.example/api")}
+    )
+    forged = config.model_copy(update={"api": forged_api})
     network_calls = 0
 
     def fail_network(*args: object, **kwargs: object) -> object:
@@ -221,9 +246,40 @@ def test_mutated_loaded_api_origin_is_rejected_before_discovery_network(
     monkeypatch.setattr(gpu, "open_safe_https", fail_network)
 
     with pytest.raises(GpuDiscoveryError, match="config|official|origin"):
-        discover_current_gpu_document(config)
+        discover_current_gpu_document(forged)
 
     assert network_calls == 0
+
+
+@pytest.mark.parametrize("field", ["provider", "portal"])
+def test_gpu_source_identity_is_exact(field: str) -> None:
+    payload = _config().model_dump(mode="python")
+    payload[field] = "UNTRUSTED"
+
+    with pytest.raises(ValidationError):
+        GpuSourceConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize("value", [True, "168", float("nan"), float("inf")])
+def test_gpu_cache_age_rejects_coercion_and_nonfinite(value: object) -> None:
+    payload = _config().model_dump(mode="python")
+    payload["cache"]["max_age_hours"] = value
+
+    with pytest.raises(ValidationError):
+        GpuSourceConfig.model_validate(payload)
+
+
+def test_gpu_source_config_identity_is_deterministic_and_content_bound() -> None:
+    config = _config()
+    reconstructed = GpuSourceConfig.model_validate(
+        dict(reversed(tuple(config.model_dump(mode="python").items())))
+    )
+    changed_payload = config.model_dump(mode="python")
+    changed_payload["cache"]["max_age_hours"] = 169
+    changed = GpuSourceConfig.model_validate(changed_payload)
+
+    assert gpu._source_config_sha256(reconstructed) == gpu._source_config_sha256(config)
+    assert gpu._source_config_sha256(changed) != gpu._source_config_sha256(config)
 
 
 def test_unknown_config_field_is_rejected() -> None:
@@ -245,6 +301,28 @@ def test_document_discovery_success(monkeypatch: pytest.MonkeyPatch) -> None:
         "https://www.geoportail-urbanisme.gouv.fr/api/document/"
         "doc-1/files/reglement.pdf"
     )
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b'[{"id":"doc-1","id":"doc-2"}]',
+        b"[NaN]",
+        b"[Infinity]",
+    ],
+)
+def test_gpu_api_json_is_strict_before_document_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: bytes,
+) -> None:
+    monkeypatch.setattr(
+        gpu,
+        "open_safe_https",
+        lambda *args, **kwargs: _Response(payload),
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="JSON|duplicate|finite|metadata"):
+        discover_current_gpu_document(_config())
 
 
 @pytest.mark.parametrize(
@@ -312,7 +390,9 @@ def test_no_current_document_is_rejected(monkeypatch: pytest.MonkeyPatch) -> Non
         discover_current_gpu_document(_config())
 
 
-def test_ambiguous_current_documents_are_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ambiguous_current_documents_are_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_json_responses(monkeypatch, [[_listing_item(), _listing_item(id="doc-2")]])
     with pytest.raises(GpuDiscoveryError, match="Ambiguous"):
         discover_current_gpu_document(_config())
@@ -515,14 +595,54 @@ def test_archive_name_with_one_zip_suffix_is_not_duplicated(
     assert result.path == tmp_path / "safe-name.zip"
 
 
-def test_fresh_cache_is_reused(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fresh_cache_is_reused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     first = _download(tmp_path, monkeypatch)
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: pytest.fail("network used"))
+    monkeypatch.setattr(
+        gpu, "open_safe_https", lambda *args, **kwargs: pytest.fail("network used")
+    )
     second = download_gpu_document(first.document, _config(), tmp_path)
     assert second.cache_hit
     assert second.sha256 == first.sha256
+
+
+@pytest.mark.parametrize("field", ["file_size", "member_count"])
+def test_boolean_cache_integrity_counts_are_not_accepted_as_integers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+) -> None:
+    first = _download(tmp_path, monkeypatch)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    payload["file_size"] = 1
+    payload["member_count"] = 1
+    payload[field] = True
+    metadata_path.write_text(json.dumps(payload), encoding="utf-8")
+    original_stat = Path.stat
+
+    def one_byte_archive_stat(
+        path: Path, *args: object, **kwargs: object
+    ) -> os.stat_result:
+        result = original_stat(path, *args, **kwargs)
+        if path != first.path:
+            return result
+        values = list(result)
+        values[6] = 1
+        return os.stat_result(values)
+
+    monkeypatch.setattr(Path, "stat", one_byte_archive_stat)
+    monkeypatch.setattr(gpu, "validate_gpu_archive", lambda path: ("member",))
+    monkeypatch.setattr(gpu, "_sha256", lambda path: first.sha256)
+
+    assert (
+        gpu._load_cached_archive(
+            first.path,
+            metadata_path,
+            first.document,
+            max_age_hours=168,
+        )
+        is None
+    )
 
 
 def test_stale_recovery_backup_rejects_cache_before_network(
@@ -552,7 +672,9 @@ def test_expired_cache_is_refreshed(
     sidecar["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
     fresh_bytes = _zip_bytes({"fresh.txt": b"fresh"})
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(fresh_bytes))
+    monkeypatch.setattr(
+        gpu, "open_safe_https", lambda *args, **kwargs: _Response(fresh_bytes)
+    )
     refreshed = download_gpu_document(first.document, _config(), tmp_path)
     assert not refreshed.cache_hit
     assert refreshed.sha256 != first.sha256
@@ -591,7 +713,9 @@ def test_metadata_publication_failure_rolls_back_both_cache_files(
     old_archive = first.path.read_bytes()
     old_sidecar = sidecar_path.read_bytes()
     monkeypatch.setattr(
-        gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes({"fresh": b"x"}))
+        gpu,
+        "open_safe_https",
+        lambda *args, **kwargs: _Response(_zip_bytes({"fresh": b"x"})),
     )
     original_replace = gpu._replace_file
     failed = False
@@ -659,9 +783,7 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
     first = _download(tmp_path, monkeypatch)
     metadata_path = tmp_path / f"{first.filename}.metadata.json"
     metadata = json.loads(metadata_path.read_text())
-    metadata["download_timestamp"] = (
-        datetime.now(UTC) - timedelta(days=8)
-    ).isoformat()
+    metadata["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()
     metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
     old_archive = first.path.read_bytes()
     old_metadata = metadata_path.read_bytes()
@@ -742,9 +864,7 @@ def test_preexisting_temporary_archive_symlink_cannot_modify_target(
     def simulated_is_symlink(path: Path) -> bool:
         return path == temporary_archive or original_is_symlink(path)
 
-    def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+    def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
         if path == temporary_archive:
             return original_open(sentinel, *args, **kwargs)
         return original_open(path, *args, **kwargs)
@@ -771,7 +891,9 @@ def test_corrupt_download_is_rejected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     document = _document(monkeypatch)
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(b"not zip"))
+    monkeypatch.setattr(
+        gpu, "open_safe_https", lambda *args, **kwargs: _Response(b"not zip")
+    )
     with pytest.raises(GpuDownloadError):
         download_gpu_document(document, _config(), tmp_path)
     assert not list(tmp_path.glob("*.part"))
@@ -785,7 +907,9 @@ def test_tampered_sidecar_invalidates_cache(
     sidecar = json.loads(sidecar_path.read_text())
     sidecar["sha256"] = "0" * 64
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes()))
+    monkeypatch.setattr(
+        gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes())
+    )
     assert not download_gpu_document(first.document, _config(), tmp_path).cache_hit
 
 
@@ -830,9 +954,7 @@ def test_duplicate_zip_extraction_targets_are_rejected(
 def test_zip_file_directory_target_collision_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "collision.zip"
     path.write_bytes(
-        _zip_member_bytes(
-            [("blocked", b"file"), ("blocked/child.txt", b"child")]
-        )
+        _zip_member_bytes([("blocked", b"file"), ("blocked/child.txt", b"child")])
     )
 
     with pytest.raises(GpuArchiveError, match="collision|target"):
@@ -868,9 +990,9 @@ def test_extraction_inventory_and_cache(
     }
     assert extract_gpu_document(first, tmp_path / "cache").cache_hit
     manifest = json.loads(
-        (
-            extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME
-        ).read_text(encoding="utf-8")
+        (extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME).read_text(
+            encoding="utf-8"
+        )
     )
     assert manifest["schema_version"] == 2
     assert manifest["archive_sha256"] == first.sha256
@@ -883,6 +1005,293 @@ def test_extraction_inventory_and_cache(
         for item in extracted.files
     ]
     assert not list((tmp_path / "cache" / "x").glob("*.part"))
+
+
+def test_extraction_manifest_is_created_exclusively(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    original_open = Path.open
+    manifest_modes: list[str] = []
+
+    def observed_open(
+        path: Path,
+        mode: str = "r",
+        *args: object,
+        **kwargs: object,
+    ) -> object:
+        if path.name == gpu.EXTRACTION_MANIFEST_NAME:
+            manifest_modes.append(mode)
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", observed_open)
+
+    extract_gpu_document(download, tmp_path / "cache")
+
+    assert manifest_modes == ["x", "rb"]
+
+
+def test_stale_extraction_backup_fails_closed_and_is_preserved(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    extracted = extract_gpu_document(download, tmp_path / "cache")
+    backup = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.bak"
+    )
+    backup.mkdir()
+    sentinel = backup / "manual-recovery.txt"
+    sentinel.write_bytes(b"preserve")
+
+    with pytest.raises(GpuArchiveError, match="backup|recovery|manual"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert sentinel.read_bytes() == b"preserve"
+    assert extracted.extraction_root.is_dir()
+
+
+def test_extraction_publication_and_rollback_failure_preserves_backup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    extracted = extract_gpu_document(download, tmp_path / "cache")
+    sentinel = extracted.extraction_root / "manual-recovery.txt"
+    sentinel.write_bytes(b"preserve")
+    backup = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.bak"
+    )
+    temporary = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.part"
+    )
+    original_move = shutil.move
+
+    def fail_publication_and_rollback(source: str, target: str) -> object:
+        source_path = Path(source)
+        target_path = Path(target)
+        if source_path == temporary and target_path == extracted.extraction_root:
+            raise OSError("simulated extraction publication failure")
+        if source_path == backup and target_path == extracted.extraction_root:
+            raise OSError("simulated extraction rollback failure")
+        return original_move(source, target)
+
+    monkeypatch.setattr(shutil, "move", fail_publication_and_rollback)
+
+    with pytest.raises(GpuArchiveError, match="rollback"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert (backup / sentinel.name).read_bytes() == b"preserve"
+    with pytest.raises(GpuArchiveError, match="backup|recovery|manual"):
+        extract_gpu_document(download, tmp_path / "cache")
+    assert (backup / sentinel.name).read_bytes() == b"preserve"
+
+
+def test_extraction_publication_failure_restores_existing_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    extracted = extract_gpu_document(download, tmp_path / "cache")
+    sentinel = extracted.extraction_root / "rollback-source.txt"
+    sentinel.write_bytes(b"restore-me")
+    temporary = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.part"
+    )
+    backup = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.bak"
+    )
+    original_move = shutil.move
+
+    def fail_publication(source: str, target: str) -> object:
+        if Path(source) == temporary and Path(target) == extracted.extraction_root:
+            raise OSError("simulated extraction publication failure")
+        return original_move(source, target)
+
+    monkeypatch.setattr(shutil, "move", fail_publication)
+
+    with pytest.raises(GpuArchiveError, match="publication"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert sentinel.read_bytes() == b"restore-me"
+    assert not backup.exists()
+
+
+def test_extraction_backup_move_failure_preserves_existing_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    extracted = extract_gpu_document(download, tmp_path / "cache")
+    sentinel = extracted.extraction_root / "manual-recovery.txt"
+    sentinel.write_bytes(b"preserve-existing-root")
+    backup = extracted.extraction_root.with_name(
+        f"{extracted.extraction_root.name}.bak"
+    )
+    original_move = shutil.move
+
+    def fail_initial_backup(source: str, target: str) -> object:
+        if Path(source) == extracted.extraction_root and Path(target) == backup:
+            raise OSError("simulated initial backup failure")
+        return original_move(source, target)
+
+    monkeypatch.setattr(shutil, "move", fail_initial_backup)
+
+    with pytest.raises(GpuArchiveError, match="backup.*failed"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert sentinel.read_bytes() == b"preserve-existing-root"
+    assert not backup.exists()
+
+
+def test_extraction_inventory_rejects_special_entry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "extraction"
+    root.mkdir()
+    special = root / "special-entry"
+    special.write_bytes(b"source")
+    original_is_file = Path.is_file
+    original_is_dir = Path.is_dir
+
+    def simulated_is_file(path: Path) -> bool:
+        return False if path == special else original_is_file(path)
+
+    def simulated_is_dir(path: Path) -> bool:
+        return False if path == special else original_is_dir(path)
+
+    monkeypatch.setattr(Path, "is_file", simulated_is_file)
+    monkeypatch.setattr(Path, "is_dir", simulated_is_dir)
+
+    with pytest.raises(GpuArchiveError, match="special filesystem entry"):
+        gpu._inventory(root)
+
+
+def test_extraction_cleanup_preserves_primary_controlled_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    temporary = tmp_path / "extraction.part"
+
+    def fail_cleanup(path: Path) -> None:
+        assert path == temporary
+        raise PermissionError("simulated cleanup failure")
+
+    monkeypatch.setattr(gpu, "_remove_extraction_path", fail_cleanup)
+    primary = GpuArchiveError("primary extraction failure")
+
+    gpu._cleanup_temporary_extraction_directory(temporary, primary)
+
+    with pytest.raises(GpuArchiveError, match="could not be cleaned"):
+        gpu._cleanup_temporary_extraction_directory(temporary, None)
+
+
+@pytest.mark.parametrize("link_kind", ["symlink", "junction"])
+def test_extraction_temporary_link_is_rejected_without_unlinking_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    link_kind: str,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    root = tmp_path / "cache" / "x" / download.sha256[:16]
+    temporary = root.with_name(f"{root.name}.part")
+    original_is_symlink = Path.is_symlink
+    original_is_junction = Path.is_junction
+    original_unlink = Path.unlink
+    original_rmdir = Path.rmdir
+    original_rmtree = shutil.rmtree
+    unlink_calls = 0
+    rmdir_calls = 0
+    rmtree_calls = 0
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return (link_kind == "symlink" and path == temporary) or original_is_symlink(
+            path
+        )
+
+    def simulated_is_junction(path: Path) -> bool:
+        return (link_kind == "junction" and path == temporary) or original_is_junction(
+            path
+        )
+
+    def protected_unlink(path: Path, *args: object, **kwargs: object) -> None:
+        nonlocal unlink_calls
+        if path == temporary:
+            unlink_calls += 1
+            raise AssertionError("temporary link was unlinked")
+        original_unlink(path, *args, **kwargs)
+
+    def protected_rmdir(path: Path, *args: object, **kwargs: object) -> None:
+        nonlocal rmdir_calls
+        if path == temporary:
+            rmdir_calls += 1
+            raise AssertionError("temporary junction was removed")
+        original_rmdir(path, *args, **kwargs)
+
+    def protected_rmtree(path: object, *args: object, **kwargs: object) -> None:
+        nonlocal rmtree_calls
+        if Path(path) == temporary:
+            rmtree_calls += 1
+            raise AssertionError("temporary link tree was removed")
+        original_rmtree(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+    monkeypatch.setattr(Path, "unlink", protected_unlink)
+    monkeypatch.setattr(Path, "rmdir", protected_rmdir)
+    monkeypatch.setattr(shutil, "rmtree", protected_rmtree)
+
+    with pytest.raises(GpuArchiveError, match="temporary|link|junction"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert unlink_calls == 0
+    assert rmdir_calls == 0
+    assert rmtree_calls == 0
+
+
+def test_stale_extraction_temporary_directory_fails_closed_and_is_preserved(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    root = tmp_path / "cache" / "x" / download.sha256[:16]
+    temporary = root.with_name(f"{root.name}.part")
+    temporary.mkdir(parents=True)
+    sentinel = temporary / "manual-recovery.txt"
+    sentinel.write_bytes(b"preserve-stale-temporary")
+
+    with pytest.raises(GpuArchiveError, match="temporary|manual|recovery"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert sentinel.read_bytes() == b"preserve-stale-temporary"
+
+
+def test_duplicate_extraction_manifest_key_forces_verified_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    first = extract_gpu_document(download, tmp_path / "cache")
+    manifest = first.extraction_root / gpu.EXTRACTION_MANIFEST_NAME
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    manifest.write_text(
+        "{"
+        f'"schema_version":{payload["schema_version"]},'
+        f'"archive_sha256":"{payload["archive_sha256"]}",'
+        f'"archive_sha256":"{payload["archive_sha256"]}",'
+        f'"files":{json.dumps(payload["files"])}'
+        "}",
+        encoding="utf-8",
+    )
+
+    rebuilt = extract_gpu_document(download, tmp_path / "cache")
+
+    assert not rebuilt.cache_hit
+    assert not rebuilt.extraction_root.with_name(
+        f"{rebuilt.extraction_root.name}.bak"
+    ).exists()
 
 
 def test_stale_download_object_rejects_replaced_valid_archive(
@@ -962,9 +1371,10 @@ def test_tampered_extraction_is_rebuilt_from_verified_archive(
 
 
 def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
+    config = _config()
     document = gpu.GpuDocumentMetadata(
-        provider="GPU",
-        portal="GPU",
+        provider=config.provider,
+        portal=config.portal,
         commune_code="31395",
         partition="DU_31395",
         document_id="doc-1",
@@ -983,7 +1393,7 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
         standard_model=None,
         projection="EPSG:2154",
         metadata_identifier=None,
-        source_url="https://example.test/archive.zip",
+        source_url=build_gpu_partition_download_url(config),
         written_files=(),
     )
     download = GpuArchiveDownload(
@@ -999,7 +1409,9 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
     return extract_gpu_document(download, tmp_path / "cache")
 
 
-def test_spatial_inventory_and_inspection_preserve_source_quality(tmp_path: Path) -> None:
+def test_spatial_inventory_and_inspection_preserve_source_quality(
+    tmp_path: Path,
+) -> None:
     extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
     references = discover_gpu_spatial_layers(extraction)
     assert [item.source_layer for item in references] == [
@@ -1044,6 +1456,149 @@ def test_ambiguous_zoning_layer_fails_clearly(tmp_path: Path) -> None:
         )
 
 
+def _config_with_shared_role_token(
+    first_role: str,
+    second_role: str,
+    token: str,
+) -> GpuSourceConfig:
+    payload = _config().model_dump(mode="python")
+    payload["spatial_layers"][first_role]["match_tokens"] = [token]
+    payload["spatial_layers"][second_role]["match_tokens"] = [token]
+    return GpuSourceConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("first_role", "second_role", "token"),
+    [
+        ("zoning", "prescription_surface", "zone_urba"),
+        ("prescription_surface", "prescription_line", "prescription_surf"),
+        ("prescription_surface", "information_surface", "prescription_surf"),
+    ],
+)
+def test_inspection_rejects_one_physical_layer_for_two_logical_roles(
+    tmp_path: Path,
+    first_role: str,
+    second_role: str,
+    token: str,
+) -> None:
+    extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
+    config = _config_with_shared_role_token(first_role, second_role, token)
+
+    with pytest.raises(GpuSpatialInspectionError, match="role|logical|same layer"):
+        inspect_gpu_planning_document(extraction, config)
+
+
+def test_inspection_rejects_mutated_config_before_layer_discovery(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
+    forged = _config().model_copy(update={"provider": "UNTRUSTED"})
+    discovery_calls = 0
+
+    def counted(*args: object, **kwargs: object) -> object:
+        nonlocal discovery_calls
+        discovery_calls += 1
+        raise AssertionError("layer discovery ran for an invalid config")
+
+    monkeypatch.setattr(gpu, "discover_gpu_spatial_layers", counted)
+
+    with pytest.raises(GpuSpatialInspectionError, match="config|provider"):
+        inspect_gpu_planning_document(extraction, forged)
+
+    assert discovery_calls == 0
+
+
+def test_inspection_rejects_archive_byte_mutation_before_layer_discovery(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive = _planning_archive(tmp_path)
+    extraction = _extraction_from_archive(archive, tmp_path)
+    archive.write_bytes(archive.read_bytes() + b"post-extraction-mutation")
+    discovery_calls = 0
+
+    def counted(*args: object, **kwargs: object) -> object:
+        nonlocal discovery_calls
+        discovery_calls += 1
+        raise AssertionError("layer discovery ran after archive mutation")
+
+    monkeypatch.setattr(gpu, "discover_gpu_spatial_layers", counted)
+
+    with pytest.raises(GpuSpatialInspectionError, match="archive|source|config"):
+        inspect_gpu_planning_document(extraction, _config())
+
+    assert discovery_calls == 0
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("commune_code", "99999"),
+        ("partition", "DU_99999"),
+        ("document_type", ""),
+        (
+            "source_url",
+            "https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_99999",
+        ),
+    ],
+)
+def test_inspection_rejects_document_lineage_not_matching_config(
+    tmp_path: Path,
+    field: str,
+    value: str,
+) -> None:
+    extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
+    document = replace(extraction.archive.document, **{field: value})
+    forged = replace(
+        extraction,
+        archive=replace(extraction.archive, document=document),
+    )
+
+    with pytest.raises(
+        GpuSpatialInspectionError,
+        match="config|commune|partition|URL|type|planning",
+    ):
+        inspect_gpu_planning_document(forged, _config())
+
+
+def test_planning_document_records_and_revalidates_exact_config_identity(
+    tmp_path: Path,
+) -> None:
+    extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
+    result = inspect_gpu_planning_document(extraction, _config())
+
+    assert result.source_config == _config()
+    assert result.source_config_sha256 == gpu._source_config_sha256(_config())
+    forged = replace(result, source_config_sha256="0" * 64)
+    with pytest.raises(GpuSpatialInspectionError, match="config|SHA"):
+        gpu.revalidate_gpu_spatial_layer_source(forged, forged.zoning)
+    malformed_inventory = replace(
+        result,
+        all_spatial_layers=list(result.all_spatial_layers),  # type: ignore[arg-type]
+    )
+    with pytest.raises(GpuSpatialInspectionError, match="inventory|tuple"):
+        gpu.revalidate_gpu_spatial_layer_source(
+            malformed_inventory,
+            malformed_inventory.zoning,
+        )
+
+
+def test_source_complete_revalidation_rejects_coordinated_spatial_omission(
+    tmp_path: Path,
+) -> None:
+    extraction = _extraction_from_archive(_planning_archive(tmp_path), tmp_path)
+    result = inspect_gpu_planning_document(extraction, _config())
+    forged = replace(
+        result,
+        all_spatial_layers=(result.zoning.reference,),
+        related_layers=(),
+    )
+
+    with pytest.raises(GpuSpatialInspectionError, match="spatial inventory|physical"):
+        gpu.revalidate_gpu_spatial_layer_source(forged, forged.zoning)
+
+
 def test_cached_document_lineage_change_forces_refresh(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1063,5 +1618,7 @@ def test_cached_document_lineage_change_forces_refresh(
             for item in first.document.written_files
         ),
     )
-    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes()))
+    monkeypatch.setattr(
+        gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes())
+    )
     assert not download_gpu_document(changed, _config(), tmp_path).cache_hit

@@ -56,13 +56,14 @@ from landscout.stages.normalize_grid_ign import (
 
 LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
 POST_LAYER = "POSTE_DE_TRANSFORMATION_V2"
+ROAD_LAYER = "TRONCON_DE_ROUTE"
+DEPARTMENT_LAYER = "DEPARTEMENT"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))
 _SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
 _SOURCE_CONFIG_PAYLOAD.update(
     {
-        "provider": "Institut national de l'information géographique et forestière",
         "source_url": SOURCE_URL,
         "checksum_url": None,
         "official_checksum_algorithm": None,
@@ -89,9 +90,7 @@ def _line_source(
     index: list[object] | None = None,
 ) -> gpd.GeoDataFrame:
     source_geometries = (
-        geometries
-        if geometries is not None
-        else [LineString([(0, 0), (100, 100)])]
+        geometries if geometries is not None else [LineString([(0, 0), (100, 100)])]
     )
     count = len(source_geometries)
     source_ids = (
@@ -114,8 +113,7 @@ def _line_source(
             "date_creation": pd.to_datetime(["2024-01-01"] * count),
             "date_modification": pd.to_datetime(["2025-01-01"] * count),
             "date_de_confirmation": pd.to_datetime(["2024-12-18"] * count),
-            "methode_d_acquisition_planimetrique": ["Photogrammétrie"]
-            * count,
+            "methode_d_acquisition_planimetrique": ["Photogrammétrie"] * count,
             "precision_planimetrique": source_precisions,
         },
         geometry=source_geometries,
@@ -157,8 +155,7 @@ def _post_source(
             "date_creation": pd.to_datetime(["2023-01-01"] * count),
             "date_modification": pd.to_datetime(["2025-02-01"] * count),
             "date_de_confirmation": pd.to_datetime(["2025-01-15"] * count),
-            "methode_d_acquisition_planimetrique": ["Orthophotographie"]
-            * count,
+            "methode_d_acquisition_planimetrique": ["Orthophotographie"] * count,
             "precision_planimetrique": source_precisions,
         },
         geometry=source_geometries,
@@ -197,7 +194,9 @@ def _summary(
         crs=str(frame.crs),
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
         null_geometry_count=int(null_mask.sum()),
         empty_geometry_count=int(empty_mask.sum()),
         invalid_geometry_count=int(invalid_mask.sum()),
@@ -214,11 +213,35 @@ def _source_bundle(
     extraction_path = _FIXTURE_ROOT / uuid4().hex
     extraction_path.mkdir(parents=True)
     geopackage_path = extraction_path / "data.gpkg"
-    pyogrio.write_dataframe(line_frame, geopackage_path, layer=LINE_LAYER, driver="GPKG")
+    pyogrio.write_dataframe(
+        line_frame, geopackage_path, layer=LINE_LAYER, driver="GPKG"
+    )
     pyogrio.write_dataframe(
         post_frame,
         geopackage_path,
         layer=POST_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    pyogrio.write_dataframe(
+        gpd.GeoDataFrame(
+            {"id": ["road"]},
+            geometry=[LineString([(0, 0), (1, 1)])],
+            crs="EPSG:2154",
+        ),
+        geopackage_path,
+        layer=ROAD_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    pyogrio.write_dataframe(
+        gpd.GeoDataFrame(
+            {"code_insee": ["31"]},
+            geometry=[Polygon([(0, 0), (0, 10), (10, 10), (10, 0)])],
+            crs="EPSG:2154",
+        ),
+        geopackage_path,
+        layer=DEPARTMENT_LAYER,
         driver="GPKG",
         append=True,
     )
@@ -228,7 +251,7 @@ def _source_bundle(
     layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
     digest = sha256(payload).hexdigest()
     marker = {
-        "schema_version": 2,
+        "schema_version": 3,
         "archive_sha256": ARCHIVE_SHA256,
         "geopackage_relative_path": "data.gpkg",
         "geopackage_size_bytes": len(payload),
@@ -236,13 +259,23 @@ def _source_bundle(
         "all_layer_names": list(layer_names),
         "electric_lines_layer": LINE_LAYER,
         "transformation_posts_layer": POST_LAYER,
+        "road_segments_layer": ROAD_LAYER,
+        "department_layer": DEPARTMENT_LAYER,
+        "extracted_entries": [
+            {
+                "relative_path": "data.gpkg",
+                "kind": "file",
+                "size_bytes": len(payload),
+                "sha256": digest,
+            }
+        ],
         "spatial_role": "PROXY_GEOMETRY",
     }
     (extraction_path / ".landscout-extraction.json").write_text(
         json.dumps(marker), encoding="utf-8"
     )
     archive = IgnBdTopoDownload(
-        provider="Institut national de l'information géographique et forestière",
+        provider=SOURCE_CONFIG.provider,
         product="BD TOPO",
         department_code="31",
         edition="2026-06-15",
@@ -272,6 +305,8 @@ def _source_bundle(
         all_layer_names=layer_names,
         electric_lines_layer=LINE_LAYER,
         transformation_posts_layer=POST_LAYER,
+        road_segments_layer=ROAD_LAYER,
+        department_layer=DEPARTMENT_LAYER,
         cache_hit=True,
     )
     return IgnBdTopoElectricityData(
@@ -655,9 +690,7 @@ def test_valid_or_null_line_precision_is_normalized_to_float(
         assert normalized.iloc[0]["planimetric_precision_m"] == float(precision)
 
 
-@pytest.mark.parametrize(
-    "precision", [-1, float("inf"), float("-inf"), True, "2.5"]
-)
+@pytest.mark.parametrize("precision", [-1, float("inf"), float("-inf"), True, "2.5"])
 def test_invalid_line_precision_fails(precision: object) -> None:
     with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
         normalize_ign_electric_lines(
@@ -688,9 +721,7 @@ def test_normalized_voltage_never_emits_non_finite_numeric_values() -> None:
 def test_valid_post_has_stable_lineage_and_no_voltage_inference() -> None:
     source = _post_source()
 
-    normalized = normalize_ign_transformation_posts(
-        source, _context(POST_LAYER)
-    )
+    normalized = normalize_ign_transformation_posts(source, _context(POST_LAYER))
 
     row = normalized.iloc[0]
     assert list(normalized.columns) == list(TRANSFORMATION_POST_OUTPUT_COLUMNS)
@@ -709,9 +740,7 @@ def test_post_geometry_crs_and_input_are_preserved() -> None:
     source = _post_source()
     before = deepcopy(source)
 
-    normalized = normalize_ign_transformation_posts(
-        source, _context(POST_LAYER)
-    )
+    normalized = normalize_ign_transformation_posts(source, _context(POST_LAYER))
 
     assert_geodataframe_equal(source, before)
     assert normalized.crs is not None and normalized.crs.to_epsg() == 2154
@@ -787,9 +816,7 @@ def test_valid_polygon_or_point_is_rejected_as_electric_line(
         )
 
 
-@pytest.mark.parametrize(
-    "geometry", [LineString([(0, 0), (10, 10)]), Point(1, 1)]
-)
+@pytest.mark.parametrize("geometry", [LineString([(0, 0), (10, 10)]), Point(1, 1)])
 def test_valid_line_or_point_is_rejected_as_transformation_post(
     geometry: object,
 ) -> None:
@@ -843,42 +870,64 @@ def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> No
     assert_geodataframe_equal(source.transformation_posts, posts_before)
 
 
+def test_grid_normalization_uses_distinct_fresh_revalidated_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _source_bundle()
+    fresh = replace(
+        source,
+        electric_lines=source.electric_lines.copy(deep=True),
+        transformation_posts=source.transformation_posts.copy(deep=True),
+    )
+    expected_voltage = fresh.electric_lines.loc[0, "voltage"]
+
+    def return_fresh_and_mutate_supplied(
+        _: object,
+        __: object,
+    ) -> IgnBdTopoElectricityData:
+        source.electric_lines.loc[0, "voltage"] = "FORGED AFTER REVALIDATION"
+        return fresh
+
+    monkeypatch.setattr(
+        grid_normalization,
+        "_revalidate_ign_bdtopo_electricity_data",
+        return_fresh_and_mutate_supplied,
+    )
+
+    normalized = _normalize_ign_electricity(source, SOURCE_CONFIG)
+
+    assert normalized.electric_lines.loc[0, "voltage_raw"] == expected_voltage
+    assert source.electric_lines.loc[0, "voltage"] == "FORGED AFTER REVALIDATION"
+
+
 @pytest.mark.parametrize(
-    ("field", "value", "message"),
+    ("field", "value"),
     [
-        ("provider", "Unrelated data vendor", "provider"),
-        ("product", "OTHER PRODUCT", "product"),
-        ("projection", "EPSG:4326", "2154"),
+        ("provider", "Unrelated data vendor"),
+        ("product", "OTHER PRODUCT"),
+        ("projection", "EPSG:4326"),
     ],
 )
 def test_high_level_rejects_incompatible_archive_identity(
     field: str,
     value: str,
-    message: str,
 ) -> None:
     source = _source_bundle_with_archive(**{field: value})
 
-    with pytest.raises(IgnGridNormalizationError, match=message):
+    with pytest.raises(IgnGridNormalizationError, match="lineage|config"):
         normalize_ign_electricity(source)
 
 
-def test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant() -> None:
-    provider = (
-        "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
-    )
+def test_archive_identity_requires_exact_pinned_strings() -> None:
+    provider = "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
     product = "bd-topo"
     source = _source_bundle_with_archive(
         provider=provider,
         product=product,
     )
-    config_payload = SOURCE_CONFIG.model_dump(mode="json")
-    config_payload.update({"provider": provider, "product": product})
-    matching_config = IgnBdTopoSourceConfig.model_validate(config_payload)
 
-    normalized = _normalize_ign_electricity(source, matching_config)
-
-    assert len(normalized.electric_lines) == 1
-    assert len(normalized.transformation_posts) == 1
+    with pytest.raises(IgnGridNormalizationError, match="provider|product|config"):
+        normalize_ign_electricity(source)
 
 
 def test_high_level_rejects_summary_row_count_mismatch() -> None:
@@ -888,7 +937,7 @@ def test_high_level_rejects_summary_row_count_mismatch() -> None:
         feature_count=source.electric_lines_summary.feature_count + 1,
     )
 
-    with pytest.raises(IgnGridNormalizationError, match="row count"):
+    with pytest.raises(IgnGridNormalizationError, match="summary|physical"):
         normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 
 
@@ -896,7 +945,7 @@ def test_high_level_rejects_summary_layer_name_mismatch() -> None:
     source = _source_bundle()
     summary = replace(source.electric_lines_summary, source_layer_name="WRONG")
 
-    with pytest.raises(IgnGridNormalizationError, match="summary layer"):
+    with pytest.raises(IgnGridNormalizationError, match="summary|physical"):
         normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 
 
@@ -907,7 +956,7 @@ def test_high_level_rejects_wrong_logical_name() -> None:
         logical_name=cast(Any, "transformation_posts"),
     )
 
-    with pytest.raises(IgnGridNormalizationError, match="logical name"):
+    with pytest.raises(IgnGridNormalizationError, match="summary|physical"):
         normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 
 
@@ -915,7 +964,7 @@ def test_high_level_rejects_summary_crs_mismatch() -> None:
     source = _source_bundle()
     summary = replace(source.electric_lines_summary, crs="EPSG:4326")
 
-    with pytest.raises(IgnGridNormalizationError, match="CRS|2154"):
+    with pytest.raises(IgnGridNormalizationError, match="summary|physical|CRS|2154"):
         normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 
 
@@ -934,10 +983,11 @@ def test_high_level_rejects_forged_ordered_summary_schema(mutation: str) -> None
         dtypes[0] = (dtypes[0][0], "object")
         changed = replace(summary, dtypes=tuple(dtypes))
 
-    with pytest.raises(IgnGridNormalizationError, match="schema|columns|dtype"):
-        normalize_ign_electricity(
-            replace(source, electric_lines_summary=changed)
-        )
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="summary|physical|schema|columns|dtype",
+    ):
+        normalize_ign_electricity(replace(source, electric_lines_summary=changed))
 
 
 def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
@@ -949,7 +999,10 @@ def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
             all_layer_names=(LINE_LAYER, POST_LAYER, LINE_LAYER),
         ),
     )
-    with pytest.raises(IgnGridNormalizationError, match="inventory|duplicate"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="integrity|inventory|duplicate",
+    ):
         normalize_ign_electricity(duplicate)
 
     missing = replace(
@@ -959,7 +1012,10 @@ def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
             all_layer_names=(POST_LAYER,),
         ),
     )
-    with pytest.raises(IgnGridNormalizationError, match="inventory|selected"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="integrity|inventory|selected",
+    ):
         normalize_ign_electricity(missing)
 
 
@@ -974,7 +1030,10 @@ def test_high_level_rejects_colliding_electricity_roles() -> None:
         source_layer_name=LINE_LAYER,
     )
 
-    with pytest.raises(IgnGridNormalizationError, match="same layer|distinct|role"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="integrity|same layer|distinct|role",
+    ):
         normalize_ign_electricity(
             replace(
                 source,
@@ -989,7 +1048,10 @@ def test_high_level_rejects_stale_geometry_counts_after_frame_mutation() -> None
     mutated = source.electric_lines.copy()
     mutated.at[mutated.index[0], "geometry"] = None
 
-    with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="freshly read physical source|geometry summary",
+    ):
         normalize_ign_electricity(replace(source, electric_lines=mutated))
 
 
@@ -1000,7 +1062,10 @@ def test_high_level_rejects_stale_geometry_types_after_frame_mutation() -> None:
         [[(0, 0), (10, 10)], [(20, 20), (30, 30)]]
     )
 
-    with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="freshly read physical source|geometry summary",
+    ):
         normalize_ign_electricity(replace(source, electric_lines=mutated))
 
 
@@ -1037,5 +1102,8 @@ def test_high_level_rejects_any_spatial_role_mismatch(component: str) -> None:
             ),
         )
 
-    with pytest.raises(IgnGridNormalizationError, match="PROXY_GEOMETRY"):
+    with pytest.raises(
+        IgnGridNormalizationError,
+        match="source-complete|role|spatial|lineage|integrity|PROXY_GEOMETRY",
+    ):
         normalize_ign_electricity(inconsistent)

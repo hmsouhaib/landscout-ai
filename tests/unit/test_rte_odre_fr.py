@@ -107,6 +107,45 @@ def test_valid_source_config_loads(source_config: RteOdreSourceConfig) -> None:
     assert source_config.cache.max_age_hours == 168
 
 
+def test_source_config_yaml_rejects_duplicate_keys(tmp_path: Path) -> None:
+    path = tmp_path / "rte.yaml"
+    path.write_text(
+        CONFIG_PATH.read_text(encoding="utf-8") + "\nprovider: RTE\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Duplicate YAML key"):
+        load_rte_odre_source_config(path)
+
+
+def test_loaded_source_config_is_immutable(
+    source_config: RteOdreSourceConfig,
+) -> None:
+    with pytest.raises(ValidationError, match="frozen"):
+        source_config.provider = "UNTRUSTED"
+
+
+@pytest.mark.parametrize(("field", "value"), [("provider", "IGN"), ("portal", "OTHER")])
+def test_source_identity_is_exact(field: str, value: str) -> None:
+    payload = _config_data()
+    payload[field] = value
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [True, "168", float("nan"), float("inf"), float("-inf")],
+)
+def test_cache_age_is_a_strict_finite_number(value: object) -> None:
+    payload = _config_data()
+    payload["cache"]["max_age_hours"] = value
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(payload)
+
+
 def test_missing_dataset_id_fails() -> None:
     config_data = _config_data()
     del config_data["datasets"]["sites"]["dataset_id"]
@@ -148,9 +187,10 @@ def test_mutated_loaded_api_origin_is_rejected_before_metadata_network(
     source_config: RteOdreSourceConfig,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    source_config.api.base_url = HttpUrl(
-        "https://unrelated.example/api/explore/v2.1"
+    invalid_api = source_config.api.model_copy(
+        update={"base_url": HttpUrl("https://unrelated.example/api/explore/v2.1")}
     )
+    untrusted = source_config.model_copy(update={"api": invalid_api})
     network_calls = 0
 
     def fail_network(*args: object, **kwargs: object) -> object:
@@ -161,7 +201,7 @@ def test_mutated_loaded_api_origin_is_rejected_before_metadata_network(
     monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
 
     with pytest.raises(RteOdreDownloadError, match="config|official|origin"):
-        fetch_rte_odre_dataset_metadata(source_config, "sites")
+        fetch_rte_odre_dataset_metadata(untrusted, "sites")
 
     assert network_calls == 0
 
@@ -227,6 +267,41 @@ def test_metadata_is_captured_without_fabrication(
     assert metadata.license == "Licence Ouverte v2.0 (Etalab)"
     assert metadata.records_count == 2
     assert metadata.geometry_precision_status == "GENERALIZED_OR_RESTRICTED"
+
+
+def test_metadata_response_rejects_duplicate_json_keys(
+    source_config: RteOdreSourceConfig,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    content = _metadata_content(dataset_id).decode("utf-8")
+    marker = f'"dataset_id": "{dataset_id}"'
+    content = content.replace(marker, f"{marker}, {marker}", 1)
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            return_value=_response(content.encode("utf-8")),
+        ),
+        pytest.raises(RteOdreDownloadError, match="request|JSON"),
+    ):
+        fetch_rte_odre_dataset_metadata(source_config, "sites")
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_metadata_response_rejects_nonfinite_json_constants(
+    source_config: RteOdreSourceConfig,
+    constant: str,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    content = _metadata_content(dataset_id).decode("utf-8")
+    content = content[:-1] + f', "untrusted": {constant}}}'
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            return_value=_response(content.encode("utf-8")),
+        ),
+        pytest.raises(RteOdreDownloadError, match="request|JSON"),
+    ):
+        fetch_rte_odre_dataset_metadata(source_config, "sites")
 
 
 def test_successful_download(
@@ -362,6 +437,43 @@ def test_fresh_cache_is_reused(
     assert second.cache_hit is True
     assert second.download_timestamp == first.download_timestamp
     assert second.sha256 == first.sha256
+
+
+@pytest.mark.parametrize("mutation", ["duplicate_key", "nonexact_file_size"])
+def test_untrusted_cache_metadata_is_rejected_and_refreshed(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    mutation: str,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    responses = [
+        _response(_metadata_content(dataset_id)),
+        _response(_feature_collection()),
+        _response(_metadata_content(dataset_id)),
+        _response(_feature_collection()),
+    ]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=responses,
+    ) as opener:
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+        metadata_path = _metadata_path(tmp_path, dataset_id)
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if mutation == "duplicate_key":
+            encoded = json.dumps(metadata, separators=(",", ":"))
+            marker = f'"sha256":"{first.sha256}"'
+            metadata_path.write_text(
+                encoded.replace(marker, f"{marker},{marker}", 1),
+                encoding="utf-8",
+            )
+        else:
+            metadata["file_size"] = float(first.file_size)
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 4
+    assert refreshed.cache_hit is False
 
 
 def test_expired_cache_is_refreshed(
@@ -568,6 +680,16 @@ def test_invalid_geojson_download_is_rejected(
     assert not list(tmp_path.glob("*.geojson"))
 
 
+def test_geojson_export_rejects_duplicate_json_keys(tmp_path: Path) -> None:
+    path = tmp_path / "duplicate.geojson"
+    path.write_bytes(
+        b'{"type":"FeatureCollection","type":"FeatureCollection","features":[]}'
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="JSON"):
+        rte_odre_fr._validate_geojson(path)
+
+
 @pytest.mark.parametrize(
     "feature",
     [
@@ -633,7 +755,9 @@ def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
     assert summary.feature_count == 8
     assert summary.null_geometry_count == 1
     assert summary.non_null_geometry_count == 7
-    assert summary.geometry_types == tuple(sorted((*coordinate_types, "GeometryCollection")))
+    assert summary.geometry_types == tuple(
+        sorted((*coordinate_types, "GeometryCollection"))
+    )
 
 
 @pytest.mark.parametrize(
@@ -713,9 +837,7 @@ def test_geometry_collection_members_are_validated_recursively(tmp_path: Path) -
                         "type": "Feature",
                         "geometry": {
                             "type": "GeometryCollection",
-                            "geometries": [
-                                {"type": "Point", "coordinates": None}
-                            ],
+                            "geometries": [{"type": "Point", "coordinates": None}],
                         },
                     }
                 ],
@@ -972,18 +1094,16 @@ def test_temporary_link_or_junction_cannot_modify_target_before_rte_network(
     original_open = Path.open
 
     def simulated_is_symlink(path: Path) -> bool:
-        return (
-            link_kind == "symlink" and path == unsafe_path
-        ) or original_is_symlink(path)
+        return (link_kind == "symlink" and path == unsafe_path) or original_is_symlink(
+            path
+        )
 
     def simulated_is_junction(path: Path) -> bool:
         return (
             link_kind == "junction" and path == unsafe_path
         ) or original_is_junction(path)
 
-    def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+    def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
         if path == unsafe_path:
             return original_open(sentinel, *args, **kwargs)
         return original_open(path, *args, **kwargs)

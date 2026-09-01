@@ -5,6 +5,8 @@ from numbers import Real
 import geopandas as gpd  # type: ignore[import-untyped]
 from pyproj import CRS  # type: ignore[import-untyped]
 
+from landscout.common.cadastre_contract import validate_normalized_cadastre_parcels
+
 PROFILE_METRICS = (
     "area_m2",
     "length_m",
@@ -69,10 +71,10 @@ def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
 def profile_shape_distribution(
     parcels: gpd.GeoDataFrame,
 ) -> ShapeDistributionProfile:
-    if not isinstance(parcels, gpd.GeoDataFrame):
-        raise ShapeProfileError("Shape candidates must be a GeoDataFrame")
-    if parcels.columns.duplicated().any():
-        raise ShapeProfileError("Shape candidate columns must be unique")
+    try:
+        validate_normalized_cadastre_parcels(parcels)
+    except ValueError as error:
+        raise ShapeProfileError(str(error)) from error
     missing_columns = REQUIRED_COLUMNS - set(parcels.columns)
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
@@ -258,9 +260,7 @@ def profile_shape_distribution(
         + (-working["width_m"]).rank(pct=True)
         + (-working["compactness"]).rank(pct=True)
     )
-    extreme_pool = working.loc[
-        ~working["parcel_id"].isin(median_frame["parcel_id"])
-    ]
+    extreme_pool = working.loc[~working["parcel_id"].isin(median_frame["parcel_id"])]
     extreme_frame = extreme_pool.nlargest(5, "_extreme_score")
 
     return ShapeDistributionProfile(

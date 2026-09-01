@@ -533,6 +533,16 @@ def test_status_priority_contract_is_strict(mutation: str) -> None:
         BessPlanningFeaturePolicyConfig.model_validate(payload)
 
 
+def test_status_priority_mapping_is_deeply_immutable() -> None:
+    _, _, config, _ = _compiled_fixture()
+    snapshot = config.model_dump(mode="python")
+
+    with pytest.raises(TypeError, match="frozen mapping"):
+        config.status_priority["UNKNOWN"] = 999
+
+    assert config.model_dump(mode="python") == snapshot
+
+
 def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "duplicate.yaml"
     path.write_text("schema_version: 1\nschema_version: 1\n", encoding="utf-8")
@@ -698,15 +708,39 @@ def test_artifact_loader_rejects_manifest_mismatch(
         module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
 
 
-def test_artifact_loader_rejects_duplicate_json_key(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "document",
+    [
+        '{"schema_version": 2, "schema_version": 2}\n',
+        '{"schema_version": NaN}\n',
+        '{"schema_version": Infinity}\n',
+        "[]\n",
+    ],
+    ids=["duplicate-key", "nan", "infinity", "non-object"],
+)
+def test_artifact_loader_uses_strict_json_before_parquet_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    document: str,
+) -> None:
     _, _, _, result = _compiled_fixture()
     parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
-    manifest_path.write_text(
-        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
-    )
+    manifest_path.write_text(document, encoding="utf-8")
     module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
-    with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate JSON"):
+    parquet_reads = 0
+
+    def counted(*args: object, **kwargs: object) -> object:
+        nonlocal parquet_reads
+        parquet_reads += 1
+        raise AssertionError("Parquet read preceded strict manifest validation")
+
+    monkeypatch.setattr(module.pd, "read_parquet", counted)
+    with pytest.raises(
+        BessPlanningFeaturePolicyError,
+        match="Duplicate JSON|finite|top-level|invalid",
+    ):
         module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+    assert parquet_reads == 0
 
 
 def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
@@ -1024,10 +1058,13 @@ def test_policy_artifact_loader_rejects_source_schema_before_parquet_read(
         encoding="utf-8",
     )
     calls = {"bytes": 0, "parse": 0}
+    original_read_bytes = Path.read_bytes
 
-    def byte_read(*args: object, **kwargs: object) -> bytes:
-        calls["bytes"] += 1
-        raise AssertionError("Parquet bytes must not be read")
+    def byte_read(path: Path, *args: object, **kwargs: object) -> bytes:
+        if path == parquet:
+            calls["bytes"] += 1
+            raise AssertionError("Parquet bytes must not be read")
+        return original_read_bytes(path)
 
     def parse(*args: object, **kwargs: object) -> pd.DataFrame:
         calls["parse"] += 1

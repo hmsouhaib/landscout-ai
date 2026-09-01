@@ -3,25 +3,28 @@
 ## File identity
 
 - Repository path: `tests/unit/test_crs.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
+- Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `crs` contracts exercised in this file.
-- Source SHA256: `5853d271a807675e0d775bea4ab0279d36428b337e5edb3c9ce2cf95d8a866be`
+- Source SHA256: `c6b7a69a038e545413e3a5db8d6a636a5d2e51f411110dadfef8410e4a5860f4`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Ruff formatting only in STEP 7F.1A.4; executable contract, values, schemas, and test intent are unchanged. The companion is refreshed because its raw bytes and SHA changed.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Provides complete unit and regression coverage for the `crs` contracts exercised in this file.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
 ### Python 3.12 standard library
 
-- `None.`
+- None.
 
 ### Third-party packages
 
@@ -35,68 +38,72 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-No meaningful module constant is declared.
+No module-level constant, alias, schema, mapping, or meaningful dunder assignment is declared.
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
+## 5. Classes, models, dataclasses, and fields
 
-No meaningful module-level dunder contract is declared.
+No top-level class/model/dataclass is declared.
 
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-No class/model/dataclass is declared.
-
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `test_crs_constants`
 
-**Purpose**
+**Purpose:** Regression invariant: crs constants. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `crs constants`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_crs_constants() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-assert WGS84.to_epsg() == 4326
-assert LAMBERT93.to_epsg() == 2154
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert WGS84.to_epsg() == 4326`
+  - `assert LAMBERT93.to_epsg() == 2154`
 
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- In-memory/local unit boundary defined entirely by the reproduced setup.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `WGS84.to_epsg` | `landscout.geo.WGS84.to_epsg` |
+| `LAMBERT93.to_epsg` | `landscout.geo.LAMBERT93.to_epsg` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_crs_constants() -> None:
@@ -104,54 +111,68 @@ def test_crs_constants() -> None:
     assert LAMBERT93.to_epsg() == 2154
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_reproject_to_lambert93_and_back_to_latlon`
 
-**Purpose**
+**Purpose:** Regression invariant: reproject to lambert93 and back to latlon. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `reproject to lambert93 and back to latlon`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
-
-```python
-polygon = Polygon(
-        [(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)]
-    )
-```
-
-**Action**
-
-```python
-projected = reproject_to_lambert93(polygon, WGS84)
-latitude, longitude = centroid_to_latlon(projected, LAMBERT93)
-```
-
-**Expected result**
-
-```python
-assert latitude == pytest.approx(48.005, abs=0.001)
-assert longitude == pytest.approx(2.005, abs=0.001)
-```
-
-**Regression protected**
-
-Locks `reproject to lambert93 and back to latlon` through the exact asserted conditions: `latitude == pytest.approx(48.005, abs=0.001)`; `longitude == pytest.approx(2.005, abs=0.001)`.
-
-**Test boundary**
-
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_reproject_to_lambert93_and_back_to_latlon() -> None:
-    polygon = Polygon(
-        [(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)]
-    )
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+- No parameters.
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert latitude == pytest.approx(48.005, abs=0.001)`
+  - `assert longitude == pytest.approx(2.005, abs=0.001)`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+| `reproject_to_lambert93` | `landscout.geo.geometry.reproject_to_lambert93` |
+| `centroid_to_latlon` | `landscout.geo.centroid_to_latlon` |
+| `pytest.approx` | `pytest.approx` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_reproject_to_lambert93_and_back_to_latlon() -> None:
+    polygon = Polygon([(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)])
 
     projected = reproject_to_lambert93(polygon, WGS84)
     latitude, longitude = centroid_to_latlon(projected, LAMBERT93)
@@ -160,45 +181,68 @@ def test_reproject_to_lambert93_and_back_to_latlon() -> None:
     assert longitude == pytest.approx(2.005, abs=0.001)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_reprojection_rejects_malformed_crs_with_controlled_error`
 
-**Purpose**
+**Purpose:** Regression invariant: reprojection rejects malformed crs with controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `reprojection rejects malformed crs with controlled error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: `crs`.
-
-**Setup**
+**Exact signature**
 
 ```python
-polygon = Polygon([(2, 48), (2.01, 48), (2.01, 48.01), (2, 48.01)])
+def test_reprojection_rejects_malformed_crs_with_controlled_error(
+    crs: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("crs", [None, object(), [], "invalid-crs"])`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `crs` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(MetricCrsError):
-        reproject_to_lambert93(polygon, crs)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(MetricCrsError)`
 
-Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Polygon` | `shapely.geometry.Polygon` |
+| `pytest.raises` | `pytest.raises` |
+| `reproject_to_lambert93` | `landscout.geo.geometry.reproject_to_lambert93` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `object` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_reprojection_rejects_malformed_crs_with_controlled_error(
@@ -210,50 +254,71 @@ def test_reprojection_rejects_malformed_crs_with_controlled_error(
         reproject_to_lambert93(polygon, crs)
 ```
 
+**Business boundary**
 
-## 7. Data contracts
-
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 12. GIS / CRS rules
+## 7. Test-specific regression contract
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
+- Test functions: **3**.
+- Pytest fixtures (decorator-proven): **0**.
 
-## 13. Provenance rules
+### Per-test regression index
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_crs_constants` | none | none | 2 | Proves crs constants using the exact source reproduced in section 7. |
+| `test_reproject_to_lambert93_and_back_to_latlon` | none | none | 2 | Proves reproject to lambert93 and back to latlon using the exact source reproduced in section 7. |
+| `test_reprojection_rejects_malformed_crs_with_controlled_error` | pytest.mark.parametrize("crs", [None, object(), [], "invalid-crs"]) | pytest.raises(MetricCrsError) | 0 | Proves reprojection rejects malformed crs with controlled error using the exact source reproduced in section 7. |
 
-## 14. Business meaning
+## 8. Public exports and package ownership
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-## 15. Explicit non-goals
+## 9. Trust, provenance, side effects, and business boundary
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-## 16. Tests
+## 10. Change impact
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
 
-## 17. Change impact
+## 11. Exact complete current file content
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+import pytest
+from shapely.geometry import Polygon
+
+from landscout.geo import LAMBERT93, WGS84, MetricCrsError, centroid_to_latlon
+from landscout.geo.geometry import reproject_to_lambert93
+
+
+def test_crs_constants() -> None:
+    assert WGS84.to_epsg() == 4326
+    assert LAMBERT93.to_epsg() == 2154
+
+
+def test_reproject_to_lambert93_and_back_to_latlon() -> None:
+    polygon = Polygon([(2.0, 48.0), (2.01, 48.0), (2.01, 48.01), (2.0, 48.01)])
+
+    projected = reproject_to_lambert93(polygon, WGS84)
+    latitude, longitude = centroid_to_latlon(projected, LAMBERT93)
+
+    assert latitude == pytest.approx(48.005, abs=0.001)
+    assert longitude == pytest.approx(2.005, abs=0.001)
+
+
+@pytest.mark.parametrize("crs", [None, object(), [], "invalid-crs"])
+def test_reprojection_rejects_malformed_crs_with_controlled_error(
+    crs: object,
+) -> None:
+    polygon = Polygon([(2, 48), (2.01, 48), (2.01, 48.01), (2, 48.01)])
+
+    with pytest.raises(MetricCrsError):
+        reproject_to_lambert93(polygon, crs)  # type: ignore[arg-type]
+```

@@ -3,19 +3,22 @@
 ## File identity
 
 - Repository path: `tests/unit/test_safe_http.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
+- Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
-- Source SHA256: `90db8d4bcb2e56bb66c2f7a58817fbd49564af39d42777e2cddde008f425ac64`
+- Source SHA256: `da5bf1e22f8aac6d3c0634d88786dcb5c79a7c764902490d0157f9b6965b69f0`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Refreshes permanent STEP 7F.1A.4 regression coverage for safe http; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -26,6 +29,7 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 - `import socket`
 - `import ssl`
 - `from typing import Any`
+- `from urllib.request import Request`
 
 ### Third-party packages
 
@@ -38,68 +42,66 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `PUBLIC_IPV4`
+### `PUBLIC_IPV4`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 PUBLIC_IPV4 = "93.184.216.34"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` (value reference), `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` (value reference), `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` (value reference), `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` (value reference), `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket.resolve` (value reference), `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` (value reference), `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` (value reference), `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` (value reference), `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` (value reference), `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` (value reference), `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` (value reference), `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `PUBLIC_IPV6`
+### `PUBLIC_IPV6`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 PUBLIC_IPV6 = "2606:4700:4700::1111"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below.
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
-
-No meaningful module-level dunder contract is declared.
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
+## 5. Classes, models, dataclasses, and fields
 
 ### `_FakeSocket`
 
-**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
+**Source purpose:** Defines `_FakeSocket`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** class.
+- Exact decorators: none.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `family` | `assigned instance field` | `family` | `self.family = family` |
+| `_response_bytes` | `assigned instance field` | `response_bytes` | `self._response_bytes = response_bytes` |
+| `_connected` | `assigned instance field` | `connected` | `self._connected = connected` |
+| `_sent` | `assigned instance field` | `sent` | `self._sent = sent` |
+| `_endpoint` | `tuple[object, ...] \| None` | `None` | `self._endpoint: tuple[object, ...] \| None = None` |
+| `closed` | `assigned instance field` | `False` | `self.closed = False` |
+| `timeout` | `float \| None` | `None` | `self.timeout: float \| None = None` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `family` | `self.family = family  # assigned in __init__` | Deterministic test-double state `family` used by the reproduced network/source regression harness. |
-| `_response_bytes` | `self._response_bytes = response_bytes  # assigned in __init__` | Deterministic test-double state `_response_bytes` used by the reproduced network/source regression harness. |
-| `_connected` | `self._connected = connected  # assigned in __init__` | Deterministic test-double state `_connected` used by the reproduced network/source regression harness. |
-| `_sent` | `self._sent = sent  # assigned in __init__` | Deterministic test-double state `_sent` used by the reproduced network/source regression harness. |
-| `_endpoint` | `self._endpoint = None  # assigned in __init__` | Deterministic test-double state `_endpoint` used by the reproduced network/source regression harness. |
-| `closed` | `self.closed = False  # assigned in __init__` | Deterministic test-double state `closed` used by the reproduced network/source regression harness. |
-| `timeout` | `self.timeout = None  # assigned in __init__` | Deterministic test-double state `timeout` used by the reproduced network/source regression harness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `tests/unit/test_safe_http.py::_FakeTlsContext.wrap_socket` via `_FakeSocket`.
-- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.__init__` via `_FakeSocket`.
-- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.socket` via `_FakeSocket`.
-- constructor call: `tests/unit/test_safe_http.py::_NetworkHarness.socket` via `_FakeSocket`.
+- value/type reference: `tests.unit.test_safe_http::_FakeTlsContext.wrap_socket` via `_FakeSocket`
+- value/type reference: `tests.unit.test_safe_http::_NetworkHarness.__init__` via `_FakeSocket`
+- constructor call: `tests.unit.test_safe_http::_NetworkHarness.socket` via `_FakeSocket`
+- value/type reference: `tests.unit.test_safe_http::_NetworkHarness.socket` via `_FakeSocket`
 
 **Exact class source**
 
@@ -146,25 +148,26 @@ class _FakeSocket:
 
 ### `_FakeTlsContext`
 
-**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
+**Source purpose:** Defines `_FakeTlsContext`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** class.
+- Exact decorators: none.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `check_hostname` | `inferred from assignment` | `True` | `check_hostname = True` |
+| `verify_mode` | `inferred from assignment` | `ssl.CERT_REQUIRED` | `verify_mode = ssl.CERT_REQUIRED` |
+| `_server_names` | `assigned instance field` | `server_names` | `self._server_names = server_names` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `_server_names` | `self._server_names = server_names  # assigned in __init__` | Deterministic test-double state `_server_names` used by the reproduced network/source regression harness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.__init__` via `_FakeTlsContext`.
-- type annotation: `tests/unit/test_safe_http.py::_NetworkHarness.context` via `_FakeTlsContext`.
-- constructor call: `tests/unit/test_safe_http.py::_NetworkHarness.context` via `_FakeTlsContext`.
+- value/type reference: `tests.unit.test_safe_http::_NetworkHarness.__init__` via `_FakeTlsContext`
+- constructor call: `tests.unit.test_safe_http::_NetworkHarness.context` via `_FakeTlsContext`
+- value/type reference: `tests.unit.test_safe_http::_NetworkHarness.context` via `_FakeTlsContext`
 
 **Exact class source**
 
@@ -183,29 +186,28 @@ class _FakeTlsContext:
 
 ### `_NetworkHarness`
 
-**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
+**Source purpose:** Defines `_NetworkHarness`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** class.
+- Exact decorators: none.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `responses` | `assigned instance field` | `list(responses)` | `self.responses = list(responses)` |
+| `connected` | `list[tuple[int, tuple[object, ...]]]` | `[]` | `self.connected: list[tuple[int, tuple[object, ...]]] = []` |
+| `sent` | `list[bytes]` | `[]` | `self.sent: list[bytes] = []` |
+| `server_names` | `list[str]` | `[]` | `self.server_names: list[str] = []` |
+| `contexts` | `list[_FakeTlsContext]` | `[]` | `self.contexts: list[_FakeTlsContext] = []` |
+| `sockets` | `list[_FakeSocket]` | `[]` | `self.sockets: list[_FakeSocket] = []` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `responses` | `self.responses = list(responses)  # assigned in __init__` | Deterministic test-double state `responses` used by the reproduced network/source regression harness. |
-| `connected` | `self.connected = []  # assigned in __init__` | Deterministic test-double state `connected` used by the reproduced network/source regression harness. |
-| `sent` | `self.sent = []  # assigned in __init__` | Deterministic test-double state `sent` used by the reproduced network/source regression harness. |
-| `server_names` | `self.server_names = []  # assigned in __init__` | Deterministic test-double state `server_names` used by the reproduced network/source regression harness. |
-| `contexts` | `self.contexts = []  # assigned in __init__` | Deterministic test-double state `contexts` used by the reproduced network/source regression harness. |
-| `sockets` | `self.sockets = []  # assigned in __init__` | Deterministic test-double state `sockets` used by the reproduced network/source regression harness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `tests/unit/test_safe_http.py::_install_network` via `_NetworkHarness`.
-- constructor call: `tests/unit/test_safe_http.py::_install_network` via `_NetworkHarness`.
+- constructor call: `tests.unit.test_safe_http::_install_network` via `_NetworkHarness`
+- value/type reference: `tests.unit.test_safe_http::_install_network` via `_NetworkHarness`
 
 **Exact class source**
 
@@ -246,9 +248,11 @@ class _NetworkHarness:
 ```
 
 
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_http_response`
+
+**Purpose:** Implements `http response` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -261,41 +265,65 @@ def _http_response(
 ) -> bytes:
 ```
 
-**Purpose**
-
-Private `test` helper for http response; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bytes`.
-- Every observed return expression is reproduced without truncation:
-```python
-f'HTTP/1.1 {status} {reason}\r\n{header_bytes}\r\n'.encode() + body
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `status` | positional-or-keyword | `int` | `200` |
+| `body` | keyword-only | `bytes` | `b'ok'` |
+| `headers` | keyword-only | `dict[str, str] \| None` | `None` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `f"HTTP/1.1 {status} {reason}\r\n{header_bytes}\r\n".encode() + body`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_safe_http.py::_install_network` via `_http_response`.
-- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_http_response`.
-- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_http_response`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_http_response`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_http_response`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_safe_http::_install_network` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::_install_network` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_cross_origin_redirect_cannot_receive_a_sensitive_header` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_cross_origin_redirect_cannot_receive_a_sensitive_header` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_http_response`
+- direct call: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_http_response`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_http_response`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `{<br>        200: "OK",<br>        301: "Moved Permanently",<br>        302: "Found",<br>        303: "See Other",<br>        307: "Temporary Redirect",<br>        308: "Permanent Redirect",<br>    }.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `values.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `f"HTTP/1.1 {status} {reason}\r\n{header_bytes}\r\n".encode` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -321,9 +349,11 @@ def _http_response(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_dns_records`
+
+**Purpose:** Implements `dns records` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -334,39 +364,51 @@ def _dns_records(
 ) -> list[tuple[int, int, int, str, tuple[object, ...]]]:
 ```
 
-**Purpose**
-
-Private `test` helper for dns records; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[int, int, int, str, tuple[object, ...]]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `addresses` | positional-or-keyword | `tuple[str, ...]` | `required` |
+| `port` | positional-or-keyword | `int` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `result`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_safe_http.py::_install_dns.resolve` via `_dns_records`.
-- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket.resolve` via `_dns_records`.
-- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` via `_dns_records`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_safe_http::_install_dns.resolve` via `_dns_records`
+- value/type reference: `tests.unit.test_safe_http::_install_dns.resolve` via `_dns_records`
+- direct call: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket.resolve` via `_dns_records`
+- value/type reference: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket.resolve` via `_dns_records`
+- direct call: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` via `_dns_records`
+- value/type reference: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind` via `_dns_records`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `result.append` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `result.append(<br>                (<br>                    socket.AF_INET6,<br>                    socket.SOCK_STREAM,<br>                    socket.IPPROTO_TCP,<br>                    "",<br>                    (address, port, 0, 0),<br>                )<br>            )`<br>`result.append(<br>                (<br>                    socket.AF_INET,<br>                    socket.SOCK_STREAM,<br>                    socket.IPPROTO_TCP,<br>                    "",<br>                    (address, port),<br>                )<br>            )` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -402,9 +444,11 @@ def _dns_records(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.__init__`
+
+**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -418,34 +462,46 @@ def __init__(
     ) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for init; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `family` | positional-or-keyword | `int` | `required` |
+| `response_bytes` | positional-or-keyword | `bytes` | `required` |
+| `connected` | positional-or-keyword | `list[tuple[int, tuple[object, ...]]]` | `required` |
+| `sent` | positional-or-keyword | `list[bytes]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self._connected`, `self._response_bytes`, `self._sent`, `self.closed`, `self.family`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.family = family`<br>`self._response_bytes = response_bytes`<br>`self._connected = connected`<br>`self._sent = sent`<br>`self._endpoint: tuple[object, ...] \| None = None`<br>`self.closed = False`<br>`self.timeout: float \| None = None` |
+| Direct parameter mutation | `self.family = family`<br>`self._response_bytes = response_bytes`<br>`self._connected = connected`<br>`self._sent = sent`<br>`self._endpoint: tuple[object, ...] \| None = None`<br>`self.closed = False`<br>`self.timeout: float \| None = None` |
 
 **Complete source-ordered implementation**
 
@@ -468,9 +524,11 @@ def __init__(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.settimeout`
+
+**Purpose:** Implements `settimeout` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -478,34 +536,43 @@ def __init__(
 def settimeout(self, timeout: float) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for settimeout; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `timeout` | positional-or-keyword | `float` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self.timeout`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.timeout = timeout` |
+| Direct parameter mutation | `self.timeout = timeout` |
 
 **Complete source-ordered implementation**
 
@@ -516,9 +583,11 @@ def settimeout(self, timeout: float) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.connect`
+
+**Purpose:** Implements `connect` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -526,34 +595,45 @@ def settimeout(self, timeout: float) -> None:
 def connect(self, endpoint: tuple[object, ...]) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for connect; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `endpoint` | positional-or-keyword | `tuple[object, ...]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self._connected`, `self._endpoint`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `self._connected.append` | `tests.unit.test_safe_http._FakeSocket._connected.append` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self._endpoint = endpoint`<br>`self._connected.append((self.family, endpoint))` |
+| Direct parameter mutation | `self._endpoint = endpoint`<br>`self._connected.append((self.family, endpoint))` |
 
 **Complete source-ordered implementation**
 
@@ -565,9 +645,11 @@ def connect(self, endpoint: tuple[object, ...]) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.getpeername`
+
+**Purpose:** Implements `getpeername` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -575,37 +657,45 @@ def connect(self, endpoint: tuple[object, ...]) -> None:
 def getpeername(self) -> tuple[object, ...]:
 ```
 
-**Purpose**
-
-Private `test` helper for getpeername; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[object, ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-self._endpoint
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `self._endpoint`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert self._endpoint is not None`
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -617,9 +707,11 @@ def getpeername(self) -> tuple[object, ...]:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.sendall`
+
+**Purpose:** Implements `sendall` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -627,34 +719,45 @@ def getpeername(self) -> tuple[object, ...]:
 def sendall(self, payload: bytes) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for sendall; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `payload` | positional-or-keyword | `bytes` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self._sent`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `self._sent.append` | `tests.unit.test_safe_http._FakeSocket._sent.append` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self._sent.append(payload)` |
+| Direct parameter mutation | `self._sent.append(payload)` |
 
 **Complete source-ordered implementation**
 
@@ -665,9 +768,11 @@ def sendall(self, payload: bytes) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.makefile`
+
+**Purpose:** Implements `makefile` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -675,37 +780,47 @@ def sendall(self, payload: bytes) -> None:
 def makefile(self, *args: object, **kwargs: object) -> io.BytesIO:
 ```
 
-**Purpose**
-
-Private `test` helper for makefile; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `io.BytesIO`.
-- Every observed return expression is reproduced without truncation:
-```python
-io.BytesIO(self._response_bytes)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `io.BytesIO(self._response_bytes)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `io.BytesIO` | `io.BytesIO` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -716,9 +831,11 @@ def makefile(self, *args: object, **kwargs: object) -> io.BytesIO:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.setsockopt`
+
+**Purpose:** Implements `setsockopt` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -726,37 +843,45 @@ def makefile(self, *args: object, **kwargs: object) -> io.BytesIO:
 def setsockopt(self, *args: object, **kwargs: object) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for setsockopt; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- Every observed return expression is reproduced without truncation:
-```python
-None
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `None`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -767,9 +892,11 @@ def setsockopt(self, *args: object, **kwargs: object) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeSocket.close`
+
+**Purpose:** Implements `close` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -777,34 +904,42 @@ def setsockopt(self, *args: object, **kwargs: object) -> None:
 def close(self) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for close; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self.closed`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.closed = True` |
+| Direct parameter mutation | `self.closed = True` |
 
 **Complete source-ordered implementation**
 
@@ -815,9 +950,11 @@ def close(self) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeTlsContext.__init__`
+
+**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -825,34 +962,43 @@ def close(self) -> None:
 def __init__(self, server_names: list[str]) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for init; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `server_names` | positional-or-keyword | `list[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self._server_names`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self._server_names = server_names` |
+| Direct parameter mutation | `self._server_names = server_names` |
 
 **Complete source-ordered implementation**
 
@@ -863,9 +1009,11 @@ def __init__(self, server_names: list[str]) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_FakeTlsContext.wrap_socket`
+
+**Purpose:** Implements `wrap socket` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -873,37 +1021,47 @@ def __init__(self, server_names: list[str]) -> None:
 def wrap_socket(self, sock: _FakeSocket, *, server_hostname: str) -> _FakeSocket:
 ```
 
-**Purpose**
-
-Private `test` helper for wrap socket; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_FakeSocket`.
-- Every observed return expression is reproduced without truncation:
-```python
-sock
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `sock` | positional-or-keyword | `_FakeSocket` | `required` |
+| `server_hostname` | keyword-only | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self._server_names`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `sock`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `self._server_names.append` | `tests.unit.test_safe_http._FakeTlsContext._server_names.append` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self._server_names.append(server_hostname)` |
+| Direct parameter mutation | `self._server_names.append(server_hostname)` |
 
 **Complete source-ordered implementation**
 
@@ -915,9 +1073,11 @@ def wrap_socket(self, sock: _FakeSocket, *, server_hostname: str) -> _FakeSocket
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_NetworkHarness.__init__`
+
+**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -925,34 +1085,45 @@ def wrap_socket(self, sock: _FakeSocket, *, server_hostname: str) -> _FakeSocket
 def __init__(self, responses: list[bytes]) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for init; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `responses` | positional-or-keyword | `list[bytes]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self.responses`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.responses = list(responses)`<br>`self.connected: list[tuple[int, tuple[object, ...]]] = []`<br>`self.sent: list[bytes] = []`<br>`self.server_names: list[str] = []`<br>`self.contexts: list[_FakeTlsContext] = []`<br>`self.sockets: list[_FakeSocket] = []` |
+| Direct parameter mutation | `self.responses = list(responses)`<br>`self.connected: list[tuple[int, tuple[object, ...]]] = []`<br>`self.sent: list[bytes] = []`<br>`self.server_names: list[str] = []`<br>`self.contexts: list[_FakeTlsContext] = []`<br>`self.sockets: list[_FakeSocket] = []` |
 
 **Complete source-ordered implementation**
 
@@ -968,9 +1139,11 @@ def __init__(self, responses: list[bytes]) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_NetworkHarness.socket`
+
+**Purpose:** Implements `socket` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -984,37 +1157,56 @@ def socket(
     ) -> _FakeSocket:
 ```
 
-**Purpose**
-
-Private `test` helper for socket; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_FakeSocket`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not self.responses`.
-- Explicit raise expressions: `AssertionError('Unexpected additional socket connection')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `family` | positional-or-keyword | `int` | `socket.AF_INET` |
+| `type` | positional-or-keyword | `int` | `socket.SOCK_STREAM` |
+| `proto` | positional-or-keyword | `int` | `0` |
+| `fileno` | positional-or-keyword | `int \| None` | `None` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self.responses`, `self.sockets`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- Explicit raise paths:
+  - `AssertionError("Unexpected additional socket connection")` under lexical guard `not self.responses`.
+- Exact assertions:
+  - `assert type == socket.SOCK_STREAM`
+  - `assert fileno is None`
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.socket, 'socket', harness.socket)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_FakeSocket` | `tests.unit.test_safe_http._FakeSocket` |
+| `self.responses.pop` | `tests.unit.test_safe_http._NetworkHarness.responses.pop` |
+| `self.sockets.append` | `tests.unit.test_safe_http._NetworkHarness.sockets.append` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.responses.pop(0)`<br>`self.sockets.append(result)` |
+| Direct parameter mutation | `self.responses.pop(0)`<br>`self.sockets.append(result)` |
 
 **Complete source-ordered implementation**
 
@@ -1042,9 +1234,11 @@ def socket(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_NetworkHarness.context`
+
+**Purpose:** Implements `context` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1052,37 +1246,48 @@ def socket(
 def context(self, *args: object, **kwargs: object) -> _FakeTlsContext:
 ```
 
-**Purpose**
-
-Private `test` helper for context; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_FakeTlsContext`.
-- Every observed return expression is reproduced without truncation:
-```python
-context
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `self.contexts`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `context`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::_install_network` via `monkeypatch.setattr(safe_http.ssl, 'create_default_context', harness.context)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_FakeTlsContext` | `tests.unit.test_safe_http._FakeTlsContext` |
+| `self.contexts.append` | `tests.unit.test_safe_http._NetworkHarness.contexts.append` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `self.contexts.append(context)` |
+| Direct parameter mutation | `self.contexts.append(context)` |
 
 **Complete source-ordered implementation**
 
@@ -1095,9 +1300,11 @@ def context(self, *args: object, **kwargs: object) -> _FakeTlsContext:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_install_network`
+
+**Purpose:** Implements `install network` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1109,46 +1316,71 @@ def _install_network(
 ) -> _NetworkHarness:
 ```
 
-**Purpose**
-
-Private `test` helper for install network; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_NetworkHarness`.
-- Every observed return expression is reproduced without truncation:
-```python
-harness
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `responses` | keyword-only | `list[bytes] \| None` | `None` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `harness`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_network`.
-- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_network`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_safe_http::test_cross_origin_redirect_cannot_receive_a_sensitive_header` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_cross_origin_redirect_cannot_receive_a_sensitive_header` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_public_literal_ip_uses_exact_socket_without_dns` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_public_literal_ip_uses_exact_socket_without_dns` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_install_network`
+- direct call: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_install_network`
+- value/type reference: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_install_network`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_NetworkHarness` | `tests.unit.test_safe_http._NetworkHarness` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1166,9 +1398,11 @@ def _install_network(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_install_dns`
+
+**Purpose:** Implements `install dns` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1179,47 +1413,65 @@ def _install_dns(
 ) -> list[tuple[str, int]]:
 ```
 
-**Purpose**
-
-Private `test` helper for install dns; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[str, int]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-calls
 
-_dns_records(addresses, port)
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `addresses` | positional-or-keyword | `tuple[str, ...]` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `calls`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `calls`.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_cross_origin_redirect_forwards_only_safe_ordinary_headers` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_any_nonpublic_dns_answer_fails_before_socket` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_any_nonpublic_dns_answer_fails_before_socket` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_mixed_public_private_dns_answer_fails_closed` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_mixed_public_private_dns_answer_fails_closed` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_safe_https_redirect_is_manually_revalidated` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_install_dns`
+- direct call: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_install_dns`
+- value/type reference: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_install_dns`
 
-- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_install_dns`.
-- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_install_dns`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1241,9 +1493,11 @@ def _install_dns(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_install_dns.resolve`
+
+**Purpose:** Implements `resolve` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1251,37 +1505,50 @@ def _install_dns(
 def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 ```
 
-**Purpose**
-
-Resolves resolve; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[Any, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-_dns_records(addresses, port)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `hostname` | positional-or-keyword | `str` | `required` |
+| `port` | positional-or-keyword | `int` | `required` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `calls`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_dns_records(addresses, port)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert kwargs == {"type": socket.SOCK_STREAM}`
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::_install_dns` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `calls.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_dns_records` | `tests.unit.test_safe_http._dns_records` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `calls.append((hostname, port))` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1294,9 +1561,11 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_read`
+
+**Purpose:** Implements `read` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1304,51 +1573,75 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 def _read(url: str = "https://source.example/archive.zip") -> bytes:
 ```
 
-**Purpose**
-
-Reads read; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bytes`.
-- Every observed return expression is reproduced without truncation:
-```python
-response.read()
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `url` | positional-or-keyword | `str` | `'https://source.example/archive.zip'` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: `open_safe_https`.
-- Filesystem read: `response.read`.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `response.read()`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_safe_http.py::test_public_dns_answers_are_accepted` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_public_literal_ip_uses_exact_socket_without_dns` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_explicit_https_port_is_resolved_and_connected_exactly` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_environment_proxy_does_not_change_bound_destination` via `_read`.
-- direct call: `tests/unit/test_safe_http.py::test_tls_context_keeps_hostname_verification_enabled` via `_read`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_public_dns_answers_are_accepted` via `_read`
+- direct call: `tests.unit.test_safe_http::test_malformed_or_unusable_dns_results_fail_before_socket` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_malformed_or_unusable_dns_results_fail_before_socket` via `_read`
+- direct call: `tests.unit.test_safe_http::test_any_nonpublic_dns_answer_fails_before_socket` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_any_nonpublic_dns_answer_fails_before_socket` via `_read`
+- direct call: `tests.unit.test_safe_http::test_mixed_public_private_dns_answer_fails_closed` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_mixed_public_private_dns_answer_fails_closed` via `_read`
+- direct call: `tests.unit.test_safe_http::test_dns_errors_are_controlled_before_socket` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_dns_errors_are_controlled_before_socket` via `_read`
+- direct call: `tests.unit.test_safe_http::test_unsafe_url_identity_fails_before_dns` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_unsafe_url_identity_fails_before_dns` via `_read`
+- direct call: `tests.unit.test_safe_http::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `_read`
+- direct call: `tests.unit.test_safe_http::test_public_literal_ip_uses_exact_socket_without_dns` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_public_literal_ip_uses_exact_socket_without_dns` via `_read`
+- direct call: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_explicit_https_port_is_resolved_and_connected_exactly` via `_read`
+- direct call: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_unsafe_redirect_is_rejected_before_target_socket` via `_read`
+- direct call: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_loop_is_rejected` via `_read`
+- direct call: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_redirect_limit_is_enforced` via `_read`
+- direct call: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `_read`
+- direct call: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_environment_proxy_does_not_change_bound_destination` via `_read`
+- direct call: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_read`
+- value/type reference: `tests.unit.test_safe_http::test_tls_context_keeps_hostname_verification_enabled` via `_read`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+| `response.read` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1360,50 +1653,551 @@ def _read(url: str = "https://source.example/archive.zip") -> bytes:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_sensitive_and_hop_by_hop_headers_fail_before_dns`
+
+**Purpose:** Regression invariant: sensitive and hop by hop headers fail before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_sensitive_and_hop_by_hop_headers_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
+```
+
+- Exact decorators: `pytest.mark.parametrize(
+    "header_name",
+    [
+        "Authorization",
+        "authorization",
+        "Proxy-Authorization",
+        "Cookie",
+        "Cookie2",
+        "Host",
+        "Connection",
+        "Proxy-Connection",
+        "Keep-Alive",
+        "Transfer-Encoding",
+        "TE",
+        "Trailer",
+        "Upgrade",
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `header_name` | positional-or-keyword | `str` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="header\|forbidden\|owned")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_sensitive_and_hop_by_hop_headers_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after forbidden header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden|owned"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "secret"},
+        ),
+    ):
+        pass
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_case_insensitive_duplicate_header_names_fail_before_dns`
+
+**Purpose:** Regression invariant: case insensitive duplicate header names fail before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_case_insensitive_duplicate_header_names_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="duplicate\|ambiguous")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_case_insensitive_duplicate_header_names_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Accept": "application/zip", "accept": "application/json"},
+        ),
+    ):
+        pass
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_request_and_explicit_headers_cannot_ambiguously_override_each_other`
+
+**Purpose:** Regression invariant: request and explicit headers cannot ambiguously override each other. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_request_and_explicit_headers_cannot_ambiguously_override_each_other(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="duplicate\|ambiguous")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `Request` | `urllib.request.Request` |
+| `pytest.raises` | `pytest.raises` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_request_and_explicit_headers_cannot_ambiguously_override_each_other(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+    request = Request(
+        "https://source.example/archive.zip",
+        headers={"Accept": "application/zip"},
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            request,
+            timeout=12.5,
+            headers={"accept": "application/json"},
+        ),
+    ):
+        pass
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_cross_origin_redirect_cannot_receive_a_sensitive_header`
+
+**Purpose:** Regression invariant: cross origin redirect cannot receive a sensitive header. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_cross_origin_redirect_cannot_receive_a_sensitive_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="header\|forbidden")`
+- Exact assertions:
+  - `assert harness.sent == []`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `pytest.raises` | `pytest.raises` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_cross_origin_redirect_cannot_receive_a_sensitive_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail(
+            "DNS used before sensitive redirect header rejection"
+        ),
+    )
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Authorization": "Bearer secret"},
+        ),
+    ):
+        pass
+
+    assert harness.sent == []
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_cross_origin_redirect_forwards_only_safe_ordinary_headers`
+
+**Purpose:** Regression invariant: cross origin redirect forwards only safe ordinary headers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_cross_origin_redirect_forwards_only_safe_ordinary_headers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+```
+
+- Exact decorators: none.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert response.read() == b"archive"`
+  - `assert len(harness.sent) == 2`
+  - `assert b"User-Agent: LandScout-Test" in request`
+  - `assert b"Accept: application/zip" in request`
+  - `assert b"Authorization:" not in request`
+  - `assert b"Cookie:" not in request`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+| `response.read` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_cross_origin_redirect_forwards_only_safe_ordinary_headers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with open_safe_https(
+        "https://source.example/archive.zip",
+        timeout=12.5,
+        headers={"User-Agent": "LandScout-Test", "Accept": "application/zip"},
+    ) as response:
+        assert response.read() == b"archive"
+
+    assert len(harness.sent) == 2
+    for request in harness.sent:
+        assert b"User-Agent: LandScout-Test" in request
+        assert b"Accept: application/zip" in request
+        assert b"Authorization:" not in request
+        assert b"Cookie:" not in request
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_public_dns_answers_are_accepted`
 
-**Purpose**
+**Purpose:** Regression invariant: public dns answers are accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `public dns answers are accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `addresses`.
-
-**Setup**
+**Exact signature**
 
 ```python
-calls = _install_dns(monkeypatch, addresses)
-harness = _install_network(monkeypatch)
+def test_public_dns_answers_are_accepted(
+    monkeypatch: pytest.MonkeyPatch,
+    addresses: tuple[str, ...],
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "addresses",
+    [
+        (PUBLIC_IPV4,),
+        (PUBLIC_IPV4, PUBLIC_IPV6),
+        (PUBLIC_IPV4, PUBLIC_IPV4),
+    ],
+    ids=["public-ipv4", "public-ipv4-and-ipv6", "duplicate-public"],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `addresses` | positional-or-keyword | `tuple[str, ...]` | `required` |
 
-```python
-assert _read() == b"ok"
-assert calls == [("source.example", 443)]
-assert harness.connected
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read() == b"ok"`
+  - `assert calls == [("source.example", 443)]`
+  - `assert harness.connected`
 
-Proves that one or multiple well-formed globally routable IPv4/IPv6 resolver records are retained as the validated destination candidates.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_public_dns_answers_are_accepted(
@@ -1418,57 +2212,117 @@ def test_public_dns_answers_are_accepted(
     assert harness.connected
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_malformed_or_unusable_dns_results_fail_before_socket`
 
-**Purpose**
+**Purpose:** Regression invariant: malformed or unusable dns results fail before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `malformed or unusable dns results fail before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `records`.
-
-**Setup**
-
-```python
-monkeypatch.setattr(safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records)
-monkeypatch.setattr(
-        safe_http.socket,
-        "socket",
-        lambda *args, **kwargs: pytest.fail("socket used after invalid DNS"),
-    )
-```
-
-**Action**
-
-```python
-# Action is embedded in the assertion/raises context below.
-```
-
-**Expected result**
-
-```python
-with pytest.raises(SafeHttpsError, match="DNS|address"):
-        _read()
-```
-
-**Regression protected**
-
-Prevents malformed getaddrinfo tuple/family/protocol/sockaddr/address records or an empty answer set from being skipped; every answer must parse before any socket is opened.
-
-**Test boundary**
-
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-
-**Complete test implementation**
+**Exact signature**
 
 ```python
 def test_malformed_or_unusable_dns_results_fail_before_socket(
     monkeypatch: pytest.MonkeyPatch,
     records: list[tuple[Any, ...]],
 ) -> None:
-    monkeypatch.setattr(safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records)
+```
+
+- Exact decorators: `pytest.mark.parametrize(
+    "records",
+    [
+        [],
+        [(socket.AF_INET, socket.SOCK_STREAM)],
+        [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_DGRAM,
+                socket.IPPROTO_UDP,
+                "",
+                (PUBLIC_IPV4, 443),
+            )
+        ],
+        [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],
+        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_STREAM,
+                socket.IPPROTO_TCP,
+                "",
+                (PUBLIC_IPV6, 443),
+            )
+        ],
+        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],
+    ],
+    ids=[
+        "zero",
+        "short-record",
+        "unsupported-family",
+        "wrong-socket-type",
+        "non-integer-protocol",
+        "bad-sockaddr",
+        "family-mismatch",
+        "non-string-address",
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `records` | positional-or-keyword | `list[tuple[Any, ...]]` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="DNS\|address")`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `object` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_malformed_or_unusable_dns_results_fail_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    records: list[tuple[Any, ...]],
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records
+    )
     monkeypatch.setattr(
         safe_http.socket,
         "socket",
@@ -1479,50 +2333,100 @@ def test_malformed_or_unusable_dns_results_fail_before_socket(
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_any_nonpublic_dns_answer_fails_before_socket`
 
-**Purpose**
+**Purpose:** Regression invariant: any nonpublic dns answer fails before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `any nonpublic dns answer fails before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `address`.
-
-**Setup**
+**Exact signature**
 
 ```python
-_install_dns(monkeypatch, (address,))
-monkeypatch.setattr(
-        safe_http.socket,
-        "socket",
-        lambda *args, **kwargs: pytest.fail("socket used after unsafe DNS"),
-    )
+def test_any_nonpublic_dns_answer_fails_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    address: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "address",
+    [
+        "127.0.0.1",
+        "10.0.0.2",
+        "169.254.1.1",
+        "0.0.0.0",
+        "240.0.0.1",
+        "224.0.0.1",
+        "::1",
+        "fd00::1",
+        "fe80::1",
+        "::",
+        "ff02::1",
+        "::ffff:127.0.0.1",
+    ],
+    ids=[
+        "ipv4-loopback",
+        "ipv4-private",
+        "ipv4-link-local",
+        "ipv4-unspecified",
+        "ipv4-reserved",
+        "ipv4-multicast",
+        "ipv6-loopback",
+        "ipv6-private",
+        "ipv6-link-local",
+        "ipv6-unspecified",
+        "ipv6-multicast",
+        "ipv4-mapped-private",
+    ],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `address` | positional-or-keyword | `str` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
-        _read()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS")`
 
-Prevents loopback, private, link-local, unspecified, multicast, reserved, mapped-private, or otherwise non-global DNS answers from reaching socket creation.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_any_nonpublic_dns_answer_fails_before_socket(
@@ -1540,50 +2444,67 @@ def test_any_nonpublic_dns_answer_fails_before_socket(
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_mixed_public_private_dns_answer_fails_closed`
 
-**Purpose**
+**Purpose:** Regression invariant: mixed public private dns answer fails closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `mixed public private dns answer fails closed`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-_install_dns(monkeypatch, (PUBLIC_IPV4, "127.0.0.1"))
-monkeypatch.setattr(
-        safe_http.socket,
-        "socket",
-        lambda *args, **kwargs: pytest.fail("socket used after mixed DNS"),
-    )
+def test_mixed_public_private_dns_answer_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
-        _read()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS")`
 
-Prevents an attacker-controlled mixed DNS answer from being accepted by selecting only its public member; one non-public member rejects the whole destination.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_mixed_public_private_dns_answer_fails_closed(
@@ -1600,52 +2521,80 @@ def test_mixed_public_private_dns_answer_fails_closed(
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_dns_errors_are_controlled_before_socket`
 
-**Purpose**
+**Purpose:** Regression invariant: dns errors are controlled before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `dns errors are controlled before socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `error`.
-
-**Setup**
+**Exact signature**
 
 ```python
-def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
-        raise error
-monkeypatch.setattr(safe_http.socket, "getaddrinfo", fail)
-monkeypatch.setattr(
-        safe_http.socket,
-        "socket",
-        lambda *args, **kwargs: pytest.fail("socket used after DNS failure"),
-    )
+def test_dns_errors_are_controlled_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "error",
+    [
+        socket.gaierror("DNS failed"),
+        OSError("resolver failed"),
+        UnicodeError("bad hostname"),
+    ],
+    ids=["gaierror", "oserror", "unicode-error"],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `error` | positional-or-keyword | `Exception` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="DNS|resolve"):
-        _read()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="DNS\|resolve")`
 
-Converts resolver failures into SafeHttpsError and proves no transport socket is created after DNS failure.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `socket.gaierror` | `socket.gaierror` |
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `UnicodeError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `socket.gaierror` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_dns_errors_are_controlled_before_socket(
@@ -1666,7 +2615,13 @@ def test_dns_errors_are_controlled_before_socket(
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_dns_errors_are_controlled_before_socket.fail`
+
+**Purpose:** Implements `fail` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1674,34 +2629,44 @@ def test_dns_errors_are_controlled_before_socket(
 def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
 ```
 
-**Purpose**
-
-Private `test` helper for fail; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[Any, ...]]`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `error`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `error`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', fail)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1712,51 +2677,89 @@ def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_unsafe_url_identity_fails_before_dns`
 
-**Purpose**
+**Purpose:** Regression invariant: unsafe url identity fails before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `unsafe url identity fails before dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `url`.
-
-**Setup**
+**Exact signature**
 
 ```python
-monkeypatch.setattr(
-        safe_http.socket,
-        "getaddrinfo",
-        lambda *args, **kwargs: pytest.fail("DNS used for lexically unsafe URL"),
-    )
+def test_unsafe_url_identity_fails_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    url: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "url",
+    [
+        "http://source.example/archive.zip",
+        "https://user:secret@source.example/archive.zip",
+        "https://localhost/archive.zip",
+        "https://api.localhost/archive.zip",
+        "https://localhost\u3002/archive.zip",
+        "https://api.localhost\uff0e/archive.zip",
+        "https://api.localhost\uff61/archive.zip",
+        "https:///archive.zip",
+    ],
+    ids=[
+        "http",
+        "credentials",
+        "localhost",
+        "localhost-subdomain",
+        "localhost-ideographic-trailing-dot",
+        "localhost-subdomain-fullwidth-trailing-dot",
+        "localhost-subdomain-halfwidth-trailing-dot",
+        "missing-host",
+    ],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `url` | positional-or-keyword | `str` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="HTTPS|credential|localhost|host|URL"):
-        _read(url)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="HTTPS\|credential\|localhost\|host\|URL")`
 
-Rejects non-HTTPS, credentialed, localhost, malformed-port, or otherwise unsafe URL identity before resolver or socket activity.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_unsafe_url_identity_fails_before_dns(
@@ -1773,49 +2776,84 @@ def test_unsafe_url_identity_fails_before_dns(
         _read(url)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_literal_and_malformed_numeric_ip_rejection_never_uses_dns`
 
-**Purpose**
+**Purpose:** Regression invariant: literal and malformed numeric ip rejection never uses dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `literal and malformed numeric ip rejection never uses dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `url`.
-
-**Setup**
+**Exact signature**
 
 ```python
-monkeypatch.setattr(
-        safe_http.socket,
-        "getaddrinfo",
-        lambda *args, **kwargs: pytest.fail("literal address unexpectedly used DNS"),
-    )
+def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    url: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "url",
+    [
+        "https://127.0.0.1/archive.zip",
+        "https://127.1/archive.zip",
+        "https://0177.0.0.1/archive.zip",
+        "https://10.0.0.2/archive.zip",
+        "https://2130706433/archive.zip",
+        "https://0x7f000001/archive.zip",
+        "https://[::1]/archive.zip",
+        "https://[fd00::1]/archive.zip",
+        "https://[fe80::1]/archive.zip",
+        "https://999999999999999999999/archive.zip",
+        "https://0xnotanaddress/archive.zip",
+    ],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `url` | positional-or-keyword | `str` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="public|global|address|IP|URL"):
-        _read(url)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="public\|global\|address\|IP\|URL")`
 
-Pins strict literal/numeric-IP parsing: unsafe or malformed numeric forms fail locally and cannot be reinterpreted through DNS.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
@@ -1832,51 +2870,67 @@ def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
         _read(url)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_public_literal_ip_uses_exact_socket_without_dns`
 
-**Purpose**
+**Purpose:** Regression invariant: public literal ip uses exact socket without dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `public literal ip uses exact socket without dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-monkeypatch.setattr(
-        safe_http.socket,
-        "getaddrinfo",
-        lambda *args, **kwargs: pytest.fail("public literal unexpectedly used DNS"),
-    )
-harness = _install_network(monkeypatch)
+def test_public_literal_ip_uses_exact_socket_without_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert _read(f"https://{PUBLIC_IPV4}/archive.zip") == b"ok"
-assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read(f"https://{PUBLIC_IPV4}/archive.zip") == b"ok"`
+  - `assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]`
 
-Proves a globally routable literal IP bypasses DNS and the bound socket connects to that exact numeric endpoint.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_public_literal_ip_uses_exact_socket_without_dns(
@@ -1893,50 +2947,71 @@ def test_public_literal_ip_uses_exact_socket_without_dns(
     assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_explicit_https_port_is_resolved_and_connected_exactly`
 
-**Purpose**
+**Purpose:** Regression invariant: explicit https port is resolved and connected exactly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `explicit https port is resolved and connected exactly`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-calls = _install_dns(monkeypatch, (PUBLIC_IPV4,))
-harness = _install_network(monkeypatch)
+def test_explicit_https_port_is_resolved_and_connected_exactly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert _read("https://source.example:8443/archive.zip") == b"ok"
-assert calls == [("source.example", 8443)]
-assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 8443))]
-assert harness.server_names == ["source.example"]
-assert b"\r\nHost: source.example:8443\r\n" in b"".join(harness.sent)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read("https://source.example:8443/archive.zip") == b"ok"`
+  - `assert calls == [("source.example", 8443)]`
+  - `assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 8443))]`
+  - `assert harness.server_names == ["source.example"]`
+  - `assert b"\r\nHost: source.example:8443\r\n" in b"".join(harness.sent)`
 
-Pins explicit-port handling across DNS, numeric socket endpoint, HTTP Host header, and original hostname TLS SNI.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `b"".join` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_explicit_https_port_is_resolved_and_connected_exactly(
@@ -1952,65 +3027,75 @@ def test_explicit_https_port_is_resolved_and_connected_exactly(
     assert b"\r\nHost: source.example:8443\r\n" in b"".join(harness.sent)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_safe_https_redirect_is_manually_revalidated`
 
-**Purpose**
+**Purpose:** Regression invariant: safe https redirect is manually revalidated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `safe https redirect is manually revalidated`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-calls = _install_dns(monkeypatch, (PUBLIC_IPV4,))
-harness = _install_network(
-        monkeypatch,
-        responses=[
-            _http_response(302, body=b"", headers={"Location": "https://cdn.example/file"}),
-            _http_response(body=b"archive"),
-        ],
-    )
+def test_safe_https_redirect_is_manually_revalidated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with open_safe_https(
-        "https://source.example/archive.zip",
-        timeout=12.5,
-    ) as response:
-        assert response.read() == b"archive"
-        assert response.url == "https://cdn.example/file"
-        assert response.history == ("https://source.example/archive.zip",)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert calls == [("source.example", 443), ("cdn.example", 443)]
-assert [endpoint for _, endpoint in harness.connected] == [
-        (PUBLIC_IPV4, 443),
-        (PUBLIC_IPV4, 443),
-    ]
-assert harness.server_names == ["source.example", "cdn.example"]
-assert b"\r\nHost: source.example\r\n" in harness.sent[0]
-assert b"\r\nHost: cdn.example\r\n" in harness.sent[1]
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert response.read() == b"archive"`
+  - `assert response.url == "https://cdn.example/file"`
+  - `assert response.history == ("https://source.example/archive.zip",)`
+  - `assert calls == [("source.example", 443), ("cdn.example", 443)]`
+  - `assert [endpoint for _, endpoint in harness.connected] == [<br>        (PUBLIC_IPV4, 443),<br>        (PUBLIC_IPV4, 443),<br>    ]`
+  - `assert harness.server_names == ["source.example", "cdn.example"]`
+  - `assert b"\r\nHost: source.example\r\n" in harness.sent[0]`
+  - `assert b"\r\nHost: cdn.example\r\n" in harness.sent[1]`
 
-Proves each redirect target is resolved/validated before its own request and that final URL/history plus per-hop Host/SNI identities remain exact.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+| `response.read` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_safe_https_redirect_is_manually_revalidated(
@@ -2020,7 +3105,9 @@ def test_safe_https_redirect_is_manually_revalidated(
     harness = _install_network(
         monkeypatch,
         responses=[
-            _http_response(302, body=b"", headers={"Location": "https://cdn.example/file"}),
+            _http_response(
+                302, body=b"", headers={"Location": "https://cdn.example/file"}
+            ),
             _http_response(body=b"archive"),
         ],
     )
@@ -2042,60 +3129,70 @@ def test_safe_https_redirect_is_manually_revalidated(
     assert b"\r\nHost: cdn.example\r\n" in harness.sent[1]
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_unsafe_redirect_is_rejected_before_target_socket`
 
-**Purpose**
+**Purpose:** Regression invariant: unsafe redirect is rejected before target socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `unsafe redirect is rejected before target socket`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        address = PUBLIC_IPV4 if hostname == "source.example" else "127.0.0.1"
-        return _dns_records((address,), port)
-monkeypatch.setattr(safe_http.socket, "getaddrinfo", resolve)
-harness = _install_network(
-        monkeypatch,
-        responses=[
-            _http_response(
-                302,
-                body=b"",
-                headers={"Location": "https://private.example/file"},
-            )
-        ],
-    )
+def test_unsafe_redirect_is_rejected_before_target_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
-        _read()
-assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS")`
+- Exact assertions:
+  - `assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]`
 
-Prevents an unsafe Location target from creating a second-hop socket while allowing only the already validated first request needed to receive the redirect.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_unsafe_redirect_is_rejected_before_target_socket(
@@ -2122,7 +3219,13 @@ def test_unsafe_redirect_is_rejected_before_target_socket(
     assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_unsafe_redirect_is_rejected_before_target_socket.resolve`
+
+**Purpose:** Implements `resolve` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2130,37 +3233,47 @@ def test_unsafe_redirect_is_rejected_before_target_socket(
 def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 ```
 
-**Purpose**
-
-Resolves resolve; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[Any, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-_dns_records((address,), port)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `hostname` | positional-or-keyword | `str` | `required` |
+| `port` | positional-or-keyword | `int` | `required` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_dns_records((address,), port)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', resolve)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_dns_records` | `tests.unit.test_safe_http._dns_records` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2172,54 +3285,66 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_redirect_loop_is_rejected`
 
-**Purpose**
+**Purpose:** Regression invariant: redirect loop is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `redirect loop is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-_install_dns(monkeypatch, (PUBLIC_IPV4,))
-_install_network(
-        monkeypatch,
-        responses=[
-            _http_response(302, body=b"", headers={"Location": "/archive.zip"})
-        ],
-    )
+def test_redirect_loop_is_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="loop"):
-        _read()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="loop")`
 
-Prevents cyclic Location chains from causing unbounded requests and preserves controlled cleanup.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_redirect_loop_is_rejected(
@@ -2228,60 +3353,76 @@ def test_redirect_loop_is_rejected(
     _install_dns(monkeypatch, (PUBLIC_IPV4,))
     _install_network(
         monkeypatch,
-        responses=[
-            _http_response(302, body=b"", headers={"Location": "/archive.zip"})
-        ],
+        responses=[_http_response(302, body=b"", headers={"Location": "/archive.zip"})],
     )
 
     with pytest.raises(SafeHttpsError, match="loop"):
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_redirect_limit_is_enforced`
 
-**Purpose**
+**Purpose:** Regression invariant: redirect limit is enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `redirect limit is enforced`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-_install_dns(monkeypatch, (PUBLIC_IPV4,))
-redirects = [
-        _http_response(302, body=b"", headers={"Location": f"/step-{index}"})
-        for index in range(12)
-    ]
-_install_network(monkeypatch, responses=redirects)
+def test_redirect_limit_is_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="redirect"):
-        _read()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="redirect")`
 
-Pins the finite redirect budget so a non-cyclic chain cannot exceed the configured maximum.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_http_response` | `tests.unit.test_safe_http._http_response` |
+| `range` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `pytest.raises` | `pytest.raises` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_redirect_limit_is_enforced(
@@ -2298,58 +3439,74 @@ def test_redirect_limit_is_enforced(
         _read()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host`
 
-**Purpose**
+**Purpose:** Regression invariant: validated dns snapshot binds actual socket and preserves tls host. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `validated dns snapshot binds actual socket and preserves tls host`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-resolutions = 0
-def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        nonlocal resolutions
-        resolutions += 1
-        address = PUBLIC_IPV4 if resolutions == 1 else "127.0.0.1"
-        return _dns_records((address,), port)
-monkeypatch.setattr(safe_http.socket, "getaddrinfo", rebind)
-harness = _install_network(monkeypatch)
-request = b"".join(harness.sent).decode("ascii")
+def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert _read("https://rebind.example/archive.zip") == b"ok"
-assert resolutions == 1
-assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
-assert harness.server_names == ["rebind.example"]
-assert request.startswith("GET /archive.zip HTTP/1.1\r\n")
-assert "\r\nHost: rebind.example\r\n" in request
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read("https://rebind.example/archive.zip") == b"ok"`
+  - `assert resolutions == 1`
+  - `assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]`
+  - `assert harness.server_names == ["rebind.example"]`
+  - `assert request.startswith("GET /archive.zip HTTP/1.1\r\n")`
+  - `assert "\r\nHost: rebind.example\r\n" in request`
 
-Prevents DNS rebinding: validation must occur once, the actual socket must connect to an IP from that validated snapshot, a later hostname answer cannot redirect transport to loopback/private space, and TLS SNI/certificate plus HTTP Host must remain the original hostname.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `b"".join(harness.sent).decode` | `unresolved local/third-party receiver; no ownership inferred` |
+| `b"".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `request.startswith` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
@@ -2375,7 +3532,13 @@ def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
     assert "\r\nHost: rebind.example\r\n" in request
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind`
+
+**Purpose:** Implements `rebind` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2383,37 +3546,47 @@ def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
 def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 ```
 
-**Purpose**
-
-Private `test` helper for rebind; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[Any, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-_dns_records((address,), port)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `hostname` | positional-or-keyword | `str` | `required` |
+| `port` | positional-or-keyword | `int` | `required` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_dns_records((address,), port)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_safe_http.py::test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` via `monkeypatch.setattr(safe_http.socket, 'getaddrinfo', rebind)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_dns_records` | `tests.unit.test_safe_http._dns_records` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2427,52 +3600,66 @@ def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_environment_proxy_does_not_change_bound_destination`
 
-**Purpose**
+**Purpose:** Regression invariant: environment proxy does not change bound destination. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `environment proxy does not change bound destination`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9999")
-monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9999")
-monkeypatch.setenv("ALL_PROXY", "http://127.0.0.1:9999")
-_install_dns(monkeypatch, (PUBLIC_IPV4,))
-harness = _install_network(monkeypatch)
+def test_environment_proxy_does_not_change_bound_destination(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert _read() == b"ok"
-assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read() == b"ok"`
+  - `assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]`
 
-Proves HTTP(S)_PROXY/NO_PROXY environment state cannot redirect transport because the helper opens its own validated numeric socket.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setenv` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_environment_proxy_does_not_change_bound_destination(
@@ -2488,54 +3675,73 @@ def test_environment_proxy_does_not_change_bound_destination(
     assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_malformed_header_name_is_rejected_before_dns`
 
-**Purpose**
+**Purpose:** Regression invariant: malformed header name is rejected before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `malformed header name is rejected before dns`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `header_name`.
-
-**Setup**
+**Exact signature**
 
 ```python
-monkeypatch.setattr(
-        safe_http.socket,
-        "getaddrinfo",
-        lambda *args, **kwargs: pytest.fail("DNS used after malformed header name"),
-    )
+def test_malformed_header_name_is_rejected_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "header_name",
+    ["Host ", "Bad Header"],
+    ids=["host-with-trailing-space", "non-token-field-name"],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `header_name` | positional-or-keyword | `str` | `required` |
 
-```python
-with pytest.raises(SafeHttpsError, match="header|Host"), open_safe_https(
-        "https://source.example/archive.zip",
-        timeout=12.5,
-        headers={header_name: "attacker.example"},
-    ):
-        pass
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(SafeHttpsError, match="header\|Host")`
 
-Rejects invalid RFC token header names and Host-like whitespace variants before DNS, preventing ambiguous duplicate Host parsing.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `open_safe_https` | `landscout.common.safe_http.open_safe_https` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | `open_safe_https` |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_malformed_header_name_is_rejected_before_dns(
@@ -2548,58 +3754,82 @@ def test_malformed_header_name_is_rejected_before_dns(
         lambda *args, **kwargs: pytest.fail("DNS used after malformed header name"),
     )
 
-    with pytest.raises(SafeHttpsError, match="header|Host"), open_safe_https(
-        "https://source.example/archive.zip",
-        timeout=12.5,
-        headers={header_name: "attacker.example"},
+    with (
+        pytest.raises(SafeHttpsError, match="header|Host"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "attacker.example"},
+        ),
     ):
         pass
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_tls_context_keeps_hostname_verification_enabled`
 
-**Purpose**
+**Purpose:** Regression invariant: tls context keeps hostname verification enabled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `tls context keeps hostname verification enabled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-_install_dns(monkeypatch, (PUBLIC_IPV4,))
-harness = _install_network(monkeypatch)
+def test_tls_context_keeps_hostname_verification_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-assert _read() == b"ok"
-assert harness.server_names == ["source.example"]
-assert len(harness.contexts) == 1
-assert harness.contexts[0].check_hostname is True
-assert harness.contexts[0].verify_mode == ssl.CERT_REQUIRED
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _read() == b"ok"`
+  - `assert harness.server_names == ["source.example"]`
+  - `assert len(harness.contexts) == 1`
+  - `assert harness.contexts[0].check_hostname is True`
+  - `assert harness.contexts[0].verify_mode == ssl.CERT_REQUIRED`
 
-Pins default certificate verification and hostname checking on the TLS context used for the bound numeric socket.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_install_dns` | `tests.unit.test_safe_http._install_dns` |
+| `_install_network` | `tests.unit.test_safe_http._install_network` |
+| `_read` | `tests.unit.test_safe_http._read` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_tls_context_keeps_hostname_verification_enabled(
@@ -2615,50 +3845,805 @@ def test_tls_context_keeps_hostname_verification_enabled(
     assert harness.contexts[0].verify_mode == ssl.CERT_REQUIRED
 ```
 
+**Business boundary**
 
-## 7. Data contracts
-
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 12. GIS / CRS rules
+## 7. Test-specific regression contract
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
+- Test functions: **22**.
+- Pytest fixtures (decorator-proven): **0**.
 
-## 13. Provenance rules
+### Per-test regression index
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_sensitive_and_hop_by_hop_headers_fail_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    [<br>        "Authorization",<br>        "authorization",<br>        "Proxy-Authorization",<br>        "Cookie",<br>        "Cookie2",<br>        "Host",<br>        "Connection",<br>        "Proxy-Connection",<br>        "Keep-Alive",<br>        "Transfer-Encoding",<br>        "TE",<br>        "Trailer",<br>        "Upgrade",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="header\|forbidden\|owned") | 0 | Proves sensitive and hop by hop headers fail before dns using the exact source reproduced in section 7. |
+| `test_case_insensitive_duplicate_header_names_fail_before_dns` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Proves case insensitive duplicate header names fail before dns using the exact source reproduced in section 7. |
+| `test_request_and_explicit_headers_cannot_ambiguously_override_each_other` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Proves request and explicit headers cannot ambiguously override each other using the exact source reproduced in section 7. |
+| `test_cross_origin_redirect_cannot_receive_a_sensitive_header` | none | pytest.raises(SafeHttpsError, match="header\|forbidden") | 1 | Proves cross origin redirect cannot receive a sensitive header using the exact source reproduced in section 7. |
+| `test_cross_origin_redirect_forwards_only_safe_ordinary_headers` | none | none | 6 | Proves cross origin redirect forwards only safe ordinary headers using the exact source reproduced in section 7. |
+| `test_public_dns_answers_are_accepted` | pytest.mark.parametrize(<br>    "addresses",<br>    [<br>        (PUBLIC_IPV4,),<br>        (PUBLIC_IPV4, PUBLIC_IPV6),<br>        (PUBLIC_IPV4, PUBLIC_IPV4),<br>    ],<br>    ids=["public-ipv4", "public-ipv4-and-ipv6", "duplicate-public"],<br>) | none | 3 | Proves public dns answers are accepted using the exact source reproduced in section 7. |
+| `test_malformed_or_unusable_dns_results_fail_before_socket` | pytest.mark.parametrize(<br>    "records",<br>    [<br>        [],<br>        [(socket.AF_INET, socket.SOCK_STREAM)],<br>        [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_DGRAM,<br>                socket.IPPROTO_UDP,<br>                "",<br>                (PUBLIC_IPV4, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_STREAM,<br>                socket.IPPROTO_TCP,<br>                "",<br>                (PUBLIC_IPV6, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],<br>    ],<br>    ids=[<br>        "zero",<br>        "short-record",<br>        "unsupported-family",<br>        "wrong-socket-type",<br>        "non-integer-protocol",<br>        "bad-sockaddr",<br>        "family-mismatch",<br>        "non-string-address",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="DNS\|address") | 0 | Proves malformed or unusable dns results fail before socket using the exact source reproduced in section 7. |
+| `test_any_nonpublic_dns_answer_fails_before_socket` | pytest.mark.parametrize(<br>    "address",<br>    [<br>        "127.0.0.1",<br>        "10.0.0.2",<br>        "169.254.1.1",<br>        "0.0.0.0",<br>        "240.0.0.1",<br>        "224.0.0.1",<br>        "::1",<br>        "fd00::1",<br>        "fe80::1",<br>        "::",<br>        "ff02::1",<br>        "::ffff:127.0.0.1",<br>    ],<br>    ids=[<br>        "ipv4-loopback",<br>        "ipv4-private",<br>        "ipv4-link-local",<br>        "ipv4-unspecified",<br>        "ipv4-reserved",<br>        "ipv4-multicast",<br>        "ipv6-loopback",<br>        "ipv6-private",<br>        "ipv6-link-local",<br>        "ipv6-unspecified",<br>        "ipv6-multicast",<br>        "ipv4-mapped-private",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Proves any nonpublic dns answer fails before socket using the exact source reproduced in section 7. |
+| `test_mixed_public_private_dns_answer_fails_closed` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Proves mixed public private dns answer fails closed using the exact source reproduced in section 7. |
+| `test_dns_errors_are_controlled_before_socket` | pytest.mark.parametrize(<br>    "error",<br>    [<br>        socket.gaierror("DNS failed"),<br>        OSError("resolver failed"),<br>        UnicodeError("bad hostname"),<br>    ],<br>    ids=["gaierror", "oserror", "unicode-error"],<br>) | pytest.raises(SafeHttpsError, match="DNS\|resolve") | 0 | Proves dns errors are controlled before socket using the exact source reproduced in section 7. |
+| `test_unsafe_url_identity_fails_before_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "http://source.example/archive.zip",<br>        "https://user:secret@source.example/archive.zip",<br>        "https://localhost/archive.zip",<br>        "https://api.localhost/archive.zip",<br>        "https://localhost\u3002/archive.zip",<br>        "https://api.localhost\uff0e/archive.zip",<br>        "https://api.localhost\uff61/archive.zip",<br>        "https:///archive.zip",<br>    ],<br>    ids=[<br>        "http",<br>        "credentials",<br>        "localhost",<br>        "localhost-subdomain",<br>        "localhost-ideographic-trailing-dot",<br>        "localhost-subdomain-fullwidth-trailing-dot",<br>        "localhost-subdomain-halfwidth-trailing-dot",<br>        "missing-host",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="HTTPS\|credential\|localhost\|host\|URL") | 0 | Proves unsafe url identity fails before dns using the exact source reproduced in section 7. |
+| `test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "https://127.0.0.1/archive.zip",<br>        "https://127.1/archive.zip",<br>        "https://0177.0.0.1/archive.zip",<br>        "https://10.0.0.2/archive.zip",<br>        "https://2130706433/archive.zip",<br>        "https://0x7f000001/archive.zip",<br>        "https://[::1]/archive.zip",<br>        "https://[fd00::1]/archive.zip",<br>        "https://[fe80::1]/archive.zip",<br>        "https://999999999999999999999/archive.zip",<br>        "https://0xnotanaddress/archive.zip",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|IP\|URL") | 0 | Proves literal and malformed numeric ip rejection never uses dns using the exact source reproduced in section 7. |
+| `test_public_literal_ip_uses_exact_socket_without_dns` | none | none | 2 | Proves public literal ip uses exact socket without dns using the exact source reproduced in section 7. |
+| `test_explicit_https_port_is_resolved_and_connected_exactly` | none | none | 5 | Proves explicit https port is resolved and connected exactly using the exact source reproduced in section 7. |
+| `test_safe_https_redirect_is_manually_revalidated` | none | none | 8 | Proves safe https redirect is manually revalidated using the exact source reproduced in section 7. |
+| `test_unsafe_redirect_is_rejected_before_target_socket` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 1 | Proves unsafe redirect is rejected before target socket using the exact source reproduced in section 7. |
+| `test_redirect_loop_is_rejected` | none | pytest.raises(SafeHttpsError, match="loop") | 0 | Proves redirect loop is rejected using the exact source reproduced in section 7. |
+| `test_redirect_limit_is_enforced` | none | pytest.raises(SafeHttpsError, match="redirect") | 0 | Proves redirect limit is enforced using the exact source reproduced in section 7. |
+| `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` | none | none | 6 | Proves validated dns snapshot binds actual socket and preserves tls host using the exact source reproduced in section 7. |
+| `test_environment_proxy_does_not_change_bound_destination` | none | none | 2 | Proves environment proxy does not change bound destination using the exact source reproduced in section 7. |
+| `test_malformed_header_name_is_rejected_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    ["Host ", "Bad Header"],<br>    ids=["host-with-trailing-space", "non-token-field-name"],<br>) | pytest.raises(SafeHttpsError, match="header\|Host") | 0 | Proves malformed header name is rejected before dns using the exact source reproduced in section 7. |
+| `test_tls_context_keeps_hostname_verification_enabled` | none | none | 5 | Proves tls context keeps hostname verification enabled using the exact source reproduced in section 7. |
 
-## 14. Business meaning
+## 8. Public exports and package ownership
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-## 15. Explicit non-goals
+## 9. Trust, provenance, side effects, and business boundary
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-## 16. Tests
+## 10. Change impact
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
 
-## 17. Change impact
+## 11. Exact complete current file content
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+from __future__ import annotations
+
+import io
+import socket
+import ssl
+from typing import Any
+from urllib.request import Request
+
+import pytest
+
+from landscout.common import safe_http
+from landscout.common.safe_http import SafeHttpsError, open_safe_https
+
+PUBLIC_IPV4 = "93.184.216.34"
+PUBLIC_IPV6 = "2606:4700:4700::1111"
+
+
+def _http_response(
+    status: int = 200,
+    *,
+    body: bytes = b"ok",
+    headers: dict[str, str] | None = None,
+) -> bytes:
+    reason = {
+        200: "OK",
+        301: "Moved Permanently",
+        302: "Found",
+        303: "See Other",
+        307: "Temporary Redirect",
+        308: "Permanent Redirect",
+    }.get(status, "Response")
+    values = {"Content-Length": str(len(body)), **(headers or {})}
+    header_bytes = "".join(f"{name}: {value}\r\n" for name, value in values.items())
+    return f"HTTP/1.1 {status} {reason}\r\n{header_bytes}\r\n".encode() + body
+
+
+def _dns_records(
+    addresses: tuple[str, ...],
+    port: int,
+) -> list[tuple[int, int, int, str, tuple[object, ...]]]:
+    result: list[tuple[int, int, int, str, tuple[object, ...]]] = []
+    for address in addresses:
+        if ":" in address:
+            result.append(
+                (
+                    socket.AF_INET6,
+                    socket.SOCK_STREAM,
+                    socket.IPPROTO_TCP,
+                    "",
+                    (address, port, 0, 0),
+                )
+            )
+        else:
+            result.append(
+                (
+                    socket.AF_INET,
+                    socket.SOCK_STREAM,
+                    socket.IPPROTO_TCP,
+                    "",
+                    (address, port),
+                )
+            )
+    return result
+
+
+class _FakeSocket:
+    def __init__(
+        self,
+        family: int,
+        response_bytes: bytes,
+        connected: list[tuple[int, tuple[object, ...]]],
+        sent: list[bytes],
+    ) -> None:
+        self.family = family
+        self._response_bytes = response_bytes
+        self._connected = connected
+        self._sent = sent
+        self._endpoint: tuple[object, ...] | None = None
+        self.closed = False
+        self.timeout: float | None = None
+
+    def settimeout(self, timeout: float) -> None:
+        self.timeout = timeout
+
+    def connect(self, endpoint: tuple[object, ...]) -> None:
+        self._endpoint = endpoint
+        self._connected.append((self.family, endpoint))
+
+    def getpeername(self) -> tuple[object, ...]:
+        assert self._endpoint is not None
+        return self._endpoint
+
+    def sendall(self, payload: bytes) -> None:
+        self._sent.append(payload)
+
+    def makefile(self, *args: object, **kwargs: object) -> io.BytesIO:
+        return io.BytesIO(self._response_bytes)
+
+    def setsockopt(self, *args: object, **kwargs: object) -> None:
+        return None
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class _FakeTlsContext:
+    check_hostname = True
+    verify_mode = ssl.CERT_REQUIRED
+
+    def __init__(self, server_names: list[str]) -> None:
+        self._server_names = server_names
+
+    def wrap_socket(self, sock: _FakeSocket, *, server_hostname: str) -> _FakeSocket:
+        self._server_names.append(server_hostname)
+        return sock
+
+
+class _NetworkHarness:
+    def __init__(self, responses: list[bytes]) -> None:
+        self.responses = list(responses)
+        self.connected: list[tuple[int, tuple[object, ...]]] = []
+        self.sent: list[bytes] = []
+        self.server_names: list[str] = []
+        self.contexts: list[_FakeTlsContext] = []
+        self.sockets: list[_FakeSocket] = []
+
+    def socket(
+        self,
+        family: int = socket.AF_INET,
+        type: int = socket.SOCK_STREAM,
+        proto: int = 0,
+        fileno: int | None = None,
+    ) -> _FakeSocket:
+        assert type == socket.SOCK_STREAM
+        assert fileno is None
+        if not self.responses:
+            raise AssertionError("Unexpected additional socket connection")
+        result = _FakeSocket(
+            family,
+            self.responses.pop(0),
+            self.connected,
+            self.sent,
+        )
+        self.sockets.append(result)
+        return result
+
+    def context(self, *args: object, **kwargs: object) -> _FakeTlsContext:
+        context = _FakeTlsContext(self.server_names)
+        self.contexts.append(context)
+        return context
+
+
+def _install_network(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    responses: list[bytes] | None = None,
+) -> _NetworkHarness:
+    harness = _NetworkHarness(responses or [_http_response()])
+    monkeypatch.setattr(safe_http.socket, "socket", harness.socket)
+    monkeypatch.setattr(safe_http.ssl, "create_default_context", harness.context)
+    return harness
+
+
+def _install_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    addresses: tuple[str, ...],
+) -> list[tuple[str, int]]:
+    calls: list[tuple[str, int]] = []
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        calls.append((hostname, port))
+        return _dns_records(addresses, port)
+
+    monkeypatch.setattr(safe_http.socket, "getaddrinfo", resolve)
+    return calls
+
+
+def _read(url: str = "https://source.example/archive.zip") -> bytes:
+    with open_safe_https(url, timeout=12.5) as response:
+        return response.read()
+
+
+@pytest.mark.parametrize(
+    "header_name",
+    [
+        "Authorization",
+        "authorization",
+        "Proxy-Authorization",
+        "Cookie",
+        "Cookie2",
+        "Host",
+        "Connection",
+        "Proxy-Connection",
+        "Keep-Alive",
+        "Transfer-Encoding",
+        "TE",
+        "Trailer",
+        "Upgrade",
+    ],
+)
+def test_sensitive_and_hop_by_hop_headers_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after forbidden header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden|owned"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "secret"},
+        ),
+    ):
+        pass
+
+
+def test_case_insensitive_duplicate_header_names_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Accept": "application/zip", "accept": "application/json"},
+        ),
+    ):
+        pass
+
+
+def test_request_and_explicit_headers_cannot_ambiguously_override_each_other(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+    request = Request(
+        "https://source.example/archive.zip",
+        headers={"Accept": "application/zip"},
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            request,
+            timeout=12.5,
+            headers={"accept": "application/json"},
+        ),
+    ):
+        pass
+
+
+def test_cross_origin_redirect_cannot_receive_a_sensitive_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail(
+            "DNS used before sensitive redirect header rejection"
+        ),
+    )
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Authorization": "Bearer secret"},
+        ),
+    ):
+        pass
+
+    assert harness.sent == []
+
+
+def test_cross_origin_redirect_forwards_only_safe_ordinary_headers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with open_safe_https(
+        "https://source.example/archive.zip",
+        timeout=12.5,
+        headers={"User-Agent": "LandScout-Test", "Accept": "application/zip"},
+    ) as response:
+        assert response.read() == b"archive"
+
+    assert len(harness.sent) == 2
+    for request in harness.sent:
+        assert b"User-Agent: LandScout-Test" in request
+        assert b"Accept: application/zip" in request
+        assert b"Authorization:" not in request
+        assert b"Cookie:" not in request
+
+
+@pytest.mark.parametrize(
+    "addresses",
+    [
+        (PUBLIC_IPV4,),
+        (PUBLIC_IPV4, PUBLIC_IPV6),
+        (PUBLIC_IPV4, PUBLIC_IPV4),
+    ],
+    ids=["public-ipv4", "public-ipv4-and-ipv6", "duplicate-public"],
+)
+def test_public_dns_answers_are_accepted(
+    monkeypatch: pytest.MonkeyPatch,
+    addresses: tuple[str, ...],
+) -> None:
+    calls = _install_dns(monkeypatch, addresses)
+    harness = _install_network(monkeypatch)
+
+    assert _read() == b"ok"
+    assert calls == [("source.example", 443)]
+    assert harness.connected
+
+
+@pytest.mark.parametrize(
+    "records",
+    [
+        [],
+        [(socket.AF_INET, socket.SOCK_STREAM)],
+        [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_DGRAM,
+                socket.IPPROTO_UDP,
+                "",
+                (PUBLIC_IPV4, 443),
+            )
+        ],
+        [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],
+        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_STREAM,
+                socket.IPPROTO_TCP,
+                "",
+                (PUBLIC_IPV6, 443),
+            )
+        ],
+        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],
+    ],
+    ids=[
+        "zero",
+        "short-record",
+        "unsupported-family",
+        "wrong-socket-type",
+        "non-integer-protocol",
+        "bad-sockaddr",
+        "family-mismatch",
+        "non-string-address",
+    ],
+)
+def test_malformed_or_unusable_dns_results_fail_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    records: list[tuple[Any, ...]],
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records
+    )
+    monkeypatch.setattr(
+        safe_http.socket,
+        "socket",
+        lambda *args, **kwargs: pytest.fail("socket used after invalid DNS"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="DNS|address"):
+        _read()
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "127.0.0.1",
+        "10.0.0.2",
+        "169.254.1.1",
+        "0.0.0.0",
+        "240.0.0.1",
+        "224.0.0.1",
+        "::1",
+        "fd00::1",
+        "fe80::1",
+        "::",
+        "ff02::1",
+        "::ffff:127.0.0.1",
+    ],
+    ids=[
+        "ipv4-loopback",
+        "ipv4-private",
+        "ipv4-link-local",
+        "ipv4-unspecified",
+        "ipv4-reserved",
+        "ipv4-multicast",
+        "ipv6-loopback",
+        "ipv6-private",
+        "ipv6-link-local",
+        "ipv6-unspecified",
+        "ipv6-multicast",
+        "ipv4-mapped-private",
+    ],
+)
+def test_any_nonpublic_dns_answer_fails_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    address: str,
+) -> None:
+    _install_dns(monkeypatch, (address,))
+    monkeypatch.setattr(
+        safe_http.socket,
+        "socket",
+        lambda *args, **kwargs: pytest.fail("socket used after unsafe DNS"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
+        _read()
+
+
+def test_mixed_public_private_dns_answer_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4, "127.0.0.1"))
+    monkeypatch.setattr(
+        safe_http.socket,
+        "socket",
+        lambda *args, **kwargs: pytest.fail("socket used after mixed DNS"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
+        _read()
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        socket.gaierror("DNS failed"),
+        OSError("resolver failed"),
+        UnicodeError("bad hostname"),
+    ],
+    ids=["gaierror", "oserror", "unicode-error"],
+)
+def test_dns_errors_are_controlled_before_socket(
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+) -> None:
+    def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
+        raise error
+
+    monkeypatch.setattr(safe_http.socket, "getaddrinfo", fail)
+    monkeypatch.setattr(
+        safe_http.socket,
+        "socket",
+        lambda *args, **kwargs: pytest.fail("socket used after DNS failure"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="DNS|resolve"):
+        _read()
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://source.example/archive.zip",
+        "https://user:secret@source.example/archive.zip",
+        "https://localhost/archive.zip",
+        "https://api.localhost/archive.zip",
+        "https://localhost\u3002/archive.zip",
+        "https://api.localhost\uff0e/archive.zip",
+        "https://api.localhost\uff61/archive.zip",
+        "https:///archive.zip",
+    ],
+    ids=[
+        "http",
+        "credentials",
+        "localhost",
+        "localhost-subdomain",
+        "localhost-ideographic-trailing-dot",
+        "localhost-subdomain-fullwidth-trailing-dot",
+        "localhost-subdomain-halfwidth-trailing-dot",
+        "missing-host",
+    ],
+)
+def test_unsafe_url_identity_fails_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    url: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used for lexically unsafe URL"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="HTTPS|credential|localhost|host|URL"):
+        _read(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://127.0.0.1/archive.zip",
+        "https://127.1/archive.zip",
+        "https://0177.0.0.1/archive.zip",
+        "https://10.0.0.2/archive.zip",
+        "https://2130706433/archive.zip",
+        "https://0x7f000001/archive.zip",
+        "https://[::1]/archive.zip",
+        "https://[fd00::1]/archive.zip",
+        "https://[fe80::1]/archive.zip",
+        "https://999999999999999999999/archive.zip",
+        "https://0xnotanaddress/archive.zip",
+    ],
+)
+def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    url: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("literal address unexpectedly used DNS"),
+    )
+
+    with pytest.raises(SafeHttpsError, match="public|global|address|IP|URL"):
+        _read(url)
+
+
+def test_public_literal_ip_uses_exact_socket_without_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("public literal unexpectedly used DNS"),
+    )
+    harness = _install_network(monkeypatch)
+
+    assert _read(f"https://{PUBLIC_IPV4}/archive.zip") == b"ok"
+    assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
+
+
+def test_explicit_https_port_is_resolved_and_connected_exactly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(monkeypatch)
+
+    assert _read("https://source.example:8443/archive.zip") == b"ok"
+    assert calls == [("source.example", 8443)]
+    assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 8443))]
+    assert harness.server_names == ["source.example"]
+    assert b"\r\nHost: source.example:8443\r\n" in b"".join(harness.sent)
+
+
+def test_safe_https_redirect_is_manually_revalidated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302, body=b"", headers={"Location": "https://cdn.example/file"}
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with open_safe_https(
+        "https://source.example/archive.zip",
+        timeout=12.5,
+    ) as response:
+        assert response.read() == b"archive"
+        assert response.url == "https://cdn.example/file"
+        assert response.history == ("https://source.example/archive.zip",)
+    assert calls == [("source.example", 443), ("cdn.example", 443)]
+    assert [endpoint for _, endpoint in harness.connected] == [
+        (PUBLIC_IPV4, 443),
+        (PUBLIC_IPV4, 443),
+    ]
+    assert harness.server_names == ["source.example", "cdn.example"]
+    assert b"\r\nHost: source.example\r\n" in harness.sent[0]
+    assert b"\r\nHost: cdn.example\r\n" in harness.sent[1]
+
+
+def test_unsafe_redirect_is_rejected_before_target_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        address = PUBLIC_IPV4 if hostname == "source.example" else "127.0.0.1"
+        return _dns_records((address,), port)
+
+    monkeypatch.setattr(safe_http.socket, "getaddrinfo", resolve)
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://private.example/file"},
+            )
+        ],
+    )
+
+    with pytest.raises(SafeHttpsError, match="public|global|address|DNS"):
+        _read()
+    assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
+
+
+def test_redirect_loop_is_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    _install_network(
+        monkeypatch,
+        responses=[_http_response(302, body=b"", headers={"Location": "/archive.zip"})],
+    )
+
+    with pytest.raises(SafeHttpsError, match="loop"):
+        _read()
+
+
+def test_redirect_limit_is_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    redirects = [
+        _http_response(302, body=b"", headers={"Location": f"/step-{index}"})
+        for index in range(12)
+    ]
+    _install_network(monkeypatch, responses=redirects)
+
+    with pytest.raises(SafeHttpsError, match="redirect"):
+        _read()
+
+
+def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    resolutions = 0
+
+    def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        nonlocal resolutions
+        resolutions += 1
+        address = PUBLIC_IPV4 if resolutions == 1 else "127.0.0.1"
+        return _dns_records((address,), port)
+
+    monkeypatch.setattr(safe_http.socket, "getaddrinfo", rebind)
+    harness = _install_network(monkeypatch)
+
+    assert _read("https://rebind.example/archive.zip") == b"ok"
+    assert resolutions == 1
+    assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
+    assert harness.server_names == ["rebind.example"]
+    request = b"".join(harness.sent).decode("ascii")
+    assert request.startswith("GET /archive.zip HTTP/1.1\r\n")
+    assert "\r\nHost: rebind.example\r\n" in request
+
+
+def test_environment_proxy_does_not_change_bound_destination(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9999")
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9999")
+    monkeypatch.setenv("ALL_PROXY", "http://127.0.0.1:9999")
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(monkeypatch)
+
+    assert _read() == b"ok"
+    assert harness.connected == [(socket.AF_INET, (PUBLIC_IPV4, 443))]
+
+
+@pytest.mark.parametrize(
+    "header_name",
+    ["Host ", "Bad Header"],
+    ids=["host-with-trailing-space", "non-token-field-name"],
+)
+def test_malformed_header_name_is_rejected_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after malformed header name"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|Host"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "attacker.example"},
+        ),
+    ):
+        pass
+
+
+def test_tls_context_keeps_hostname_verification_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(monkeypatch)
+
+    assert _read() == b"ok"
+    assert harness.server_names == ["source.example"]
+    assert len(harness.contexts) == 1
+    assert harness.contexts[0].check_hostname is True
+    assert harness.contexts[0].verify_mode == ssl.CERT_REQUIRED
+```

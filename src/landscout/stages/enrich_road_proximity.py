@@ -263,8 +263,7 @@ def _validate_application_roads(
     missing = _ROAD_REQUIRED_COLUMNS - set(roads.columns)
     if missing:
         raise RoadProximityError(
-            "Missing road application column or lineage: "
-            + ", ".join(sorted(missing))
+            "Missing road application column or lineage: " + ", ".join(sorted(missing))
         )
     if roads.active_geometry_name != "geometry":
         raise RoadProximityError("Road application geometry must be active")
@@ -346,9 +345,9 @@ def _nearest_class_rows(
             "distance_m": distances,
         }
     )
-    matches["road_feature_id"] = roads.iloc[
-        matches["road_position"].to_numpy()
-    ]["road_feature_id"].to_numpy()
+    matches["road_feature_id"] = roads.iloc[matches["road_position"].to_numpy()][
+        "road_feature_id"
+    ].to_numpy()
     matches = matches.sort_values(
         ["parcel_position", "distance_m", "road_feature_id"],
         kind="mergesort",
@@ -358,9 +357,7 @@ def _nearest_class_rows(
         "parcel_position", kind="mergesort"
     )
     if selected["parcel_position"].tolist() != list(range(parcel_count)):
-        raise RoadProximityError(
-            "Nearest-road matching did not cover every parcel"
-        )
+        raise RoadProximityError("Nearest-road matching did not cover every parcel")
 
     source_rows = roads.iloc[selected["road_position"].to_numpy()]
     output = source_rows.loc[:, list(_ROAD_MATCH_COLUMNS)].reset_index(drop=True)
@@ -402,9 +399,9 @@ def _class_proximity_table(
     _, eligible_classes = _policy_classes(policy)
     tables: list[pd.DataFrame] = []
     for class_position, road_class in enumerate(eligible_classes):
-        class_roads = roads.loc[
-            roads["road_proxy_class"].eq(road_class)
-        ].reset_index(drop=True)
+        class_roads = roads.loc[roads["road_proxy_class"].eq(road_class)].reset_index(
+            drop=True
+        )
         nearest = _nearest_class_rows(parcel_geometries, class_roads)
         _validate_distance_and_ties(
             nearest.rename(
@@ -440,12 +437,10 @@ def _class_proximity_table(
     output["nearest_road_proxy_distance_m"] = output[
         "nearest_road_proxy_distance_m"
     ].astype("float64")
-    output["nearest_road_tie_count"] = output["nearest_road_tie_count"].astype(
-        "Int64"
+    output["nearest_road_tie_count"] = output["nearest_road_tie_count"].astype("Int64")
+    output["nearest_road_toll_evidence"] = output["nearest_road_toll_evidence"].astype(
+        "boolean"
     )
-    output["nearest_road_toll_evidence"] = output[
-        "nearest_road_toll_evidence"
-    ].astype("boolean")
     return output.loc[:, list(CLASS_PROXIMITY_COLUMNS)]
 
 
@@ -522,9 +517,12 @@ def _validate_selected_evidence(
     if (positions < 0).any():
         raise RoadProximityError("Selected nearest road ID is absent from source")
     expected = lookup.iloc[positions].reset_index(drop=True)
-    if not selected["road_proxy_class"].reset_index(drop=True).eq(
-        expected["road_proxy_class"]
-    ).all():
+    if (
+        not selected["road_proxy_class"]
+        .reset_index(drop=True)
+        .eq(expected["road_proxy_class"])
+        .all()
+    ):
         raise RoadProximityError("Selected nearest road has the wrong proxy class")
 
     for source_column, output_column in _MATCH_OUTPUT_MAPPING.items():
@@ -609,9 +607,7 @@ def _validate_result(
     if type(result.class_proximity) is not pd.DataFrame:
         raise RoadProximityError("Class proximity must be a plain DataFrame")
     _validate_parcel_preservation(source_parcels, result.parcels)
-    eligible_classes = _validate_coverage(
-        result.class_coverage, roads, policy
-    )
+    eligible_classes = _validate_coverage(result.class_coverage, roads, policy)
     table = result.class_proximity
     if table.columns.duplicated().any() or list(table.columns) != list(
         CLASS_PROXIMITY_COLUMNS
@@ -654,9 +650,7 @@ def _validate_result(
         if expect_matches:
             for column in required_match_values:
                 if rows[column].isna().any():
-                    raise RoadProximityError(
-                        f"Matched class rows require {column}"
-                    )
+                    raise RoadProximityError(f"Matched class rows require {column}")
         elif rows.loc[:, list(_MATCH_OUTPUT_MAPPING.values())].notna().any().any():
             raise RoadProximityError(
                 "Empty-class selected road evidence must be entirely null"
@@ -671,9 +665,7 @@ def _validate_result(
     }
     for column, value in expected_lineage.items():
         if table[column].isna().any() or not table[column].eq(value).all():
-            raise RoadProximityError(
-                f"Class proximity lineage differs in {column}"
-            )
+            raise RoadProximityError(f"Class proximity lineage differs in {column}")
     _validate_selected_evidence(table, roads)
 
 
@@ -723,17 +715,11 @@ def enrich_parcel_road_proximity(
                 "parcels must be a GeoDataFrame with active geometry"
             )
         if type(road_source) is not IgnBdTopoRoadData:
-            raise RoadProximityError(
-                "road_source must be an IgnBdTopoRoadData"
-            )
+            raise RoadProximityError("road_source must be an IgnBdTopoRoadData")
         if type(source_config) is not IgnBdTopoSourceConfig:
-            raise RoadProximityError(
-                "source_config must be an IgnBdTopoSourceConfig"
-            )
+            raise RoadProximityError("source_config must be an IgnBdTopoSourceConfig")
         if policy_path is not None and not isinstance(policy_path, Path):
-            raise RoadProximityError(
-                "policy_path must be a pathlib.Path or None"
-            )
+            raise RoadProximityError("policy_path must be a pathlib.Path or None")
         return _enrich_parcel_road_proximity(
             parcels, road_source, source_config, policy_path
         )

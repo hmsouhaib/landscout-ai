@@ -50,9 +50,7 @@ _CALCULATION_CRS = "EPSG:2154"
 _PROXIMITY_SCOPE = "WITHIN_VERIFIED_SOURCE_PACKAGE"
 _COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 _SOURCE_SPATIAL_ROLE = "PROXY_GEOMETRY"
-_POSITIONS = frozenset(
-    {"FULLY_COVERED", "OUTSIDE_OR_CROSSING_COVERAGE"}
-)
+_POSITIONS = frozenset({"FULLY_COVERED", "OUTSIDE_OR_CROSSING_COVERAGE"})
 _STATUSES = frozenset(
     {
         "NO_MATCH",
@@ -142,30 +140,22 @@ def _validated_crs(value: object, expected_epsg: int, label: str) -> CRS:
         raise RoadProximityCoverageError(f"{label} CRS is unreadable") from error
     expected = CRS.from_epsg(expected_epsg)
     if not actual.equals(expected):
-        raise RoadProximityCoverageError(
-            f"{label} must use EPSG:{expected_epsg}"
-        )
+        raise RoadProximityCoverageError(f"{label} must use EPSG:{expected_epsg}")
     return actual
 
 
 def _normalized_identity(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise RoadProximityCoverageError(
-            f"{label} must be a non-empty exact string"
-        )
+        raise RoadProximityCoverageError(f"{label} must be a non-empty exact string")
     decomposed = unicodedata.normalize("NFKD", value)
     return "".join(
-        character
-        for character in decomposed.casefold()
-        if character.isalnum()
+        character for character in decomposed.casefold() if character.isalnum()
     )
 
 
 def _exact_string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise RoadProximityCoverageError(
-            f"{label} must be a non-empty exact string"
-        )
+        raise RoadProximityCoverageError(f"{label} must be a non-empty exact string")
     return value
 
 
@@ -246,9 +236,7 @@ def _require_same_parcels(
         raise RoadProximityCoverageError(f"{label} parcel CRS changed")
     if not actual.geometry.to_wkb().equals(expected.geometry.to_wkb()):
         raise RoadProximityCoverageError(f"{label} parcel geometry changed")
-    if not actual.drop(columns="geometry").equals(
-        expected.drop(columns="geometry")
-    ):
+    if not actual.drop(columns="geometry").equals(expected.drop(columns="geometry")):
         raise RoadProximityCoverageError(f"{label} parcel facts changed")
 
 
@@ -259,9 +247,7 @@ def _finite_nonnegative(values: pd.Series, label: str) -> np.ndarray:
             raise RoadProximityCoverageError(f"{label} must be numeric")
         numeric = float(value)
         if not isfinite(numeric) or numeric < 0:
-            raise RoadProximityCoverageError(
-                f"{label} must be finite and non-negative"
-            )
+            raise RoadProximityCoverageError(f"{label} must be finite and non-negative")
         converted.append(numeric)
     return np.asarray(converted, dtype="float64")
 
@@ -307,7 +293,10 @@ def _validate_match_rows(
         rows = table.loc[table["road_proxy_class"].eq(road_class)]
         matched = rows["nearest_road_proxy_distance_m"].notna()
         if item.feature_count == 0:
-            if matched.any() or rows.loc[:, list(_SELECTED_ROAD_COLUMNS)].notna().any().any():
+            if (
+                matched.any()
+                or rows.loc[:, list(_SELECTED_ROAD_COLUMNS)].notna().any().any()
+            ):
                 raise RoadProximityCoverageError(
                     "Empty road class contains selected road evidence"
                 )
@@ -333,9 +322,7 @@ def _validate_match_rows(
             "nearest_source_archive_sha256",
         )
         if rows.loc[:, list(required)].isna().any().any():
-            raise RoadProximityCoverageError(
-                "Matched road evidence is incomplete"
-            )
+            raise RoadProximityCoverageError("Matched road evidence is incomplete")
         for value in rows["nearest_road_tie_count"].tolist():
             if (
                 not isinstance(value, Integral)
@@ -360,20 +347,19 @@ def _validate_upstream_result(
     table = result.class_proximity
     if type(table) is not pd.DataFrame:
         raise RoadProximityCoverageError("Class proximity must be a plain DataFrame")
-    if table.columns.duplicated().any() or tuple(table.columns) != CLASS_PROXIMITY_COLUMNS:
+    if (
+        table.columns.duplicated().any()
+        or tuple(table.columns) != CLASS_PROXIMITY_COLUMNS
+    ):
         raise RoadProximityCoverageError("Class proximity schema is invalid")
     if not isinstance(table.index, pd.RangeIndex) or (
-        table.index.start != 0
-        or table.index.step != 1
-        or table.index.name is not None
+        table.index.start != 0 or table.index.step != 1 or table.index.name is not None
     ):
         raise RoadProximityCoverageError("Class proximity index is invalid")
     if len(table) != len(parcels) * len(eligible):
         raise RoadProximityCoverageError("Class proximity row count is invalid")
     expected_ids = [
-        parcel_id
-        for parcel_id in parcels["parcel_id"].tolist()
-        for _ in eligible
+        parcel_id for parcel_id in parcels["parcel_id"].tolist() for _ in eligible
     ]
     expected_classes = list(eligible) * len(parcels)
     if table["parcel_id"].tolist() != expected_ids:
@@ -423,9 +409,7 @@ def _validate_coverage_summary(
         or not summary.columns
         or len(set(summary.columns)) != len(summary.columns)
         or any(
-            not isinstance(column, str)
-            or not column
-            or column != column.strip()
+            not isinstance(column, str) or not column or column != column.strip()
             for column in summary.columns
         )
     ):
@@ -616,9 +600,7 @@ def _expected_diagnostics(
     positions: np.ndarray,
     coverage: IgnBdTopoDepartmentCoverage,
 ) -> pd.DataFrame:
-    boundary_by_id = dict(
-        zip(parcels["parcel_id"], boundary_distances, strict=True)
-    )
+    boundary_by_id = dict(zip(parcels["parcel_id"], boundary_distances, strict=True))
     position_by_id = dict(zip(parcels["parcel_id"], positions, strict=True))
     row_boundary = table["parcel_id"].map(boundary_by_id).astype("float64")
     row_positions = table["parcel_id"].map(position_by_id)
@@ -695,9 +677,7 @@ def _validate_assessment_result(
         raise RoadProximityCoverageError("Coverage class proximity is invalid")
     expected_columns = (*CLASS_PROXIMITY_COLUMNS, *_DIAGNOSTIC_COLUMNS)
     if output.columns.duplicated().any() or tuple(output.columns) != expected_columns:
-        raise RoadProximityCoverageError(
-            "Coverage class proximity schema is invalid"
-        )
+        raise RoadProximityCoverageError("Coverage class proximity schema is invalid")
     if not _same_index(output.index, source.index):
         raise RoadProximityCoverageError("Coverage class proximity index changed")
     prefix = output.loc[:, list(CLASS_PROXIMITY_COLUMNS)]
@@ -723,9 +703,7 @@ def _validate_assessment_result(
     position_values = output["road_source_coverage_position"]
     if position_values.isna().any() or not set(position_values.unique()) <= _POSITIONS:
         raise RoadProximityCoverageError("Coverage position is invalid")
-    outside = position_values.eq("OUTSIDE_OR_CROSSING_COVERAGE").to_numpy(
-        dtype="bool"
-    )
+    outside = position_values.eq("OUTSIDE_OR_CROSSING_COVERAGE").to_numpy(dtype="bool")
     if (numeric[outside] != 0.0).any():
         raise RoadProximityCoverageError(
             "Outside or crossing rows require zero boundary distance"
@@ -751,9 +729,7 @@ def _assess_road_proximity_coverage(
         if policy_path is None
         else load_ign_road_vehicle_proxy_policy(policy_path)
     )
-    validated_proximity = _validate_upstream_result(
-        input_parcels, proximity, policy
-    )
+    validated_proximity = _validate_upstream_result(input_parcels, proximity, policy)
     coverage = load_ign_bdtopo_department_coverage(
         road_source.extraction, source_config
     )
@@ -802,9 +778,7 @@ def assess_road_proximity_coverage(
         if not isinstance(parcels, gpd.GeoDataFrame):
             raise RoadProximityCoverageError("parcels must be a GeoDataFrame")
         if type(road_source) is not IgnBdTopoRoadData:
-            raise RoadProximityCoverageError(
-                "road_source must be an IgnBdTopoRoadData"
-            )
+            raise RoadProximityCoverageError("road_source must be an IgnBdTopoRoadData")
         if type(source_config) is not IgnBdTopoSourceConfig:
             raise RoadProximityCoverageError(
                 "source_config must be an IgnBdTopoSourceConfig"

@@ -4,6 +4,7 @@ import io
 import socket
 import ssl
 from typing import Any
+from urllib.request import Request
 
 import pytest
 
@@ -181,6 +182,155 @@ def _read(url: str = "https://source.example/archive.zip") -> bytes:
 
 
 @pytest.mark.parametrize(
+    "header_name",
+    [
+        "Authorization",
+        "authorization",
+        "Proxy-Authorization",
+        "Cookie",
+        "Cookie2",
+        "Host",
+        "Connection",
+        "Proxy-Connection",
+        "Keep-Alive",
+        "Transfer-Encoding",
+        "TE",
+        "Trailer",
+        "Upgrade",
+    ],
+)
+def test_sensitive_and_hop_by_hop_headers_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    header_name: str,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after forbidden header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden|owned"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "secret"},
+        ),
+    ):
+        pass
+
+
+def test_case_insensitive_duplicate_header_names_fail_before_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Accept": "application/zip", "accept": "application/json"},
+        ),
+    ):
+        pass
+
+
+def test_request_and_explicit_headers_cannot_ambiguously_override_each_other(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail("DNS used after duplicate header"),
+    )
+    request = Request(
+        "https://source.example/archive.zip",
+        headers={"Accept": "application/zip"},
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="duplicate|ambiguous"),
+        open_safe_https(
+            request,
+            timeout=12.5,
+            headers={"accept": "application/json"},
+        ),
+    ):
+        pass
+
+
+def test_cross_origin_redirect_cannot_receive_a_sensitive_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        safe_http.socket,
+        "getaddrinfo",
+        lambda *args, **kwargs: pytest.fail(
+            "DNS used before sensitive redirect header rejection"
+        ),
+    )
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with (
+        pytest.raises(SafeHttpsError, match="header|forbidden"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={"Authorization": "Bearer secret"},
+        ),
+    ):
+        pass
+
+    assert harness.sent == []
+
+
+def test_cross_origin_redirect_forwards_only_safe_ordinary_headers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _install_dns(monkeypatch, (PUBLIC_IPV4,))
+    harness = _install_network(
+        monkeypatch,
+        responses=[
+            _http_response(
+                302,
+                body=b"",
+                headers={"Location": "https://cdn.example/file"},
+            ),
+            _http_response(body=b"archive"),
+        ],
+    )
+
+    with open_safe_https(
+        "https://source.example/archive.zip",
+        timeout=12.5,
+        headers={"User-Agent": "LandScout-Test", "Accept": "application/zip"},
+    ) as response:
+        assert response.read() == b"archive"
+
+    assert len(harness.sent) == 2
+    for request in harness.sent:
+        assert b"User-Agent: LandScout-Test" in request
+        assert b"Accept: application/zip" in request
+        assert b"Authorization:" not in request
+        assert b"Cookie:" not in request
+
+
+@pytest.mark.parametrize(
     "addresses",
     [
         (PUBLIC_IPV4,),
@@ -207,10 +357,26 @@ def test_public_dns_answers_are_accepted(
         [],
         [(socket.AF_INET, socket.SOCK_STREAM)],
         [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],
-        [(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP, "", (PUBLIC_IPV4, 443))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_DGRAM,
+                socket.IPPROTO_UDP,
+                "",
+                (PUBLIC_IPV4, 443),
+            )
+        ],
         [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],
         [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],
-        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV6, 443))],
+        [
+            (
+                socket.AF_INET,
+                socket.SOCK_STREAM,
+                socket.IPPROTO_TCP,
+                "",
+                (PUBLIC_IPV6, 443),
+            )
+        ],
         [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],
     ],
     ids=[
@@ -228,7 +394,9 @@ def test_malformed_or_unusable_dns_results_fail_before_socket(
     monkeypatch: pytest.MonkeyPatch,
     records: list[tuple[Any, ...]],
 ) -> None:
-    monkeypatch.setattr(safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records)
+    monkeypatch.setattr(
+        safe_http.socket, "getaddrinfo", lambda *args, **kwargs: records
+    )
     monkeypatch.setattr(
         safe_http.socket,
         "socket",
@@ -427,7 +595,9 @@ def test_safe_https_redirect_is_manually_revalidated(
     harness = _install_network(
         monkeypatch,
         responses=[
-            _http_response(302, body=b"", headers={"Location": "https://cdn.example/file"}),
+            _http_response(
+                302, body=b"", headers={"Location": "https://cdn.example/file"}
+            ),
             _http_response(body=b"archive"),
         ],
     )
@@ -479,9 +649,7 @@ def test_redirect_loop_is_rejected(
     _install_dns(monkeypatch, (PUBLIC_IPV4,))
     _install_network(
         monkeypatch,
-        responses=[
-            _http_response(302, body=b"", headers={"Location": "/archive.zip"})
-        ],
+        responses=[_http_response(302, body=b"", headers={"Location": "/archive.zip"})],
     )
 
     with pytest.raises(SafeHttpsError, match="loop"):
@@ -553,10 +721,13 @@ def test_malformed_header_name_is_rejected_before_dns(
         lambda *args, **kwargs: pytest.fail("DNS used after malformed header name"),
     )
 
-    with pytest.raises(SafeHttpsError, match="header|Host"), open_safe_https(
-        "https://source.example/archive.zip",
-        timeout=12.5,
-        headers={header_name: "attacker.example"},
+    with (
+        pytest.raises(SafeHttpsError, match="header|Host"),
+        open_safe_https(
+            "https://source.example/archive.zip",
+            timeout=12.5,
+            headers={header_name: "attacker.example"},
+        ),
     ):
         pass
 

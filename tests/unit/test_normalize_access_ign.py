@@ -16,6 +16,7 @@ import pytest
 from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import LineString, MultiLineString, Point, Polygon
 
+import landscout.stages.normalize_access_ign as road_normalization
 from landscout import stages
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
@@ -34,10 +35,21 @@ from landscout.stages.normalize_access_ign import (
 
 ROAD_LAYER = "troncon_de_route"
 ALTERNATE_ROAD_LAYER = "voie_secondaire"
+DEPARTMENT_LAYER = "departement"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-road-ign-"))
-SOURCE_CONFIG = load_ign_bdtopo_source_config()
+_SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
+_SOURCE_CONFIG_PAYLOAD.update(
+    {
+        "source_url": SOURCE_URL,
+        "checksum_url": None,
+        "official_checksum_algorithm": None,
+        "official_checksum": None,
+        "expected_archive_size_bytes": 1234,
+    }
+)
+SOURCE_CONFIG = IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)
 
 OUTPUT_COLUMNS = (
     "road_feature_id",
@@ -184,14 +196,15 @@ def _summary(
         crs=str(frame.crs),
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
         null_geometry_count=int(null_mask.sum()),
         empty_geometry_count=int(empty_mask.sum()),
         invalid_geometry_count=int(invalid_mask.sum()),
         geometry_types=tuple(
             sorted(
-                str(value)
-                for value in geometry[~null_mask].geom_type.dropna().unique()
+                str(value) for value in geometry[~null_mask].geom_type.dropna().unique()
             )
         ),
     )
@@ -225,6 +238,17 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
         driver="GPKG",
         append=True,
     )
+    pyogrio.write_dataframe(
+        gpd.GeoDataFrame(
+            {"code_insee": ["31"]},
+            geometry=[Polygon([(0, 0), (0, 10), (10, 10), (10, 0)])],
+            crs="EPSG:2154",
+        ),
+        geopackage_path,
+        layer=DEPARTMENT_LAYER,
+        driver="GPKG",
+        append=True,
+    )
     road_frame = gpd.read_file(geopackage_path, layer=ROAD_LAYER, engine="pyogrio")
     payload = geopackage_path.read_bytes()
     layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
@@ -232,7 +256,7 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
     (extraction_path / ".landscout-extraction.json").write_text(
         json.dumps(
             {
-                "schema_version": 2,
+                "schema_version": 3,
                 "archive_sha256": ARCHIVE_SHA256,
                 "geopackage_relative_path": "data.gpkg",
                 "geopackage_size_bytes": len(payload),
@@ -240,13 +264,23 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
                 "all_layer_names": list(layer_names),
                 "electric_lines_layer": "ligne_electrique",
                 "transformation_posts_layer": "poste_de_transformation",
+                "road_segments_layer": ROAD_LAYER,
+                "department_layer": DEPARTMENT_LAYER,
+                "extracted_entries": [
+                    {
+                        "relative_path": "data.gpkg",
+                        "kind": "file",
+                        "size_bytes": len(payload),
+                        "sha256": digest,
+                    }
+                ],
                 "spatial_role": "PROXY_GEOMETRY",
             }
         ),
         encoding="utf-8",
     )
     archive = IgnBdTopoDownload(
-        provider="IGN",
+        provider=SOURCE_CONFIG.provider,
         product="BD TOPO",
         department_code="31",
         edition="2026-06-15",
@@ -276,6 +310,8 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
         all_layer_names=layer_names,
         electric_lines_layer="ligne_electrique",
         transformation_posts_layer="poste_de_transformation",
+        road_segments_layer=ROAD_LAYER,
+        department_layer=DEPARTMENT_LAYER,
         cache_hit=True,
     )
     return IgnBdTopoRoadData(
@@ -309,6 +345,14 @@ def _with_alternate_road_layer(
         geopackage_size_bytes=len(payload),
         geopackage_sha256=digest,
         all_layer_names=list(layer_names),
+        extracted_entries=[
+            {
+                "relative_path": "data.gpkg",
+                "kind": "file",
+                "size_bytes": len(payload),
+                "sha256": digest,
+            }
+        ],
     )
     marker_path.write_text(json.dumps(marker), encoding="utf-8")
     extraction = replace(
@@ -317,16 +361,20 @@ def _with_alternate_road_layer(
         geopackage_sha256=digest,
         all_layer_names=layer_names,
     )
-    configured = replace(source, extraction=extraction)
-    alternate_config_payload = SOURCE_CONFIG.model_dump(mode="python")
-    alternate_config_payload["access"]["road_segments"] = {
-        "class_label": "Voie secondaire",
-        "match_tokens": ("voie", "secondaire"),
-    }
-    alternate_config = IgnBdTopoSourceConfig.model_validate(
-        alternate_config_payload
+    configured = load_ign_bdtopo_roads(extraction, SOURCE_CONFIG)
+    alternate_loaded = gpd.read_file(
+        geopackage_path,
+        layer=ALTERNATE_ROAD_LAYER,
+        engine="pyogrio",
     )
-    forged = load_ign_bdtopo_roads(extraction, alternate_config)
+    forged = IgnBdTopoRoadData(
+        extraction=extraction,
+        road_segments=alternate_loaded,
+        road_segments_summary=_summary(
+            alternate_loaded,
+            layer=ALTERNATE_ROAD_LAYER,
+        ),
+    )
     return configured, forged
 
 
@@ -382,9 +430,7 @@ def test_valid_linestring_normalization_has_exact_schema_identity_and_lineage() 
 
 
 def test_valid_multilinestring_is_preserved() -> None:
-    geometry = MultiLineString(
-        [[(0, 0), (10, 10)], [(20, 20), (30, 30)]]
-    )
+    geometry = MultiLineString([[(0, 0), (10, 10)], [(20, 20), (30, 30)]])
 
     roads = normalize_ign_roads(
         _source(_road_frame([geometry])), SOURCE_CONFIG
@@ -479,7 +525,10 @@ def test_missing_required_source_field_is_rejected(column: str) -> None:
     frame = source.road_segments.drop(columns=column)
     mutated = replace(source, road_segments=frame)
 
-    with pytest.raises(IgnRoadNormalizationError, match=column):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="freshly read physical source|road segments",
+    ):
         normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
@@ -519,23 +568,22 @@ def test_wrong_or_missing_road_crs_is_rejected(crs: str | None) -> None:
 
 
 @pytest.mark.parametrize(
-    ("field", "value", "message"),
+    ("field", "value"),
     [
-        ("provider", "OTHER", "provider"),
-        ("product", "OTHER", "product"),
-        ("projection", "EPSG:4326", "2154"),
+        ("provider", "OTHER"),
+        ("product", "OTHER"),
+        ("projection", "EPSG:4326"),
     ],
 )
 def test_wrong_archive_identity_is_rejected(
     field: str,
     value: str,
-    message: str,
 ) -> None:
     source = _source()
     archive = replace(source.extraction.archive, **{field: value})
     mutated = replace(source, extraction=replace(source.extraction, archive=archive))
 
-    with pytest.raises(IgnRoadNormalizationError, match=message):
+    with pytest.raises(IgnRoadNormalizationError, match="lineage|config"):
         normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
@@ -563,7 +611,10 @@ def test_wrong_source_spatial_role_is_rejected(component: str) -> None:
             ),
         )
 
-    with pytest.raises(IgnRoadNormalizationError, match="PROXY_GEOMETRY"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="role|spatial|lineage|integrity|PROXY_GEOMETRY",
+    ):
         normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
@@ -571,7 +622,7 @@ def test_summary_row_count_mismatch_is_rejected() -> None:
     source = _source()
     summary = replace(source.road_segments_summary, feature_count=2)
 
-    with pytest.raises(IgnRoadNormalizationError, match="row count"):
+    with pytest.raises(IgnRoadNormalizationError, match="summary|physical"):
         normalize_ign_roads(
             replace(source, road_segments_summary=summary), SOURCE_CONFIG
         )
@@ -623,7 +674,10 @@ def test_summary_crs_mismatch_is_rejected() -> None:
     source = _source()
     summary = replace(source.road_segments_summary, crs="EPSG:4326")
 
-    with pytest.raises(IgnRoadNormalizationError, match="CRS|2154"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="summary|physical|CRS|2154",
+    ):
         normalize_ign_roads(
             replace(source, road_segments_summary=summary), SOURCE_CONFIG
         )
@@ -644,7 +698,10 @@ def test_forged_ordered_summary_schema_is_rejected(mutation: str) -> None:
         dtypes[0] = (dtypes[0][0], "float64")
         changed = replace(summary, dtypes=tuple(dtypes))
 
-    with pytest.raises(IgnRoadNormalizationError, match="schema|columns|dtype"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="summary|physical|schema|columns|dtype",
+    ):
         normalize_ign_roads(
             replace(source, road_segments_summary=changed), SOURCE_CONFIG
         )
@@ -659,7 +716,10 @@ def test_road_source_rejects_physical_role_collision(role: str) -> None:
         else source.extraction.transformation_posts_layer
     )
     summary = replace(source.road_segments_summary, source_layer_name=selected)
-    with pytest.raises(IgnRoadNormalizationError, match="same layer|distinct|role"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="summary|physical|same layer|distinct|role",
+    ):
         normalize_ign_roads(
             replace(
                 source,
@@ -676,7 +736,10 @@ def test_road_source_rejects_duplicate_layer_inventory() -> None:
         all_layer_names=(*source.extraction.all_layer_names, ROAD_LAYER),
     )
 
-    with pytest.raises(IgnRoadNormalizationError, match="inventory|duplicate"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="integrity|inventory|duplicate",
+    ):
         normalize_ign_roads(replace(source, extraction=extraction), SOURCE_CONFIG)
 
 
@@ -696,7 +759,10 @@ def test_summary_geometry_facts_mismatch_is_rejected(
     source = _source()
     summary = replace(source.road_segments_summary, **{field: value})
 
-    with pytest.raises(IgnRoadNormalizationError, match="geometry summary"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="summary|physical|geometry summary",
+    ):
         normalize_ign_roads(
             replace(source, road_segments_summary=summary), SOURCE_CONFIG
         )
@@ -706,14 +772,17 @@ def test_summary_layer_must_exist_in_extraction_inventory() -> None:
     source = _source()
     extraction = replace(source.extraction, all_layer_names=("other_layer",))
 
-    with pytest.raises(IgnRoadNormalizationError, match="layer inventory"):
+    with pytest.raises(
+        IgnRoadNormalizationError,
+        match="integrity|layer inventory",
+    ):
         normalize_ign_roads(replace(source, extraction=extraction), SOURCE_CONFIG)
 
 
 def test_summary_layer_and_logical_name_must_be_exact() -> None:
     source = _source()
     wrong_layer = replace(source.road_segments_summary, source_layer_name="route")
-    with pytest.raises(IgnRoadNormalizationError, match="physical layer"):
+    with pytest.raises(IgnRoadNormalizationError, match="summary|physical layer"):
         normalize_ign_roads(
             replace(source, road_segments_summary=wrong_layer), SOURCE_CONFIG
         )
@@ -722,7 +791,7 @@ def test_summary_layer_and_logical_name_must_be_exact() -> None:
         source.road_segments_summary,
         logical_name=cast(Any, "electric_lines"),
     )
-    with pytest.raises(IgnRoadNormalizationError, match="logical name"):
+    with pytest.raises(IgnRoadNormalizationError, match="summary|logical name"):
         normalize_ign_roads(
             replace(source, road_segments_summary=wrong_logical), SOURCE_CONFIG
         )
@@ -759,6 +828,35 @@ def test_normalization_does_not_mutate_input() -> None:
     normalize_ign_roads(source, SOURCE_CONFIG)
 
     assert_geodataframe_equal(source.road_segments, before)
+
+
+def test_road_normalization_uses_distinct_fresh_revalidated_frame(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _source()
+    fresh = replace(
+        source,
+        road_segments=source.road_segments.copy(deep=True),
+    )
+    expected_nature = fresh.road_segments.loc[0, "nature"]
+
+    def return_fresh_and_mutate_supplied(
+        _: object,
+        __: object,
+    ) -> IgnBdTopoRoadData:
+        source.road_segments.loc[0, "nature"] = "FORGED AFTER REVALIDATION"
+        return fresh
+
+    monkeypatch.setattr(
+        road_normalization,
+        "_revalidate_ign_bdtopo_road_data",
+        return_fresh_and_mutate_supplied,
+    )
+
+    normalized = normalize_ign_roads(source, SOURCE_CONFIG)
+
+    assert normalized.road_segments.loc[0, "nature_raw"] == expected_nature
+    assert source.road_segments.loc[0, "nature"] == "FORGED AFTER REVALIDATION"
 
 
 def test_high_level_rejects_coordinated_road_frame_and_summary_forgery() -> None:

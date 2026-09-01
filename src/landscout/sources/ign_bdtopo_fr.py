@@ -7,6 +7,7 @@ claimed to prove exact current grid assets, connection points, or legal access.
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import sys
@@ -24,13 +25,13 @@ import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 import py7zr
 import pyogrio  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from py7zr.exceptions import ArchiveError
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     HttpUrl,
+    StrictBool,
     StringConstraints,
     ValidationError,
     field_validator,
@@ -39,6 +40,8 @@ from pydantic import (
 from pyproj import CRS
 
 from landscout.common.safe_http import open_safe_https
+from landscout.common.strict_json import loads_strict_json_object
+from landscout.common.strict_yaml import loads_strict_yaml
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/ign_bdtopo_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/ign_bdtopo")
@@ -79,12 +82,16 @@ CanonicalSha256 = Annotated[
     StringConstraints(strict=True, pattern=r"^[0-9a-f]{64}$"),
 ]
 StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
+StrictNonNegativeFloat = Annotated[
+    float,
+    Field(strict=True, ge=0, allow_inf_nan=False),
+]
 
 
 class IgnBdTopoLogicalLayerConfig(BaseModel):
     """Catalogue class label and normalized tokens used for layer discovery."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     class_label: NonEmptyString
     match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)
@@ -101,7 +108,7 @@ class IgnBdTopoLogicalLayerConfig(BaseModel):
 
 
 class IgnBdTopoLogicalLayersConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     electric_lines: IgnBdTopoLogicalLayerConfig
     transformation_posts: IgnBdTopoLogicalLayerConfig
@@ -112,8 +119,7 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
             _normalize_words(token) for token in self.electric_lines.match_tokens
         }
         posts = {
-            _normalize_words(token)
-            for token in self.transformation_posts.match_tokens
+            _normalize_words(token) for token in self.transformation_posts.match_tokens
         }
         if electric == posts:
             raise ValueError("Logical layers must use different match tokens")
@@ -129,13 +135,13 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
 class IgnBdTopoAccessConfig(BaseModel):
     """Configured factual transport layers loaded outside extraction metadata."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     road_segments: IgnBdTopoLogicalLayerConfig
 
 
 class IgnBdTopoCoverageConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     department_layer: IgnBdTopoDepartmentLayerConfig
 
@@ -143,10 +149,12 @@ class IgnBdTopoCoverageConfig(BaseModel):
 class IgnBdTopoSourceConfig(BaseModel):
     """Strict, reproducible description of one official IGN package."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
-    provider: NonEmptyString
-    product: NonEmptyString
+    provider: Literal[
+        "Institut national de l'information géographique et forestière (IGN)"
+    ]
+    product: Literal["BD TOPO"]
     department_code: DepartmentCode
     edition: EditionString
     product_version: NonEmptyString | None = None
@@ -157,8 +165,8 @@ class IgnBdTopoSourceConfig(BaseModel):
     checksum_url: HttpUrl | None = None
     official_checksum_algorithm: ChecksumAlgorithm | None = None
     official_checksum: HexChecksum | None = None
-    expected_archive_size_bytes: int | None = Field(default=None, gt=0)
-    cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)
+    expected_archive_size_bytes: StrictPositiveInt | None = None
+    cache_max_age_hours: StrictNonNegativeFloat
     logical_layers: IgnBdTopoLogicalLayersConfig
     access: IgnBdTopoAccessConfig
     coverage: IgnBdTopoCoverageConfig
@@ -184,13 +192,17 @@ class IgnBdTopoSourceConfig(BaseModel):
             raise ValueError(
                 "official_checksum_algorithm and official_checksum must be set together"
             )
-        if self.official_checksum_algorithm == "md5" and len(
-            self.official_checksum or ""
-        ) != 32:
-            raise ValueError("An official MD5 checksum must contain 32 hexadecimal digits")
-        if self.official_checksum_algorithm == "sha256" and len(
-            self.official_checksum or ""
-        ) != 64:
+        if (
+            self.official_checksum_algorithm == "md5"
+            and len(self.official_checksum or "") != 32
+        ):
+            raise ValueError(
+                "An official MD5 checksum must contain 32 hexadecimal digits"
+            )
+        if (
+            self.official_checksum_algorithm == "sha256"
+            and len(self.official_checksum or "") != 64
+        ):
             raise ValueError(
                 "An official SHA256 checksum must contain 64 hexadecimal digits"
             )
@@ -268,6 +280,8 @@ class IgnBdTopoExtraction:
     all_layer_names: tuple[str, ...]
     electric_lines_layer: str
     transformation_posts_layer: str
+    road_segments_layer: str
+    department_layer: str
     cache_hit: bool
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
 
@@ -349,7 +363,7 @@ class IgnBdTopoDepartmentCoverage:
 
 
 class _CacheMetadata(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     schema_version: Literal[1]
     provider: str
@@ -364,18 +378,34 @@ class _CacheMetadata(BaseModel):
     checksum_url: str | None
     download_timestamp: str
     filename: str
-    file_size: int
-    sha256: str
+    file_size: StrictPositiveInt
+    sha256: CanonicalSha256
     official_checksum_algorithm: ChecksumAlgorithm | None
     official_checksum: str | None
-    official_checksum_validated: bool
+    official_checksum_validated: StrictBool
     spatial_role: SpatialRole
+
+    @field_validator("schema_version", mode="before")
+    @classmethod
+    def _strict_schema_version(cls, value: object) -> object:
+        if type(value) is not int:
+            raise ValueError("IGN cache schema version must be an exact integer")
+        return value
+
+
+class _ExtractedEntryMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    relative_path: str
+    kind: Literal["file", "directory"]
+    size_bytes: int | None = Field(default=None, strict=True, ge=0)
+    sha256: CanonicalSha256 | None = None
 
 
 class _ExtractionMetadata(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: Literal[2]
+    schema_version: Literal[3]
     archive_sha256: CanonicalSha256
     geopackage_relative_path: str
     geopackage_size_bytes: StrictPositiveInt
@@ -383,7 +413,17 @@ class _ExtractionMetadata(BaseModel):
     all_layer_names: tuple[str, ...]
     electric_lines_layer: str
     transformation_posts_layer: str
+    road_segments_layer: str
+    department_layer: str
+    extracted_entries: tuple[_ExtractedEntryMetadata, ...]
     spatial_role: SpatialRole
+
+    @field_validator("schema_version", mode="before")
+    @classmethod
+    def _strict_schema_version(cls, value: object) -> object:
+        if type(value) is not int:
+            raise ValueError("IGN extraction schema version must be an exact integer")
+        return value
 
 
 def _normalize_words(value: str) -> str:
@@ -398,13 +438,30 @@ def load_ign_bdtopo_source_config(
     """Load and strictly validate the pinned IGN source configuration."""
 
     try:
-        with path.open(encoding="utf-8") as stream:
-            content = yaml.safe_load(stream)
-    except OSError as error:
-        raise IgnBdTopoDownloadError(f"Cannot read IGN source config: {path}") from error
+        content = loads_strict_yaml(path.read_bytes())
+    except (OSError, TypeError, ValueError) as error:
+        raise IgnBdTopoDownloadError(
+            f"Cannot read IGN source config: {path}"
+        ) from error
     if not isinstance(content, dict):
-        raise TypeError(f"Expected a YAML mapping in {path}")
-    return IgnBdTopoSourceConfig.model_validate(content)
+        raise IgnBdTopoDownloadError(f"Expected a YAML mapping in {path}")
+    try:
+        return IgnBdTopoSourceConfig.model_validate(content)
+    except ValidationError as error:
+        raise IgnBdTopoDownloadError(f"IGN source config is invalid: {path}") from error
+
+
+def _validated_source_config(
+    config: object,
+    *,
+    error_type: type[IgnBdTopoError] = IgnBdTopoDownloadError,
+) -> IgnBdTopoSourceConfig:
+    try:
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("IGN source config type is invalid")
+        return IgnBdTopoSourceConfig.model_validate(config.model_dump(mode="python"))
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise error_type("IGN source config is invalid") from error
 
 
 def _archive_filename(config: IgnBdTopoSourceConfig) -> str:
@@ -448,7 +505,10 @@ def validate_ign_bdtopo_archive(
     validation here and a successful full extraction before they are usable.
     """
 
-    if not path.is_file():
+    config = _validated_source_config(config, error_type=IgnBdTopoArchiveError)
+    if not isinstance(path, Path):
+        raise IgnBdTopoArchiveError("IGN archive path must be a pathlib.Path")
+    if path.is_symlink() or path.is_junction() or not path.is_file():
         raise IgnBdTopoArchiveError(f"IGN archive does not exist: {path}")
     try:
         file_size = path.stat().st_size
@@ -555,11 +615,13 @@ def _load_cached_download(
     if not archive_path.is_file() or not metadata_path.is_file():
         return None
     try:
-        metadata = _CacheMetadata.model_validate_json(
-            metadata_path.read_text(encoding="utf-8")
+        metadata = _CacheMetadata.model_validate(
+            loads_strict_json_object(metadata_path.read_bytes())
         )
         downloaded_at = datetime.fromisoformat(metadata.download_timestamp)
-        if downloaded_at.tzinfo is None:
+        if downloaded_at.tzinfo is None or downloaded_at.utcoffset() != UTC.utcoffset(
+            None
+        ):
             return None
         age_seconds = (
             datetime.now(UTC) - downloaded_at.astimezone(UTC)
@@ -713,7 +775,7 @@ def _publish_cache_pair(
                     archive_path.unlink(missing_ok=True)
             if not metadata_existed:
                 metadata_path.unlink(missing_ok=True)
-        except OSError as rollback_error:
+        except (IgnBdTopoArchiveError, OSError) as rollback_error:
             raise IgnBdTopoDownloadError(
                 "IGN cache publication and rollback both failed"
             ) from rollback_error
@@ -732,6 +794,7 @@ def download_ign_bdtopo_archive(
 ) -> IgnBdTopoDownload:
     """Download or reuse the pinned IGN package with atomic cache publication."""
 
+    config = _validated_source_config(config)
     filename = _archive_filename(config)
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
@@ -753,7 +816,7 @@ def download_ign_bdtopo_archive(
                 timeout=timeout,
                 headers={"User-Agent": "LandScout-AI/0.1"},
             ) as response,
-            temporary_archive.open("wb") as output,
+            temporary_archive.open("xb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
 
@@ -783,9 +846,8 @@ def download_ign_bdtopo_archive(
             cache_hit=False,
         )
         metadata = _cache_metadata_from_download(result)
-        temporary_metadata.write_text(
-            metadata.model_dump_json(indent=2) + "\n", encoding="utf-8"
-        )
+        with temporary_metadata.open("x", encoding="utf-8") as output:
+            output.write(metadata.model_dump_json(indent=2) + "\n")
         _publish_cache_pair(
             temporary_archive, temporary_metadata, archive_path, metadata_path
         )
@@ -801,32 +863,172 @@ def download_ign_bdtopo_archive(
         )
 
 
-def _validate_archive_members(archive: py7zr.SevenZipFile) -> None:
-    infos = archive.list()
+_WINDOWS_FORBIDDEN = frozenset('<>:"/\\|?*')
+_WINDOWS_RESERVED = frozenset(
+    {
+        "con",
+        "prn",
+        "aux",
+        "nul",
+        "clock$",
+        *(f"com{index}" for index in range(1, 10)),
+        *(f"lpt{index}" for index in range(1, 10)),
+        "com¹",
+        "com²",
+        "com³",
+        "lpt¹",
+        "lpt²",
+        "lpt³",
+    }
+)
+
+
+@dataclass(frozen=True)
+class _ValidatedArchiveMember:
+    relative_path: str
+    kind: Literal["file", "directory"]
+    size_bytes: int | None
+
+
+def _windows_component_key(component: str) -> str:
+    normalized = unicodedata.normalize("NFKC", component)
+    if (
+        not normalized
+        or normalized in {".", ".."}
+        or normalized != normalized.strip()
+        or normalized.endswith((".", " "))
+        or any(ord(character) < 32 or ord(character) == 127 for character in normalized)
+        or any(character in _WINDOWS_FORBIDDEN for character in normalized)
+    ):
+        raise IgnBdTopoArchiveError(
+            "IGN archive contains a Windows-unsafe path component"
+        )
+    reserved_stem = normalized.split(".", maxsplit=1)[0].casefold()
+    if reserved_stem in _WINDOWS_RESERVED:
+        raise IgnBdTopoArchiveError(
+            "IGN archive contains a reserved Windows device name"
+        )
+    return normalized.casefold()
+
+
+def _validate_archive_members(
+    archive: py7zr.SevenZipFile,
+) -> tuple[_ValidatedArchiveMember, ...]:
+    try:
+        if archive.needs_password():
+            raise IgnBdTopoArchiveError("IGN archive must not be encrypted")
+        infos = archive.list()
+    except IgnBdTopoArchiveError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoArchiveError(
+            "IGN archive member inventory is unreadable"
+        ) from error
     if not infos:
         raise IgnBdTopoArchiveError("IGN archive contains no members")
+
+    raw_names: set[str] = set()
+    explicit_destinations: dict[tuple[str, ...], str] = {}
+    destinations: dict[tuple[str, ...], _ValidatedArchiveMember] = {}
     for info in infos:
         name = info.filename
-        if not name or "\x00" in name:
+        if type(name) is not str or not name or "\x00" in name:
             raise IgnBdTopoArchiveError("IGN archive contains an invalid member name")
+        if name in raw_names:
+            raise IgnBdTopoArchiveError(
+                "IGN archive contains a duplicate raw member name"
+            )
+        raw_names.add(name)
         normalized_name = name.replace("\\", "/")
+        is_directory = bool(info.is_directory)
+        if is_directory:
+            normalized_name = normalized_name.rstrip("/")
+        raw_parts = normalized_name.split("/")
         posix_path = PurePosixPath(normalized_name)
         windows_path = PureWindowsPath(name)
         if (
-            posix_path.is_absolute()
+            not normalized_name
+            or any(part in {"", ".", ".."} for part in raw_parts)
+            or posix_path.is_absolute()
             or windows_path.is_absolute()
             or bool(windows_path.drive)
-            or ".." in posix_path.parts
         ):
             raise IgnBdTopoArchiveError(
                 f"IGN archive contains an unsafe member path: {name}"
             )
-        if info.is_symlink or not (
-            info.is_file or info.is_directory
+        if bool(getattr(info, "is_symlink", False)) or bool(
+            getattr(info, "encrypted", False)
         ):
             raise IgnBdTopoArchiveError(
-                f"IGN archive contains an unsupported link or special member: {name}"
+                f"IGN archive contains an unsupported link or encrypted member: {name}"
             )
+        is_file = bool(info.is_file)
+        if not (is_file ^ is_directory):
+            raise IgnBdTopoArchiveError(
+                f"IGN archive contains an unsupported special member: {name}"
+            )
+
+        key = tuple(_windows_component_key(part) for part in raw_parts)
+        if key in explicit_destinations:
+            raise IgnBdTopoArchiveError(
+                "IGN archive contains a case-insensitive or Unicode destination collision"
+            )
+        explicit_destinations[key] = name
+        kind: Literal["file", "directory"] = "directory" if is_directory else "file"
+        for depth in range(1, len(key)):
+            parent_key = key[:depth]
+            parent_path = "/".join(raw_parts[:depth])
+            parent = destinations.get(parent_key)
+            if parent is not None and parent.kind == "file":
+                raise IgnBdTopoArchiveError(
+                    "IGN archive contains a parent-file destination conflict"
+                )
+            destinations.setdefault(
+                parent_key,
+                _ValidatedArchiveMember(parent_path, "directory", None),
+            )
+        existing = destinations.get(key)
+        if existing is not None and existing.kind != kind:
+            raise IgnBdTopoArchiveError(
+                "IGN archive contains a file/directory destination conflict"
+            )
+        if kind == "file" and any(
+            len(other_key) > len(key) and other_key[: len(key)] == key
+            for other_key in destinations
+        ):
+            raise IgnBdTopoArchiveError(
+                "IGN archive contains a parent-file destination conflict"
+            )
+        raw_size = getattr(info, "uncompressed", None)
+        if kind == "file" and (type(raw_size) is not int or raw_size < 0):
+            raise IgnBdTopoArchiveError(
+                "IGN archive contains an invalid file-size inventory"
+            )
+        destinations[key] = _ValidatedArchiveMember(
+            "/".join(raw_parts),
+            kind,
+            raw_size if kind == "file" else None,
+        )
+
+    files = [entry for entry in destinations.values() if entry.kind == "file"]
+    geopackages = [
+        entry
+        for entry in files
+        if PurePosixPath(entry.relative_path).suffix.casefold() == ".gpkg"
+    ]
+    if len(geopackages) != 1:
+        raise IgnBdTopoArchiveError(
+            "Expected exactly one GeoPackage in the IGN archive inventory"
+        )
+    return tuple(
+        sorted(
+            destinations.values(),
+            key=lambda entry: (
+                unicodedata.normalize("NFKC", entry.relative_path).casefold(),
+                entry.relative_path,
+            ),
+        )
+    )
 
 
 def discover_ign_bdtopo_geopackage(root: Path) -> Path:
@@ -893,6 +1095,7 @@ def discover_ign_bdtopo_layers(
 ) -> IgnBdTopoLayerSelection:
     """Resolve both configured logical classes without assuming exact casing."""
 
+    config = _validated_source_config(config, error_type=IgnBdTopoLayerError)
     layer_names = list_ign_bdtopo_layers(geopackage_path)
     electric_matches = _matching_layers(
         layer_names, config.logical_layers.electric_lines
@@ -951,6 +1154,45 @@ def _discover_road_layer(
     return matches[0]
 
 
+@dataclass(frozen=True)
+class _ConfiguredPhysicalRoles:
+    all_layer_names: tuple[str, ...]
+    electric_lines_layer: str
+    transformation_posts_layer: str
+    road_segments_layer: str
+    department_layer: str
+
+
+def _discover_configured_physical_roles(
+    geopackage_path: Path,
+    config: IgnBdTopoSourceConfig,
+) -> _ConfiguredPhysicalRoles:
+    electricity = discover_ign_bdtopo_layers(geopackage_path, config)
+    road = _discover_road_layer(electricity.all_layer_names, config)
+    department = _discover_department_coverage_layer(
+        electricity.all_layer_names,
+        config,
+    )
+    selected = (
+        electricity.electric_lines_layer,
+        electricity.transformation_posts_layer,
+        road,
+        department,
+    )
+    if len(set(selected)) != len(selected):
+        raise IgnBdTopoLayerError(
+            "IGN electric-line, transformation-post, road, and department roles "
+            "must use four distinct physical layers"
+        )
+    return _ConfiguredPhysicalRoles(
+        all_layer_names=electricity.all_layer_names,
+        electric_lines_layer=electricity.electric_lines_layer,
+        transformation_posts_layer=electricity.transformation_posts_layer,
+        road_segments_layer=road,
+        department_layer=department,
+    )
+
+
 def _safe_relative_path(path: Path, root: Path) -> str:
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()
@@ -989,9 +1231,7 @@ def _geopackage_integrity(path: Path) -> tuple[int, str]:
     try:
         size_bytes = path.stat().st_size
     except OSError as error:
-        raise IgnBdTopoArchiveError(
-            f"Cannot inspect IGN GeoPackage: {path}"
-        ) from error
+        raise IgnBdTopoArchiveError(f"Cannot inspect IGN GeoPackage: {path}") from error
     if size_bytes <= 0:
         raise IgnBdTopoArchiveError(f"IGN GeoPackage is empty: {path}")
     digest = sha256()
@@ -1002,6 +1242,102 @@ def _geopackage_integrity(path: Path) -> tuple[int, str]:
     except OSError as error:
         raise IgnBdTopoArchiveError(f"Cannot read IGN GeoPackage: {path}") from error
     return size_bytes, digest.hexdigest()
+
+
+def _regular_file_sha256(path: Path) -> str:
+    digest = sha256()
+    try:
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(DOWNLOAD_CHUNK_SIZE), b""):
+                digest.update(chunk)
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            f"Cannot hash extracted IGN file: {path}"
+        ) from error
+    return digest.hexdigest()
+
+
+def _inventory_extracted_tree(
+    root: Path,
+    *,
+    exclude_relative_path: str | None = None,
+) -> tuple[_ExtractedEntryMetadata, ...]:
+    try:
+        if root.is_symlink() or root.is_junction() or not root.is_dir():
+            raise IgnBdTopoArchiveError(
+                "IGN extraction root must be a regular non-linked directory"
+            )
+        entries: list[_ExtractedEntryMetadata] = []
+        for current_root, directory_names, file_names in os.walk(
+            root,
+            topdown=True,
+            followlinks=False,
+        ):
+            current = Path(current_root)
+            for name in sorted(directory_names):
+                path = current / name
+                if path.is_symlink() or path.is_junction() or not path.is_dir():
+                    raise IgnBdTopoArchiveError(
+                        "IGN extraction contains a link, junction, or special directory"
+                    )
+                relative = path.relative_to(root).as_posix()
+                entries.append(
+                    _ExtractedEntryMetadata(
+                        relative_path=relative,
+                        kind="directory",
+                    )
+                )
+            for name in sorted(file_names):
+                path = current / name
+                relative = path.relative_to(root).as_posix()
+                if relative == exclude_relative_path:
+                    continue
+                if path.is_symlink() or path.is_junction() or not path.is_file():
+                    raise IgnBdTopoArchiveError(
+                        "IGN extraction contains a link, junction, or special file"
+                    )
+                size = path.stat().st_size
+                entries.append(
+                    _ExtractedEntryMetadata(
+                        relative_path=relative,
+                        kind="file",
+                        size_bytes=size,
+                        sha256=_regular_file_sha256(path),
+                    )
+                )
+        return tuple(
+            sorted(
+                entries,
+                key=lambda entry: (
+                    unicodedata.normalize("NFKC", entry.relative_path).casefold(),
+                    entry.relative_path,
+                ),
+            )
+        )
+    except IgnBdTopoArchiveError:
+        raise
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            "IGN extracted inventory cannot be inspected safely"
+        ) from error
+
+
+def _validate_extracted_inventory(
+    root: Path,
+    expected: tuple[_ValidatedArchiveMember, ...],
+) -> tuple[_ExtractedEntryMetadata, ...]:
+    actual = _inventory_extracted_tree(root)
+    actual_facts = {
+        entry.relative_path: (entry.kind, entry.size_bytes) for entry in actual
+    }
+    expected_facts = {
+        entry.relative_path: (entry.kind, entry.size_bytes) for entry in expected
+    }
+    if actual_facts != expected_facts:
+        raise IgnBdTopoArchiveError(
+            "IGN extracted destination inventory differs from the validated archive"
+        )
+    return actual
 
 
 @dataclass(frozen=True)
@@ -1026,7 +1362,7 @@ def _valid_layer_inventory(value: object) -> bool:
 def _validate_extraction_envelope(
     extraction: object,
 ) -> _VerifiedIgnExtraction:
-    """Bind one extraction envelope to its schema-v2 marker and current GPKG."""
+    """Bind one extraction envelope to its schema-v3 marker and current GPKG."""
 
     try:
         if type(extraction) is not IgnBdTopoExtraction:
@@ -1057,10 +1393,14 @@ def _validate_extraction_envelope(
         ):
             raise TypeError("IGN extraction paths are invalid")
         marker_path = extraction.extraction_path / ".landscout-extraction.json"
-        if not marker_path.is_file():
-            raise ValueError("IGN schema-v2 extraction metadata is missing")
-        metadata = _ExtractionMetadata.model_validate_json(
-            marker_path.read_text(encoding="utf-8")
+        if (
+            marker_path.is_symlink()
+            or marker_path.is_junction()
+            or not marker_path.is_file()
+        ):
+            raise ValueError("IGN schema-v3 extraction metadata is missing")
+        metadata = _ExtractionMetadata.model_validate(
+            loads_strict_json_object(marker_path.read_bytes())
         )
         expected_path = _resolve_relative_path(
             extraction.extraction_path,
@@ -1084,21 +1424,27 @@ def _validate_extraction_envelope(
         selected_roles = (
             extraction.electric_lines_layer,
             extraction.transformation_posts_layer,
+            extraction.road_segments_layer,
+            extraction.department_layer,
         )
         if selected_roles != (
             metadata.electric_lines_layer,
             metadata.transformation_posts_layer,
+            metadata.road_segments_layer,
+            metadata.department_layer,
         ):
-            raise ValueError("IGN extraction electricity roles differ from metadata")
-        if selected_roles[0] == selected_roles[1] or any(
+            raise ValueError("IGN extraction physical roles differ from metadata")
+        if len(set(selected_roles)) != 4 or any(
             role not in extraction.all_layer_names for role in selected_roles
         ):
-            raise ValueError("IGN extraction electricity roles are invalid")
+            raise ValueError("IGN extraction physical roles are invalid")
         if (
             metadata.geopackage_size_bytes != extraction.geopackage_size_bytes
             or metadata.geopackage_sha256 != extraction.geopackage_sha256
         ):
-            raise ValueError("IGN extraction GeoPackage integrity differs from metadata")
+            raise ValueError(
+                "IGN extraction GeoPackage integrity differs from metadata"
+            )
         current_size, current_sha = _geopackage_integrity(discovered_path)
         if (
             current_size != extraction.geopackage_size_bytes
@@ -1108,6 +1454,12 @@ def _validate_extraction_envelope(
         current_layers = list_ign_bdtopo_layers(discovered_path)
         if current_layers != extraction.all_layer_names:
             raise ValueError("IGN physical GeoPackage layer inventory changed")
+        current_entries = _inventory_extracted_tree(
+            extraction.extraction_path,
+            exclude_relative_path=".landscout-extraction.json",
+        )
+        if current_entries != metadata.extracted_entries:
+            raise ValueError("IGN complete extracted-file inventory changed")
         return _VerifiedIgnExtraction(
             extraction=extraction,
             metadata=metadata,
@@ -1128,6 +1480,11 @@ def _verify_unchanged_extraction(context: _VerifiedIgnExtraction) -> None:
         or digest != context.extraction.geopackage_sha256
         or list_ign_bdtopo_layers(context.geopackage_path)
         != context.extraction.all_layer_names
+        or _inventory_extracted_tree(
+            context.extraction.extraction_path,
+            exclude_relative_path=".landscout-extraction.json",
+        )
+        != context.metadata.extracted_entries
     ):
         raise IgnBdTopoLayerError(
             "IGN physical GeoPackage changed during source layer loading"
@@ -1135,7 +1492,11 @@ def _verify_unchanged_extraction(context: _VerifiedIgnExtraction) -> None:
 
 
 def _read_layer_frame(geopackage_path: Path, layer_name: str) -> gpd.GeoDataFrame:
-    if not isinstance(layer_name, str) or not layer_name or layer_name != layer_name.strip():
+    if (
+        not isinstance(layer_name, str)
+        or not layer_name
+        or layer_name != layer_name.strip()
+    ):
         raise IgnBdTopoLayerError("IGN source layer name must be an exact string")
     try:
         frame = gpd.read_file(
@@ -1188,9 +1549,7 @@ def _validate_layer_summary_contract(summary: object) -> IgnBdTopoLayerSummary:
         type(summary.columns) is not tuple
         or not summary.columns
         or any(
-            not isinstance(column, str)
-            or not column
-            or column != column.strip()
+            not isinstance(column, str) or not column or column != column.strip()
             for column in summary.columns
         )
         or len(set(summary.columns)) != len(summary.columns)
@@ -1237,7 +1596,9 @@ def _compare_layer_summary(
 ) -> None:
     validated = _validate_layer_summary_contract(supplied)
     if validated != expected:
-        raise IgnBdTopoLayerError("IGN supplied layer summary differs from physical source")
+        raise IgnBdTopoLayerError(
+            "IGN supplied layer summary differs from physical source"
+        )
 
 
 def _compare_loaded_frame(
@@ -1278,9 +1639,10 @@ def _compare_loaded_frame(
             check_names=True,
             check_exact=True,
         )
-        if supplied.geometry.to_wkb(hex=True).tolist() != expected.geometry.to_wkb(
-            hex=True
-        ).tolist():
+        if (
+            supplied.geometry.to_wkb(hex=True).tolist()
+            != expected.geometry.to_wkb(hex=True).tolist()
+        ):
             raise AssertionError("geometry WKB differs")
         if supplied.attrs != expected.attrs:
             raise AssertionError("frame attributes differ")
@@ -1299,8 +1661,10 @@ def _load_cached_extraction(
     if not extraction_path.is_dir() or not metadata_path.is_file():
         return None
     try:
-        metadata = _ExtractionMetadata.model_validate_json(
-            metadata_path.read_text(encoding="utf-8")
+        if metadata_path.is_symlink() or metadata_path.is_junction():
+            return None
+        metadata = _ExtractionMetadata.model_validate(
+            loads_strict_json_object(metadata_path.read_bytes())
         )
         if (
             metadata.archive_sha256 != download.sha256
@@ -1313,20 +1677,28 @@ def _load_cached_extraction(
         discovered_path = discover_ign_bdtopo_geopackage(extraction_path)
         if geopackage_path.resolve() != discovered_path.resolve():
             return None
-        geopackage_size, geopackage_sha256 = _geopackage_integrity(
-            geopackage_path
-        )
+        geopackage_size, geopackage_sha256 = _geopackage_integrity(geopackage_path)
         if (
             geopackage_size != metadata.geopackage_size_bytes
             or geopackage_sha256 != metadata.geopackage_sha256
         ):
             return None
-        selection = discover_ign_bdtopo_layers(geopackage_path, config)
+        if (
+            _inventory_extracted_tree(
+                extraction_path,
+                exclude_relative_path=".landscout-extraction.json",
+            )
+            != metadata.extracted_entries
+        ):
+            return None
+        selection = _discover_configured_physical_roles(geopackage_path, config)
         if (
             selection.all_layer_names != metadata.all_layer_names
             or selection.electric_lines_layer != metadata.electric_lines_layer
             or selection.transformation_posts_layer
             != metadata.transformation_posts_layer
+            or selection.road_segments_layer != metadata.road_segments_layer
+            or selection.department_layer != metadata.department_layer
         ):
             return None
         return IgnBdTopoExtraction(
@@ -1339,6 +1711,8 @@ def _load_cached_extraction(
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
+            road_segments_layer=selection.road_segments_layer,
+            department_layer=selection.department_layer,
             cache_hit=True,
         )
     except (
@@ -1355,19 +1729,83 @@ def _replace_directory(source: Path, target: Path) -> None:
     source.replace(target)
 
 
-def _remove_tree(path: Path) -> None:
-    if path.is_dir():
+def _path_exists_or_is_link(path: Path) -> bool:
+    try:
+        return path.exists() or path.is_symlink() or path.is_junction()
+    except OSError:
+        return True
+
+
+def _remove_validated_extraction_directory(path: Path) -> None:
+    if not _path_exists_or_is_link(path):
+        return
+    if path.is_symlink() or path.is_junction() or not path.is_dir():
+        raise IgnBdTopoArchiveError(
+            "IGN extraction transaction path is not a safe ordinary directory"
+        )
+    _inventory_extracted_tree(path)
+    try:
         shutil.rmtree(path)
-    elif path.exists():
-        path.unlink()
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            "IGN extraction transaction directory could not be removed safely"
+        ) from error
 
 
-def _publish_extraction_directory(
-    temporary_path: Path, extraction_path: Path
-) -> None:
+def _require_no_extraction_backup(extraction_path: Path) -> None:
     backup_path = extraction_path.with_name(f"{extraction_path.name}.bak")
-    _remove_tree(backup_path)
-    extraction_existed = extraction_path.exists()
+    if _path_exists_or_is_link(backup_path):
+        raise IgnBdTopoArchiveError(
+            "IGN extraction recovery backup exists; manual recovery is required"
+        )
+
+
+def _require_safe_existing_extraction_marker(extraction_path: Path) -> None:
+    marker_path = extraction_path / ".landscout-extraction.json"
+    if not _path_exists_or_is_link(marker_path):
+        return
+    try:
+        if (
+            marker_path.is_symlink()
+            or marker_path.is_junction()
+            or not marker_path.is_file()
+        ):
+            raise IgnBdTopoArchiveError(
+                "IGN extraction integrity marker is not a regular non-linked file"
+            )
+    except IgnBdTopoArchiveError:
+        raise
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            "IGN extraction integrity marker cannot be inspected safely"
+        ) from error
+
+
+def _prepare_temporary_extraction_directory(path: Path) -> None:
+    if _path_exists_or_is_link(path):
+        _remove_validated_extraction_directory(path)
+    try:
+        path.mkdir(parents=False)
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            "IGN temporary extraction directory cannot be created safely"
+        ) from error
+
+
+def _publish_extraction_directory(temporary_path: Path, extraction_path: Path) -> None:
+    backup_path = extraction_path.with_name(f"{extraction_path.name}.bak")
+    _require_no_extraction_backup(extraction_path)
+    extraction_existed = _path_exists_or_is_link(extraction_path)
+    if extraction_existed:
+        if (
+            extraction_path.is_symlink()
+            or extraction_path.is_junction()
+            or not extraction_path.is_dir()
+        ):
+            raise IgnBdTopoArchiveError(
+                "IGN existing extraction target is not a safe ordinary directory"
+            )
+        _inventory_extracted_tree(extraction_path)
     if extraction_existed:
         _replace_directory(extraction_path, backup_path)
     try:
@@ -1375,14 +1813,17 @@ def _publish_extraction_directory(
     except OSError:
         try:
             if extraction_existed:
+                if _path_exists_or_is_link(extraction_path):
+                    _remove_validated_extraction_directory(extraction_path)
                 _replace_directory(backup_path, extraction_path)
-        except OSError as rollback_error:
+        except (IgnBdTopoArchiveError, OSError) as rollback_error:
             raise IgnBdTopoArchiveError(
                 "IGN extraction publication and rollback both failed"
             ) from rollback_error
         raise
     else:
-        _remove_tree(backup_path)
+        if extraction_existed:
+            _remove_validated_extraction_directory(backup_path)
 
 
 def extract_ign_bdtopo_archive(
@@ -1392,17 +1833,38 @@ def extract_ign_bdtopo_archive(
 ) -> IgnBdTopoExtraction:
     """Safely extract the package and resolve its required electricity layers."""
 
-    integrity = validate_ign_bdtopo_archive(download.path, config)
-    if integrity.sha256 != download.sha256:
+    config = _validated_source_config(config, error_type=IgnBdTopoArchiveError)
+    try:
+        _validate_archive_config_lineage(download, config)
+    except IgnBdTopoLayerError as error:
         raise IgnBdTopoArchiveError(
-            "Downloaded IGN archive checksum changed before extraction"
-        )
+            "IGN download envelope differs from source config"
+        ) from error
     extraction_path = extraction_dir or (
         download.path.parent / "x" / download.sha256[:16]
     )
-    if extraction_path.exists() and not extraction_path.is_dir():
+    if not isinstance(extraction_path, Path):
+        raise IgnBdTopoArchiveError("IGN extraction target must be a pathlib.Path")
+    _require_no_extraction_backup(extraction_path)
+    if _path_exists_or_is_link(extraction_path) and (
+        extraction_path.is_symlink()
+        or extraction_path.is_junction()
+        or not extraction_path.is_dir()
+    ):
         raise IgnBdTopoArchiveError(
             f"IGN extraction target exists and is not a directory: {extraction_path}"
+        )
+    _require_safe_existing_extraction_marker(extraction_path)
+    integrity = validate_ign_bdtopo_archive(download.path, config)
+    if (
+        integrity.file_size != download.file_size
+        or integrity.sha256 != download.sha256
+        or integrity.official_checksum_algorithm != download.official_checksum_algorithm
+        or integrity.official_checksum != download.official_checksum
+        or integrity.official_checksum_validated != download.official_checksum_validated
+    ):
+        raise IgnBdTopoArchiveError(
+            "Downloaded IGN archive integrity changed before extraction"
         )
     cached = _load_cached_extraction(extraction_path, download, config)
     if cached is not None:
@@ -1410,21 +1872,22 @@ def extract_ign_bdtopo_archive(
 
     extraction_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = extraction_path.with_name(f"{extraction_path.name}.part")
-    _remove_tree(temporary_path)
-    temporary_path.mkdir(parents=True)
+    _prepare_temporary_extraction_directory(temporary_path)
     try:
         with py7zr.SevenZipFile(download.path, mode="r") as archive:
-            _validate_archive_members(archive)
+            expected_entries = _validate_archive_members(archive)
             archive.extractall(path=temporary_path)
 
-        geopackage_path = discover_ign_bdtopo_geopackage(temporary_path)
-        selection = discover_ign_bdtopo_layers(geopackage_path, config)
-        relative_path = _safe_relative_path(geopackage_path, temporary_path)
-        geopackage_size, geopackage_sha256 = _geopackage_integrity(
-            geopackage_path
+        extracted_entries = _validate_extracted_inventory(
+            temporary_path,
+            expected_entries,
         )
+        geopackage_path = discover_ign_bdtopo_geopackage(temporary_path)
+        selection = _discover_configured_physical_roles(geopackage_path, config)
+        relative_path = _safe_relative_path(geopackage_path, temporary_path)
+        geopackage_size, geopackage_sha256 = _geopackage_integrity(geopackage_path)
         metadata = _ExtractionMetadata(
-            schema_version=2,
+            schema_version=3,
             archive_sha256=download.sha256,
             geopackage_relative_path=relative_path,
             geopackage_size_bytes=geopackage_size,
@@ -1432,11 +1895,15 @@ def extract_ign_bdtopo_archive(
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
+            road_segments_layer=selection.road_segments_layer,
+            department_layer=selection.department_layer,
+            extracted_entries=extracted_entries,
             spatial_role="PROXY_GEOMETRY",
         )
-        (temporary_path / ".landscout-extraction.json").write_text(
-            metadata.model_dump_json(indent=2) + "\n", encoding="utf-8"
-        )
+        with (temporary_path / ".landscout-extraction.json").open(
+            "x", encoding="utf-8"
+        ) as output:
+            output.write(metadata.model_dump_json(indent=2) + "\n")
         _publish_extraction_directory(temporary_path, extraction_path)
         published_geopackage = _resolve_relative_path(extraction_path, relative_path)
         return IgnBdTopoExtraction(
@@ -1449,6 +1916,8 @@ def extract_ign_bdtopo_archive(
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
+            road_segments_layer=selection.road_segments_layer,
+            department_layer=selection.department_layer,
             cache_hit=False,
         )
     except (ArchiveError, EOFError, OSError, ValueError) as error:
@@ -1456,7 +1925,12 @@ def extract_ign_bdtopo_archive(
             f"IGN archive extraction failed: {download.path}"
         ) from error
     finally:
-        _remove_tree(temporary_path)
+        primary_error = sys.exception()
+        try:
+            _remove_validated_extraction_directory(temporary_path)
+        except IgnBdTopoArchiveError:
+            if primary_error is None:
+                raise
 
 
 def _validate_lambert93(crs_value: Any, layer_name: str) -> CRS:
@@ -1493,9 +1967,7 @@ def _loaded_layer_from_frame(
             f"IGN layer has no active geometry column: {layer_name}"
         ) from error
     if geometry_name not in frame.columns:
-        raise IgnBdTopoLayerError(
-            f"IGN layer geometry column is missing: {layer_name}"
-        )
+        raise IgnBdTopoLayerError(f"IGN layer geometry column is missing: {layer_name}")
     crs = _validate_lambert93(frame.crs, layer_name)
     if frame.empty:
         raise IgnBdTopoLayerError(f"IGN layer contains no features: {layer_name}")
@@ -1507,7 +1979,9 @@ def _loaded_layer_from_frame(
     measurable_mask = non_null_mask & ~geometry.is_empty
     invalid_mask = measurable_mask & ~geometry.is_valid
     geometry_types = tuple(
-        sorted(str(value) for value in geometry[non_null_mask].geom_type.dropna().unique())
+        sorted(
+            str(value) for value in geometry[non_null_mask].geom_type.dropna().unique()
+        )
     )
     summary = IgnBdTopoLayerSummary(
         logical_name=logical_name,
@@ -1515,7 +1989,9 @@ def _loaded_layer_from_frame(
         crs=crs.to_string(),
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
         null_geometry_count=int(null_mask.sum()),
         empty_geometry_count=int(empty_mask.sum()),
         invalid_geometry_count=int(invalid_mask.sum()),
@@ -1525,12 +2001,12 @@ def _loaded_layer_from_frame(
     return IgnBdTopoLoadedLayer(data=frame, summary=summary)
 
 
-def load_ign_bdtopo_layer(
+def _load_untrusted_ign_bdtopo_layer(
     geopackage_path: Path,
     layer_name: str,
     logical_name: LogicalLayerName,
 ) -> IgnBdTopoLoadedLayer:
-    """Load and validate one selected IGN layer without repairing geometry."""
+    """Inspect one raw layer without conferring config-bound source authority."""
 
     if not geopackage_path.is_file():
         raise IgnBdTopoLayerError(f"GeoPackage does not exist: {geopackage_path}")
@@ -1541,34 +2017,44 @@ def load_ign_bdtopo_layer(
 
 
 def _validated_layer_source_config(config: object) -> IgnBdTopoSourceConfig:
-    try:
-        if type(config) is not IgnBdTopoSourceConfig:
-            raise TypeError("IGN electricity source config type is invalid")
-        return IgnBdTopoSourceConfig.model_validate(
-            config.model_dump(mode="python")
-        )
-    except (AttributeError, TypeError, ValidationError, ValueError) as error:
-        raise IgnBdTopoLayerError(
-            "IGN electricity source config is invalid"
-        ) from error
+    return _validated_source_config(config, error_type=IgnBdTopoLayerError)
 
 
 def _validate_archive_config_lineage(
-    extraction: object,
+    source: object,
     config: IgnBdTopoSourceConfig,
 ) -> None:
     try:
-        if type(extraction) is not IgnBdTopoExtraction:
-            raise TypeError("IGN electricity extraction type is invalid")
-        archive = extraction.archive
+        if type(source) is IgnBdTopoExtraction:
+            archive = source.archive
+        elif type(source) is IgnBdTopoDownload:
+            archive = source
+        else:
+            raise TypeError("IGN archive source type is invalid")
         if type(archive) is not IgnBdTopoDownload:
-            raise TypeError("IGN electricity archive type is invalid")
+            raise TypeError("IGN archive type is invalid")
         if type(archive.file_size) is not int or archive.file_size <= 0:
-            raise TypeError("IGN electricity archive size is invalid")
+            raise TypeError("IGN archive size is invalid")
         if type(archive.official_checksum_validated) is not bool:
-            raise TypeError(
-                "IGN electricity official-checksum state is invalid"
-            )
+            raise TypeError("IGN official-checksum state is invalid")
+        if (
+            type(archive.sha256) is not str
+            or re.fullmatch(r"[0-9a-f]{64}", archive.sha256) is None
+        ):
+            raise TypeError("IGN archive SHA256 is invalid")
+        if type(archive.download_timestamp) is not str:
+            raise TypeError("IGN archive timestamp is invalid")
+        downloaded_at = datetime.fromisoformat(archive.download_timestamp)
+        if downloaded_at.tzinfo is None or downloaded_at.utcoffset() != UTC.utcoffset(
+            None
+        ):
+            raise ValueError("IGN archive timestamp must be timezone-aware UTC")
+        if not isinstance(archive.path, Path):
+            raise TypeError("IGN archive path type is invalid")
+        if archive.path.name != archive.filename:
+            raise ValueError("IGN archive filename differs from its physical path")
+        if type(archive.cache_hit) is not bool:
+            raise TypeError("IGN archive cache state is invalid")
         expected_checksum_url = (
             str(config.checksum_url) if config.checksum_url is not None else None
         )
@@ -1596,21 +2082,17 @@ def _validate_archive_config_lineage(
             (archive.spatial_role, SPATIAL_ROLE),
         )
         if any(actual != expected for actual, expected in expected_values):
-            raise ValueError(
-                "IGN electricity archive lineage differs from source config"
-            )
+            raise ValueError("IGN archive lineage differs from source config")
         if (
             config.expected_archive_size_bytes is not None
             and archive.file_size != config.expected_archive_size_bytes
         ):
-            raise ValueError(
-                "IGN electricity archive size differs from source config"
-            )
+            raise ValueError("IGN archive size differs from source config")
     except IgnBdTopoLayerError:
         raise
     except Exception as error:
         raise IgnBdTopoLayerError(
-            "IGN electricity archive lineage differs from source config"
+            "IGN archive lineage differs from source config"
         ) from error
 
 
@@ -1623,16 +2105,17 @@ def load_ign_bdtopo_electricity(
     validated_config = _validated_layer_source_config(config)
     _validate_archive_config_lineage(extraction, validated_config)
     context = _validate_extraction_envelope(extraction)
-    configured_selection = discover_ign_bdtopo_layers(
+    configured_selection = _discover_configured_physical_roles(
         context.geopackage_path,
         validated_config,
     )
     if (
         configured_selection.all_layer_names != extraction.all_layer_names
-        or configured_selection.electric_lines_layer
-        != extraction.electric_lines_layer
+        or configured_selection.electric_lines_layer != extraction.electric_lines_layer
         or configured_selection.transformation_posts_layer
         != extraction.transformation_posts_layer
+        or configured_selection.road_segments_layer != extraction.road_segments_layer
+        or configured_selection.department_layer != extraction.department_layer
     ):
         raise IgnBdTopoLayerError(
             "IGN electricity roles differ from the configured physical layers"
@@ -1669,19 +2152,24 @@ def load_ign_bdtopo_roads(
 ) -> IgnBdTopoRoadData:
     """Load the configured factual road layer without filtering or repair."""
 
+    validated_config = _validated_layer_source_config(config)
+    _validate_archive_config_lineage(extraction, validated_config)
     context = _validate_extraction_envelope(extraction)
-    if config.department_code != extraction.archive.department_code:
+    selection = _discover_configured_physical_roles(
+        context.geopackage_path,
+        validated_config,
+    )
+    if (
+        selection.all_layer_names != extraction.all_layer_names
+        or selection.electric_lines_layer != extraction.electric_lines_layer
+        or selection.transformation_posts_layer != extraction.transformation_posts_layer
+        or selection.road_segments_layer != extraction.road_segments_layer
+        or selection.department_layer != extraction.department_layer
+    ):
         raise IgnBdTopoLayerError(
-            "IGN road config department does not match archive lineage"
+            "IGN road role differs from configured physical-layer inventory"
         )
-    layer_name = _discover_road_layer(extraction.all_layer_names, config)
-    if layer_name in {
-        extraction.electric_lines_layer,
-        extraction.transformation_posts_layer,
-    }:
-        raise IgnBdTopoLayerError(
-            "Road, electric-line, and transformation-post roles must use distinct layers"
-        )
+    layer_name = selection.road_segments_layer
     (road_frame,) = _read_verified_layer_frames(context, (layer_name,))
     loaded = _loaded_layer_from_frame(
         road_frame,
@@ -1726,8 +2214,7 @@ def _department_coverage_from_frame(
     invalid_mask = measurable_mask & ~geometry.is_valid
     geometry_types = tuple(
         sorted(
-            str(value)
-            for value in geometry[non_null_mask].geom_type.dropna().unique()
+            str(value) for value in geometry[non_null_mask].geom_type.dropna().unique()
         )
     )
 
@@ -1783,8 +2270,7 @@ def _department_coverage_from_frame(
         selected_feature_count=selected_count,
         columns=tuple(str(column) for column in frame.columns),
         dtypes=tuple(
-            (str(column), str(dtype))
-            for column, dtype in frame.dtypes.items()
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
         ),
         null_geometry_count=int(null_mask.sum()),
         empty_geometry_count=int(empty_mask.sum()),
@@ -1813,21 +2299,30 @@ def load_ign_bdtopo_department_coverage(
 ) -> IgnBdTopoDepartmentCoverage:
     """Load the one authoritative configured department coverage feature."""
 
+    validated_config = _validated_layer_source_config(config)
+    _validate_archive_config_lineage(extraction, validated_config)
     context = _validate_extraction_envelope(extraction)
-    archive = extraction.archive
-    if config.department_code != archive.department_code:
-        raise IgnBdTopoLayerError(
-            "IGN coverage config department does not match archive lineage"
-        )
-    layer_name = _discover_department_coverage_layer(
-        extraction.all_layer_names, config
+    selection = _discover_configured_physical_roles(
+        context.geopackage_path,
+        validated_config,
     )
+    if (
+        selection.all_layer_names != extraction.all_layer_names
+        or selection.electric_lines_layer != extraction.electric_lines_layer
+        or selection.transformation_posts_layer != extraction.transformation_posts_layer
+        or selection.road_segments_layer != extraction.road_segments_layer
+        or selection.department_layer != extraction.department_layer
+    ):
+        raise IgnBdTopoLayerError(
+            "IGN coverage role differs from configured physical-layer inventory"
+        )
+    layer_name = selection.department_layer
     (frame,) = _read_verified_layer_frames(context, (layer_name,))
     return _department_coverage_from_frame(
         extraction,
         frame,
         layer_name,
-        config.coverage.department_layer.department_code_field,
+        validated_config.coverage.department_layer.department_code_field,
     )
 
 
@@ -1843,7 +2338,9 @@ def _revalidate_ign_bdtopo_electricity_data(
         if type(config) is not IgnBdTopoSourceConfig:
             raise TypeError("IGN electricity source config type is invalid")
         fresh = load_ign_bdtopo_electricity(source.extraction, config)
-        _compare_loaded_frame(source.electric_lines, fresh.electric_lines, "electric lines")
+        _compare_loaded_frame(
+            source.electric_lines, fresh.electric_lines, "electric lines"
+        )
         _compare_loaded_frame(
             source.transformation_posts,
             fresh.transformation_posts,
@@ -1941,7 +2438,9 @@ def _validate_coverage_summary_contract(
     if (
         type(summary.geometry_types) is not tuple
         or summary.geometry_types != tuple(sorted(set(summary.geometry_types)))
-        or any(not isinstance(value, str) or not value for value in summary.geometry_types)
+        or any(
+            not isinstance(value, str) or not value for value in summary.geometry_types
+        )
     ):
         raise IgnBdTopoLayerError("IGN coverage summary geometry types are invalid")
     if summary.spatial_role != COVERAGE_SPATIAL_ROLE:

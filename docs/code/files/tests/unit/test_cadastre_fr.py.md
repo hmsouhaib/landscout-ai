@@ -3,19 +3,22 @@
 ## File identity
 
 - Repository path: `tests/unit/test_cadastre_fr.py`
-- File type: Python test
+- File type: Python source
 - Layer: unit/regression test
-- Domain: test
+- Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
-- Source SHA256: `07f5bc37cf8d7fca0fa8c1a88ab19528c0717139d5a581d52c1fe20644d74eb5`
+- Source SHA256: `6d0cc8419a7dc41440e8a296eb64e7c451e553f344d67e72156425faaa3e5e01`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
+
+- Refreshes permanent STEP 7F.1A.4 regression coverage for cadastre fr; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## 2. Purpose and architectural position
 
 Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
-## 2. Position in LandScout architecture
-
-This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -46,17 +49,24 @@ This file belongs to the **unit/regression test** layer and the **test** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `COMMUNE_CODE`
+### `COMMUNE_CODE`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 COMMUNE_CODE = "31395"
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_download_timeout_is_strict_finite_positive` (value reference), `tests/unit/test_cadastre_fr.py::test_cache_age_is_strict_finite_nonnegative` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `EXPECTED_URL`
+### `EXPECTED_URL`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 EXPECTED_URL = (
@@ -65,17 +75,25 @@ EXPECTED_URL = (
 )
 ```
 
-Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_cadastre_fr.py::test_build_cadastre_parcelles_url` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_http_response` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `ARCHIVE_CONTENT`
+### `ARCHIVE_CONTENT`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 ARCHIVE_CONTENT = gzip.compress(b'{"type":"FeatureCollection","features":[]}')
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::<module>` (value reference), `tests/unit/test_cadastre_fr.py::test_successful_download` (value reference), `tests/unit/test_cadastre_fr.py::test_fresh_cache_is_reused` (value reference), `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_checksum_generation` (value reference), `tests/unit/test_cadastre_fr.py::test_valid_gzip_is_accepted` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network.record_network` (value reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `REFRESHED_ARCHIVE_CONTENT`
+### `REFRESHED_ARCHIVE_CONTENT`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 REFRESHED_ARCHIVE_CONTENT = gzip.compress(
@@ -83,37 +101,35 @@ REFRESHED_ARCHIVE_CONTENT = gzip.compress(
 )
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_malformed_cached_metadata_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_future_cached_timestamp_triggers_refresh` (value reference), `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` (value reference), `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` (value reference), `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` (value reference), `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `CORRUPTED_ARCHIVE_CONTENT`
+### `CORRUPTED_ARCHIVE_CONTENT`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 CORRUPTED_ARCHIVE_CONTENT = ARCHIVE_CONTENT[:-8]
 ```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_cadastre_fr.py::test_truncated_gzip_is_rejected` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` (value reference), `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
+## 5. Classes, models, dataclasses, and fields
 
-No meaningful module-level dunder contract is declared.
+No top-level class/model/dataclass is declared.
 
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-No class/model/dataclass is declared.
-
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `_set_cache_age`
+
+**Purpose:** Implements `set cache age` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -121,40 +137,63 @@ No class/model/dataclass is declared.
 def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for set cache age; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `metadata_path` | positional-or-keyword | `Path` | `required` |
+| `age` | positional-or-keyword | `timedelta` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: `metadata_path.read_text`.
-- Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `metadata['download_timestamp']`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_cadastre_fr.py::test_expired_cache_is_downloaded_again` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_failed_refresh_preserves_cached_archive` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_new_download_preserves_existing_archive` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `_set_cache_age`.
-- direct call: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_set_cache_age`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_cadastre_fr::test_expired_cache_is_downloaded_again` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_expired_cache_is_downloaded_again` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_failed_refresh_preserves_cached_archive` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_failed_refresh_preserves_cached_archive` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_corrupted_new_download_preserves_existing_archive` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_corrupted_new_download_preserves_existing_archive` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_metadata_publication_failure_restores_previous_cache_pair` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_metadata_publication_failure_restores_previous_cache_pair` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_publication_and_rollback_failure_preserves_recovery_backup` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_publication_and_rollback_failure_preserves_recovery_backup` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_next_run_after_double_failure_preserves_recovery_before_network` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_next_run_after_double_failure_preserves_recovery_before_network` via `_set_cache_age`
+- direct call: `tests.unit.test_cadastre_fr::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_set_cache_age`
+- value/type reference: `tests.unit.test_cadastre_fr::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_set_cache_age`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `(datetime.now(UTC) - age).isoformat` | `unresolved local/third-party receiver; no ownership inferred` |
+| `datetime.now` | `datetime.datetime.now` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `metadata_path.read_text` |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `metadata["download_timestamp"] = (datetime.now(UTC) - age).isoformat()` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -167,9 +206,11 @@ def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_update_metadata_integrity`
+
+**Purpose:** Implements `update metadata integrity` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -177,34 +218,53 @@ def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
 def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for update metadata integrity; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `metadata_path` | positional-or-keyword | `Path` | `required` |
+| `archive_path` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: `archive_path.read_bytes`, `metadata_path.read_text`.
-- Filesystem write: `metadata_path.write_text`.
-- CRS/geometry calculation: none.
-- Hashing: `sha256`, `sha256(content).hexdigest`.
-- Environment/process effects: none.
-- In-memory mutation: `metadata['file_size']`, `metadata['sha256']`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `tests/unit/test_cadastre_fr.py::test_corrupted_cached_archive_triggers_fresh_download` via `_update_metadata_integrity`.
+Inbound conservative repository consumers:
+- direct call: `tests.unit.test_cadastre_fr::test_corrupted_cached_archive_triggers_fresh_download` via `_update_metadata_integrity`
+- value/type reference: `tests.unit.test_cadastre_fr::test_corrupted_cached_archive_triggers_fresh_download` via `_update_metadata_integrity`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `archive_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256(content).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `metadata_path.read_text`<br>`archive_path.read_bytes` |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | `sha256(content).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `metadata["file_size"] = len(content)`<br>`metadata["sha256"] = sha256(content).hexdigest()` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -219,101 +279,133 @@ def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_build_cadastre_parcelles_url`
 
-**Purpose**
+**Purpose:** Regression invariant: build cadastre parcelles url. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `build cadastre parcelles url`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_build_cadastre_parcelles_url() -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+- No parameters.
 
-```python
-assert build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL`
 
-Locks `build cadastre parcelles url` through the exact asserted conditions: `build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- In-memory/local unit boundary defined entirely by the reproduced setup.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `build_cadastre_parcelles_url` | `landscout.sources.cadastre_fr.build_cadastre_parcelles_url` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_build_cadastre_parcelles_url() -> None:
     assert build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_successful_download`
 
-**Purpose**
+**Purpose:** Regression invariant: successful download. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `successful download`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-metadata_path = tmp_path / f"{result.filename}.metadata.json"
-metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+def test_successful_download(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert result.path.read_bytes() == ARCHIVE_CONTENT
-assert result.source_url == EXPECTED_URL
-assert result.file_size == len(ARCHIVE_CONTENT)
-assert result.cache_hit is False
-assert metadata["download_timestamp"] == result.download_timestamp
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert result.path.read_bytes() == ARCHIVE_CONTENT`
+  - `assert result.commune_code == COMMUNE_CODE`
+  - `assert result.source_url == EXPECTED_URL`
+  - `assert result.file_size == len(ARCHIVE_CONTENT)`
+  - `assert result.cache_hit is False`
+  - `assert metadata["schema_version"] == 1`
+  - `assert metadata["commune_code"] == COMMUNE_CODE`
+  - `assert metadata["download_timestamp"] == result.download_timestamp`
 
-Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `result.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `result.path.read_bytes`<br>`metadata_path.read_text` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_successful_download(tmp_path: Path) -> None:
@@ -324,63 +416,79 @@ def test_successful_download(tmp_path: Path) -> None:
         result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
     assert result.path.read_bytes() == ARCHIVE_CONTENT
+    assert result.commune_code == COMMUNE_CODE
     assert result.source_url == EXPECTED_URL
     assert result.file_size == len(ARCHIVE_CONTENT)
     assert result.cache_hit is False
     metadata_path = tmp_path / f"{result.filename}.metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["schema_version"] == 1
+    assert metadata["commune_code"] == COMMUNE_CODE
     assert metadata["download_timestamp"] == result.download_timestamp
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_fresh_cache_is_reused`
 
-**Purpose**
+**Purpose:** Regression invariant: fresh cache is reused. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `fresh cache is reused`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_fresh_cache_is_reused(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ) as opener:
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-        second = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert opener.call_count == 1
-assert first.cache_hit is False
-assert second.cache_hit is True
-assert second.sha256 == first.sha256
-assert second.download_timestamp == first.download_timestamp
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 1`
+  - `assert first.cache_hit is False`
+  - `assert second.cache_hit is True`
+  - `assert second.sha256 == first.sha256`
+  - `assert second.download_timestamp == first.download_timestamp`
 
-Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_fresh_cache_is_reused(tmp_path: Path) -> None:
@@ -398,62 +506,81 @@ def test_fresh_cache_is_reused(tmp_path: Path) -> None:
     assert second.download_timestamp == first.download_timestamp
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_expired_cache_is_downloaded_again`
 
-**Purpose**
+**Purpose:** Regression invariant: expired cache is downloaded again. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `expired cache is downloaded again`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
-    ) as opener:
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-        metadata_path = tmp_path / f"{first.filename}.metadata.json"
-        _set_cache_age(metadata_path, timedelta(hours=169))
-        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert opener.call_count == 2
-assert refreshed.cache_hit is False
-assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
-assert refreshed.sha256 == sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.cache_hit is False`
+  - `assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`
+  - `assert refreshed.sha256 == sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest()`
 
-Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `refreshed.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `refreshed.path.read_bytes` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -466,59 +593,73 @@ def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
     assert refreshed.sha256 == sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_failed_refresh_preserves_cached_archive`
 
-**Purpose**
+**Purpose:** Regression invariant: failed refresh preserves cached archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `failed refresh preserves cached archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-original_archive = first.path.read_bytes()
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
-error = HTTPError(EXPECTED_URL, 503, "Unavailable", hdrs=None, fp=None)
+def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
-        pytest.raises(CadastreDownloadError),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert first.path.read_bytes() == original_archive
-assert metadata_path.is_file()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError)`
+- Exact assertions:
+  - `assert first.path.read_bytes() == original_archive`
+  - `assert metadata_path.is_file()`
 
-Locks `failed refresh preserves cached archive`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `HTTPError` | `urllib.error.HTTPError` |
+| `pytest.raises` | `pytest.raises` |
+| `metadata_path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `first.path.read_bytes`<br>`metadata_path.is_file` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
@@ -543,51 +684,69 @@ def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
     assert metadata_path.is_file()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_failed_http_response`
 
-**Purpose**
+**Purpose:** Regression invariant: failed http response. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `failed http response`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-error = HTTPError(EXPECTED_URL, 404, "Not Found", hdrs=None, fp=None)
+def test_failed_http_response(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
-        pytest.raises(CadastreDownloadError),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert not list(tmp_path.glob("*"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError)`
+- Exact assertions:
+  - `assert not list(tmp_path.glob("*"))`
 
-Locks `failed http response`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `HTTPError` | `urllib.error.HTTPError` |
+| `patch` | `unittest.mock.patch` |
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `tmp_path.glob` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_failed_http_response(tmp_path: Path) -> None:
@@ -602,50 +761,66 @@ def test_failed_http_response(tmp_path: Path) -> None:
     assert not list(tmp_path.glob("*"))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_checksum_generation`
 
-**Purpose**
+**Purpose:** Regression invariant: checksum generation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `checksum generation`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_checksum_generation(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()`
 
-Locks `checksum generation` through the exact asserted conditions: `result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `sha256(ARCHIVE_CONTENT).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `sha256(ARCHIVE_CONTENT).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_checksum_generation(tmp_path: Path) -> None:
@@ -658,45 +833,63 @@ def test_checksum_generation(tmp_path: Path) -> None:
     assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_valid_gzip_is_accepted`
 
-**Purpose**
+**Purpose:** Regression invariant: valid gzip is accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `valid gzip is accepted`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-archive_path = tmp_path / "valid.json.gz"
-archive_path.write_bytes(ARCHIVE_CONTENT)
+def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert _is_valid_gzip(archive_path)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert _is_valid_gzip(archive_path)`
 
-Locks `valid gzip is accepted` through the exact asserted conditions: `_is_valid_gzip(archive_path)`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `archive_path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_is_valid_gzip` | `landscout.sources.cadastre_fr._is_valid_gzip` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `archive_path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
@@ -706,45 +899,63 @@ def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
     assert _is_valid_gzip(archive_path)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_truncated_gzip_is_rejected`
 
-**Purpose**
+**Purpose:** Regression invariant: truncated gzip is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `truncated gzip is rejected`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-archive_path = tmp_path / "truncated.json.gz"
-archive_path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert not _is_valid_gzip(archive_path)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert not _is_valid_gzip(archive_path)`
 
-Locks `truncated gzip is rejected` through the exact asserted conditions: `not _is_valid_gzip(archive_path)`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `archive_path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_is_valid_gzip` | `landscout.sources.cadastre_fr._is_valid_gzip` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `archive_path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
@@ -754,62 +965,78 @@ def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
     assert not _is_valid_gzip(archive_path)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_corrupted_cached_archive_triggers_fresh_download`
 
-**Purpose**
+**Purpose:** Regression invariant: corrupted cached archive triggers fresh download. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `corrupted cached archive triggers fresh download`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
-    ) as opener:
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-        metadata_path = tmp_path / f"{first.filename}.metadata.json"
-        first.path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
-        _update_metadata_integrity(metadata_path, first.path)
-        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-assert opener.call_count == 2
-assert refreshed.cache_hit is False
-assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.cache_hit is False`
+  - `assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`
 
-Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `first.path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_update_metadata_integrity` | `tests.unit.test_cadastre_fr._update_metadata_integrity` |
+| `refreshed.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `refreshed.path.read_bytes` |
+| Filesystem/archive write or publication | `first.path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -822,61 +1049,73 @@ def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> Non
     assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_corrupted_new_download_preserves_existing_archive`
 
-**Purpose**
+**Purpose:** Regression invariant: corrupted new download preserves existing archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `corrupted new download preserves existing archive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-original_archive = first.path.read_bytes()
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
+def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            return_value=io.BytesIO(CORRUPTED_ARCHIVE_CONTENT),
-        ),
-        pytest.raises(CadastreDownloadError),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert first.path.read_bytes() == original_archive
-assert not list(tmp_path.glob("*.part"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError)`
+- Exact assertions:
+  - `assert first.path.read_bytes() == original_archive`
+  - `assert not list(tmp_path.glob("*.part"))`
 
-Locks `corrupted new download preserves existing archive`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `pytest.raises` | `pytest.raises` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `first.path.read_bytes`<br>`tmp_path.glob` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> None:
@@ -903,44 +1142,67 @@ def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> No
     assert not list(tmp_path.glob("*.part"))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_corsica_cadastre_urls_are_canonical`
 
-**Purpose**
+**Purpose:** Regression invariant: corsica cadastre urls are canonical. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `corsica cadastre urls are canonical`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: `code`, `department`.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    ("code", "department"),
+    [("2A004", "2A"), ("2B033", "2B")],
+)`.
+- Declared return annotation: `None`.
 
-```python
-url = build_cadastre_parcelles_url(code)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `code` | positional-or-keyword | `str` | `required` |
+| `department` | positional-or-keyword | `str` | `required` |
 
-```python
-assert f"/{department}/{code}/cadastre-{code}-parcelles.json.gz" in url
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert f"/{department}/{code}/cadastre-{code}-parcelles.json.gz" in url`
 
-Locks `corsica cadastre urls are canonical` through the exact asserted conditions: `f'/{department}/{code}/cadastre-{code}-parcelles.json.gz' in url`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- In-memory/local unit boundary defined entirely by the reproduced setup.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `build_cadastre_parcelles_url` | `landscout.sources.cadastre_fr.build_cadastre_parcelles_url` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None:
@@ -949,45 +1211,64 @@ def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None
     assert f"/{department}/{code}/cadastre-{code}-parcelles.json.gz" in url
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_noncanonical_commune_code_is_controlled`
 
-**Purpose**
+**Purpose:** Regression invariant: noncanonical commune code is controlled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `noncanonical commune code is controlled`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: none.
-- `pytest.mark.parametrize` arguments: `code`.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_noncanonical_commune_code_is_controlled(code: object) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("code", [31395, "2a004", " 31395 ", "ABCDE"])`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `code` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises((TypeError, ValueError), match="Commune code"):
-        build_cadastre_parcelles_url(code)
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises((TypeError, ValueError), match="Commune code")`
 
-Locks `noncanonical commune code is controlled`: the reproduced adversarial input must raise `(TypeError, ValueError)` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- In-memory/local unit boundary defined entirely by the reproduced setup.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pytest.raises` | `pytest.raises` |
+| `build_cadastre_parcelles_url` | `landscout.sources.cadastre_fr.build_cadastre_parcelles_url` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_noncanonical_commune_code_is_controlled(code: object) -> None:
@@ -995,49 +1276,72 @@ def test_noncanonical_commune_code_is_controlled(code: object) -> None:
         build_cadastre_parcelles_url(code)
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_download_timeout_is_strict_finite_positive`
 
-**Purpose**
+**Purpose:** Regression invariant: download timeout is strict finite positive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `download timeout is strict finite positive`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `timeout`.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_download_timeout_is_strict_finite_positive(
+    tmp_path: Path,
+    timeout: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "timeout",
+    [0, -1, float("nan"), float("inf"), "60", True],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `timeout` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(ValueError, match="timeout"):
-        download_cadastre_parcelles(
-            COMMUNE_CODE,
-            tmp_path,
-            timeout=timeout,  # type: ignore[arg-type]
-        )
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ValueError, match="timeout")`
 
-Locks `download timeout is strict finite positive`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_download_timeout_is_strict_finite_positive(
@@ -1052,49 +1356,72 @@ def test_download_timeout_is_strict_finite_positive(
         )
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_cache_age_is_strict_finite_nonnegative`
 
-**Purpose**
+**Purpose:** Regression invariant: cache age is strict finite nonnegative. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `cache age is strict finite nonnegative`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `max_age`.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_cache_age_is_strict_finite_nonnegative(
+    tmp_path: Path,
+    max_age: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    "max_age",
+    [-1, float("nan"), float("inf"), "168", True],
+)`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `max_age` | positional-or-keyword | `object` | `required` |
 
-```python
-with pytest.raises(ValueError, match="max_cache_age_hours"):
-        download_cadastre_parcelles(
-            COMMUNE_CODE,
-            tmp_path,
-            max_cache_age_hours=max_age,  # type: ignore[arg-type]
-        )
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(ValueError, match="max_cache_age_hours")`
 
-Locks `cache age is strict finite nonnegative`: the reproduced adversarial input must raise `ValueError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Uses a temporary synthetic filesystem/source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_cache_age_is_strict_finite_nonnegative(
@@ -1109,60 +1436,75 @@ def test_cache_age_is_strict_finite_nonnegative(
         )
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_malformed_cached_metadata_triggers_refresh`
 
-**Purpose**
+**Purpose:** Regression invariant: malformed cached metadata triggers refresh. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `malformed cached metadata triggers refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `field`.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_malformed_cached_metadata_triggers_refresh(
+    tmp_path: Path,
+    field: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("field", ["file_size", "sha256", "download_timestamp"])`.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
-    ) as opener:
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-        metadata_path = tmp_path / f"{first.filename}.metadata.json"
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        metadata[field] = {
-            "file_size": first.file_size + 1,
-            "sha256": "0" * 64,
-            "download_timestamp": "not-a-timestamp",
-        }[field]
-        metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
-        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `field` | positional-or-keyword | `str` | `required` |
 
-```python
-assert opener.call_count == 2
-assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`
 
-Locks `malformed cached metadata triggers refresh` through the exact asserted conditions: `opener.call_count == 2`; `refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+| `refreshed.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `metadata_path.read_text`<br>`refreshed.path.read_bytes` |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `metadata[field] = {<br>            "file_size": first.file_size + 1,<br>            "sha256": "0" * 64,<br>            "download_timestamp": "not-a-timestamp",<br>        }[field]` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_malformed_cached_metadata_triggers_refresh(
@@ -1171,7 +1513,10 @@ def test_malformed_cached_metadata_triggers_refresh(
 ) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -1188,64 +1533,186 @@ def test_malformed_cached_metadata_triggers_refresh(
     assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 ```
 
-### `test_future_cached_timestamp_triggers_refresh`
+**Business boundary**
 
-**Purpose**
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
-Exercises `future cached timestamp triggers refresh`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
+### `test_cache_metadata_schema_and_size_are_strict_integers`
 
-**Pytest argument classification**
+**Purpose:** Regression invariant: cache metadata schema and size are strict integers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-# No separate setup statement.
+def test_cache_metadata_schema_and_size_are_strict_integers(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("schema_version", True),
+        ("schema_version", 1.0),
+        ("file_size", True),
+        ("file_size", 1.0),
+        ("file_size", "1"),
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `field` | positional-or-keyword | `str` | `required` |
+| `value` | positional-or-keyword | `object` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.cache_hit is False`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `metadata_path.read_text` |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `metadata[field] = value` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
-with patch(
+def test_cache_metadata_schema_and_size_are_strict_integers(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
+    with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        metadata["download_timestamp"] = (
-            datetime.now(UTC) + timedelta(hours=1)
-        ).isoformat()
+        metadata[field] = value
         metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
         refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
 ```
 
-**Expected result**
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_future_cached_timestamp_triggers_refresh`
+
+**Purpose:** Regression invariant: future cached timestamp triggers refresh. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
 
 ```python
-assert opener.call_count == 2
-assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
 ```
 
-**Regression protected**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-Locks `future cached timestamp triggers refresh` through the exact asserted conditions: `opener.call_count == 2`; `refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`.
+**Inputs**
 
-**Test boundary**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+**Return and exception contract**
 
-**Complete test implementation**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `json.loads` | `json.loads` |
+| `metadata_path.read_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `(<br>            datetime.now(UTC) + timedelta(hours=1)<br>        ).isoformat` | `unresolved local/third-party receiver; no ownership inferred` |
+| `datetime.now` | `datetime.datetime.now` |
+| `timedelta` | `datetime.timedelta` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+| `refreshed.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `metadata_path.read_text`<br>`refreshed.path.read_bytes` |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `metadata["download_timestamp"] = (<br>            datetime.now(UTC) + timedelta(hours=1)<br>        ).isoformat()` |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
     with patch(
         "landscout.sources.cadastre_fr.open_safe_https",
-        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
         metadata_path = tmp_path / f"{first.filename}.metadata.json"
@@ -1260,77 +1727,174 @@ def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
     assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
+### `test_strict_cadastre_cache_json_never_returns_a_cache_hit`
+
+**Purpose:** Regression invariant: strict cadastre cache json never returns a cache hit. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+
+**Exact signature**
+
+```python
+def test_strict_cadastre_cache_json_never_returns_a_cache_hit(
+    tmp_path: Path,
+    invalid_metadata: str,
+) -> None:
+```
+
+- Exact decorators: `pytest.mark.parametrize(
+    "invalid_metadata",
+    [
+        '{"schema_version":1,"schema_version":1}',
+        '{"schema_version":1,"file_size":NaN}',
+        "[]",
+    ],
+)`.
+- Declared return annotation: `None`.
+
+**Inputs**
+
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `invalid_metadata` | positional-or-keyword | `str` | `required` |
+
+**Return and exception contract**
+
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact assertions:
+  - `assert opener.call_count == 2`
+  - `assert refreshed.cache_hit is False`
+
+**Qualified relationships**
+
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `metadata_path.write_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | `metadata_path.write_text` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
+
+```python
+def test_strict_cadastre_cache_json_never_returns_a_cache_hit(
+    tmp_path: Path,
+    invalid_metadata: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata_path.write_text(invalid_metadata, encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+```
+
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_metadata_publication_failure_restores_previous_cache_pair`
 
-**Purpose**
+**Purpose:** Regression invariant: metadata publication failure restores previous cache pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `metadata publication failure restores previous cache pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
-archive_before = first.path.read_bytes()
-metadata_before = metadata_path.read_bytes()
-temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-original_replace = __import__(
-        "landscout.sources.cadastre_fr",
-        fromlist=["_replace_file"],
-    )._replace_file
-def fail_metadata_publication(source: Path, target: Path) -> None:
-        if source == temporary_metadata and target == metadata_path:
-            raise OSError("simulated metadata publication failure")
-        original_replace(source, target)
+def test_metadata_publication_failure_restores_previous_cache_pair(
+    tmp_path: Path,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
-        ),
-        patch(
-            "landscout.sources.cadastre_fr._replace_file",
-            side_effect=fail_metadata_publication,
-        ),
-        pytest.raises(CadastreDownloadError, match="publication"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert first.path.read_bytes() == archive_before
-assert metadata_path.read_bytes() == metadata_before
-assert not list(tmp_path.glob("*.part"))
-assert not list(tmp_path.glob("*.bak"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="publication")`
+- Exact assertions:
+  - `assert first.path.read_bytes() == archive_before`
+  - `assert metadata_path.read_bytes() == metadata_before`
+  - `assert not list(tmp_path.glob("*.part"))`
+  - `assert not list(tmp_path.glob("*.bak"))`
 
-Locks `metadata publication failure restores previous cache pair`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `__import__` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `first.path.read_bytes`<br>`metadata_path.read_bytes`<br>`tmp_path.glob` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_metadata_publication_failure_restores_previous_cache_pair(
@@ -1375,7 +1939,13 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
     assert not list(tmp_path.glob("*.bak"))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_metadata_publication_failure_restores_previous_cache_pair.fail_metadata_publication`
+
+**Purpose:** Implements `fail metadata publication` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1383,34 +1953,47 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
 def fail_metadata_publication(source: Path, target: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail metadata publication; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
-- Explicit raise expressions: `OSError('simulated metadata publication failure')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `Path` | `required` |
+| `target` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `OSError("simulated metadata publication failure")` under lexical guard `source == temporary_metadata and target == metadata_path`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1423,73 +2006,76 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_first_metadata_publication_failure_leaves_no_half_pair`
 
-**Purpose**
+**Purpose:** Regression invariant: first metadata publication failure leaves no half pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `first metadata publication failure leaves no half pair`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-expected_path = tmp_path / "cadastre-31395-parcelles.json.gz"
-metadata_path = tmp_path / f"{expected_path.name}.metadata.json"
-temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-original_replace = __import__(
-        "landscout.sources.cadastre_fr",
-        fromlist=["_replace_file"],
-    )._replace_file
-def fail_metadata_publication(source: Path, target: Path) -> None:
-        if source == temporary_metadata and target == metadata_path:
-            raise OSError("simulated metadata publication failure")
-        original_replace(source, target)
+def test_first_metadata_publication_failure_leaves_no_half_pair(
+    tmp_path: Path,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            return_value=io.BytesIO(ARCHIVE_CONTENT),
-        ),
-        patch(
-            "landscout.sources.cadastre_fr._replace_file",
-            side_effect=fail_metadata_publication,
-        ),
-        pytest.raises(CadastreDownloadError, match="publication"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert not expected_path.exists()
-assert not metadata_path.exists()
-assert not list(tmp_path.glob("*.part"))
-assert not list(tmp_path.glob("*.bak"))
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="publication")`
+- Exact assertions:
+  - `assert not expected_path.exists()`
+  - `assert not metadata_path.exists()`
+  - `assert not list(tmp_path.glob("*.part"))`
+  - `assert not list(tmp_path.glob("*.bak"))`
 
-Locks `first metadata publication failure leaves no half pair`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `__import__` | `unresolved local/third-party receiver; no ownership inferred` |
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `expected_path.exists` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.exists` | `unresolved local/third-party receiver; no ownership inferred` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `expected_path.exists`<br>`metadata_path.exists`<br>`tmp_path.glob` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_first_metadata_publication_failure_leaves_no_half_pair(
@@ -1527,7 +2113,13 @@ def test_first_metadata_publication_failure_leaves_no_half_pair(
     assert not list(tmp_path.glob("*.bak"))
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_first_metadata_publication_failure_leaves_no_half_pair.fail_metadata_publication`
+
+**Purpose:** Implements `fail metadata publication` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1535,34 +2127,47 @@ def test_first_metadata_publication_failure_leaves_no_half_pair(
 def fail_metadata_publication(source: Path, target: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail metadata publication; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
-- Explicit raise expressions: `OSError('simulated metadata publication failure')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `Path` | `required` |
+| `target` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `OSError("simulated metadata publication failure")` under lexical guard `source == temporary_metadata and target == metadata_path`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1575,79 +2180,76 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_publication_and_rollback_failure_preserves_recovery_backup`
 
-**Purpose**
+**Purpose:** Regression invariant: publication and rollback failure preserves recovery backup. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `publication and rollback failure preserves recovery backup`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `rollback_target`.
-
-**Setup**
+**Exact signature**
 
 ```python
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
-archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
-metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
-temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-original_replace = cadastre_fr._replace_file
-def fail_publication_and_rollback(source: Path, target: Path) -> None:
-        if source == temporary_metadata and target == metadata_path:
-            raise OSError("publication failure")
-        if rollback_target == "archive" and source == archive_backup:
-            raise OSError("archive rollback failure")
-        if rollback_target == "metadata" and source == metadata_backup:
-            raise OSError("metadata rollback failure")
-        original_replace(source, target)
-useful_backups = [path for path in (archive_backup, metadata_backup) if path.exists()]
+def test_publication_and_rollback_failure_preserves_recovery_backup(
+    tmp_path: Path,
+    rollback_target: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("rollback_target", ["archive", "metadata"])`.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `rollback_target` | positional-or-keyword | `str` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
-        ),
-        patch.object(
-            cadastre_fr,
-            "_replace_file",
-            side_effect=fail_publication_and_rollback,
-        ),
-        pytest.raises(CadastreDownloadError, match="rollback"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert useful_backups
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="rollback")`
+- Exact assertions:
+  - `assert useful_backups`
 
-Prevents cache publication/rollback failures from destroying the last recoverable bytes; the exact old archive/metadata or extraction tree asserted below must survive in recovery material.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `first.path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `patch.object` | `unittest.mock.patch.object` |
+| `pytest.raises` | `pytest.raises` |
+| `path.exists` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `path.exists` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_publication_and_rollback_failure_preserves_recovery_backup(
@@ -1689,11 +2291,19 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
     ):
         download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
-    useful_backups = [path for path in (archive_backup, metadata_backup) if path.exists()]
+    useful_backups = [
+        path for path in (archive_backup, metadata_backup) if path.exists()
+    ]
     assert useful_backups
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_publication_and_rollback_failure_preserves_recovery_backup.fail_publication_and_rollback`
+
+**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1701,36 +2311,49 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
 def fail_publication_and_rollback(source: Path, target: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail publication and rollback; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
-- Guard with a raise path: `rollback_target == 'archive' and source == archive_backup`.
-- Guard with a raise path: `rollback_target == 'metadata' and source == metadata_backup`.
-- Explicit raise expressions: `OSError('archive rollback failure')`, `OSError('metadata rollback failure')`, `OSError('publication failure')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `Path` | `required` |
+| `target` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `OSError("publication failure")` under lexical guard `source == temporary_metadata and target == metadata_path`.
+  - `OSError("archive rollback failure")` under lexical guard `rollback_target == "archive" and source == archive_backup`.
+  - `OSError("metadata rollback failure")` under lexical guard `rollback_target == "metadata" and source == metadata_backup`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1747,64 +2370,74 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes`
 
-**Purpose**
+**Purpose:** Regression invariant: stale recovery backup rejects cache before network and preserves bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `stale recovery backup rejects cache before network and preserves bytes`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-recovery_path = first.path.with_suffix(f"{first.path.suffix}.bak")
-recovery_bytes = b"manual cadastre recovery material"
-recovery_path.write_bytes(recovery_bytes)
-opener.assert_not_called()
+def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
+    tmp_path: Path,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            side_effect=AssertionError("recovery state must fail before network"),
-        ) as opener,
-        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert recovery_path.read_bytes() == recovery_bytes
-assert first.path.read_bytes() == ARCHIVE_CONTENT
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual")`
+- Exact assertions:
+  - `assert recovery_path.read_bytes() == recovery_bytes`
+  - `assert first.path.read_bytes() == ARCHIVE_CONTENT`
 
-Locks `stale recovery backup rejects cache before network and preserves bytes`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `first.path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `recovery_path.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `opener.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
+| `recovery_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `recovery_path.read_bytes`<br>`first.path.read_bytes` |
+| Filesystem/archive write or publication | `recovery_path.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
@@ -1833,90 +2466,84 @@ def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
     assert first.path.read_bytes() == ARCHIVE_CONTENT
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_next_run_after_double_failure_preserves_recovery_before_network`
 
-**Purpose**
+**Purpose:** Regression invariant: next run after double failure preserves recovery before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `next run after double failure preserves recovery before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
-old_archive = first.path.read_bytes()
-old_metadata = metadata_path.read_bytes()
-temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
-metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
-original_replace = cadastre_fr._replace_file
-def fail_publication_and_rollback(source: Path, target: Path) -> None:
-        if source == temporary_metadata and target == metadata_path:
-            raise OSError("publication failed")
-        if source == archive_backup and target == first.path:
-            raise OSError("rollback failed")
-        original_replace(source, target)
-archive_recovery = archive_backup.read_bytes()
-metadata_recovery = metadata_backup.read_bytes()
-opener.assert_not_called()
+def test_next_run_after_double_failure_preserves_recovery_before_network(
+    tmp_path: Path,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
 
-```python
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
-        ),
-        patch.object(
-            cadastre_fr,
-            "_replace_file",
-            side_effect=fail_publication_and_rollback,
-        ),
-        pytest.raises(CadastreDownloadError, match="rollback"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert archive_backup.read_bytes() == old_archive
-assert metadata_backup.read_bytes() == old_metadata
-with (
-        patch(
-            "landscout.sources.cadastre_fr.open_safe_https",
-            side_effect=AssertionError("recovery state must fail before network"),
-        ) as opener,
-        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
-    ):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert archive_backup.read_bytes() == archive_recovery
-assert metadata_backup.read_bytes() == metadata_recovery
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="rollback")`
+  - `pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual")`
+- Exact assertions:
+  - `assert archive_backup.read_bytes() == old_archive`
+  - `assert metadata_backup.read_bytes() == old_metadata`
+  - `assert archive_backup.read_bytes() == archive_recovery`
+  - `assert metadata_backup.read_bytes() == metadata_recovery`
 
-Prevents failed cache publication and failed rollback from deleting the last recoverable backup bytes.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `first.path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `patch.object` | `unittest.mock.patch.object` |
+| `pytest.raises` | `pytest.raises` |
+| `archive_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `opener.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `first.path.read_bytes`<br>`metadata_path.read_bytes`<br>`archive_backup.read_bytes`<br>`metadata_backup.read_bytes` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_next_run_after_double_failure_preserves_recovery_before_network(
@@ -1976,7 +2603,13 @@ def test_next_run_after_double_failure_preserves_recovery_before_network(
     assert metadata_backup.read_bytes() == metadata_recovery
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_next_run_after_double_failure_preserves_recovery_before_network.fail_publication_and_rollback`
+
+**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -1984,35 +2617,48 @@ def test_next_run_after_double_failure_preserves_recovery_before_network(
 def fail_publication_and_rollback(source: Path, target: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail publication and rollback; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
-- Guard with a raise path: `source == archive_backup and target == first.path`.
-- Explicit raise expressions: `OSError('publication failed')`, `OSError('rollback failed')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `Path` | `required` |
+| `target` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `OSError("publication failed")` under lexical guard `source == temporary_metadata and target == metadata_path`.
+  - `OSError("rollback failed")` under lexical guard `source == archive_backup and target == first.path`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2027,86 +2673,78 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network`
 
-**Purpose**
+**Purpose:** Regression invariant: temporary link or junction cannot modify target before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `temporary link or junction cannot modify target before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: `link_kind`, `temporary_role`.
-
-**Setup**
+**Exact signature**
 
 ```python
-archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
-metadata_path = tmp_path / f"{archive_path.name}.metadata.json"
-temporary_paths = {
-        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
-        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
-    }
-unsafe_path = temporary_paths[temporary_role]
-sentinel = tmp_path / "do-not-overwrite.txt"
-sentinel_bytes = b"irreplaceable cadastre sentinel"
-sentinel.write_bytes(sentinel_bytes)
-original_is_symlink = Path.is_symlink
-original_is_junction = Path.is_junction
-original_open = Path.open
-def simulated_is_symlink(path: Path) -> bool:
-        return (
-            link_kind == "symlink" and path == unsafe_path
-        ) or original_is_symlink(path)
-def simulated_is_junction(path: Path) -> bool:
-        return (
-            link_kind == "junction" and path == unsafe_path
-        ) or original_is_junction(path)
-def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
-        if path == unsafe_path:
-            return original_open(sentinel, *args, **kwargs)
-        return original_open(path, *args, **kwargs)
-network_calls = 0
-def record_network(*args: object, **kwargs: object) -> io.BytesIO:
-        nonlocal network_calls
-        network_calls += 1
-        return io.BytesIO(ARCHIVE_CONTENT)
-monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
-monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
-monkeypatch.setattr(Path, "open", simulated_symlink_open)
-monkeypatch.setattr(cadastre_fr, "open_safe_https", record_network)
+def test_temporary_link_or_junction_cannot_modify_target_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    temporary_role: str,
+    link_kind: str,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: `pytest.mark.parametrize("temporary_role", ["archive", "metadata"])`, `pytest.mark.parametrize("link_kind", ["symlink", "junction"])`.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
+| `temporary_role` | positional-or-keyword | `str` | `required` |
+| `link_kind` | positional-or-keyword | `str` | `required` |
 
-```python
-with pytest.raises(CadastreDownloadError, match="temporary|link|cache"):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert network_calls == 0
-assert sentinel.read_bytes() == sentinel_bytes
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="temporary\|link\|cache")`
+- Exact assertions:
+  - `assert network_calls == 0`
+  - `assert sentinel.read_bytes() == sentinel_bytes`
 
-Locks `temporary link or junction cannot modify target before network`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `archive_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sentinel.write_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `sentinel.read_bytes` |
+| Filesystem/archive write or publication | `sentinel.write_bytes` |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_temporary_link_or_junction_cannot_modify_target_before_network(
@@ -2130,18 +2768,16 @@ def test_temporary_link_or_junction_cannot_modify_target_before_network(
     original_open = Path.open
 
     def simulated_is_symlink(path: Path) -> bool:
-        return (
-            link_kind == "symlink" and path == unsafe_path
-        ) or original_is_symlink(path)
+        return (link_kind == "symlink" and path == unsafe_path) or original_is_symlink(
+            path
+        )
 
     def simulated_is_junction(path: Path) -> bool:
         return (
             link_kind == "junction" and path == unsafe_path
         ) or original_is_junction(path)
 
-    def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+    def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
         if path == unsafe_path:
             return original_open(sentinel, *args, **kwargs)
         return original_open(path, *args, **kwargs)
@@ -2165,7 +2801,13 @@ def test_temporary_link_or_junction_cannot_modify_target_before_network(
     assert sentinel.read_bytes() == sentinel_bytes
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_is_symlink`
+
+**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2173,52 +2815,62 @@ def test_temporary_link_or_junction_cannot_modify_target_before_network(
 def simulated_is_symlink(path: Path) -> bool:
 ```
 
-**Purpose**
-
-Private `test` helper for simulated is symlink; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `(link_kind == "symlink" and path == unsafe_path) or original_is_symlink(<br>            path<br>        )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `original_is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def simulated_is_symlink(path: Path) -> bool:
-        return (
-            link_kind == "symlink" and path == unsafe_path
-        ) or original_is_symlink(path)
+        return (link_kind == "symlink" and path == unsafe_path) or original_is_symlink(
+            path
+        )
 ```
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_is_junction`
+
+**Purpose:** Implements `simulated is junction` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2226,37 +2878,45 @@ def simulated_is_symlink(path: Path) -> bool:
 def simulated_is_junction(path: Path) -> bool:
 ```
 
-**Purpose**
-
-Private `test` helper for simulated is junction; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-link_kind == 'junction' and path == unsafe_path or original_is_junction(path)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `(<br>            link_kind == "junction" and path == unsafe_path<br>        ) or original_is_junction(path)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `original_is_junction` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2269,58 +2929,65 @@ def simulated_is_junction(path: Path) -> bool:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_symlink_open`
+
+**Purpose:** Implements `simulated symlink open` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
 ```python
-def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
 ```
 
-**Purpose**
-
-Private `test` helper for simulated symlink open; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `object`.
-- Every observed return expression is reproduced without truncation:
-```python
-original_open(path, *args, **kwargs)
 
-original_open(sentinel, *args, **kwargs)
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `original_open(sentinel, *args, **kwargs)`
+  - `original_open(path, *args, **kwargs)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `original_open` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
-def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
+def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
         if path == unsafe_path:
             return original_open(sentinel, *args, **kwargs)
         return original_open(path, *args, **kwargs)
@@ -2328,9 +2995,11 @@ def simulated_symlink_open(
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.record_network`
+
+**Purpose:** Implements `record network` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2338,37 +3007,46 @@ def simulated_symlink_open(
 def record_network(*args: object, **kwargs: object) -> io.BytesIO:
 ```
 
-**Purpose**
-
-Private `test` helper for record network; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `io.BytesIO`.
-- Every observed return expression is reproduced without truncation:
-```python
-io.BytesIO(ARCHIVE_CONTENT)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `io.BytesIO(ARCHIVE_CONTENT)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `io.BytesIO` | `io.BytesIO` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2381,61 +3059,69 @@ def record_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_broken_recovery_symlink_is_rejected_before_network`
 
-**Purpose**
+**Purpose:** Regression invariant: broken recovery symlink is rejected before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `broken recovery symlink is rejected before network`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
-recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
-original_is_symlink = Path.is_symlink
-def simulated_is_symlink(path: Path) -> bool:
-        return path == recovery_path or original_is_symlink(path)
-network_calls = 0
-def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
-        nonlocal network_calls
-        network_calls += 1
-        raise AssertionError("broken recovery link must fail before network")
-monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
-monkeypatch.setattr(cadastre_fr, "open_safe_https", fail_network)
+def test_broken_recovery_symlink_is_rejected_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-# Action is embedded in the assertion/raises context below.
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(CadastreDownloadError, match="backup|recovery|manual"):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert network_calls == 0
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual")`
+- Exact assertions:
+  - `assert network_calls == 0`
 
-Locks `broken recovery symlink is rejected before network`: the reproduced adversarial input must raise `CadastreDownloadError` before the prohibited success path.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `archive_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_broken_recovery_symlink_is_rejected_before_network(
@@ -2465,7 +3151,13 @@ def test_broken_recovery_symlink_is_rejected_before_network(
     assert network_calls == 0
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_broken_recovery_symlink_is_rejected_before_network.simulated_is_symlink`
+
+**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2473,37 +3165,45 @@ def test_broken_recovery_symlink_is_rejected_before_network(
 def simulated_is_symlink(path: Path) -> bool:
 ```
 
-**Purpose**
-
-Private `test` helper for simulated is symlink; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-path == recovery_path or original_is_symlink(path)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `path == recovery_path or original_is_symlink(path)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `original_is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2514,9 +3214,11 @@ def simulated_is_symlink(path: Path) -> bool:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_broken_recovery_symlink_is_rejected_before_network.fail_network`
+
+**Purpose:** Implements `fail network` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2524,34 +3226,46 @@ def simulated_is_symlink(path: Path) -> bool:
 def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
 ```
 
-**Purpose**
-
-Private `test` helper for fail network; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `io.BytesIO`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `AssertionError('broken recovery link must fail before network')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `*args` | variadic positional | `object` | `variadic` |
+| `**kwargs` | variadic keyword | `object` | `variadic` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `AssertionError("broken recovery link must fail before network")`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2564,83 +3278,79 @@ def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error`
 
-**Purpose**
+**Purpose:** Regression invariant: cleanup failure does not mask double failure recovery error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
-Exercises `cleanup failure does not mask double failure recovery error`; the exact setup, action, expected exception, and assertions reproduced below define the locked regression.
-
-**Pytest argument classification**
-
-- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
-- `pytest.mark.parametrize` arguments: none.
-
-**Setup**
+**Exact signature**
 
 ```python
-metadata_path = tmp_path / f"{first.filename}.metadata.json"
-_set_cache_age(metadata_path, timedelta(hours=169))
-old_archive = first.path.read_bytes()
-old_metadata = metadata_path.read_bytes()
-temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
-metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
-original_replace = cadastre_fr._replace_file
-original_unlink = Path.unlink
-rollback_failed = False
-def fail_publication_and_rollback(source: Path, target: Path) -> None:
-        nonlocal rollback_failed
-        if source == temporary_metadata and target == metadata_path:
-            raise OSError("publication failed")
-        if source == archive_backup and target == first.path:
-            rollback_failed = True
-            raise OSError("rollback failed")
-        original_replace(source, target)
-def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
-        if rollback_failed and path == temporary_metadata:
-            raise PermissionError("temporary cleanup failed")
-        original_unlink(path, missing_ok=missing_ok)
-monkeypatch.setattr(
-        cadastre_fr,
-        "open_safe_https",
-        lambda *args, **kwargs: io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
-    )
-monkeypatch.setattr(cadastre_fr, "_replace_file", fail_publication_and_rollback)
-monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 ```
 
-**Action**
+- Exact decorators: none.
+- Declared return annotation: `None`.
 
-```python
-with patch(
-        "landscout.sources.cadastre_fr.open_safe_https",
-        return_value=io.BytesIO(ARCHIVE_CONTENT),
-    ):
-        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-```
+**Inputs**
 
-**Expected result**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `tmp_path` | positional-or-keyword | `Path` | `required` |
+| `monkeypatch` | positional-or-keyword | `pytest.MonkeyPatch` | `required` |
 
-```python
-with pytest.raises(CadastreDownloadError, match="rollback"):
-        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
-assert archive_backup.read_bytes() == old_archive
-assert metadata_backup.read_bytes() == old_metadata
-```
+**Return and exception contract**
 
-**Regression protected**
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Exact expected-exception contexts:
+  - `pytest.raises(CadastreDownloadError, match="rollback")`
+- Exact assertions:
+  - `assert archive_backup.read_bytes() == old_archive`
+  - `assert metadata_backup.read_bytes() == old_metadata`
 
-Prevents failed cache publication and failed rollback from deleting the last recoverable backup bytes.
+**Qualified relationships**
 
-**Test boundary**
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
 
-- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
-- Uses a temporary synthetic filesystem/source.
-- Network behavior is fake/blocked and does not contact the live source.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `patch` | `unittest.mock.patch` |
+| `io.BytesIO` | `io.BytesIO` |
+| `download_cadastre_parcelles` | `landscout.sources.cadastre_fr.download_cadastre_parcelles` |
+| `_set_cache_age` | `tests.unit.test_cadastre_fr._set_cache_age` |
+| `timedelta` | `datetime.timedelta` |
+| `first.path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `first.path.with_suffix` | `unresolved local/third-party receiver; no ownership inferred` |
+| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pytest.raises` | `pytest.raises` |
+| `archive_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `metadata_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Complete test implementation**
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `first.path.read_bytes`<br>`metadata_path.read_bytes`<br>`archive_backup.read_bytes`<br>`metadata_backup.read_bytes` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
+
+**Complete source-ordered implementation**
 
 ```python
 def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
@@ -2692,7 +3402,13 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
     assert metadata_backup.read_bytes() == old_metadata
 ```
 
+**Business boundary**
+
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
+
+**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2700,35 +3416,48 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
 def fail_publication_and_rollback(source: Path, target: Path) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail publication and rollback; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
-- Guard with a raise path: `source == archive_backup and target == first.path`.
-- Explicit raise expressions: `OSError('publication failed')`, `OSError('rollback failed')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `source` | positional-or-keyword | `Path` | `required` |
+| `target` | positional-or-keyword | `Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `OSError("publication failed")` under lexical guard `source == temporary_metadata and target == metadata_path`.
+  - `OSError("rollback failed")` under lexical guard `source == archive_backup and target == first.path`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2745,9 +3474,11 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
+
+**Purpose:** Implements `fail temporary cleanup` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
 
 **Exact signature**
 
@@ -2755,34 +3486,47 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 ```
 
-**Purpose**
-
-Private `test` helper for fail temporary cleanup; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `rollback_failed and path == temporary_metadata`.
-- Explicit raise expressions: `PermissionError('temporary cleanup failed')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `Path` | `required` |
+| `missing_ok` | keyword-only | `bool` | `False` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PermissionError("temporary cleanup failed")` under lexical guard `rollback_failed and path == temporary_metadata`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- function object argument: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `PermissionError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_unlink` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2795,52 +3539,759 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 **Business boundary**
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
-## 7. Data contracts
+## 7. Test-specific regression contract
 
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+- Test functions: **27**.
+- Pytest fixtures (decorator-proven): **0**.
 
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+### Per-test regression index
 
-## 8. Interfaces
+| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+|---|---|---|---:|---|
+| `test_build_cadastre_parcelles_url` | none | none | 1 | Proves build cadastre parcelles url using the exact source reproduced in section 7. |
+| `test_successful_download` | none | none | 8 | Proves successful download using the exact source reproduced in section 7. |
+| `test_fresh_cache_is_reused` | none | none | 5 | Proves fresh cache is reused using the exact source reproduced in section 7. |
+| `test_expired_cache_is_downloaded_again` | none | none | 4 | Proves expired cache is downloaded again using the exact source reproduced in section 7. |
+| `test_failed_refresh_preserves_cached_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Proves failed refresh preserves cached archive using the exact source reproduced in section 7. |
+| `test_failed_http_response` | none | pytest.raises(CadastreDownloadError) | 1 | Proves failed http response using the exact source reproduced in section 7. |
+| `test_checksum_generation` | none | none | 1 | Proves checksum generation using the exact source reproduced in section 7. |
+| `test_valid_gzip_is_accepted` | none | none | 1 | Proves valid gzip is accepted using the exact source reproduced in section 7. |
+| `test_truncated_gzip_is_rejected` | none | none | 1 | Proves truncated gzip is rejected using the exact source reproduced in section 7. |
+| `test_corrupted_cached_archive_triggers_fresh_download` | none | none | 3 | Proves corrupted cached archive triggers fresh download using the exact source reproduced in section 7. |
+| `test_corrupted_new_download_preserves_existing_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Proves corrupted new download preserves existing archive using the exact source reproduced in section 7. |
+| `test_corsica_cadastre_urls_are_canonical` | pytest.mark.parametrize(<br>    ("code", "department"),<br>    [("2A004", "2A"), ("2B033", "2B")],<br>) | none | 1 | Proves corsica cadastre urls are canonical using the exact source reproduced in section 7. |
+| `test_noncanonical_commune_code_is_controlled` | pytest.mark.parametrize("code", [31395, "2a004", " 31395 ", "ABCDE"]) | pytest.raises((TypeError, ValueError), match="Commune code") | 0 | Proves noncanonical commune code is controlled using the exact source reproduced in section 7. |
+| `test_download_timeout_is_strict_finite_positive` | pytest.mark.parametrize(<br>    "timeout",<br>    [0, -1, float("nan"), float("inf"), "60", True],<br>) | pytest.raises(ValueError, match="timeout") | 0 | Proves download timeout is strict finite positive using the exact source reproduced in section 7. |
+| `test_cache_age_is_strict_finite_nonnegative` | pytest.mark.parametrize(<br>    "max_age",<br>    [-1, float("nan"), float("inf"), "168", True],<br>) | pytest.raises(ValueError, match="max_cache_age_hours") | 0 | Proves cache age is strict finite nonnegative using the exact source reproduced in section 7. |
+| `test_malformed_cached_metadata_triggers_refresh` | pytest.mark.parametrize("field", ["file_size", "sha256", "download_timestamp"]) | none | 2 | Proves malformed cached metadata triggers refresh using the exact source reproduced in section 7. |
+| `test_cache_metadata_schema_and_size_are_strict_integers` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("schema_version", True),<br>        ("schema_version", 1.0),<br>        ("file_size", True),<br>        ("file_size", 1.0),<br>        ("file_size", "1"),<br>    ],<br>) | none | 2 | Proves cache metadata schema and size are strict integers using the exact source reproduced in section 7. |
+| `test_future_cached_timestamp_triggers_refresh` | none | none | 2 | Proves future cached timestamp triggers refresh using the exact source reproduced in section 7. |
+| `test_strict_cadastre_cache_json_never_returns_a_cache_hit` | pytest.mark.parametrize(<br>    "invalid_metadata",<br>    [<br>        '{"schema_version":1,"schema_version":1}',<br>        '{"schema_version":1,"file_size":NaN}',<br>        "[]",<br>    ],<br>) | none | 2 | Proves strict cadastre cache json never returns a cache hit using the exact source reproduced in section 7. |
+| `test_metadata_publication_failure_restores_previous_cache_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Proves metadata publication failure restores previous cache pair using the exact source reproduced in section 7. |
+| `test_first_metadata_publication_failure_leaves_no_half_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Proves first metadata publication failure leaves no half pair using the exact source reproduced in section 7. |
+| `test_publication_and_rollback_failure_preserves_recovery_backup` | pytest.mark.parametrize("rollback_target", ["archive", "metadata"]) | pytest.raises(CadastreDownloadError, match="rollback") | 1 | Proves publication and rollback failure preserves recovery backup using the exact source reproduced in section 7. |
+| `test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 2 | Proves stale recovery backup rejects cache before network and preserves bytes using the exact source reproduced in section 7. |
+| `test_next_run_after_double_failure_preserves_recovery_before_network` | none | pytest.raises(CadastreDownloadError, match="rollback"); pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 4 | Proves next run after double failure preserves recovery before network using the exact source reproduced in section 7. |
+| `test_temporary_link_or_junction_cannot_modify_target_before_network` | pytest.mark.parametrize("temporary_role", ["archive", "metadata"]); pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(CadastreDownloadError, match="temporary\|link\|cache") | 2 | Proves temporary link or junction cannot modify target before network using the exact source reproduced in section 7. |
+| `test_broken_recovery_symlink_is_rejected_before_network` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 1 | Proves broken recovery symlink is rejected before network using the exact source reproduced in section 7. |
+| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(CadastreDownloadError, match="rollback") | 2 | Proves cleanup failure does not mask double failure recovery error using the exact source reproduced in section 7. |
 
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
+## 8. Public exports and package ownership
 
-## 9. Error handling
+This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
 
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
+## 9. Trust, provenance, side effects, and business boundary
 
-## 10. Side effects
+- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
 
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
+## 10. Change impact
 
-## 11. Security / trust boundaries
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
 
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+
+```python
+import gzip
+import io
+import json
+from datetime import UTC, datetime, timedelta
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+from urllib.error import HTTPError
+
+import pytest
+
+from landscout.sources import cadastre_fr
+from landscout.sources.cadastre_fr import (
+    CadastreDownloadError,
+    _is_valid_gzip,
+    build_cadastre_parcelles_url,
+    download_cadastre_parcelles,
+)
+
+COMMUNE_CODE = "31395"
+EXPECTED_URL = (
+    "https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/geojson/communes/"
+    "31/31395/cadastre-31395-parcelles.json.gz"
+)
+ARCHIVE_CONTENT = gzip.compress(b'{"type":"FeatureCollection","features":[]}')
+REFRESHED_ARCHIVE_CONTENT = gzip.compress(
+    b'{"type":"FeatureCollection","features":[{"type":"Feature"}]}'
+)
+CORRUPTED_ARCHIVE_CONTENT = ARCHIVE_CONTENT[:-8]
 
 
-## 12. GIS / CRS rules
+def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["download_timestamp"] = (datetime.now(UTC) - age).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
-## 13. Provenance rules
+def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    content = archive_path.read_bytes()
+    metadata["file_size"] = len(content)
+    metadata["sha256"] = sha256(content).hexdigest()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
-## 14. Business meaning
+def test_build_cadastre_parcelles_url() -> None:
+    assert build_cadastre_parcelles_url(COMMUNE_CODE) == EXPECTED_URL
 
-The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
-## 15. Explicit non-goals
+def test_successful_download(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert result.path.read_bytes() == ARCHIVE_CONTENT
+    assert result.commune_code == COMMUNE_CODE
+    assert result.source_url == EXPECTED_URL
+    assert result.file_size == len(ARCHIVE_CONTENT)
+    assert result.cache_hit is False
+    metadata_path = tmp_path / f"{result.filename}.metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["schema_version"] == 1
+    assert metadata["commune_code"] == COMMUNE_CODE
+    assert metadata["download_timestamp"] == result.download_timestamp
 
-## 16. Tests
 
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
+def test_fresh_cache_is_reused(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        second = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
-## 17. Change impact
+    assert opener.call_count == 1
+    assert first.cache_hit is False
+    assert second.cache_hit is True
+    assert second.sha256 == first.sha256
+    assert second.download_timestamp == first.download_timestamp
 
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+
+def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        _set_cache_age(metadata_path, timedelta(hours=169))
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+    assert refreshed.sha256 == sha256(REFRESHED_ARCHIVE_CONTENT).hexdigest()
+
+
+def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    original_archive = first.path.read_bytes()
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    error = HTTPError(EXPECTED_URL, 503, "Unavailable", hdrs=None, fp=None)
+
+    with (
+        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
+        pytest.raises(CadastreDownloadError),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert first.path.read_bytes() == original_archive
+    assert metadata_path.is_file()
+
+
+def test_failed_http_response(tmp_path: Path) -> None:
+    error = HTTPError(EXPECTED_URL, 404, "Not Found", hdrs=None, fp=None)
+
+    with (
+        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
+        pytest.raises(CadastreDownloadError),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert not list(tmp_path.glob("*"))
+
+
+def test_checksum_generation(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()
+
+
+def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
+    archive_path = tmp_path / "valid.json.gz"
+    archive_path.write_bytes(ARCHIVE_CONTENT)
+
+    assert _is_valid_gzip(archive_path)
+
+
+def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
+    archive_path = tmp_path / "truncated.json.gz"
+    archive_path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+
+    assert not _is_valid_gzip(archive_path)
+
+
+def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        first.path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+        _update_metadata_integrity(metadata_path, first.path)
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+
+
+def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    original_archive = first.path.read_bytes()
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(CORRUPTED_ARCHIVE_CONTENT),
+        ),
+        pytest.raises(CadastreDownloadError),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert first.path.read_bytes() == original_archive
+    assert not list(tmp_path.glob("*.part"))
+
+
+@pytest.mark.parametrize(
+    ("code", "department"),
+    [("2A004", "2A"), ("2B033", "2B")],
+)
+def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None:
+    url = build_cadastre_parcelles_url(code)
+
+    assert f"/{department}/{code}/cadastre-{code}-parcelles.json.gz" in url
+
+
+@pytest.mark.parametrize("code", [31395, "2a004", " 31395 ", "ABCDE"])
+def test_noncanonical_commune_code_is_controlled(code: object) -> None:
+    with pytest.raises((TypeError, ValueError), match="Commune code"):
+        build_cadastre_parcelles_url(code)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "timeout",
+    [0, -1, float("nan"), float("inf"), "60", True],
+)
+def test_download_timeout_is_strict_finite_positive(
+    tmp_path: Path,
+    timeout: object,
+) -> None:
+    with pytest.raises(ValueError, match="timeout"):
+        download_cadastre_parcelles(
+            COMMUNE_CODE,
+            tmp_path,
+            timeout=timeout,  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.parametrize(
+    "max_age",
+    [-1, float("nan"), float("inf"), "168", True],
+)
+def test_cache_age_is_strict_finite_nonnegative(
+    tmp_path: Path,
+    max_age: object,
+) -> None:
+    with pytest.raises(ValueError, match="max_cache_age_hours"):
+        download_cadastre_parcelles(
+            COMMUNE_CODE,
+            tmp_path,
+            max_cache_age_hours=max_age,  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.parametrize("field", ["file_size", "sha256", "download_timestamp"])
+def test_malformed_cached_metadata_triggers_refresh(
+    tmp_path: Path,
+    field: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        metadata[field] = {
+            "file_size": first.file_size + 1,
+            "sha256": "0" * 64,
+            "download_timestamp": "not-a-timestamp",
+        }[field]
+        metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("schema_version", True),
+        ("schema_version", 1.0),
+        ("file_size", True),
+        ("file_size", 1.0),
+        ("file_size", "1"),
+    ],
+)
+def test_cache_metadata_schema_and_size_are_strict_integers(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        metadata[field] = value
+        metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+
+
+def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        metadata["download_timestamp"] = (
+            datetime.now(UTC) + timedelta(hours=1)
+        ).isoformat()
+        metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+
+
+@pytest.mark.parametrize(
+    "invalid_metadata",
+    [
+        '{"schema_version":1,"schema_version":1}',
+        '{"schema_version":1,"file_size":NaN}',
+        "[]",
+    ],
+)
+def test_strict_cadastre_cache_json_never_returns_a_cache_hit(
+    tmp_path: Path,
+    invalid_metadata: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        side_effect=[
+            io.BytesIO(ARCHIVE_CONTENT),
+            io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        metadata_path.write_text(invalid_metadata, encoding="utf-8")
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+
+
+def test_metadata_publication_failure_restores_previous_cache_pair(
+    tmp_path: Path,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    archive_before = first.path.read_bytes()
+    metadata_before = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = __import__(
+        "landscout.sources.cadastre_fr",
+        fromlist=["_replace_file"],
+    )._replace_file
+
+    def fail_metadata_publication(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ),
+        patch(
+            "landscout.sources.cadastre_fr._replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(CadastreDownloadError, match="publication"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert first.path.read_bytes() == archive_before
+    assert metadata_path.read_bytes() == metadata_before
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+
+
+def test_first_metadata_publication_failure_leaves_no_half_pair(
+    tmp_path: Path,
+) -> None:
+    expected_path = tmp_path / "cadastre-31395-parcelles.json.gz"
+    metadata_path = tmp_path / f"{expected_path.name}.metadata.json"
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = __import__(
+        "landscout.sources.cadastre_fr",
+        fromlist=["_replace_file"],
+    )._replace_file
+
+    def fail_metadata_publication(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(ARCHIVE_CONTENT),
+        ),
+        patch(
+            "landscout.sources.cadastre_fr._replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(CadastreDownloadError, match="publication"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert not expected_path.exists()
+    assert not metadata_path.exists()
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+
+
+@pytest.mark.parametrize("rollback_target", ["archive", "metadata"])
+def test_publication_and_rollback_failure_preserves_recovery_backup(
+    tmp_path: Path,
+    rollback_target: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = cadastre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failure")
+        if rollback_target == "archive" and source == archive_backup:
+            raise OSError("archive rollback failure")
+        if rollback_target == "metadata" and source == metadata_backup:
+            raise OSError("metadata rollback failure")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ),
+        patch.object(
+            cadastre_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        pytest.raises(CadastreDownloadError, match="rollback"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    useful_backups = [
+        path for path in (archive_backup, metadata_backup) if path.exists()
+    ]
+    assert useful_backups
+
+
+def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
+    tmp_path: Path,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    recovery_path = first.path.with_suffix(f"{first.path.suffix}.bak")
+    recovery_bytes = b"manual cadastre recovery material"
+    recovery_path.write_bytes(recovery_bytes)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            side_effect=AssertionError("recovery state must fail before network"),
+        ) as opener,
+        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    opener.assert_not_called()
+    assert recovery_path.read_bytes() == recovery_bytes
+    assert first.path.read_bytes() == ARCHIVE_CONTENT
+
+
+def test_next_run_after_double_failure_preserves_recovery_before_network(
+    tmp_path: Path,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = cadastre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ),
+        patch.object(
+            cadastre_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        pytest.raises(CadastreDownloadError, match="rollback"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+    archive_recovery = archive_backup.read_bytes()
+    metadata_recovery = metadata_backup.read_bytes()
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            side_effect=AssertionError("recovery state must fail before network"),
+        ) as opener,
+        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    opener.assert_not_called()
+    assert archive_backup.read_bytes() == archive_recovery
+    assert metadata_backup.read_bytes() == metadata_recovery
+
+
+@pytest.mark.parametrize("temporary_role", ["archive", "metadata"])
+@pytest.mark.parametrize("link_kind", ["symlink", "junction"])
+def test_temporary_link_or_junction_cannot_modify_target_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    temporary_role: str,
+    link_kind: str,
+) -> None:
+    archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
+    metadata_path = tmp_path / f"{archive_path.name}.metadata.json"
+    temporary_paths = {
+        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
+        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
+    }
+    unsafe_path = temporary_paths[temporary_role]
+    sentinel = tmp_path / "do-not-overwrite.txt"
+    sentinel_bytes = b"irreplaceable cadastre sentinel"
+    sentinel.write_bytes(sentinel_bytes)
+    original_is_symlink = Path.is_symlink
+    original_is_junction = Path.is_junction
+    original_open = Path.open
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return (link_kind == "symlink" and path == unsafe_path) or original_is_symlink(
+            path
+        )
+
+    def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+
+    def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+
+    network_calls = 0
+
+    def record_network(*args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        return io.BytesIO(ARCHIVE_CONTENT)
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+    monkeypatch.setattr(Path, "open", simulated_symlink_open)
+    monkeypatch.setattr(cadastre_fr, "open_safe_https", record_network)
+
+    with pytest.raises(CadastreDownloadError, match="temporary|link|cache"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert network_calls == 0
+    assert sentinel.read_bytes() == sentinel_bytes
+
+
+def test_broken_recovery_symlink_is_rejected_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
+    recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    original_is_symlink = Path.is_symlink
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("broken recovery link must fail before network")
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(cadastre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(CadastreDownloadError, match="backup|recovery|manual"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert network_calls == 0
+
+
+def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = cadastre_fr._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+
+    monkeypatch.setattr(
+        cadastre_fr,
+        "open_safe_https",
+        lambda *args, **kwargs: io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+    )
+    monkeypatch.setattr(cadastre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+
+    with pytest.raises(CadastreDownloadError, match="rollback"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+```

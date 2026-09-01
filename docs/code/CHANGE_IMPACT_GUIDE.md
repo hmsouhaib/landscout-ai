@@ -8,11 +8,15 @@ Review the adapter config YAML/model, package exports, shared safe HTTPS boundar
 
 ## Changing source configuration
 
-Review strict Pydantic fields/validators, duplicate/extra-key handling, URL origin/path locks, expected size/SHA/checksum, cache identity, logical layer match tokens, source lineage copied to frames/results, tests that mutate loaded config, and any persisted source/result hashes. Configuration mutation must be revalidated at public boundaries.
+Review strict Pydantic fields/validators, frozen/deeply immutable nested values, duplicate/extra-key handling, URL origin/path locks, exact provider/product identities, strict finite numeric fields, expected size/SHA/checksum, cache identity, logical-role uniqueness, source lineage copied to frames/results, tests that mutate loaded config, and any persisted source/result hashes. Public operations must reconstruct/revalidate configuration at the trust boundary. GPU config changes also change its canonical config SHA and every planning document that retains it.
+
+## Changing strict serialization
+
+Review every trust-bearing YAML/JSON reader, not only source config files. YAML mappings must reject duplicate keys at any depth. JSON must use strict UTF-8, reject duplicate keys/non-finite or overflow numbers, and require an object where the schema expects one. Re-run config/policy, HTTP-response, cache/marker, and planning-manifest regressions; deterministic writers and existing valid bytes should remain unchanged.
 
 ## Changing `safe_http`
 
-Review all five adapter call sites and `test_safe_http.py`. Preserve HTTPS-only identity, localhost/numeric-IP handling, all-address DNS validation, no re-resolution, numeric socket endpoint, peer verification, default TLS verification, original SNI/Host, header validation, proxy independence, redirect ownership, 2xx-only completion, streaming, and response/connection cleanup. Run every source-adapter suite because transport error translation occurs there.
+Review all five adapter call sites and `test_safe_http.py`. Preserve HTTPS-only identity, localhost/numeric-IP handling, all-address DNS validation, no re-resolution, numeric socket endpoint, peer verification, default TLS verification, original SNI/Host, case-insensitive header uniqueness, pre-DNS rejection of credentials/caller-owned hop-by-hop headers, safe ordinary-header redirect behavior, proxy independence, redirect ownership, 2xx-only completion, streaming, and response/connection cleanup. Run every source-adapter suite because transport error translation occurs there.
 
 ## Changing CRS or geometry logic
 
@@ -21,6 +25,8 @@ Review `geo/crs.py`, `geo/geometry.py`, all normalization stages, both proximity
 ## Changing a normalized schema
 
 Search for the exact ordered column constants and dtype maps. Review builders, intrinsic validators, source-complete validators, code resolver, policy application, aggregation, hashes/schema signatures, Parquet manifests, empty-frame builders, and every test that removes/reorders/retypes a column. A validation-only change must not cast malformed loaded artifacts or alter valid output hashes.
+
+For parcel zoning, `PARCEL_ZONING_OUTPUT_COLUMNS` is a complete required summary contract even when unrelated pass-through parcel columns exist. Any addition/removal requires builder, reconstruction, validator, public export, interpretation, and one-missing-column-family regressions to move together.
 
 ## Changing DataFrame columns
 
@@ -32,7 +38,7 @@ Review `src/landscout/stages/__init__.py`, all direct tests/callers, source-comp
 
 ## Changing planning source locks
 
-Review GPU document/archive/spatial/written-file identity, planning index/structure locks, exact source excerpts/page/offset/fragment hashes, zoning/feature input hashes, policy config source locks, complete result hashes, artifact manifests, and source-complete rebuild tests. Source locks describe approved evidence; changing them requires independent source verification, not only updated expected values.
+Review canonical GPU config identity/hash, document/archive/extraction/spatial-role/written-file identity, planning index/structure locks, exact source excerpts/page/offset/fragment hashes, complete zoning summaries, configured required articles per chapter, body-page extraction status, policy config source locks, complete result hashes, artifact manifests, and source-complete rebuild tests. Source locks describe approved evidence; changing them requires independent source verification, not only updated expected values.
 
 ## Changing policy YAML
 
@@ -58,6 +64,12 @@ Review final/archive/metadata existence combinations, `.part` link/junction/dire
 
 Preserve the contract being tested, not only pass status. Ensure a mutation is otherwise coherent when it is meant to isolate a semantic/source gap. Keep network fully fake/blocked unless authorized. Avoid tests that pass for a cheaper stale hash/schema/summary defect. Update the companion test section and rerun focused plus required full/static gates.
 
+Planning integration changes must retain at least one real synthetic physical chain without monkeypatching `validate_normalized_planning_zoning_inputs`; isolated monkeypatched unit tests remain useful but cannot replace the source-complete chain.
+
+## Changing package exports or version metadata
+
+Review the exact `__all__` contract for `landscout.sources` and `landscout.stages`; source-bound Cadastre and factual zoning high-level results/errors must not be replaced by raw-path helpers. Verify `landscout.__version__` equals `project.version` in `pyproject.toml`, not merely that both values are present.
+
 ## Changing documentation
 
-Recompute companion SHA256 after any source/project-file byte change. Re-run file/symbol/test completeness audits, verify links/Mermaid/Markdown conflict markers, and remember that `docs/DEV_LOG.md` is historical evidence rather than current implementation authority.
+Recompute companion SHA256 after any source/project-file byte change. Re-run file/symbol/test completeness audits, verify links/Mermaid/Markdown conflict markers, and remember that `docs/DEV_LOG.md` is historical evidence rather than current implementation authority. `docs/code/files` is deliberately excluded from Ruff because companions reproduce exact source snapshots; do not format those embedded bytes independently of their source.

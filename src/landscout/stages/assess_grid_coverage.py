@@ -55,9 +55,7 @@ COVERAGE_STATUSES = frozenset(
         "NO_MATCH",
     }
 )
-COVERAGE_POSITIONS = frozenset(
-    {"FULLY_COVERED", "OUTSIDE_OR_CROSSING_COVERAGE"}
-)
+COVERAGE_POSITIONS = frozenset({"FULLY_COVERED", "OUTSIDE_OR_CROSSING_COVERAGE"})
 PARCEL_DIAGNOSTIC_COLUMNS = (
     "grid_source_boundary_distance_m",
     "grid_source_coverage_position",
@@ -96,10 +94,22 @@ _IGN_PROVIDER_IDENTITIES = frozenset(
     }
 )
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_PARCEL_GENERATED_COLUMNS = frozenset(
+    {*PARCEL_DIAGNOSTIC_COLUMNS, *COVERAGE_LINEAGE_COLUMNS}
+)
 
 
 class GridCoverageAssessmentError(ValueError):
     """Raised when coverage diagnostics cannot be calculated safely."""
+
+
+def _reject_parcel_output_collisions(parcels: gpd.GeoDataFrame) -> None:
+    collisions = _PARCEL_GENERATED_COLUMNS & set(parcels.columns)
+    if collisions:
+        raise GridCoverageAssessmentError(
+            "Parcel input collides with generated grid-coverage columns: "
+            + ", ".join(sorted(collisions))
+        )
 
 
 @dataclass(frozen=True)
@@ -175,9 +185,7 @@ def _normalized_identity(value: object, label: str) -> str:
         )
     decomposed = unicodedata.normalize("NFKD", value)
     return "".join(
-        character
-        for character in decomposed.casefold()
-        if character.isalnum()
+        character for character in decomposed.casefold() if character.isalnum()
     )
 
 
@@ -195,9 +203,7 @@ def _validate_coverage_summary(
 ) -> None:
     summary = source.summary
     if type(summary) is not IgnBdTopoCoverageLayerSummary:
-        raise GridCoverageAssessmentError(
-            "Department coverage summary type is invalid"
-        )
+        raise GridCoverageAssessmentError("Department coverage summary type is invalid")
     if summary.source_layer_name != source.source_layer:
         raise GridCoverageAssessmentError(
             "Department coverage summary layer does not match source lineage"
@@ -226,9 +232,7 @@ def _validate_coverage_summary(
         type(summary.columns) is not tuple
         or not summary.columns
         or any(
-            not isinstance(column, str)
-            or not column
-            or column != column.strip()
+            not isinstance(column, str) or not column or column != column.strip()
             for column in summary.columns
         )
         or len(set(summary.columns)) != len(summary.columns)
@@ -331,9 +335,7 @@ def _validate_source_coverage(
     source: IgnBdTopoDepartmentCoverage,
 ) -> gpd.GeoDataFrame:
     if type(source) is not IgnBdTopoDepartmentCoverage:
-        raise GridCoverageAssessmentError(
-            "Department coverage source type is invalid"
-        )
+        raise GridCoverageAssessmentError("Department coverage source type is invalid")
     if source.spatial_role != COVERAGE_SPATIAL_ROLE:
         raise GridCoverageAssessmentError(
             "Department coverage spatial_role must be SOURCE_COVERAGE_BOUNDARY"
@@ -357,9 +359,7 @@ def _validate_source_coverage(
             "Department coverage provider is not an IGN identity"
         )
     if product != "bdtopo":
-        raise GridCoverageAssessmentError(
-            "Department coverage product is not BD TOPO"
-        )
+        raise GridCoverageAssessmentError("Department coverage product is not BD TOPO")
     if _SHA256_PATTERN.fullmatch(source.source_archive_sha256) is None:
         raise GridCoverageAssessmentError(
             "Department coverage archive SHA256 is invalid"
@@ -378,9 +378,13 @@ def _validate_source_coverage(
         )
     geometry = frame.geometry
     if geometry.isna().any():
-        raise GridCoverageAssessmentError("Department coverage geometry must not be null")
+        raise GridCoverageAssessmentError(
+            "Department coverage geometry must not be null"
+        )
     if geometry.is_empty.any():
-        raise GridCoverageAssessmentError("Department coverage geometry must not be empty")
+        raise GridCoverageAssessmentError(
+            "Department coverage geometry must not be empty"
+        )
     if not geometry.is_valid.all():
         raise GridCoverageAssessmentError("Department coverage geometry must be valid")
     if not set(geometry.geom_type.dropna()) <= {"Polygon", "MultiPolygon"}:
@@ -577,12 +581,10 @@ def _validate_assessment_result(result: GridCoverageAssessmentResult) -> None:
     parcels = result.parcels
     table = result.voltage_level_proximity
     parcel_missing = (
-        set(PARCEL_DIAGNOSTIC_COLUMNS)
-        | set(COVERAGE_LINEAGE_COLUMNS)
+        set(PARCEL_DIAGNOSTIC_COLUMNS) | set(COVERAGE_LINEAGE_COLUMNS)
     ) - set(parcels.columns)
     table_missing = (
-        set(VOLTAGE_DIAGNOSTIC_COLUMNS)
-        | set(COVERAGE_LINEAGE_COLUMNS)
+        set(VOLTAGE_DIAGNOSTIC_COLUMNS) | set(COVERAGE_LINEAGE_COLUMNS)
     ) - set(table.columns)
     if parcel_missing or table_missing:
         raise GridCoverageAssessmentError("Coverage diagnostic columns are missing")
@@ -611,9 +613,7 @@ def _validate_assessment_result(result: GridCoverageAssessmentResult) -> None:
             raise GridCoverageAssessmentError(
                 f"Coverage status is inconsistent: {status_column}"
             )
-    boundary_by_id = dict(
-        zip(parcels["parcel_id"], boundary_distances, strict=True)
-    )
+    boundary_by_id = dict(zip(parcels["parcel_id"], boundary_distances, strict=True))
     fully_by_id = dict(zip(parcels["parcel_id"], fully_covered, strict=True))
     table_boundary = table["parcel_id"].map(boundary_by_id).astype("float64")
     if not table["source_boundary_distance_m"].equals(table_boundary):
@@ -626,16 +626,14 @@ def _validate_assessment_result(result: GridCoverageAssessmentResult) -> None:
         table_boundary.to_numpy(dtype="float64"),
         table_fully,
     )
-    actual_table_status = table["coverage_status"].astype("object").reset_index(
-        drop=True
+    actual_table_status = (
+        table["coverage_status"].astype("object").reset_index(drop=True)
     )
     expected_table_status = expected_table_status.astype("object").reset_index(
         drop=True
     )
     if not actual_table_status.equals(expected_table_status):
-        raise GridCoverageAssessmentError(
-            "Voltage coverage statuses are inconsistent"
-        )
+        raise GridCoverageAssessmentError("Voltage coverage statuses are inconsistent")
     lineage = _coverage_lineage_values(result.source_coverage)
     for column, expected in lineage.items():
         for frame in (parcels, table):
@@ -662,6 +660,7 @@ def _assess_grid_coverage_from_proximity(
     fully covered. No parcel, proximity match, or source geometry is mutated.
     """
 
+    _reject_parcel_output_collisions(proximity_result.parcels)
     profile_grid_proximity(proximity_result)
     coverage_frame = _validate_source_coverage(department_coverage)
     _validate_configured_coverage_identity(department_coverage, config)
@@ -718,14 +717,12 @@ def _assess_grid_coverage_from_proximity(
     boundary_by_id = dict(
         zip(output_parcels["parcel_id"], boundary_distances, strict=True)
     )
-    covered_by_id = dict(
-        zip(output_parcels["parcel_id"], fully_covered, strict=True)
-    )
+    covered_by_id = dict(zip(output_parcels["parcel_id"], fully_covered, strict=True))
     output_table["source_boundary_distance_m"] = (
         output_table["parcel_id"].map(boundary_by_id).astype("float64")
     )
-    table_fully_covered = output_table["parcel_id"].map(covered_by_id).to_numpy(
-        dtype="bool"
+    table_fully_covered = (
+        output_table["parcel_id"].map(covered_by_id).to_numpy(dtype="bool")
     )
     output_table["coverage_status"] = _coverage_statuses(
         output_table["nearest_line_proxy_distance_m"],
@@ -790,6 +787,7 @@ def assess_grid_coverage(
             raise GridCoverageAssessmentError(
                 "source_config must be an IgnBdTopoSourceConfig"
             )
+        _reject_parcel_output_collisions(parcels)
         proximity = enrich_parcel_grid_proximity(
             parcels,
             electricity_source,
@@ -821,9 +819,7 @@ def _status_counts(values: pd.Series) -> CoverageStatusCounts:
     return CoverageStatusCounts(
         not_boundary_limited=int(counts.get("NOT_BOUNDARY_LIMITED", 0)),
         boundary_limited=int(counts.get("BOUNDARY_LIMITED", 0)),
-        outside_or_crossing_coverage=int(
-            counts.get("OUTSIDE_OR_CROSSING_COVERAGE", 0)
-        ),
+        outside_or_crossing_coverage=int(counts.get("OUTSIDE_OR_CROSSING_COVERAGE", 0)),
         no_match=int(counts.get("NO_MATCH", 0)),
     )
 
@@ -877,9 +873,7 @@ def profile_grid_coverage(
         outside_or_crossing_count=int(
             position_counts.get("OUTSIDE_OR_CROSSING_COVERAGE", 0)
         ),
-        boundary_distance=_boundary_profile(
-            parcels["grid_source_boundary_distance_m"]
-        ),
+        boundary_distance=_boundary_profile(parcels["grid_source_boundary_distance_m"]),
         nearest_line=_status_counts(parcels["nearest_line_coverage_status"]),
         nearest_exact_line=_status_counts(
             parcels["nearest_exact_line_coverage_status"]

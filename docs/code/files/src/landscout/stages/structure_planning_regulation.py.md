@@ -4,18 +4,21 @@
 
 - Repository path: `src/landscout/stages/structure_planning_regulation.py`
 - File type: Python source
-- Layer: processing stage
-- Domain: planning
-- Responsibility: Partitions the indexed written regulation into deterministic source-bound sections, zone mappings, and topic evidence.
-- Source SHA256: `46707b5077b1e122158b4ca6be3363ee8ad7808ac62e08106854bee1e89da45e`
+- Layer: pipeline stage
+- Domain: factual transformation, evidence, or policy boundary
+- Responsibility: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+- Source SHA256: `eb8acddb789a6ca8717bd70df9a40c32c8f1a689a3a0ae7b3b9ffc55d2ab3af4`
 
-## 1. Purpose
+## 1. STEP 7F.1A.4 contract delta
 
-Partitions the indexed written regulation into deterministic source-bound sections, zone mappings, and topic evidence.
+- Fails closed when an applicable body page has extraction status ERROR while retaining valid blank-page handling.
+- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
-## 2. Position in LandScout architecture
+## 2. Purpose and architectural position
 
-This file belongs to the **processing stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+
+The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
 
@@ -38,7 +41,6 @@ This file belongs to the **processing stage** layer and the **planning** domain.
 
 - `import numpy as np`
 - `import pandas as pd`
-- `import yaml`
 - `from pydantic import (
     BaseModel,
     ConfigDict,
@@ -51,11 +53,13 @@ This file belongs to the **processing stage** layer and the **planning** domain.
 
 ### Internal LandScout imports
 
+- `from landscout.common.immutable_mapping import freeze_mapping`
 - `from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
     raw_context_from_spans,
 )`
+- `from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml`
 - `from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
@@ -64,91 +68,192 @@ This file belongs to the **processing stage** layer and the **planning** domain.
 
 ## 4. Contract taxonomy
 
-### A. Python constants
+Module constants, type aliases, canonical schema/mapping declarations, dunders, and exports are kept separate from model fields, mapping keys, JSON keys, and frame columns. A string literal is never called a frame column unless its owning declaration establishes that role.
 
-#### `_normalize_search_text`
+### `_normalize_search_text`
+
+- Category: module-level alias/value.
+- Exact declaration:
 
 ```python
 _normalize_search_text = normalize_planning_search_text
 ```
 
-Private module-level technical value; only the qualified references below are attributed to this declaration.
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_normalize_search_text_with_mapping`
+### `_normalize_search_text_with_mapping`
+
+- Category: module-level alias/value.
+- Exact declaration:
 
 ```python
 _normalize_search_text_with_mapping = normalize_planning_search_text_with_mapping
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately.
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_raw_context`
+### `_raw_context`
+
+- Category: module-level alias/value.
+- Exact declaration:
 
 ```python
 _raw_context = raw_context_from_spans
 ```
 
-Private module-level technical value; only the qualified references below are attributed to this declaration.
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `SECTION_HASH_SCHEMA_VERSION`
+### `__all__`
+
+- Category: explicit package/module export list.
+- Exact declaration:
+
+```python
+__all__ = [
+    "PlanningRegulationStructureConfig",
+    "PlanningRegulationStructureError",
+    "PlanningRegulationStructureResult",
+    "load_planning_regulation_structure_config",
+    "planning_regulation_section_page_fragments",
+    "structure_planning_regulation",
+    "validate_planning_regulation_structure",
+    "validate_planning_regulation_structure_with_fragments",
+]
+```
+
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `PlanningRegulationStructureConfig`
+  - `PlanningRegulationStructureError`
+  - `PlanningRegulationStructureResult`
+  - `load_planning_regulation_structure_config`
+  - `planning_regulation_section_page_fragments`
+  - `structure_planning_regulation`
+  - `validate_planning_regulation_structure`
+  - `validate_planning_regulation_structure_with_fragments`
+
+### `SECTION_HASH_SCHEMA_VERSION`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 SECTION_HASH_SCHEMA_VERSION = 3
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `tests/unit/test_structure_planning_regulation.py::<module>` (import), `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` (value reference), `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` (value reference), `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` (value reference), `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` (value reference), `tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit` (value reference).
+- Qualified consumers:
+  - import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
+    SECTION_HASH_SCHEMA_VERSION,
+    STRUCTURE_MANIFEST_SCHEMA_VERSION,
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureError,
+    _heading_events,
+    _line_records,
+    _literal_topic_matches,
+    _result_with_hashes,
+    _section_content_sha256,
+    load_planning_regulation_structure_config,
+    structure_planning_regulation,
+    validate_planning_regulation_structure,
+    validate_planning_regulation_structure_with_fragments,
+)`
+  - value/type reference: `tests.unit.test_structure_planning_regulation::test_structure_schema_versions_are_explicit` via `SECTION_HASH_SCHEMA_VERSION`
 
-#### `STRUCTURE_MANIFEST_SCHEMA_VERSION`
+### `STRUCTURE_MANIFEST_SCHEMA_VERSION`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 STRUCTURE_MANIFEST_SCHEMA_VERSION = 4
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `tests/unit/test_structure_planning_regulation.py::<module>` (import), `tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit` (value reference).
+- Qualified consumers:
+  - import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
+    SECTION_HASH_SCHEMA_VERSION,
+    STRUCTURE_MANIFEST_SCHEMA_VERSION,
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureError,
+    _heading_events,
+    _line_records,
+    _literal_topic_matches,
+    _result_with_hashes,
+    _section_content_sha256,
+    load_planning_regulation_structure_config,
+    structure_planning_regulation,
+    validate_planning_regulation_structure,
+    validate_planning_regulation_structure_with_fragments,
+)`
+  - value/type reference: `tests.unit.test_structure_planning_regulation::test_structure_schema_versions_are_explicit` via `STRUCTURE_MANIFEST_SCHEMA_VERSION`
 
-#### `_SUPPORTED_CONFIG_SCHEMA_VERSION`
+### `_SUPPORTED_CONFIG_SCHEMA_VERSION`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _SUPPORTED_CONFIG_SCHEMA_VERSION = 2
 ```
 
-Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig._validate_grammar` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_SECTION_TYPES`
+### `_SECTION_TYPES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
 _SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/structure_planning_regulation.py::_validate_sections` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_MAPPING_STATUSES`
+### `_MAPPING_STATUSES`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"})
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_MAPPING_METHODS`
+### `_MAPPING_METHODS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _MAPPING_METHODS = frozenset({"EXACT_HEADING", "CONFIG_ALIAS", "NONE", "AMBIGUOUS"})
 ```
 
-Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_EVIDENCE_SCOPES`
+### `_EVIDENCE_SCOPES`
+
+- Category: module constant or closed domain.
+- Exact declaration:
 
 ```python
-_EVIDENCE_SCOPES = frozenset(
-    {"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"}
-)
+_EVIDENCE_SCOPES = frozenset({"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"})
 ```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
 
-#### `_ZONE_INPUT_COLUMNS`
+### `_ZONE_INPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _ZONE_INPUT_COLUMNS = (
@@ -160,9 +265,19 @@ _ZONE_INPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` (value reference), `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `planning_zone_id`
+  - `source_zone_id`
+  - `zone_label_raw`
+  - `source_document_id`
+  - `source_archive_sha256`
 
-#### `_REQUIRED_INTERSECTION_INPUT_COLUMNS`
+### `_REQUIRED_INTERSECTION_INPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _REQUIRED_INTERSECTION_INPUT_COLUMNS = (
@@ -177,9 +292,22 @@ _REQUIRED_INTERSECTION_INPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_intersection_hash_columns` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `parcel_id`
+  - `planning_zone_id`
+  - `source_zone_id`
+  - `zone_label_raw`
+  - `relation_type`
+  - `intersection_area_m2`
+  - `source_document_id`
+  - `source_archive_sha256`
 
-#### `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`
+### `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 _OPTIONAL_INTERSECTION_INPUT_COLUMNS = (
@@ -188,9 +316,16 @@ _OPTIONAL_INTERSECTION_INPUT_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_intersection_hash_columns` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `parcel_metric_area_m2`
+  - `zone_area_m2`
 
-#### `SECTION_COLUMNS`
+### `SECTION_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 SECTION_COLUMNS = (
@@ -221,9 +356,38 @@ SECTION_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` (value reference), `src/landscout/stages/structure_planning_regulation.py::_build_sections` (value reference), `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` (value reference), `src/landscout/stages/structure_planning_regulation.py::_validate_sections` (value reference), `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `section_id`
+  - `parent_section_id`
+  - `section_type`
+  - `heading_raw`
+  - `heading_normalized`
+  - `zone_chapter_label`
+  - `article_number_raw`
+  - `article_title_raw`
+  - `start_record_id`
+  - `end_record_id`
+  - `source_record_count`
+  - `source_records_sha256`
+  - `start_page`
+  - `end_page`
+  - `page_numbers`
+  - `raw_text`
+  - `normalized_text`
+  - `character_count`
+  - `section_content_sha256`
+  - `document_id`
+  - `archive_sha256`
+  - `pdf_sha256`
+  - `index_content_sha256`
+  - `structure_profile`
 
-#### `ZONE_MAPPING_COLUMNS`
+### `ZONE_MAPPING_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 ZONE_MAPPING_COLUMNS = (
@@ -244,9 +408,28 @@ ZONE_MAPPING_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` (value reference), `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` (value reference), `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` (value reference), `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `source_zone_label_raw`
+  - `resolved_zone_chapter_label`
+  - `mapping_status`
+  - `mapping_method`
+  - `matched_section_id`
+  - `zone_polygon_count`
+  - `candidate_parcel_count`
+  - `candidate_intersection_count`
+  - `dominant_candidate_count`
+  - `document_id`
+  - `archive_sha256`
+  - `pdf_sha256`
+  - `index_content_sha256`
+  - `structure_profile`
 
-#### `TOPIC_EVIDENCE_COLUMNS`
+### `TOPIC_EVIDENCE_COLUMNS`
+
+- Category: canonical schema/mapping declaration.
+- Exact declaration:
 
 ```python
 TOPIC_EVIDENCE_COLUMNS = (
@@ -274,52 +457,52 @@ TOPIC_EVIDENCE_COLUMNS = (
 )
 ```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` (value reference), `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` (value reference), `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` (value reference), `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` (value reference).
+- Qualified consumers:
+  - No conservative direct import/call/value reference was found outside the declaration.
+- Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
+  - `topic`
+  - `search_term`
+  - `normalized_search_term`
+  - `match_policy`
+  - `section_id`
+  - `evidence_scope`
+  - `zone_chapter_label`
+  - `article_number_raw`
+  - `page_number`
+  - `occurrence_count`
+  - `first_match_normalized_start`
+  - `first_match_normalized_end`
+  - `first_match_raw_start`
+  - `first_match_raw_end`
+  - `raw_context`
+  - `normalized_context`
+  - `document_id`
+  - `archive_sha256`
+  - `pdf_sha256`
+  - `index_content_sha256`
+  - `structure_profile`
 
 
-### B. Type aliases and closed domains
+### Executable module-import-time statements
 
-No module-level Literal/Annotated/TypeAlias declaration is present.
+No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
-### C. Meaningful dunder contracts
-
-- `__all__` — explicit public export allow-list.
-```python
-__all__ = [
-    "PlanningRegulationStructureConfig",
-    "PlanningRegulationStructureError",
-    "PlanningRegulationStructureResult",
-    "load_planning_regulation_structure_config",
-    "planning_regulation_section_page_fragments",
-    "structure_planning_regulation",
-    "validate_planning_regulation_structure",
-    "validate_planning_regulation_structure_with_fragments",
-]
-```
-
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
+## 5. Classes, models, dataclasses, and fields
 
 ### `PlanningRegulationStructureError`
 
-**Purpose:** Raised when factual regulation structure integrity cannot be proven.
+**Source purpose:** Raised when factual regulation structure integrity cannot be proven.
 
-**Kind:** controlled exception.
+- Exact decorators: none.
+- Exact bases: `ValueError`.
 
-**Inheritance:** `ValueError`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+No direct class/model/dataclass or `self` field assignment is declared.
 
-**Fields:** none declared directly on this class.
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -328,14 +511,72 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `landscout.stages.interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- value/type reference: `landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.interpret_bess_zoning::interpret_bess_zoning` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::load_planning_regulation_structure_config` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::load_planning_regulation_structure_config` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_strict_string` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_strict_string` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_strict_nonnegative_integer` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_strict_nonnegative_integer` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_strict_positive_integer` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_strict_positive_integer` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validated_sha256` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validated_sha256` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_canonical_value` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_value` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_canonical_sha256` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_sha256` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_line_records` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_classify_structural_heading` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_classify_structural_heading` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_heading_events` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_section_starts` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_build_sections` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validated_zoning_inputs` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validated_zoning_inputs` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_resolved_alias` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_resolved_alias` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_evidence_scope` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_evidence_scope` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_page_tuple` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_page_tuple` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validate_sections` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_resolved_config` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_resolved_config` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_compare_expected_result` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_compare_expected_result` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::_section_page_fragments` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_page_fragments` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `PlanningRegulationStructureError`
+- constructor call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `PlanningRegulationStructureError`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `PlanningRegulationStructureError`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -349,68 +590,39 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_construct_unique_mapping` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_strict_string` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_strict_nonnegative_integer` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_canonical_value` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_classify_structural_heading` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validated_zoning_inputs` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_resolved_alias` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_evidence_scope` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_page_tuple` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_resolved_config` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_section_page_fragments` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::planning_regulation_section_page_fragments` via `PlanningRegulationStructureError`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `PlanningRegulationStructureError`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_result_config_schema_versions_are_rejected` via `pytest.raises(PlanningRegulationStructureError, match='schema version')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_section_hash_schema_versions_are_rejected` via `pytest.raises(PlanningRegulationStructureError, match='schema version')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `pytest.raises(PlanningRegulationStructureError, match='document lock')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `pytest.raises(PlanningRegulationStructureError, match='Duplicate YAML')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `pytest.raises(PlanningRegulationStructureError, match='scope')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_coordinated_frame_mutation_is_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected` via `pytest.raises(PlanningRegulationStructureError, match='unknown page')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `pytest.raises(PlanningRegulationStructureError, match='Dominant candidate')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `pytest.raises(PlanningRegulationStructureError, match='ARTICLE\\[0\\].*ARTICLE\\[1\\]')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `pytest.raises(PlanningRegulationStructureError, match='Ambiguous structural heading')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_lossless_partition_mutation_is_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_duplicate_or_reordered_record_partition_is_rejected` via `pytest.raises(PlanningRegulationStructureError, match='partition')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_unsorted_section_pages_are_rejected` via `pytest.raises(PlanningRegulationStructureError, match='page references')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_article_parent_semantics_are_enforced` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `pytest.raises(PlanningRegulationStructureError, match='source-zone')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `pytest.raises(PlanningRegulationStructureError, match='exceeds')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `pytest.raises(PlanningRegulationStructureError, match='exceeds')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `pytest.raises(PlanningRegulationStructureError, match='input hash')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `pytest.raises(PlanningRegulationStructureError, match='hash columns')`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_zone_mapping_contract_mutations_are_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `pytest.raises(PlanningRegulationStructureError)`.
-- expected exception type: `tests/unit/test_structure_planning_regulation.py::test_source_and_result_hash_mutation_is_rejected` via `pytest.raises(PlanningRegulationStructureError)`.
+)`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_old_and_unknown_result_config_schema_versions_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_old_and_unknown_section_hash_schema_versions_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_document_layout_rejects_nonexistent_indexed_pages` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_document_lock_mismatch_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_body_page_extraction_error_stops_structure` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_coordinated_frame_mutation_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_unknown_topic_page_reference_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_dominant_unmapped_zone_stops_processing` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_two_zone_patterns_matching_one_line_are_ambiguous` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_two_article_patterns_matching_one_line_are_ambiguous` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_general_and_article_cross_category_match_is_ambiguous` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_zone_and_general_cross_category_match_is_ambiguous` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_lossless_partition_mutation_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_duplicate_or_reordered_record_partition_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_unsorted_section_pages_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_article_parent_semantics_are_enforced` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_wrong_intersection_source_zone_id_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_area_cannot_exceed_available_geometry_area` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_upper_bound_uses_shared_relative_tolerance` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_optional_intersection_metric_change_invalidates_existing_result` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_hash_column_lineage_mutation_is_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_zone_mapping_contract_mutations_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_topic_evidence_semantic_mutations_are_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_post_build_source_change` via `PlanningRegulationStructureError`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_and_result_hash_mutation_is_rejected` via `PlanningRegulationStructureError`
 
 **Exact class source**
 
@@ -421,19 +633,22 @@ class PlanningRegulationStructureError(ValueError):
 
 ### `_StrictConfigModel`
 
-**Purpose:** Validates the planning contract carried by its explicit validators and inherited fields.
+**Source purpose:** Defines `_StrictConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `BaseModel`.
 
-**Inheritance:** `BaseModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
 
-**Fields:** none declared directly on this class.
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-**Interface consumers**
+**Qualified consumers**
 
-- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+- No conservative direct repository consumer was found.
 
 **Exact class source**
 
@@ -444,27 +659,26 @@ class _StrictConfigModel(BaseModel):
 
 ### `DocumentLockConfig`
 
-**Purpose:** Validates the planning contract carried by `document_id`, `pdf_sha256`, `pages_content_sha256`, `index_content_sha256`, `normalization_profile`.
+**Source purpose:** Defines `DocumentLockConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `document_id` | `StrictStr` | `Field(min_length=1)` | `document_id: StrictStr = Field(min_length=1)` |
+| `pdf_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
+| `pages_content_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
+| `index_content_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
+| `normalization_profile` | `StrictStr` | `Field(min_length=1)` | `normalization_profile: StrictStr = Field(min_length=1)` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `document_id` | `document_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `pdf_sha256` | `pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `pages_content_sha256` | `pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `index_content_sha256` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `normalization_profile` | `normalization_profile: StrictStr = Field(min_length=1)` | Named deterministic text-normalization profile used by the structure configuration. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig` via `DocumentLockConfig`.
+- No conservative direct repository consumer was found.
 
 **Exact class source**
 
@@ -479,41 +693,25 @@ class DocumentLockConfig(_StrictConfigModel):
 
 ### `DocumentLayoutConfig`
 
-**Purpose:** Validates the planning contract carried by `body_start_page`, `table_of_contents_pages`, `max_heading_continuation_lines`, `include_table_of_contents_in_topic_evidence`.
+**Source purpose:** Defines `DocumentLayoutConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `body_start_page` | `StrictInt` | `Field(ge=1)` | `body_start_page: StrictInt = Field(ge=1)` |
+| `table_of_contents_pages` | `tuple[StrictInt, ...]` | `()` | `table_of_contents_pages: tuple[StrictInt, ...] = ()` |
+| `max_heading_continuation_lines` | `StrictInt` | `Field(ge=0, le=10)` | `max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)` |
+| `include_table_of_contents_in_topic_evidence` | `StrictBool` | `False` | `include_table_of_contents_in_topic_evidence: StrictBool = False` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `body_start_page` | `body_start_page: StrictInt = Field(ge=1)` | First PDF page eligible for configured regulation-body structural parsing. |
-| `table_of_contents_pages` | `table_of_contents_pages: tuple[StrictInt, ...] = ()` | Structured `table of contents pages` collection owned by `DocumentLayoutConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `max_heading_continuation_lines` | `max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)` | Maximum number of following lines that may be joined to a candidate heading. |
-| `include_table_of_contents_in_topic_evidence` | `include_table_of_contents_in_topic_evidence: StrictBool = False` | Boolean `include table of contents in topic evidence` flag on `DocumentLayoutConfig`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+**Qualified consumers**
 
-**Validators (exact source)**
-
-`_validate_pages`:
-
-```python
-def _validate_pages(self) -> DocumentLayoutConfig:
-        pages = self.table_of_contents_pages
-        if any(page < 1 for page in pages) or tuple(sorted(set(pages))) != pages:
-            raise ValueError(
-                "table_of_contents_pages must contain unique ascending positive integers"
-            )
-        return self
-```
-
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::DocumentLayoutConfig._validate_pages` via `DocumentLayoutConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig` via `DocumentLayoutConfig`.
+- value/type reference: `landscout.stages.structure_planning_regulation::DocumentLayoutConfig._validate_pages` via `DocumentLayoutConfig`
 
 **Exact class source**
 
@@ -536,26 +734,25 @@ class DocumentLayoutConfig(_StrictConfigModel):
 
 ### `HeadingPatternsConfig`
 
-**Purpose:** Validates the planning contract carried by `zone_chapter`, `article`, `general_section`, `continuation`.
+**Source purpose:** Defines `HeadingPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `zone_chapter` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)` |
+| `article` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `article: tuple[StrictStr, ...] = Field(min_length=1)` |
+| `general_section` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `general_section: tuple[StrictStr, ...] = Field(min_length=1)` |
+| `continuation` | `tuple[StrictStr, ...]` | `()` | `continuation: tuple[StrictStr, ...] = ()` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `zone_chapter` | `zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)` | Structured `zone chapter` collection owned by `HeadingPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `article` | `article: tuple[StrictStr, ...] = Field(min_length=1)` | Structured `article` collection owned by `HeadingPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `general_section` | `general_section: tuple[StrictStr, ...] = Field(min_length=1)` | Structured `general section` collection owned by `HeadingPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `continuation` | `continuation: tuple[StrictStr, ...] = ()` | Structured `continuation` collection owned by `HeadingPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig` via `HeadingPatternsConfig`.
+- No conservative direct repository consumer was found.
 
 **Exact class source**
 
@@ -569,24 +766,23 @@ class HeadingPatternsConfig(_StrictConfigModel):
 
 ### `IgnoredPatternsConfig`
 
-**Purpose:** Validates the planning contract carried by `page_headers`, `page_footers`.
+**Source purpose:** Defines `IgnoredPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `page_headers` | `tuple[StrictStr, ...]` | `()` | `page_headers: tuple[StrictStr, ...] = ()` |
+| `page_footers` | `tuple[StrictStr, ...]` | `()` | `page_footers: tuple[StrictStr, ...] = ()` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `page_headers` | `page_headers: tuple[StrictStr, ...] = ()` | Structured `page headers` collection owned by `IgnoredPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `page_footers` | `page_footers: tuple[StrictStr, ...] = ()` | Structured `page footers` collection owned by `IgnoredPatternsConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig` via `IgnoredPatternsConfig`.
+- No conservative direct repository consumer was found.
 
 **Exact class source**
 
@@ -598,24 +794,23 @@ class IgnoredPatternsConfig(_StrictConfigModel):
 
 ### `TopicMatchPolicyConfig`
 
-**Purpose:** Validates the planning contract carried by `boundary_mode`, `overlap_resolution`.
+**Source purpose:** Defines `TopicMatchPolicyConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `boundary_mode` | `Literal['token']` | `required` | `boundary_mode: Literal["token"]` |
+| `overlap_resolution` | `Literal['longest_match']` | `required` | `overlap_resolution: Literal["longest_match"]` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `boundary_mode` | `boundary_mode: Literal["token"]` | Configured topic-match word-boundary behavior. |
-| `overlap_resolution` | `overlap_resolution: Literal["longest_match"]` | Configured deterministic rule for resolving overlapping topic matches. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig` via `TopicMatchPolicyConfig`.
+- No conservative direct repository consumer was found.
 
 **Exact class source**
 
@@ -631,122 +826,31 @@ class TopicMatchPolicyConfig(_StrictConfigModel):
 
 ### `PlanningRegulationStructureConfig`
 
-**Purpose:** Strict, document-locked grammar for one factual regulation structure.
+**Source purpose:** Strict, document-locked grammar for one factual regulation structure.
 
-**Kind:** Pydantic model.
+- Exact decorators: none.
+- Exact bases: `_StrictConfigModel`.
 
-**Inheritance:** `_StrictConfigModel`.
+**Fields and model attributes**
 
-**Exact decorators:** none.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `schema_version` | `StrictInt` | `required` | `schema_version: StrictInt` |
+| `structure_profile` | `StrictStr` | `Field(min_length=1)` | `structure_profile: StrictStr = Field(min_length=1)` |
+| `document_lock` | `DocumentLockConfig` | `required` | `document_lock: DocumentLockConfig` |
+| `document_layout` | `DocumentLayoutConfig` | `required` | `document_layout: DocumentLayoutConfig` |
+| `heading_patterns` | `HeadingPatternsConfig` | `required` | `heading_patterns: HeadingPatternsConfig` |
+| `ignored_patterns` | `IgnoredPatternsConfig` | `required` | `ignored_patterns: IgnoredPatternsConfig` |
+| `zone_aliases` | `dict[StrictStr, StrictStr]` | `required` | `zone_aliases: dict[StrictStr, StrictStr]` |
+| `topics` | `dict[StrictStr, tuple[StrictStr, ...]]` | `required` | `topics: dict[StrictStr, tuple[StrictStr, ...]]` |
+| `topic_match_policy` | `TopicMatchPolicyConfig` | `required` | `topic_match_policy: TopicMatchPolicyConfig` |
+| `topic_context_characters` | `StrictInt` | `Field(ge=0)` | `topic_context_characters: StrictInt = Field(ge=0)` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
-| `structure_profile` | `structure_profile: StrictStr = Field(min_length=1)` | Document-specific planning-structure profile identity propagated through source locks and results. |
-| `document_lock` | `document_lock: DocumentLockConfig` | Nested exact upstream regulation-document identity lock. |
-| `document_layout` | `document_layout: DocumentLayoutConfig` | Nested document-body and heading-continuation layout configuration. |
-| `heading_patterns` | `heading_patterns: HeadingPatternsConfig` | Ordered configured structural-heading regex patterns. |
-| `ignored_patterns` | `ignored_patterns: IgnoredPatternsConfig` | Ordered configured heading patterns excluded from structural section starts. |
-| `zone_aliases` | `zone_aliases: dict[StrictStr, StrictStr]` | Structured `zone aliases` collection owned by `PlanningRegulationStructureConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `topics` | `topics: dict[StrictStr, tuple[StrictStr, ...]]` | Structured `topics` collection owned by `PlanningRegulationStructureConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `topic_match_policy` | `topic_match_policy: TopicMatchPolicyConfig` | Nested deterministic topic-term matching/overlap configuration. |
-| `topic_context_characters` | `topic_context_characters: StrictInt = Field(ge=0)` | `PlanningRegulationStructureConfig.topic_context_characters` carries the topic context characters used by the reproduced constructors and validators; its declared type is `StrictInt` and no legal meaning is inferred beyond that owner. |
+**Qualified consumers**
 
-**Validators (exact source)**
-
-`_validate_grammar`:
-
-```python
-def _validate_grammar(self) -> PlanningRegulationStructureConfig:
-        if self.schema_version != _SUPPORTED_CONFIG_SCHEMA_VERSION:
-            raise ValueError(
-                f"unsupported structure config schema: {self.schema_version}"
-            )
-        _exact_config_string(self.structure_profile, "structure_profile")
-        _exact_config_string(self.document_lock.document_id, "document_id")
-        _exact_config_string(
-            self.document_lock.normalization_profile,
-            "normalization_profile",
-        )
-        pattern_groups = (
-            self.heading_patterns.zone_chapter,
-            self.heading_patterns.article,
-            self.heading_patterns.general_section,
-            self.heading_patterns.continuation,
-            self.ignored_patterns.page_headers,
-            self.ignored_patterns.page_footers,
-        )
-        for patterns in pattern_groups:
-            if len(set(patterns)) != len(patterns):
-                raise ValueError("regular-expression patterns must be unique")
-            for pattern in patterns:
-                _exact_config_string(pattern, "regular-expression pattern")
-                try:
-                    re.compile(pattern)
-                except re.error as error:
-                    raise ValueError(f"invalid regular expression: {pattern}") from error
-        structural_pattern_owners: dict[str, str] = {}
-        for category, patterns in (
-            ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
-            ("GENERAL", self.heading_patterns.general_section),
-            ("ARTICLE", self.heading_patterns.article),
-        ):
-            for pattern in patterns:
-                previous = structural_pattern_owners.get(pattern)
-                if previous is not None:
-                    raise ValueError(
-                        "identical structural heading regex is reused across "
-                        f"groups {previous} and {category}"
-                    )
-                structural_pattern_owners[pattern] = category
-        required_captures = (
-            (self.heading_patterns.zone_chapter, {"label"}, "zone chapter"),
-            (
-                self.heading_patterns.article,
-                {"zone", "number", "title"},
-                "zone article",
-            ),
-            (
-                self.heading_patterns.general_section,
-                {"number", "title"},
-                "general section",
-            ),
-        )
-        for patterns, required, label in required_captures:
-            for pattern in patterns:
-                missing = required.difference(re.compile(pattern).groupindex)
-                if missing:
-                    raise ValueError(
-                        f"{label} pattern lacks named captures: {sorted(missing)}"
-                    )
-        for alias, target in self.zone_aliases.items():
-            _exact_config_string(alias, "zone alias")
-            _exact_config_string(target, "zone alias target")
-        _validate_alias_cycles(self.zone_aliases)
-        if not self.topics:
-            raise ValueError("topics must not be empty")
-        for topic in sorted(self.topics):
-            terms = self.topics[topic]
-            _exact_config_string(topic, "topic")
-            if not terms:
-                raise ValueError(f"topic {topic!r} must contain literal terms")
-            normalized: set[str] = set()
-            for term in terms:
-                _exact_config_string(term, "topic search term")
-                normalized_term = _normalize_search_text(term)
-                if not normalized_term or normalized_term in normalized:
-                    raise ValueError(
-                        f"topic {topic!r} contains duplicate normalized terms"
-                    )
-                normalized.add(normalized_term)
-        return self
-```
-
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -755,19 +859,49 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `landscout.stages.interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_result` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.interpret_bess_zoning::interpret_bess_zoning` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::load_planning_regulation_structure_config` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_config_sha256` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::_resolved_config` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `PlanningRegulationStructureConfig`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `PlanningRegulationStructureConfig`
+- import: `tests.integration.test_gpu_planning_end_to_end::<module>` via `from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureResult,
+    structure_planning_regulation,
+)`
+- value/type reference: `tests.integration.test_gpu_planning_end_to_end::_structure_config` via `PlanningRegulationStructureConfig`
+- import: `tests.unit.test_interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     planning_regulation_section_page_fragments,
     structure_planning_regulation,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::_structure_config` via `PlanningRegulationStructureConfig`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -781,33 +915,22 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig._validate_grammar` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_resolved_config` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::planning_regulation_section_page_fragments` via `PlanningRegulationStructureConfig`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `PlanningRegulationStructureConfig`.
-- type annotation: `tests/unit/test_interpret_bess_zoning.py::_structure_config` via `PlanningRegulationStructureConfig`.
-- type annotation: `tests/unit/test_structure_planning_regulation.py::_config` via `PlanningRegulationStructureConfig`.
-- type annotation: `tests/unit/test_structure_planning_regulation.py::_config_with_structural_patterns` via `PlanningRegulationStructureConfig`.
+)`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_config` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_old_and_unknown_config_schema_versions_are_rejected` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_topic_evidence_flag_accepts_exact_booleans` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_heading_patterns_require_mandatory_named_captures` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_optional_pattern_lists_may_be_empty` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_config_with_structural_patterns` via `PlanningRegulationStructureConfig`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_identical_structural_regex_across_groups_is_rejected_by_config` via `PlanningRegulationStructureConfig`
 
 **Exact class source**
 
@@ -854,7 +977,9 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
                 try:
                     re.compile(pattern)
                 except re.error as error:
-                    raise ValueError(f"invalid regular expression: {pattern}") from error
+                    raise ValueError(
+                        f"invalid regular expression: {pattern}"
+                    ) from error
         structural_pattern_owners: dict[str, str] = {}
         for category, patterns in (
             ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
@@ -909,46 +1034,47 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
                         f"topic {topic!r} contains duplicate normalized terms"
                     )
                 normalized.add(normalized_term)
+        object.__setattr__(self, "zone_aliases", freeze_mapping(self.zone_aliases))
+        object.__setattr__(self, "topics", freeze_mapping(self.topics))
         return self
 ```
 
 ### `PlanningRegulationStructureResult`
 
-**Purpose:** Immutable lineage envelope for regulation sections and factual evidence.
+**Source purpose:** Immutable lineage envelope for regulation sections and factual evidence.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `document_id` | `str` | `required` | `document_id: str` |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
+| `pdf_sha256` | `str` | `required` | `pdf_sha256: str` |
+| `index_content_sha256` | `str` | `required` | `index_content_sha256: str` |
+| `structure_profile` | `str` | `required` | `structure_profile: str` |
+| `structure_config_schema_version` | `int` | `required` | `structure_config_schema_version: int` |
+| `structure_config_sha256` | `str` | `required` | `structure_config_sha256: str` |
+| `zones_content_sha256` | `str` | `required` | `zones_content_sha256: str` |
+| `zoning_intersection_hash_columns` | `tuple[str, ...]` | `required` | `zoning_intersection_hash_columns: tuple[str, ...]` |
+| `zoning_intersections_content_sha256` | `str` | `required` | `zoning_intersections_content_sha256: str` |
+| `source_records_sha256` | `str` | `required` | `source_records_sha256: str` |
+| `section_hash_schema_version` | `int` | `required` | `section_hash_schema_version: int` |
+| `sections_content_sha256` | `str` | `required` | `sections_content_sha256: str` |
+| `zone_map_content_sha256` | `str` | `required` | `zone_map_content_sha256: str` |
+| `topic_evidence_content_sha256` | `str` | `required` | `topic_evidence_content_sha256: str` |
+| `structure_result_content_sha256` | `str` | `required` | `structure_result_content_sha256: str` |
+| `sections` | `pd.DataFrame` | `required` | `sections: pd.DataFrame` |
+| `zone_mapping` | `pd.DataFrame` | `required` | `zone_mapping: pd.DataFrame` |
+| `topic_evidence` | `pd.DataFrame` | `required` | `topic_evidence: pd.DataFrame` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `pdf_sha256` | `pdf_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `index_content_sha256` | `index_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `structure_profile` | `structure_profile: str` | Document-specific planning-structure profile identity propagated through source locks and results. |
-| `structure_config_schema_version` | `structure_config_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
-| `structure_config_sha256` | `structure_config_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `zones_content_sha256` | `zones_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `zoning_intersection_hash_columns` | `zoning_intersection_hash_columns: tuple[str, ...]` | Structured `zoning intersection hash columns` collection owned by `PlanningRegulationStructureResult`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `zoning_intersections_content_sha256` | `zoning_intersections_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `source_records_sha256` | `source_records_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `section_hash_schema_version` | `section_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
-| `sections_content_sha256` | `sections_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `zone_map_content_sha256` | `zone_map_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `topic_evidence_content_sha256` | `topic_evidence_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `structure_result_content_sha256` | `structure_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `sections` | `sections: pd.DataFrame` | Deterministically structured regulation-section frame. |
-| `zone_mapping` | `zone_mapping: pd.DataFrame` | Deterministic zone-alias to structured-section mapping frame. |
-| `topic_evidence` | `topic_evidence: pd.DataFrame` | `PlanningRegulationStructureResult.topic_evidence` carries the topic evidence used by the reproduced constructors and validators; its declared type is `pd.DataFrame` and no legal meaning is inferred beyond that owner. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -957,44 +1083,50 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `landscout.stages.interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_required_section_ids_by_chapter` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_lineage` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `PlanningRegulationStructureResult`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_page_fragments` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::planning_regulation_section_page_fragments` via `PlanningRegulationStructureResult`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `PlanningRegulationStructureResult`.
+)`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_factual_structure_sha256` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_validate_policy_lock` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_zone_mapping_input_sha256` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_zone_chapter_rows` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_required_section_ids_by_chapter` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_validate_policy_evidence` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_validate_mapping` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_lineage` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_chapter_policy` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_route_assessments` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_evidence_route_links` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_source_zone_policy` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_parcel_zone_interpretations` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_result` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.interpret_bess_zoning::interpret_bess_zoning` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_frame_hash` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_structure_result_content_sha256` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_result_with_hashes` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `PlanningRegulationStructureResult`
+- constructor call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_compare_expected_result` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_page_fragments` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `PlanningRegulationStructureResult`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `PlanningRegulationStructureResult`
+- import: `tests.integration.test_gpu_planning_end_to_end::<module>` via `from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureResult,
+    structure_planning_regulation,
+)`
+- value/type reference: `tests.integration.test_gpu_planning_end_to_end::_policy` via `PlanningRegulationStructureResult`
 
 **Exact class source**
 
@@ -1025,37 +1157,36 @@ class PlanningRegulationStructureResult:
 
 ### `_LineRecord`
 
-**Purpose:** Immutable result/value envelope carrying `record_id`, `page_number`, `page_line_number`, `raw`.
+**Source purpose:** Defines `_LineRecord`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `record_id` | `str` | `required` | `record_id: str` |
+| `page_number` | `int` | `required` | `page_number: int` |
+| `page_line_number` | `int` | `required` | `page_line_number: int` |
+| `raw` | `str` | `required` | `raw: str` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `record_id` | `record_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `page_number` | `page_number: int` | One-based source PDF page number owning this record/evidence occurrence. |
-| `page_line_number` | `page_line_number: int` | One-based line position within the source page's deterministic text record sequence. |
-| `raw` | `raw: str` | Exact raw source value retained before the owning parser/normalizer derives additional facts. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_LineRecord`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_source_record_payload` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_classify_structural_heading` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_page_fragments` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_LineRecord`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_LineRecord`.
+- constructor call: `landscout.stages.structure_planning_regulation::_line_records` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_source_record_payload` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_source_records_sha256` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_classify_structural_heading` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_page_fragments` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_LineRecord`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_LineRecord`
 
 **Exact class source**
 
@@ -1069,32 +1200,30 @@ class _LineRecord:
 
 ### `_HeadingEvent`
 
-**Purpose:** Immutable result/value envelope carrying `record_position`, `section_type`, `heading_raw`, `heading_normalized`, `zone_chapter_label`, `article_number_raw`, `article_title_raw`.
+**Source purpose:** Defines `_HeadingEvent`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `record_position` | `int` | `required` | `record_position: int` |
+| `section_type` | `Literal['GENERAL', 'ZONE_CHAPTER', 'ARTICLE']` | `required` | `section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]` |
+| `heading_raw` | `str` | `required` | `heading_raw: str` |
+| `heading_normalized` | `str` | `required` | `heading_normalized: str` |
+| `zone_chapter_label` | `str \| None` | `required` | `zone_chapter_label: str \| None` |
+| `article_number_raw` | `str \| None` | `required` | `article_number_raw: str \| None` |
+| `article_title_raw` | `str \| None` | `required` | `article_title_raw: str \| None` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `record_position` | `record_position: int` | Zero-based position of the source line record within the deterministic document-wide sequence. |
-| `section_type` | `section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]` | `_HeadingEvent.section_type` represents the `section_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `heading_raw` | `heading_raw: str` | Exact source heading text before deterministic normalization. |
-| `heading_normalized` | `heading_normalized: str` | Deterministically normalized heading text used for structural matching. |
-| `zone_chapter_label` | `zone_chapter_label: str \| None` | `_HeadingEvent.zone_chapter_label` carries the zone chapter label used by the reproduced constructors and validators; its declared type is `str | None` and no legal meaning is inferred beyond that owner. |
-| `article_number_raw` | `article_number_raw: str \| None` | Exact article-number text captured from the source heading. |
-| `article_title_raw` | `article_title_raw: str \| None` | `_HeadingEvent.article_title_raw` carries the article title raw used by the reproduced constructors and validators; its declared type is `str | None` and no legal meaning is inferred beyond that owner. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_SectionBoundary` via `_HeadingEvent`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_HeadingEvent`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_HeadingEvent`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `_HeadingEvent`.
+- constructor call: `landscout.stages.structure_planning_regulation::_heading_events` via `_HeadingEvent`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_HeadingEvent`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `_HeadingEvent`
 
 **Exact class source**
 
@@ -1111,26 +1240,25 @@ class _HeadingEvent:
 
 ### `_StructuralHeadingMatch`
 
-**Purpose:** Immutable result/value envelope carrying `section_type`, `pattern_index`, `named_captures`.
+**Source purpose:** Defines `_StructuralHeadingMatch`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `section_type` | `Literal['GENERAL', 'ZONE_CHAPTER', 'ARTICLE']` | `required` | `section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]` |
+| `pattern_index` | `int` | `required` | `pattern_index: int` |
+| `named_captures` | `tuple[tuple[str, str \| None], ...]` | `required` | `named_captures: tuple[tuple[str, str \| None], ...]` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `section_type` | `section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]` | `_StructuralHeadingMatch.section_type` represents the `section_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `pattern_index` | `pattern_index: int` | Position of the matched structural-heading pattern in configured precedence order. |
-| `named_captures` | `named_captures: tuple[tuple[str, str \| None], ...]` | Structured `named captures` collection owned by `_StructuralHeadingMatch`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_classify_structural_heading` via `_StructuralHeadingMatch`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_classify_structural_heading` via `_StructuralHeadingMatch`.
+- constructor call: `landscout.stages.structure_planning_regulation::_classify_structural_heading` via `_StructuralHeadingMatch`
+- value/type reference: `landscout.stages.structure_planning_regulation::_classify_structural_heading` via `_StructuralHeadingMatch`
 
 **Exact class source**
 
@@ -1143,26 +1271,25 @@ class _StructuralHeadingMatch:
 
 ### `_SectionBoundary`
 
-**Purpose:** Immutable result/value envelope carrying `record_position`, `event`, `forced_table_of_contents`.
+**Source purpose:** Defines `_SectionBoundary`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `record_position` | `int` | `required` | `record_position: int` |
+| `event` | `_HeadingEvent \| None` | `required` | `event: _HeadingEvent \| None` |
+| `forced_table_of_contents` | `bool` | `required` | `forced_table_of_contents: bool` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `record_position` | `record_position: int` | Zero-based position of the source line record within the deterministic document-wide sequence. |
-| `event` | `event: _HeadingEvent \| None` | Resolved structural heading event defining this section boundary. |
-| `forced_table_of_contents` | `forced_table_of_contents: bool` | Boolean `forced table of contents` flag on `_SectionBoundary`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `_SectionBoundary`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `_SectionBoundary`.
+- constructor call: `landscout.stages.structure_planning_regulation::_section_starts` via `_SectionBoundary`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `_SectionBoundary`
 
 **Exact class source**
 
@@ -1175,30 +1302,29 @@ class _SectionBoundary:
 
 ### `_SectionBuild`
 
-**Purpose:** Immutable result/value envelope carrying `row`, `page_fragments`.
+**Source purpose:** Defines `_SectionBuild`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `row` | `dict[str, object]` | `required` | `row: dict[str, object]` |
+| `page_fragments` | `tuple[tuple[int, str], ...]` | `required` | `page_fragments: tuple[tuple[int, str], ...]` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `row` | `row: dict[str, object]` | Structured `row` collection owned by `_SectionBuild`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
-| `page_fragments` | `page_fragments: tuple[tuple[int, str], ...]` | Structured `page fragments` collection owned by `_SectionBuild`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_SectionBuild`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_SectionBuild`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `_SectionBuild`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_SectionBuild`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_SectionBuild`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_SectionBuild`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_section_page_fragments` via `_SectionBuild`.
+- constructor call: `landscout.stages.structure_planning_regulation::_build_sections` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_SectionBuild`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_page_fragments` via `_SectionBuild`
 
 **Exact class source**
 
@@ -1208,54 +1334,30 @@ class _SectionBuild:
     page_fragments: tuple[tuple[int, str], ...]
 ```
 
-### `_UniqueKeyLoader`
-
-**Purpose:** Private PyYAML SafeLoader subclass whose mapping constructor is replaced to reject duplicate YAML keys.
-
-**Kind:** PyYAML loader subclass.
-
-**Inheritance:** `yaml.SafeLoader`.
-
-**Exact decorators:** none.
-
-**Fields:** none declared directly on this class.
-
-**Interface consumers**
-
-- No repository construction/import/property/decorator reference was found; the exact declaration is retained because it participates in the module's runtime/framework namespace.
-
-**Exact class source**
-
-```python
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-```
-
 ### `_TopicMatch`
 
-**Purpose:** Immutable result/value envelope carrying `term_index`, `search_term`, `normalized_term`, `normalized_start`, `normalized_end`.
+**Source purpose:** Defines `_TopicMatch`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-**Kind:** dataclass.
+- Exact decorators: `dataclass(frozen=True)`.
+- Exact bases: plain object.
 
-**Inheritance:** plain object.
+**Fields and model attributes**
 
-**Exact decorators:** `dataclass(frozen=True)`.
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `term_index` | `int` | `required` | `term_index: int` |
+| `search_term` | `str` | `required` | `search_term: str` |
+| `normalized_term` | `str` | `required` | `normalized_term: str` |
+| `normalized_start` | `int` | `required` | `normalized_start: int` |
+| `normalized_end` | `int` | `required` | `normalized_end: int` |
 
-**Fields**
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `term_index` | `term_index: int` | Position of the matched topic search term in configured precedence order. |
-| `search_term` | `search_term: str` | Exact configured topic-search term that produced this match. |
-| `normalized_term` | `normalized_term: str` | Deterministically normalized form of the matched search term. |
-| `normalized_start` | `normalized_start: int` | Inclusive start offset of the topic match in normalized text. |
-| `normalized_end` | `normalized_end: int` | Exclusive end offset of the topic match in normalized text. |
+**Qualified consumers**
 
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_literal_topic_matches` via `_TopicMatch`.
-- constructor call: `src/landscout/stages/structure_planning_regulation.py::_literal_topic_matches` via `_TopicMatch`.
-- type annotation: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `_TopicMatch`.
+- constructor call: `landscout.stages.structure_planning_regulation::_literal_topic_matches` via `_TopicMatch`
+- value/type reference: `landscout.stages.structure_planning_regulation::_literal_topic_matches` via `_TopicMatch`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_TopicMatch`
 
 **Exact class source**
 
@@ -1269,9 +1371,11 @@ class _TopicMatch:
 ```
 
 
-## 6. Functions and methods
+## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
 ### `DocumentLayoutConfig._validate_pages`
+
+**Purpose:** Implements `validate pages` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1279,37 +1383,51 @@ class _TopicMatch:
 def _validate_pages(self) -> DocumentLayoutConfig:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent pages; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: `model_validator(mode="after")`.
 - Declared return annotation: `DocumentLayoutConfig`.
-- Every observed return expression is reproduced without truncation:
-```python
-self
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `any((page < 1 for page in pages)) or tuple(sorted(set(pages))) != pages`.
-- Explicit raise expressions: `ValueError('table_of_contents_pages must contain unique ascending positive integers')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `self`
+- Explicit raise paths:
+  - `ValueError(<br>                "table_of_contents_pages must contain unique ascending positive integers"<br>            )` under lexical guard `any(page < 1 for page in pages) or tuple(sorted(set(pages))) != pages`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `model_validator` | `pydantic.model_validator` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1325,9 +1443,11 @@ def _validate_pages(self) -> DocumentLayoutConfig:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `TopicMatchPolicyConfig.identifier`
+
+**Purpose:** Implements `identifier` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1335,37 +1455,43 @@ def _validate_pages(self) -> DocumentLayoutConfig:
 def identifier(self) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for identifier; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: `property`.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-f'{self.boundary_mode}_{self.overlap_resolution}'
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `f"{self.boundary_mode}_{self.overlap_resolution}"`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1376,9 +1502,11 @@ def identifier(self) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `PlanningRegulationStructureConfig._validate_grammar`
+
+**Purpose:** Implements `validate grammar` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1386,43 +1514,67 @@ def identifier(self) -> str:
 def _validate_grammar(self) -> PlanningRegulationStructureConfig:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent grammar; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: `model_validator(mode="after")`.
 - Declared return annotation: `PlanningRegulationStructureConfig`.
-- Every observed return expression is reproduced without truncation:
-```python
-self
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `self.schema_version != _SUPPORTED_CONFIG_SCHEMA_VERSION`.
-- Guard with a raise path: `not self.topics`.
-- Guard with a raise path: `len(set(patterns)) != len(patterns)`.
-- Guard with a raise path: `not terms`.
-- Guard with a raise path: `previous is not None`.
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `not normalized_term or normalized_term in normalized`.
-- Explicit raise expressions: `ValueError('regular-expression patterns must be unique')`, `ValueError('topics must not be empty')`, `ValueError(f'identical structural heading regex is reused across groups {previous} and {category}')`, `ValueError(f'invalid regular expression: {pattern}')`, `ValueError(f'topic {topic!r} contains duplicate normalized terms')`, `ValueError(f'topic {topic!r} must contain literal terms')`, `ValueError(f'unsupported structure config schema: {self.schema_version}')`, `ValueError(f'{label} pattern lacks named captures: {sorted(missing)}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `self` | positional-or-keyword | `None` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `normalized`, `structural_pattern_owners[pattern]`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `self`
+- Explicit raise paths:
+  - `ValueError(<br>                f"unsupported structure config schema: {self.schema_version}"<br>            )` under lexical guard `self.schema_version != _SUPPORTED_CONFIG_SCHEMA_VERSION`.
+  - `ValueError("regular-expression patterns must be unique")` under lexical guard `len(set(patterns)) != len(patterns)`.
+  - `ValueError(<br>                        f"invalid regular expression: {pattern}"<br>                    )`.
+  - `ValueError(<br>                        "identical structural heading regex is reused across "<br>                        f"groups {previous} and {category}"<br>                    )` under lexical guard `previous is not None`.
+  - `ValueError(<br>                        f"{label} pattern lacks named captures: {sorted(missing)}"<br>                    )` under lexical guard `missing`.
+  - `ValueError("topics must not be empty")` under lexical guard `not self.topics`.
+  - `ValueError(f"topic {topic!r} must contain literal terms")` under lexical guard `not terms`.
+  - `ValueError(<br>                        f"topic {topic!r} contains duplicate normalized terms"<br>                    )` under lexical guard `not normalized_term or normalized_term in normalized`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
+Inbound conservative repository consumers:
+- None found by exact import/direct-call/value-reference resolution.
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_exact_config_string` | `landscout.stages.structure_planning_regulation._exact_config_string` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `re.compile` | `re.compile` |
+| `structural_pattern_owners.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `required.difference` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `self.zone_aliases.items` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.zone_aliases.items` |
+| `_validate_alias_cycles` | `landscout.stages.structure_planning_regulation._validate_alias_cycles` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized.add` | `unresolved local/third-party receiver; no ownership inferred` |
+| `object.__setattr__` | `unresolved local/third-party receiver; no ownership inferred` |
+| `freeze_mapping` | `landscout.common.immutable_mapping.freeze_mapping` |
+| `model_validator` | `pydantic.model_validator` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `structural_pattern_owners[pattern] = category`<br>`normalized.add(normalized_term)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1454,7 +1606,9 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
                 try:
                     re.compile(pattern)
                 except re.error as error:
-                    raise ValueError(f"invalid regular expression: {pattern}") from error
+                    raise ValueError(
+                        f"invalid regular expression: {pattern}"
+                    ) from error
         structural_pattern_owners: dict[str, str] = {}
         for category, patterns in (
             ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
@@ -1509,81 +1663,18 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
                         f"topic {topic!r} contains duplicate normalized terms"
                     )
                 normalized.add(normalized_term)
+        object.__setattr__(self, "zone_aliases", freeze_mapping(self.zone_aliases))
+        object.__setattr__(self, "topics", freeze_mapping(self.topics))
         return self
 ```
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_construct_unique_mapping`
-
-**Exact signature**
-
-```python
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-```
-
-**Purpose**
-
-Private `planning` helper for construct unique mapping; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
-- Declared return annotation: `dict[object, object]`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `key in result`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'Duplicate YAML configuration key: {key!r}')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `result[key]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- function object argument: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
-
-**Complete source-ordered implementation**
-
-```python
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise PlanningRegulationStructureError(
-                f"Duplicate YAML configuration key: {key!r}"
-            )
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-```
-
-**Business boundary**
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_exact_config_string`
+
+**Purpose:** Implements `exact config string` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1591,37 +1682,49 @@ def _construct_unique_mapping(
 def _exact_config_string(value: str, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for exact config string; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-value
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not value or value != value.strip()`.
-- Explicit raise expressions: `ValueError(f'{label} must be a non-empty exact string')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `str` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value`
+- Explicit raise paths:
+  - `ValueError(f"{label} must be a non-empty exact string")` under lexical guard `not value or value != value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig._validate_grammar` via `_exact_config_string`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `_exact_config_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `_exact_config_string`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1634,9 +1737,11 @@ def _exact_config_string(value: str, label: str) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_alias_cycles`
+
+**Purpose:** Implements `validate alias cycles` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1644,34 +1749,48 @@ def _exact_config_string(value: str, label: str) -> str:
 def _validate_alias_cycles(aliases: Mapping[str, str]) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent alias cycles; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `current in seen`.
-- Explicit raise expressions: `ValueError(f'zone alias cycle detected at {current!r}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `aliases` | positional-or-keyword | `Mapping[str, str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `seen`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `ValueError(f"zone alias cycle detected at {current!r}")` under lexical guard `current in seen`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::PlanningRegulationStructureConfig._validate_grammar` via `_validate_alias_cycles`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `_validate_alias_cycles`
+- value/type reference: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `_validate_alias_cycles`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
+| `seen.add` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `seen.add(current)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1689,9 +1808,11 @@ def _validate_alias_cycles(aliases: Mapping[str, str]) -> None:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `load_planning_regulation_structure_config`
+
+**Purpose:** Load and strictly validate a document-specific structure grammar.
 
 **Exact signature**
 
@@ -1701,37 +1822,29 @@ def load_planning_regulation_structure_config(
 ) -> PlanningRegulationStructureConfig:
 ```
 
-**Purpose**
-
-Load and strictly validate a document-specific structure grammar.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `PlanningRegulationStructureConfig`.
-- Every observed return expression is reproduced without truncation:
-```python
-PlanningRegulationStructureConfig.model_validate(payload)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(payload, Mapping)`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Planning structure configuration is invalid')`, `PlanningRegulationStructureError('Planning structure configuration must be a mapping')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `path` | positional-or-keyword | `str \| Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: `config_path.read_text`.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `PlanningRegulationStructureConfig.model_validate(payload)`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>                "Planning structure configuration must be a mapping"<br>            )` under lexical guard `not isinstance(payload, Mapping)`.
+  - `re-raise`.
+  - `PlanningRegulationStructureError(str(error))`.
+  - `PlanningRegulationStructureError(<br>            "Planning structure configuration is invalid"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -1740,8 +1853,10 @@ PlanningRegulationStructureConfig.model_validate(payload)
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- direct call: `landscout.stages.structure_planning_regulation::_resolved_config` via `load_planning_regulation_structure_config`
+- value/type reference: `landscout.stages.structure_planning_regulation::_resolved_config` via `load_planning_regulation_structure_config`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -1755,10 +1870,37 @@ PlanningRegulationStructureConfig.model_validate(payload)
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_resolved_config` via `load_planning_regulation_structure_config`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `load_planning_regulation_structure_config`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `load_planning_regulation_structure_config`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `load_planning_regulation_structure_config`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_invalid_regex_and_unknown_yaml_field_are_controlled` via `load_planning_regulation_structure_config`
+- direct call: `tests.unit.test_structure_planning_regulation::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `load_planning_regulation_structure_config`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_duplicate_yaml_alias_and_alias_cycle_are_rejected` via `load_planning_regulation_structure_config`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `Path` | `pathlib.Path` |
+| `loads_strict_yaml` | `landscout.common.strict_yaml.loads_strict_yaml` |
+| `config_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | `config_path.read_bytes` |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1770,7 +1912,7 @@ def load_planning_regulation_structure_config(
 
     try:
         config_path = Path(path)
-        payload = yaml.load(config_path.read_text(encoding="utf-8"), Loader=_UniqueKeyLoader)
+        payload = loads_strict_yaml(config_path.read_bytes())
         if not isinstance(payload, Mapping):
             raise PlanningRegulationStructureError(
                 "Planning structure configuration must be a mapping"
@@ -1778,6 +1920,8 @@ def load_planning_regulation_structure_config(
         return PlanningRegulationStructureConfig.model_validate(payload)
     except PlanningRegulationStructureError:
         raise
+    except StrictYamlError as error:
+        raise PlanningRegulationStructureError(str(error)) from error
     except Exception as error:
         raise PlanningRegulationStructureError(
             "Planning structure configuration is invalid"
@@ -1786,9 +1930,11 @@ def load_planning_regulation_structure_config(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_strict_string`
+
+**Purpose:** Implements `strict string` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1796,44 +1942,64 @@ def load_planning_regulation_structure_config(
 def _strict_string(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for strict string; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-value
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'{label} must be a non-empty exact string')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            f"{label} must be a non-empty exact string"<br>        )` under lexical guard `not isinstance(value, str) or not value or value != value.strip()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validated_sha256` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validated_sha256` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_canonical_chapter_label` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_chapter_label` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_source_label_values` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_source_label_values` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_string`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_strict_string`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_strict_string`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1848,9 +2014,11 @@ def _strict_string(value: object, label: str) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_strict_nonnegative_integer`
+
+**Purpose:** Implements `strict nonnegative integer` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1858,41 +2026,57 @@ def _strict_string(value: object, label: str) -> str:
 def _strict_nonnegative_integer(value: object, label: str) -> int:
 ```
 
-**Purpose**
-
-Private `planning` helper for strict nonnegative integer; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `int`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Integral)`.
-- Guard with a raise path: `result < 0`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'{label} must be an integer')`, `PlanningRegulationStructureError(f'{label} must be non-negative')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(f"{label} must be an integer")` under lexical guard `isinstance(value, bool) or not isinstance(value, Integral)`.
+  - `PlanningRegulationStructureError(f"{label} must be non-negative")` under lexical guard `result < 0`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_strict_positive_integer` via `_strict_nonnegative_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_strict_positive_integer` via `_strict_nonnegative_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_nonnegative_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_nonnegative_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_strict_nonnegative_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_strict_nonnegative_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_nonnegative_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_nonnegative_integer`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `int` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1908,9 +2092,11 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_strict_positive_integer`
+
+**Purpose:** Implements `strict positive integer` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1918,42 +2104,59 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 def _strict_positive_integer(value: object, label: str) -> int:
 ```
 
-**Purpose**
-
-Private `planning` helper for strict positive integer; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `int`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `result == 0`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'{label} must be positive')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(f"{label} must be positive")` under lexical guard `result == 0`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `_strict_positive_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_strict_positive_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_page_tuple` via `_strict_positive_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_positive_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_positive_integer`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_positive_integer`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `_strict_positive_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_line_records` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `_strict_positive_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_page_tuple` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_page_tuple` via `_strict_positive_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_strict_positive_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_strict_positive_integer`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_strict_positive_integer`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_strict_positive_integer`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1967,9 +2170,11 @@ def _strict_positive_integer(value: object, label: str) -> int:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validated_sha256`
+
+**Purpose:** Implements `validated sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -1977,38 +2182,52 @@ def _strict_positive_integer(value: object, label: str) -> int:
 def _validated_sha256(value: object, label: str) -> str:
 ```
 
-**Purpose**
-
-Checks and returns canonical sha256; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-checksum
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `re.fullmatch('[0-9a-f]{64}', checksum) is None`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'{label} must be exactly 64 lowercase hexadecimal characters')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `checksum`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            f"{label} must be exactly 64 lowercase hexadecimal characters"<br>        )` under lexical guard `re.fullmatch(r"[0-9a-f]{64}", checksum) is None`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_validated_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validated_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_validated_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_validated_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validated_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validated_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `re.fullmatch` | `re.fullmatch` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2024,9 +2243,11 @@ def _validated_sha256(value: object, label: str) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_canonical_value`
+
+**Purpose:** Implements `canonical value` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2034,48 +2255,62 @@ def _validated_sha256(value: object, label: str) -> str:
 def _canonical_value(value: object) -> object:
 ```
 
-**Purpose**
-
-Private `planning` helper for canonical value; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `object`.
-- Every observed return expression is reproduced without truncation:
-```python
-None
 
-_canonical_value(value.item())
+**Inputs**
 
-[_canonical_value(item) for item in value]
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-{str(key): _canonical_value(item) for key, item in value.items()}
+**Return and exception contract**
 
-None
+- Exact observed return expressions:
+  - `None`
+  - `_canonical_value(value.item())`
+  - `[_canonical_value(item) for item in value]`
+  - `{str(key): _canonical_value(item) for key, item in value.items()}`
+  - `value`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>        f"Value of type {type(value).__name__} cannot be canonically serialized"<br>    )`.
 
-value
-```
+**Qualified relationships**
 
-**Validation and exceptions**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_canonical_value` via `_canonical_value`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_value` via `_canonical_value`
+- direct call: `landscout.stages.structure_planning_regulation::_canonical_sha256` via `_canonical_value`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_sha256` via `_canonical_value`
+- direct call: `landscout.stages.structure_planning_regulation::_canonical_frame_rows` via `_canonical_value`
+- value/type reference: `landscout.stages.structure_planning_regulation::_canonical_frame_rows` via `_canonical_value`
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'Value of type {type(value).__name__} cannot be canonically serialized')`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_canonical_value` | `landscout.stages.structure_planning_regulation._canonical_value` |
+| `value.item` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `value.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `math.isnan` | `math.isnan` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Side effects**
+**Source-observed side-effect matrix**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
 
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `_canonical_value`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_canonical_frame_rows` via `_canonical_value`.
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2100,9 +2335,11 @@ def _canonical_value(value: object) -> object:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_canonical_sha256`
+
+**Purpose:** Implements `canonical sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2110,42 +2347,63 @@ def _canonical_value(value: object) -> object:
 def _canonical_sha256(value: object) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for canonical sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-sha256(serialized).hexdigest()
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError('Canonical integrity serialization failed')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `sha256`, `sha256(serialized).hexdigest`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `sha256(serialized).hexdigest()`
+- Explicit raise paths:
+  - `re-raise`.
+  - `PlanningRegulationStructureError(<br>            "Canonical integrity serialization failed"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `_canonical_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_canonical_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` via `_canonical_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_input_frame_sha256` via `_canonical_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `_canonical_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `_canonical_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_config_sha256` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_config_sha256` via `_canonical_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_source_records_sha256` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_source_records_sha256` via `_canonical_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_section_content_sha256` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_content_sha256` via `_canonical_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_input_frame_sha256` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_input_frame_sha256` via `_canonical_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_frame_hash` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_frame_hash` via `_canonical_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_structure_result_content_sha256` via `_canonical_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_structure_result_content_sha256` via `_canonical_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `json.dumps(<br>            _canonical_value(value),<br>            ensure_ascii=False,<br>            allow_nan=False,<br>            sort_keys=True,<br>            separators=(",", ":"),<br>        ).encode` | `unresolved local/third-party receiver; no ownership inferred` |
+| `json.dumps` | `json.dumps` |
+| `_canonical_value` | `landscout.stages.structure_planning_regulation._canonical_value` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `sha256(serialized).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `sha256(serialized).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2170,9 +2428,11 @@ def _canonical_sha256(value: object) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_config_sha256`
+
+**Purpose:** Implements `config sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2180,38 +2440,51 @@ def _canonical_sha256(value: object) -> str:
 def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for config sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': 'landscout.planning_regulation.structure_config', 'config': payload})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: `payload['topics']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": "landscout.planning_regulation.structure_config",<br>            "config": payload,<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_config_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_config_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_config_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_config_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_config_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_config_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `payload["topics"] = {<br>        topic: list(config.topics[topic]) for topic in sorted(config.topics)<br>    }` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2231,9 +2504,11 @@ def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_document_lock`
+
+**Purpose:** Implements `validate document lock` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2244,37 +2519,60 @@ def _validate_document_lock(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent document lock; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `config.document_layout.body_start_page not in indexed_page_set`.
-- Guard with a raise path: `missing_toc_pages`.
-- Guard with a raise path: `actual != expected`.
-- Explicit raise expressions: `PlanningRegulationStructureError('body_start_page must reference a real indexed page')`, `PlanningRegulationStructureError(f'Planning structure {label} differs from its document lock')`, `PlanningRegulationStructureError(f'table_of_contents_pages reference nonexistent indexed pages: {missing_toc_pages}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>                f"Planning structure {label} differs from its document lock"<br>            )` under lexical guard `actual != expected`.
+  - `PlanningRegulationStructureError(<br>            "body_start_page must reference a real indexed page"<br>        )` under lexical guard `config.document_layout.body_start_page not in indexed_page_set`.
+  - `PlanningRegulationStructureError(<br>            "table_of_contents_pages reference nonexistent indexed pages: "<br>            f"{missing_toc_pages}"<br>        )` under lexical guard `missing_toc_pages`.
+  - `PlanningRegulationStructureError(<br>            f"Regulation body page extraction status is ERROR: {failed_body_pages}"<br>        )` under lexical guard `failed_body_pages`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_validate_document_lock`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `_validate_document_lock`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validate_document_lock`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validate_document_lock`
+- direct call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_validate_document_lock`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_validate_document_lock`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+| `index.pages["page_number"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set(config.document_layout.table_of_contents_pages).difference` | `unresolved local/third-party receiver; no ownership inferred` |
+| `index.pages.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2319,22 +2617,35 @@ def _validate_document_lock(
             "body_start_page must reference a real indexed page"
         )
     missing_toc_pages = sorted(
-        set(config.document_layout.table_of_contents_pages).difference(
-            indexed_page_set
-        )
+        set(config.document_layout.table_of_contents_pages).difference(indexed_page_set)
     )
     if missing_toc_pages:
         raise PlanningRegulationStructureError(
             "table_of_contents_pages reference nonexistent indexed pages: "
             f"{missing_toc_pages}"
         )
+    table_of_contents_pages = set(config.document_layout.table_of_contents_pages)
+    failed_body_pages = [
+        _strict_positive_integer(row["page_number"], "indexed page number")
+        for row in index.pages.to_dict("records")
+        if _strict_positive_integer(row["page_number"], "indexed page number")
+        >= config.document_layout.body_start_page
+        and row["page_number"] not in table_of_contents_pages
+        and row["extraction_status"] == "ERROR"
+    ]
+    if failed_body_pages:
+        raise PlanningRegulationStructureError(
+            f"Regulation body page extraction status is ERROR: {failed_body_pages}"
+        )
 ```
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_compiled`
+
+**Purpose:** Implements `compiled` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2342,38 +2653,49 @@ def _validate_document_lock(
 def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for compiled; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[re.Pattern[str], ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple((re.compile(pattern) for pattern in patterns))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `patterns` | positional-or-keyword | `Sequence[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `tuple(re.compile(pattern) for pattern in patterns)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_compiled`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_compiled`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_line_records` via `_compiled`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `_compiled`
+- direct call: `landscout.stages.structure_planning_regulation::_heading_events` via `_compiled`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_compiled`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `re.compile` | `re.compile` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2384,9 +2706,11 @@ def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_matches_any`
+
+**Purpose:** Implements `matches any` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2394,38 +2718,50 @@ def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
 def _matches_any(value: str, patterns: Sequence[re.Pattern[str]]) -> bool:
 ```
 
-**Purpose**
-
-Private `planning` helper for matches any; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-any((pattern.fullmatch(value) is not None for pattern in patterns))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `str` | `required` |
+| `patterns` | positional-or-keyword | `Sequence[re.Pattern[str]]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `any(pattern.fullmatch(value) is not None for pattern in patterns)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_retained_page_lines` via `_matches_any`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_matches_any`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_retained_page_lines` via `_matches_any`
+- value/type reference: `landscout.stages.structure_planning_regulation::_retained_page_lines` via `_matches_any`
+- direct call: `landscout.stages.structure_planning_regulation::_heading_events` via `_matches_any`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_matches_any`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pattern.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2436,9 +2772,11 @@ def _matches_any(value: str, patterns: Sequence[re.Pattern[str]]) -> bool:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_retained_page_lines`
+
+**Purpose:** Implements `retained page lines` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2450,37 +2788,59 @@ def _retained_page_lines(
 ) -> list[tuple[int, str]]:
 ```
 
-**Purpose**
-
-Private `planning` helper for retained page lines; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[tuple[int, str]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-lines[start:end]
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `raw_text` | positional-or-keyword | `str` | `required` |
+| `headers` | positional-or-keyword | `Sequence[re.Pattern[str]]` | `required` |
+| `footers` | positional-or-keyword | `Sequence[re.Pattern[str]]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `lines[start:end]`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_retained_page_lines`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_line_records` via `_retained_page_lines`
+- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `_retained_page_lines`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `raw_text.splitlines` | `unresolved local/third-party receiver; no ownership inferred` |
+| `next` | `unresolved local/third-party receiver; no ownership inferred` |
+| `line.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_matches_any` | `landscout.stages.structure_planning_regulation._matches_any` |
+| `lines[first_nonempty][1].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `lines[cursor][1].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `range` | `unresolved local/third-party receiver; no ownership inferred` |
+| `lines[position][1].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `lines[last_nonempty][1].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2496,9 +2856,8 @@ def _retained_page_lines(
         (position for position, (_, line) in enumerate(lines) if line.strip()),
         None,
     )
-    if (
-        first_nonempty is not None
-        and _matches_any(lines[first_nonempty][1].strip(), headers)
+    if first_nonempty is not None and _matches_any(
+        lines[first_nonempty][1].strip(), headers
     ):
         cursor = first_nonempty
         while cursor < len(lines):
@@ -2517,9 +2876,8 @@ def _retained_page_lines(
         ),
         None,
     )
-    if (
-        last_nonempty is not None
-        and _matches_any(lines[last_nonempty][1].strip(), footers)
+    if last_nonempty is not None and _matches_any(
+        lines[last_nonempty][1].strip(), footers
     ):
         cursor = last_nonempty
         while cursor >= start:
@@ -2534,9 +2892,11 @@ def _retained_page_lines(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_line_records`
+
+**Purpose:** Implements `line records` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2547,38 +2907,30 @@ def _line_records(
 ) -> list[_LineRecord]:
 ```
 
-**Purpose**
-
-Private `planning` helper for line records; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[_LineRecord]`.
-- Every observed return expression is reproduced without truncation:
-```python
-records
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not records`.
-- Guard with a raise path: `not isinstance(raw_text, str)`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Page raw text must be a string')`, `PlanningRegulationStructureError('Regulation contains no structural text')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `retained`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `records`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError("Page raw text must be a string")` under lexical guard `not isinstance(raw_text, str)`.
+  - `PlanningRegulationStructureError("Regulation contains no structural text")` under lexical guard `not records`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_line_records`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_line_records`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -2592,13 +2944,45 @@ records
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_line_records`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines` via `_line_records`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged` via `_line_records`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_line_records`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `_line_records`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_line_records`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_positional_header_footer_filter_preserves_matching_body_lines` via `_line_records`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_positional_header_footer_filter_preserves_matching_body_lines` via `_line_records`
+- direct call: `tests.unit.test_structure_planning_regulation::test_page_without_configured_header_or_footer_is_unchanged` via `_line_records`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_page_without_configured_header_or_footer_is_unchanged` via `_line_records`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_line_records`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `_line_records`
+- direct call: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `_line_records`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `_line_records`
+- direct call: `tests.unit.test_structure_planning_regulation::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_line_records`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_line_records`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_compiled` | `landscout.stages.structure_planning_regulation._compiled` |
+| `index.pages.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `retained.extend` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_retained_page_lines` | `landscout.stages.structure_planning_regulation._retained_page_lines` |
+| `_LineRecord` | `landscout.stages.structure_planning_regulation._LineRecord` |
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `retained.extend(<br>            (page_number, line_number, raw_line)<br>            for line_number, raw_line in _retained_page_lines(<br>                raw_text, headers, footers<br>            )<br>        )` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2639,9 +3023,11 @@ def _line_records(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_source_record_payload`
+
+**Purpose:** Implements `source record payload` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2649,37 +3035,44 @@ def _line_records(
 def _source_record_payload(record: _LineRecord) -> dict[str, object]:
 ```
 
-**Purpose**
-
-Private `planning` helper for source record payload; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `dict[str, object]`.
-- Every observed return expression is reproduced without truncation:
-```python
-{'record_id': record.record_id, 'page_number': record.page_number, 'page_line_number': record.page_line_number, 'raw_text': record.raw}
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `record` | positional-or-keyword | `_LineRecord` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `{<br>        "record_id": record.record_id,<br>        "page_number": record.page_number,<br>        "page_line_number": record.page_line_number,<br>        "raw_text": record.raw,<br>    }`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_source_record_payload`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_source_records_sha256` via `_source_record_payload`
+- value/type reference: `landscout.stages.structure_planning_regulation::_source_records_sha256` via `_source_record_payload`
+
+Outbound call expressions and conservative ownership:
+- No calls.
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2695,9 +3088,11 @@ def _source_record_payload(record: _LineRecord) -> dict[str, object]:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_source_records_sha256`
+
+**Purpose:** Implements `source records sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2705,39 +3100,51 @@ def _source_record_payload(record: _LineRecord) -> dict[str, object]:
 def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for source records sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': 'landscout.planning_regulation.source_records', 'section_hash_schema_version': SECTION_HASH_SCHEMA_VERSION, 'records': [_source_record_payload(record) for record in records]})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": "landscout.planning_regulation.source_records",<br>            "section_hash_schema_version": SECTION_HASH_SCHEMA_VERSION,<br>            "records": [_source_record_payload(record) for record in records],<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_source_records_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_source_records_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_source_records_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_source_records_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_source_records_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_source_records_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_source_records_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_source_records_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_source_records_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+| `_source_record_payload` | `landscout.stages.structure_planning_regulation._source_record_payload` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2754,9 +3161,11 @@ def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_canonical_chapter_label`
+
+**Purpose:** Implements `canonical chapter label` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2764,37 +3173,47 @@ def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
 def _canonical_chapter_label(value: str) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for canonical chapter label; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_strict_string(label, 'zone chapter label')
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_strict_string(label, "zone chapter label")`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_canonical_chapter_label`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_heading_events` via `_canonical_chapter_label`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_canonical_chapter_label`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `re.sub` | `re.sub` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2806,9 +3225,11 @@ def _canonical_chapter_label(value: str) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_classify_structural_heading`
+
+**Purpose:** Implements `classify structural heading` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2825,37 +3246,58 @@ def _classify_structural_heading(
 ) -> _StructuralHeadingMatch | None:
 ```
 
-**Purpose**
-
-Private `planning` helper for classify structural heading; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `_StructuralHeadingMatch | None`.
-- Every observed return expression is reproduced without truncation:
-```python
-matches[0] if matches else None
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `len(matches) > 1`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'Ambiguous structural heading at {record.record_id}, page {record.page_number}, line {record.page_line_number}: {diagnostics}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `record` | positional-or-keyword | `_LineRecord` | `required` |
+| `value` | positional-or-keyword | `str` | `required` |
+| `pattern_groups` | positional-or-keyword | `Sequence[tuple[Literal['GENERAL', 'ZONE_CHAPTER', 'ARTICLE'], Sequence[re.Pattern[str]]]]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `matches`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `matches[0] if matches else None`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Ambiguous structural heading at "<br>            f"{record.record_id}, page {record.page_number}, "<br>            f"line {record.page_line_number}: {diagnostics}"<br>        )` under lexical guard `len(matches) > 1`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_heading_events` via `_classify_structural_heading`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_heading_events` via `_classify_structural_heading`
+- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `_classify_structural_heading`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pattern.fullmatch` | `unresolved local/third-party receiver; no ownership inferred` |
+| `matches.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_StructuralHeadingMatch` | `landscout.stages.structure_planning_regulation._StructuralHeadingMatch` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `match.groupdict().items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `match.groupdict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `matches.append(<br>                _StructuralHeadingMatch(<br>                    section_type=section_type,<br>                    pattern_index=pattern_index,<br>                    named_captures=tuple(match.groupdict().items()),<br>                )<br>            )` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2897,9 +3339,11 @@ def _classify_structural_heading(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_heading_events`
+
+**Purpose:** Implements `heading events` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -2910,37 +3354,29 @@ def _heading_events(
 ) -> list[_HeadingEvent]:
 ```
 
-**Purpose**
-
-Private `planning` helper for heading events; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[_HeadingEvent]`.
-- Every observed return expression is reproduced without truncation:
-```python
-events
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not events`.
-- Explicit raise expressions: `PlanningRegulationStructureError('No regulation body headings matched the configured grammar')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `events`, `heading_lines`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `events`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "No regulation body headings matched the configured grammar"<br>        )` under lexical guard `not events`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_heading_events`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_heading_events`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -2954,9 +3390,48 @@ events
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_heading_events`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_heading_events`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_heading_events`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` via `_heading_events`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_compiled` | `landscout.stages.structure_planning_regulation._compiled` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `record.raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_classify_structural_heading` | `landscout.stages.structure_planning_regulation._classify_structural_heading` |
+| `dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `groups.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_canonical_chapter_label` | `landscout.stages.structure_planning_regulation._canonical_chapter_label` |
+| `records[cursor].raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_matches_any` | `landscout.stages.structure_planning_regulation._matches_any` |
+| `heading_lines.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"\n".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `line.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `" ".join([title.strip(), *continuation_titles]).strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `" ".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `title.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `events.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_HeadingEvent` | `landscout.stages.structure_planning_regulation._HeadingEvent` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `heading_lines.append(records[cursor].raw)`<br>`events.append(<br>            _HeadingEvent(<br>                record_position=position,<br>                section_type=section_type,<br>                heading_raw=heading_raw,<br>                heading_normalized=_normalize_search_text(heading_raw),<br>                zone_chapter_label=chapter_label,<br>                article_number_raw=article_number,<br>                article_title_raw=title,<br>            )<br>        )` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3060,9 +3535,11 @@ def _heading_events(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_page_fragments`
+
+**Purpose:** Implements `page fragments` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3070,37 +3547,49 @@ def _heading_events(
 def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for page fragments; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[tuple[int, str], ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple(fragments)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `fragments`, `lines`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `tuple(fragments)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_page_fragments`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_page_fragments`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_page_fragments`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `fragments.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"\n".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `lines.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `fragments.append((current_page, "\n".join(lines)))`<br>`lines.append(record.raw)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3122,9 +3611,11 @@ def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ..
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_contiguous_page_blocks`
+
+**Purpose:** Implements `contiguous page blocks` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3132,39 +3623,49 @@ def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ..
 def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for contiguous page blocks; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[tuple[int, ...], ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple((tuple(block) for block in blocks))
 
-()
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `pages` | positional-or-keyword | `Sequence[int]` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `()`
+  - `tuple(tuple(block) for block in blocks)`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `blocks`, `blocks[-1]`.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_section_starts` via `_contiguous_page_blocks`
+- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `_contiguous_page_blocks`
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `_contiguous_page_blocks`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `blocks[-1].append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `blocks.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `blocks[-1].append(page)`<br>`blocks.append([page])` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3183,9 +3684,11 @@ def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_section_starts`
+
+**Purpose:** Implements `section starts` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3197,37 +3700,69 @@ def _section_starts(
 ) -> list[_SectionBoundary]:
 ```
 
-**Purpose**
-
-Private `planning` helper for section starts; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `list[_SectionBoundary]`.
-- Every observed return expression is reproduced without truncation:
-```python
-coalesced
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not ordered`.
-- Explicit raise expressions: `PlanningRegulationStructureError('No regulation section boundary could be established')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
+| `events` | positional-or-keyword | `Sequence[_HeadingEvent]` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_SectionBoundary`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `coalesced`, `compacted[boundary.record_position]`, `ordered`, `ordered[0]`, `ordered[boundary_index + 1]`, `ordered[boundary_index]`, `record_positions_by_page`, `record_positions_by_page.setdefault(record.page_number, [])`, `starts_by_position[block_end]`, `starts_by_position[block_start]`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `coalesced`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "No regulation section boundary could be established"<br>        )` under lexical guard `not ordered`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_section_starts`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_section_starts`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_section_starts`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_SectionBoundary` | `landscout.stages.structure_planning_regulation._SectionBoundary` |
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `record_positions_by_page.setdefault(record.page_number, []).append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `record_positions_by_page.setdefault` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_contiguous_page_blocks` | `landscout.stages.structure_planning_regulation._contiguous_page_blocks` |
+| `record_positions_by_page.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `min` | `unresolved local/third-party receiver; no ownership inferred` |
+| `max` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `starts_by_position.values` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `records[shifted_position - 1].raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `replace` | `dataclasses.replace` |
+| `compacted.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `compacted.values` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `record.raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `ordered.insert` | `unresolved local/third-party receiver; no ownership inferred` |
+| `coalesced.append` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `record_positions_by_page.setdefault(record.page_number, []).append(position)`<br>`record_positions_by_page.setdefault(record.page_number, [])`<br>`starts_by_position[block_start] = _SectionBoundary(<br>            record_position=block_start,<br>            event=None,<br>            forced_table_of_contents=True,<br>        )`<br>`starts_by_position[block_end] = _SectionBoundary(<br>                record_position=block_end,<br>                event=None,<br>                forced_table_of_contents=False,<br>            )`<br>`ordered[boundary_index] = replace(<br>            boundary,<br>            record_position=shifted_position,<br>        )`<br>`compacted[boundary.record_position] = boundary`<br>`ordered.insert(<br>                0,<br>                _SectionBoundary(<br>                    record_position=0,<br>                    event=None,<br>                    forced_table_of_contents=False,<br>                ),<br>            )`<br>`ordered[0] = replace(first_boundary, record_position=0)`<br>`ordered[boundary_index + 1] = replace(<br>                    ordered[boundary_index + 1],<br>                    record_position=start,<br>                )`<br>`coalesced.append(boundary)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3280,9 +3815,7 @@ def _section_starts(
         if boundary.event is None:
             continue
         minimum_position = (
-            ordered[boundary_index - 1].record_position
-            if boundary_index > 0
-            else 0
+            ordered[boundary_index - 1].record_position if boundary_index > 0 else 0
         )
         shifted_position = boundary.record_position
         while (
@@ -3301,10 +3834,7 @@ def _section_starts(
         if (
             existing is None
             or boundary.forced_table_of_contents
-            or (
-                not existing.forced_table_of_contents
-                and boundary.event is not None
-            )
+            or (not existing.forced_table_of_contents and boundary.event is not None)
         ):
             compacted[boundary.record_position] = boundary
     ordered = sorted(
@@ -3356,9 +3886,11 @@ def _section_starts(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_section_content_sha256`
+
+**Purpose:** Implements `section content sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3366,37 +3898,29 @@ def _section_starts(
 def _section_content_sha256(row: Mapping[str, object]) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for section content sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': 'landscout.planning_regulation.section', 'section_hash_schema_version': SECTION_HASH_SCHEMA_VERSION, 'section': content})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `row` | positional-or-keyword | `Mapping[str, object]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": "landscout.planning_regulation.section",<br>            "section_hash_schema_version": SECTION_HASH_SCHEMA_VERSION,<br>            "section": content,<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_sections` via `_section_content_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `_section_content_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_section_content_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_section_content_sha256`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -3410,16 +3934,39 @@ _canonical_sha256({'domain': 'landscout.planning_regulation.section', 'section_h
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_sections` via `_section_content_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_section_content_sha256`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_section_content_sha256`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_section_content_sha256`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_coordinated_section_row_mutation_is_caught_by_outer_envelope` via `_section_content_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def _section_content_sha256(row: Mapping[str, object]) -> str:
-    content = {column: row[column] for column in SECTION_COLUMNS if column != "section_content_sha256"}
+    content = {
+        column: row[column]
+        for column in SECTION_COLUMNS
+        if column != "section_content_sha256"
+    }
     return _canonical_sha256(
         {
             "domain": "landscout.planning_regulation.section",
@@ -3431,9 +3978,11 @@ def _section_content_sha256(row: Mapping[str, object]) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_build_sections`
+
+**Purpose:** Implements `build sections` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3444,39 +3993,71 @@ def _build_sections(
 ) -> tuple[pd.DataFrame, tuple[_SectionBuild, ...], tuple[_LineRecord, ...]]:
 ```
 
-**Purpose**
-
-Constructs sections; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.DataFrame, tuple[_SectionBuild, ...], tuple[_LineRecord, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(frame, tuple(builds), tuple(records))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `section_type == 'ARTICLE'`.
-- Guard with a raise path: `current_chapter_id is None or current_chapter_label is None`.
-- Guard with a raise path: `event.zone_chapter_label is None or event.zone_chapter_label.casefold() != current_chapter_label.casefold()`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Zone article has no preceding zone chapter')`, `PlanningRegulationStructureError('Zone article label differs from its active chapter')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_section_content_sha256`, `_source_records_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: `builds`, `frame['character_count']`, `frame['end_page']`, `frame['source_record_count']`, `frame['start_page']`, `row['section_content_sha256']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `frame, tuple(builds), tuple(records)`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>                        "Zone article has no preceding zone chapter"<br>                    )` under lexical guard `event is None`.
+  - `PlanningRegulationStructureError(<br>                        "Zone article label differs from its active chapter"<br>                    )` under lexical guard `event is None`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_build_sections`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_sections`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_sections`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_line_records` | `landscout.stages.structure_planning_regulation._line_records` |
+| `_heading_events` | `landscout.stages.structure_planning_regulation._heading_events` |
+| `_section_starts` | `landscout.stages.structure_planning_regulation._section_starts` |
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `next` | `unresolved local/third-party receiver; no ownership inferred` |
+| `record.raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `event.zone_chapter_label.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
+| `current_chapter_label.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_page_fragments` | `landscout.stages.structure_planning_regulation._page_fragments` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `"\n".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_source_records_sha256` | `landscout.stages.structure_planning_regulation._source_records_sha256` |
+| `_section_content_sha256` | `landscout.stages.structure_planning_regulation._section_content_sha256` |
+| `builds.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_SectionBuild` | `landscout.stages.structure_planning_regulation._SectionBuild` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `frame["start_page"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["end_page"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["source_record_count"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["character_count"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_source_records_sha256`<br>`_section_content_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `row["section_content_sha256"] = _section_content_sha256(row)`<br>`builds.append(_SectionBuild(row=row, page_fragments=fragments))`<br>`frame["start_page"] = frame["start_page"].astype("int64")`<br>`frame["end_page"] = frame["end_page"].astype("int64")`<br>`frame["source_record_count"] = frame["source_record_count"].astype("int64")`<br>`frame["character_count"] = frame["character_count"].astype("int64")` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3586,9 +4167,11 @@ def _build_sections(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_source_label_values`
+
+**Purpose:** Implements `validate source label values` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3596,34 +4179,47 @@ def _build_sections(
 def _validate_source_label_values(series: pd.Series, label: str) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent source label values; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `series` | positional-or-keyword | `pd.Series` | `required` |
+| `label` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validated_zoning_inputs` via `_validate_source_label_values`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validated_zoning_inputs` via `_validate_source_label_values`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validated_zoning_inputs` via `_validate_source_label_values`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `series.tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3635,9 +4231,11 @@ def _validate_source_label_values(series: pd.Series, label: str) -> None:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validated_zoning_inputs`
+
+**Purpose:** Implements `validated zoning inputs` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3649,58 +4247,119 @@ def _validated_zoning_inputs(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
 ```
 
-**Purpose**
-
-Checks and returns canonical zoning inputs; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[pd.DataFrame, pd.DataFrame]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(zone_copy, relation_copy)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(zones, pd.DataFrame) or not isinstance(intersections, pd.DataFrame)`.
-- Guard with a raise path: `missing_zones`.
-- Guard with a raise path: `missing_relations`.
-- Guard with a raise path: `zone_copy['planning_zone_id'].duplicated().any()`.
-- Guard with a raise path: `zone_copy['source_zone_id'].duplicated().any()`.
-- Guard with a raise path: `not zone_copy['source_document_id'].eq(index.document_id).all()`.
-- Guard with a raise path: `not zone_copy['source_archive_sha256'].eq(index.archive_sha256).all()`.
-- Guard with a raise path: `relation_copy.duplicated(['parcel_id', 'planning_zone_id']).any()`.
-- Guard with a raise path: `not set(relation_copy['planning_zone_id'].tolist()).issubset(known)`.
-- Guard with a raise path: `not expected_labels.eq(relation_copy['zone_label_raw']).all()`.
-- Guard with a raise path: `not expected_source_ids.eq(relation_copy['source_zone_id']).all()`.
-- Guard with a raise path: `not relation_copy['source_document_id'].eq(index.document_id).all()`.
-- Guard with a raise path: `not relation_copy['source_archive_sha256'].eq(index.archive_sha256).all()`.
-- Guard with a raise path: `not set(relation_copy['relation_type'].tolist()).issubset(allowed_relations)`.
-- Guard with a raise path: `not relation_copy.loc[positive, 'relation_type'].eq('AREA_OVERLAP').all()`.
-- Guard with a raise path: `not relation_copy.loc[~positive, 'relation_type'].eq('TOUCH_ONLY').all()`.
-- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
-- Guard with a raise path: `not math.isfinite(numeric) or numeric < 0`.
-- Guard with a raise path: `isinstance(upper, bool) or not isinstance(upper, Real)`.
-- Guard with a raise path: `not math.isfinite(numeric_upper) or numeric_upper < 0`.
-- Guard with a raise path: `area - numeric_upper > technical_overlay_tolerance(numeric_upper)`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Intersection archive lineage differs from index')`, `PlanningRegulationStructureError('Intersection areas must be finite and non-negative')`, `PlanningRegulationStructureError('Intersection areas must be finite')`, `PlanningRegulationStructureError('Intersection areas must be numeric')`, `PlanningRegulationStructureError('Intersection document lineage differs from index')`, `PlanningRegulationStructureError('Intersection source-zone IDs differ from the zone catalog')`, `PlanningRegulationStructureError('Intersection zone labels differ from the zone catalog')`, `PlanningRegulationStructureError('Parcel/zone intersection pairs must be unique')`, `PlanningRegulationStructureError('Planning zone IDs must be unique')`, `PlanningRegulationStructureError('Positive zoning relations must be AREA_OVERLAP')`, `PlanningRegulationStructureError('Source zone IDs must be unique')`, `PlanningRegulationStructureError('Zero-area zoning relations must be TOUCH_ONLY')`, `PlanningRegulationStructureError('Zone archive lineage differs from index')`, `PlanningRegulationStructureError('Zone document lineage differs from index')`, `PlanningRegulationStructureError('Zones and zoning intersections must be DataFrames')`, `PlanningRegulationStructureError('Zoning intersections reference an unknown planning zone')`, `PlanningRegulationStructureError('Zoning relation type is invalid')`, `PlanningRegulationStructureError(f'Intersection area exceeds {upper_column}')`, `PlanningRegulationStructureError(f'Zone catalog is missing required columns: {missing_zones}')`, `PlanningRegulationStructureError(f'Zoning intersections are missing required columns: {missing_relations}')`, `PlanningRegulationStructureError(f'{upper_column} must be finite and non-negative')`, `PlanningRegulationStructureError(f'{upper_column} must be finite')`, `PlanningRegulationStructureError(f'{upper_column} must be numeric')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `intersections.copy`, `relation_copy.loc[positive, 'relation_type'].eq('AREA_OVERLAP').all`, `relation_copy['intersection_area_m2'].gt`, `relation_copy['intersection_area_m2'].tolist`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `metrics`, `relation_copy['intersection_area_m2']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `zone_copy, relation_copy`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Zones and zoning intersections must be DataFrames"<br>        )` under lexical guard `not isinstance(zones, pd.DataFrame) or not isinstance(<br>        intersections, pd.DataFrame<br>    )`.
+  - `PlanningRegulationStructureError(<br>            f"Zone catalog is missing required columns: {missing_zones}"<br>        )` under lexical guard `missing_zones`.
+  - `PlanningRegulationStructureError(<br>            f"Zoning intersections are missing required columns: {missing_relations}"<br>        )` under lexical guard `missing_relations`.
+  - `PlanningRegulationStructureError("Planning zone IDs must be unique")` under lexical guard `zone_copy["planning_zone_id"].duplicated().any()`.
+  - `PlanningRegulationStructureError("Source zone IDs must be unique")` under lexical guard `zone_copy["source_zone_id"].duplicated().any()`.
+  - `PlanningRegulationStructureError(<br>            "Zone document lineage differs from index"<br>        )` under lexical guard `not zone_copy["source_document_id"].eq(index.document_id).all()`.
+  - `PlanningRegulationStructureError(<br>            "Zone archive lineage differs from index"<br>        )` under lexical guard `not zone_copy["source_archive_sha256"].eq(index.archive_sha256).all()`.
+  - `PlanningRegulationStructureError(<br>            "Parcel/zone intersection pairs must be unique"<br>        )` under lexical guard `relation_copy.duplicated(["parcel_id", "planning_zone_id"]).any()`.
+  - `PlanningRegulationStructureError(<br>            "Zoning intersections reference an unknown planning zone"<br>        )` under lexical guard `not set(relation_copy["planning_zone_id"].tolist()).issubset(known)`.
+  - `PlanningRegulationStructureError(<br>            "Intersection zone labels differ from the zone catalog"<br>        )` under lexical guard `not expected_labels.eq(relation_copy["zone_label_raw"]).all()`.
+  - `PlanningRegulationStructureError(<br>            "Intersection source-zone IDs differ from the zone catalog"<br>        )` under lexical guard `not expected_source_ids.eq(relation_copy["source_zone_id"]).all()`.
+  - `PlanningRegulationStructureError(<br>            "Intersection document lineage differs from index"<br>        )` under lexical guard `not relation_copy["source_document_id"].eq(index.document_id).all()`.
+  - `PlanningRegulationStructureError(<br>            "Intersection archive lineage differs from index"<br>        )` under lexical guard `not relation_copy["source_archive_sha256"].eq(index.archive_sha256).all()`.
+  - `PlanningRegulationStructureError("Zoning relation type is invalid")` under lexical guard `not set(relation_copy["relation_type"].tolist()).issubset(allowed_relations)`.
+  - `PlanningRegulationStructureError("Intersection areas must be numeric")` under lexical guard `isinstance(value, bool) or not isinstance(value, Real)`.
+  - `PlanningRegulationStructureError(<br>                "Intersection areas must be finite"<br>            )`.
+  - `PlanningRegulationStructureError(<br>                "Intersection areas must be finite and non-negative"<br>            )` under lexical guard `not math.isfinite(numeric) or numeric < 0`.
+  - `PlanningRegulationStructureError(<br>            "Positive zoning relations must be AREA_OVERLAP"<br>        )` under lexical guard `not relation_copy.loc[positive, "relation_type"].eq("AREA_OVERLAP").all()`.
+  - `PlanningRegulationStructureError(<br>            "Zero-area zoning relations must be TOUCH_ONLY"<br>        )` under lexical guard `not relation_copy.loc[~positive, "relation_type"].eq("TOUCH_ONLY").all()`.
+  - `PlanningRegulationStructureError(<br>                    f"{upper_column} must be numeric"<br>                )` under lexical guard `isinstance(upper, bool) or not isinstance(upper, Real)`.
+  - `PlanningRegulationStructureError(<br>                    f"{upper_column} must be finite"<br>                )`.
+  - `PlanningRegulationStructureError(<br>                    f"{upper_column} must be finite and non-negative"<br>                )` under lexical guard `not math.isfinite(numeric_upper) or numeric_upper < 0`.
+  - `PlanningRegulationStructureError(<br>                    f"Intersection area exceeds {upper_column}"<br>                )` under lexical guard `area - numeric_upper > technical_overlay_tolerance(numeric_upper)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_validated_zoning_inputs`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `_validated_zoning_inputs`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validated_zoning_inputs`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validated_zoning_inputs`
+- direct call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_validated_zoning_inputs`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_validated_zoning_inputs`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_required.difference` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_required.difference` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zones.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections.copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validate_source_label_values` | `landscout.stages.structure_planning_regulation._validate_source_label_values` |
+| `zone_copy["planning_zone_id"].duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["planning_zone_id"].duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_zone_id"].duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_zone_id"].duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_document_id"].eq(index.document_id).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_document_id"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_archive_sha256"].eq(index.archive_sha256).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["source_archive_sha256"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.duplicated(["parcel_id", "planning_zone_id"]).any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy["planning_zone_id"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set(relation_copy["planning_zone_id"].tolist()).issubset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["planning_zone_id"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zone_copy.set_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["planning_zone_id"].map` | `unresolved local/third-party receiver; no ownership inferred` |
+| `expected_labels.eq(relation_copy["zone_label_raw"]).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `expected_labels.eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `expected_source_ids.eq(relation_copy["source_zone_id"]).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `expected_source_ids.eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["source_document_id"].eq(index.document_id).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["source_document_id"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["source_archive_sha256"].eq(index.archive_sha256).all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["source_archive_sha256"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set(relation_copy["relation_type"].tolist()).issubset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["relation_type"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy["intersection_area_m2"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `float` | `unresolved local/third-party receiver; no ownership inferred` |
+| `math.isfinite` | `math.isfinite` |
+| `metrics.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.Series` | `pandas.Series` |
+| `relation_copy["intersection_area_m2"].gt` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.loc[positive, "relation_type"].eq("AREA_OVERLAP").all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.loc[positive, "relation_type"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.loc[~positive, "relation_type"].eq("TOUCH_ONLY").all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy.loc[~positive, "relation_type"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `relation_copy[upper_column].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `technical_overlay_tolerance` | `landscout.stages.planning_overlay.technical_overlay_tolerance` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `zone_copy["source_archive_sha256"].eq(index.archive_sha256).all`<br>`zone_copy["source_archive_sha256"].eq`<br>`relation_copy["source_archive_sha256"].eq(index.archive_sha256).all`<br>`relation_copy["source_archive_sha256"].eq` |
+| CRS/geometry/spatial calculation | `technical_overlay_tolerance` |
+| External process/environment | None directly present. |
+| In-memory mutation | `metrics.append(numeric)`<br>`relation_copy["intersection_area_m2"] = pd.Series(<br>        metrics, index=relation_copy.index, dtype="float64"<br>    )` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3710,7 +4369,9 @@ def _validated_zoning_inputs(
     zones: pd.DataFrame,
     intersections: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    if not isinstance(zones, pd.DataFrame) or not isinstance(intersections, pd.DataFrame):
+    if not isinstance(zones, pd.DataFrame) or not isinstance(
+        intersections, pd.DataFrame
+    ):
         raise PlanningRegulationStructureError(
             "Zones and zoning intersections must be DataFrames"
         )
@@ -3753,9 +4414,13 @@ def _validated_zoning_inputs(
     for column in ("source_document_id", "source_archive_sha256"):
         _validate_source_label_values(zone_copy[column], f"zone {column}")
     if not zone_copy["source_document_id"].eq(index.document_id).all():
-        raise PlanningRegulationStructureError("Zone document lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Zone document lineage differs from index"
+        )
     if not zone_copy["source_archive_sha256"].eq(index.archive_sha256).all():
-        raise PlanningRegulationStructureError("Zone archive lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Zone archive lineage differs from index"
+        )
     for column in ("parcel_id", "planning_zone_id", "source_zone_id", "zone_label_raw"):
         _validate_source_label_values(relation_copy[column], f"intersection {column}")
     if relation_copy.duplicated(["parcel_id", "planning_zone_id"]).any():
@@ -3796,9 +4461,7 @@ def _validated_zoning_inputs(
     metrics: list[float] = []
     for value in relation_copy["intersection_area_m2"].tolist():
         if isinstance(value, bool) or not isinstance(value, Real):
-            raise PlanningRegulationStructureError(
-                "Intersection areas must be numeric"
-            )
+            raise PlanningRegulationStructureError("Intersection areas must be numeric")
         try:
             numeric = float(value)
         except (TypeError, ValueError, OverflowError) as error:
@@ -3815,9 +4478,13 @@ def _validated_zoning_inputs(
     )
     positive = relation_copy["intersection_area_m2"].gt(0)
     if not relation_copy.loc[positive, "relation_type"].eq("AREA_OVERLAP").all():
-        raise PlanningRegulationStructureError("Positive zoning relations must be AREA_OVERLAP")
+        raise PlanningRegulationStructureError(
+            "Positive zoning relations must be AREA_OVERLAP"
+        )
     if not relation_copy.loc[~positive, "relation_type"].eq("TOUCH_ONLY").all():
-        raise PlanningRegulationStructureError("Zero-area zoning relations must be TOUCH_ONLY")
+        raise PlanningRegulationStructureError(
+            "Zero-area zoning relations must be TOUCH_ONLY"
+        )
     for upper_column in ("parcel_metric_area_m2", "zone_area_m2"):
         if upper_column not in relation_copy.columns:
             continue
@@ -3849,9 +4516,11 @@ def _validated_zoning_inputs(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_input_frame_sha256`
+
+**Purpose:** Implements `input frame sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3863,38 +4532,52 @@ def _input_frame_sha256(
 ) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for input frame sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': domain, 'columns': list(columns), 'rows': frame.loc[:, columns].to_dict('records')})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `domain` | positional-or-keyword | `str` | `required` |
+| `frame` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `columns` | positional-or-keyword | `Sequence[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": domain,<br>            "columns": list(columns),<br>            "rows": frame.loc[:, columns].to_dict("records"),<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_input_frame_sha256`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_input_frame_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_input_frame_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_input_frame_sha256`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_input_frame_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_input_frame_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.loc[:, columns].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3915,9 +4598,11 @@ def _input_frame_sha256(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_intersection_hash_columns`
+
+**Purpose:** Implements `intersection hash columns` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3925,38 +4610,48 @@ def _input_frame_sha256(
 def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for intersection hash columns; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[str, ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-_REQUIRED_INTERSECTION_INPUT_COLUMNS + tuple((column for column in _OPTIONAL_INTERSECTION_INPUT_COLUMNS if column in frame.columns))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `pd.DataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_REQUIRED_INTERSECTION_INPUT_COLUMNS + tuple(<br>        column<br>        for column in _OPTIONAL_INTERSECTION_INPUT_COLUMNS<br>        if column in frame.columns<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_intersection_hash_columns`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_intersection_hash_columns`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_intersection_hash_columns`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_intersection_hash_columns`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_intersection_hash_columns`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_intersection_hash_columns`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3971,9 +4666,11 @@ def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_resolved_alias`
+
+**Purpose:** Implements `resolved alias` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -3981,40 +4678,53 @@ def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
 def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
 ```
 
-**Purpose**
-
-Private `planning` helper for resolved alias; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str | None`.
-- Every observed return expression is reproduced without truncation:
-```python
-current
 
-None
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `label` | positional-or-keyword | `str` | `required` |
+| `aliases` | positional-or-keyword | `Mapping[str, str]` | `required` |
 
-- Guard with a raise path: `current in visited`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Zone alias cycle is invalid')`.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `None`
+  - `current`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError("Zone alias cycle is invalid")` under lexical guard `current in visited`.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `visited`.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_resolved_alias`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_resolved_alias`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_resolved_alias`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `_resolved_alias`
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_resolved_alias`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_resolved_alias`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `visited.add` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `visited.add(current)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4034,9 +4744,11 @@ def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_dominant_counts`
+
+**Purpose:** Implements `dominant counts` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4044,39 +4756,52 @@ def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
 def _dominant_counts(intersections: pd.DataFrame) -> Counter[str]:
 ```
 
-**Purpose**
-
-Private `planning` helper for dominant counts; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `Counter[str]`.
-- Every observed return expression is reproduced without truncation:
-```python
-Counter(selected['zone_label_raw'].tolist())
 
-Counter()
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `Counter()`
+  - `Counter(selected["zone_label_raw"].tolist())`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `intersections.loc[intersections['intersection_area_m2'].gt(0), ['parcel_id', 'planning_zone_id', 'zone_label_raw', 'intersection_area_m2']].copy`, `intersections['intersection_area_m2'].gt`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_dominant_counts`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `_dominant_counts`
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_dominant_counts`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `intersections.loc[<br>        intersections["intersection_area_m2"].gt(0),<br>        ["parcel_id", "planning_zone_id", "zone_label_raw", "intersection_area_m2"],<br>    ].copy` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections["intersection_area_m2"].gt` | `unresolved local/third-party receiver; no ownership inferred` |
+| `Counter` | `collections.Counter` |
+| `positive.sort_values` | `unresolved local/third-party receiver; no ownership inferred` |
+| `positive.drop_duplicates` | `unresolved local/third-party receiver; no ownership inferred` |
+| `selected["zone_label_raw"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4099,9 +4824,11 @@ def _dominant_counts(intersections: pd.DataFrame) -> Counter[str]:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_build_zone_mapping`
+
+**Purpose:** Implements `build zone mapping` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4115,37 +4842,75 @@ def _build_zone_mapping(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Constructs zone mapping; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `unresolved_dominant`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'Dominant candidate zone labels lack an exact configured chapter mapping: {unresolved_dominant}')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
+| `sections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `intersections.groupby`, `intersections.groupby('zone_label_raw', sort=False)['parcel_id'].nunique`, `intersections.groupby('zone_label_raw', sort=False)['parcel_id'].nunique().to_dict`, `intersections['zone_label_raw'].tolist`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `chapters_by_label`, `chapters_by_label.setdefault(label, [])`, `frame[column]`, `rows`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `frame`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Dominant candidate zone labels lack an exact configured chapter mapping: "<br>            f"{unresolved_dominant}"<br>        )` under lexical guard `unresolved_dominant`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_build_zone_mapping`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_zone_mapping`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_zone_mapping`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `sections["section_type"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
+| `chapters.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `chapters_by_label.setdefault(label, []).append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `chapters_by_label.setdefault` | `unresolved local/third-party receiver; no ownership inferred` |
+| `Counter` | `collections.Counter` |
+| `zones["zone_label_raw"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections.groupby("zone_label_raw", sort=False)["parcel_id"]<br>        .nunique()<br>        .to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections.groupby("zone_label_raw", sort=False)["parcel_id"]<br>        .nunique` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections.groupby` | `unresolved local/third-party receiver; no ownership inferred` |
+| `intersections["zone_label_raw"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_dominant_counts` | `landscout.stages.structure_planning_regulation._dominant_counts` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `chapters_by_label.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_resolved_alias` | `landscout.stages.structure_planning_regulation._resolved_alias` |
+| `rows.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `int` | `unresolved local/third-party receiver; no ownership inferred` |
+| `parcel_counts.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `frame[column].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.loc[<br>        frame["dominant_candidate_count"].gt(0)<br>        & ~frame["mapping_status"].isin({"EXACT", "CONFIG_ALIAS"}),<br>        "source_zone_label_raw",<br>    ].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["dominant_candidate_count"].gt` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["mapping_status"].isin` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `chapters_by_label.setdefault(label, []).append(row["section_id"])`<br>`chapters_by_label.setdefault(label, [])`<br>`rows.append(<br>            {<br>                "source_zone_label_raw": label,<br>                "resolved_zone_chapter_label": resolved,<br>                "mapping_status": status,<br>                "mapping_method": method,<br>                "matched_section_id": matched,<br>                "zone_polygon_count": zone_counts[label],<br>                "candidate_parcel_count": int(parcel_counts.get(label, 0)),<br>                "candidate_intersection_count": intersection_counts[label],<br>                "dominant_candidate_count": dominant_counts[label],<br>                "document_id": index.document_id,<br>                "archive_sha256": index.archive_sha256,<br>                "pdf_sha256": index.pdf_sha256,<br>                "index_content_sha256": index.index_content_sha256,<br>                "structure_profile": config.structure_profile,<br>            }<br>        )`<br>`frame[column] = frame[column].astype("int64")` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4166,7 +4931,11 @@ def _build_zone_mapping(
         label = _strict_string(row["zone_chapter_label"], "zone chapter label")
         chapters_by_label.setdefault(label, []).append(row["section_id"])
     zone_counts = Counter(zones["zone_label_raw"].tolist())
-    parcel_counts = intersections.groupby("zone_label_raw", sort=False)["parcel_id"].nunique().to_dict()
+    parcel_counts = (
+        intersections.groupby("zone_label_raw", sort=False)["parcel_id"]
+        .nunique()
+        .to_dict()
+    )
     intersection_counts = Counter(intersections["zone_label_raw"].tolist())
     dominant_counts = _dominant_counts(intersections)
     rows: list[dict[str, object]] = []
@@ -4239,9 +5008,11 @@ def _build_zone_mapping(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_is_token_character`
+
+**Purpose:** Implements `is token character` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4249,37 +5020,46 @@ def _build_zone_mapping(
 def _is_token_character(value: str) -> bool:
 ```
 
-**Purpose**
-
-Tests whether token character; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-value.isalnum() or value == '_'
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `str` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `value.isalnum() or value == "_"`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_literal_topic_matches` via `_is_token_character`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_literal_topic_matches` via `_is_token_character`
+- value/type reference: `landscout.stages.structure_planning_regulation::_literal_topic_matches` via `_is_token_character`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `value.isalnum` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4290,9 +5070,11 @@ def _is_token_character(value: str) -> bool:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_literal_topic_matches`
+
+**Purpose:** Implements `literal topic matches` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4303,37 +5085,30 @@ def _literal_topic_matches(
 ) -> tuple[_TopicMatch, ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for literal topic matches; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[_TopicMatch, ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple(sorted(selected, key=lambda item: (item.normalized_start, item.term_index)))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `normalized_text` | positional-or-keyword | `str` | `required` |
+| `terms` | positional-or-keyword | `Sequence[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `candidates`, `selected`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `tuple(<br>        sorted(<br>            selected,<br>            key=lambda item: (item.normalized_start, item.term_index),<br>        )<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_literal_topic_matches`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_literal_topic_matches`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_literal_topic_matches`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_literal_topic_matches`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -4347,11 +5122,41 @@ tuple(sorted(selected, key=lambda item: (item.normalized_start, item.term_index)
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `_literal_topic_matches`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_literal_topic_matches`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_literal_topic_matches`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy` via `_literal_topic_matches`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_literal_topic_matches`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `_literal_topic_matches`
+- direct call: `tests.unit.test_structure_planning_regulation::test_token_boundary_and_longest_match_policy` via `_literal_topic_matches`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_token_boundary_and_longest_match_policy` via `_literal_topic_matches`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `normalized_text.find` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_is_token_character` | `landscout.stages.structure_planning_regulation._is_token_character` |
+| `candidates.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_TopicMatch` | `landscout.stages.structure_planning_regulation._TopicMatch` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `selected.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `candidates.append(<br>                    _TopicMatch(<br>                        term_index=term_index,<br>                        search_term=search_term,<br>                        normalized_term=normalized_term,<br>                        normalized_start=start,<br>                        normalized_end=end,<br>                    )<br>                )`<br>`selected.append(candidate)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4410,9 +5215,11 @@ def _literal_topic_matches(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_evidence_scope`
+
+**Purpose:** Implements `evidence scope` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4420,42 +5227,51 @@ def _literal_topic_matches(
 def _evidence_scope(section_type: str) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for evidence scope; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-'GENERAL_RULE'
 
-'ZONE_SPECIFIC_RULE'
+**Inputs**
 
-'OTHER_TEXT'
-```
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `section_type` | positional-or-keyword | `str` | `required` |
 
-**Validation and exceptions**
+**Return and exception contract**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError('Topic evidence references an unsupported section type')`.
+- Exact observed return expressions:
+  - `"GENERAL_RULE"`
+  - `"ZONE_SPECIFIC_RULE"`
+  - `"OTHER_TEXT"`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>        "Topic evidence references an unsupported section type"<br>    )`.
 
-**Side effects**
+**Qualified relationships**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_evidence_scope`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `_evidence_scope`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_evidence_scope`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_evidence_scope`
 
-**Repository interfaces and consumers**
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_topic_evidence` via `_evidence_scope`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_evidence_scope`.
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4474,9 +5290,11 @@ def _evidence_scope(section_type: str) -> str:
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_build_topic_evidence`
+
+**Purpose:** Implements `build topic evidence` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4488,39 +5306,66 @@ def _build_topic_evidence(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Constructs topic evidence; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame
 
-pd.DataFrame({column: pd.Series(dtype='int64' if column in {'page_number', 'occurrence_count', 'first_match_normalized_start', 'first_match_normalized_end', 'first_match_raw_start', 'first_match_raw_end'} else 'object') for column in TOPIC_EVIDENCE_COLUMNS})
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
+| `builds` | positional-or-keyword | `Sequence[_SectionBuild]` | `required` |
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `pd.DataFrame(<br>            {<br>                column: pd.Series(<br>                    dtype=(<br>                        "int64"<br>                        if column<br>                        in {<br>                            "page_number",<br>                            "occurrence_count",<br>                            "first_match_normalized_start",<br>                            "first_match_normalized_end",<br>                            "first_match_raw_start",<br>                            "first_match_raw_end",<br>                        }<br>                        else "object"<br>                    )<br>                )<br>                for column in TOPIC_EVIDENCE_COLUMNS<br>            }<br>        )`
+  - `frame`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `by_term`, `by_term.setdefault(match.term_index, [])`, `frame[column]`, `rows`.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_topic_evidence`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_build_topic_evidence`
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_build_topic_evidence`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text_with_mapping` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_literal_topic_matches` | `landscout.stages.structure_planning_regulation._literal_topic_matches` |
+| `by_term.setdefault(match.term_index, []).append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `by_term.setdefault` | `unresolved local/third-party receiver; no ownership inferred` |
+| `range` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `by_term.get` | `unresolved local/third-party receiver; no ownership inferred` |
+| `max` | `unresolved local/third-party receiver; no ownership inferred` |
+| `min` | `unresolved local/third-party receiver; no ownership inferred` |
+| `rows.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_evidence_scope` | `landscout.stages.structure_planning_regulation._evidence_scope` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_raw_context` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `pd.Series` | `pandas.Series` |
+| `frame[column].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `by_term.setdefault(match.term_index, []).append(match)`<br>`by_term.setdefault(match.term_index, [])`<br>`rows.append(<br>                        {<br>                            "topic": topic,<br>                            "search_term": first.search_term,<br>                            "normalized_search_term": first.normalized_term,<br>                            "match_policy": config.topic_match_policy.identifier,<br>                            "section_id": section["section_id"],<br>                            "evidence_scope": _evidence_scope(<br>                                str(section["section_type"])<br>                            ),<br>                            "zone_chapter_label": zone_label,<br>                            "article_number_raw": section["article_number_raw"],<br>                            "page_number": page_number,<br>                            "occurrence_count": len(retained),<br>                            "first_match_normalized_start": first.normalized_start,<br>                            "first_match_normalized_end": first.normalized_end,<br>                            "first_match_raw_start": raw_start,<br>                            "first_match_raw_end": raw_end,<br>                            "raw_context": _raw_context(<br>                                raw_fragment, spans, context_start, context_end<br>                            ),<br>                            "normalized_context": normalized[context_start:context_end],<br>                            "document_id": index.document_id,<br>                            "archive_sha256": index.archive_sha256,<br>                            "pdf_sha256": index.pdf_sha256,<br>                            "index_content_sha256": index.index_content_sha256,<br>                            "structure_profile": config.structure_profile,<br>                        }<br>                    )`<br>`frame[column] = frame[column].astype("int64")` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4553,9 +5398,7 @@ def _build_topic_evidence(
                     if not retained:
                         continue
                     first = retained[0]
-                    context_start = max(
-                        0, first.normalized_start - context_characters
-                    )
+                    context_start = max(0, first.normalized_start - context_characters)
                     context_end = min(
                         len(normalized),
                         first.normalized_end + context_characters,
@@ -4584,9 +5427,7 @@ def _build_topic_evidence(
                             "raw_context": _raw_context(
                                 raw_fragment, spans, context_start, context_end
                             ),
-                            "normalized_context": normalized[
-                                context_start:context_end
-                            ],
+                            "normalized_context": normalized[context_start:context_end],
                             "document_id": index.document_id,
                             "archive_sha256": index.archive_sha256,
                             "pdf_sha256": index.pdf_sha256,
@@ -4630,9 +5471,11 @@ def _build_topic_evidence(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_frame_hash`
+
+**Purpose:** Implements `frame hash` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4645,37 +5488,51 @@ def _frame_hash(
 ) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for frame hash; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': domain, 'section_hash_schema_version': result.section_hash_schema_version, 'document_id': result.document_id, 'archive_sha256': result.archive_sha256, 'pdf_sha256': result.pdf_sha256, 'index_content_sha256': result.index_content_sha256, 'structure_profile': result.structure_profile, 'structure_config_schema_version': result.structure_config_schema_version, 'structure_config_sha256': result.structure_config_sha256, 'zones_content_sha256': result.zones_content_sha256, 'zoning_intersection_hash_columns': list(result.zoning_intersection_hash_columns), 'zoning_intersections_content_sha256': result.zoning_intersections_content_sha256, 'source_records_sha256': result.source_records_sha256, 'rows': frame.loc[:, columns].to_dict('records')})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `domain` | positional-or-keyword | `str` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `frame` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `columns` | positional-or-keyword | `Sequence[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": domain,<br>            "section_hash_schema_version": result.section_hash_schema_version,<br>            "document_id": result.document_id,<br>            "archive_sha256": result.archive_sha256,<br>            "pdf_sha256": result.pdf_sha256,<br>            "index_content_sha256": result.index_content_sha256,<br>            "structure_profile": result.structure_profile,<br>            "structure_config_schema_version": result.structure_config_schema_version,<br>            "structure_config_sha256": result.structure_config_sha256,<br>            "zones_content_sha256": result.zones_content_sha256,<br>            "zoning_intersection_hash_columns": list(<br>                result.zoning_intersection_hash_columns<br>            ),<br>            "zoning_intersections_content_sha256": (<br>                result.zoning_intersections_content_sha256<br>            ),<br>            "source_records_sha256": result.source_records_sha256,<br>            "rows": frame.loc[:, columns].to_dict("records"),<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` via `_frame_hash`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_result_with_hashes` via `_frame_hash`
+- value/type reference: `landscout.stages.structure_planning_regulation::_result_with_hashes` via `_frame_hash`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.loc[:, columns].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4712,9 +5569,11 @@ def _frame_hash(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_structure_result_content_sha256`
+
+**Purpose:** Implements `structure result content sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4724,37 +5583,47 @@ def _structure_result_content_sha256(
 ) -> str:
 ```
 
-**Purpose**
-
-Private `planning` helper for structure result content sha256; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_sha256({'domain': 'landscout.planning_regulation.structure_result', 'document_id': result.document_id, 'archive_sha256': result.archive_sha256, 'pdf_sha256': result.pdf_sha256, 'index_content_sha256': result.index_content_sha256, 'structure_profile': result.structure_profile, 'structure_config_schema_version': result.structure_config_schema_version, 'structure_config_sha256': result.structure_config_sha256, 'zones_content_sha256': result.zones_content_sha256, 'zoning_intersection_hash_columns': list(result.zoning_intersection_hash_columns), 'zoning_intersections_content_sha256': result.zoning_intersections_content_sha256, 'source_records_sha256': result.source_records_sha256, 'section_hash_schema_version': result.section_hash_schema_version, 'sections_content_sha256': result.sections_content_sha256, 'zone_map_content_sha256': result.zone_map_content_sha256, 'topic_evidence_content_sha256': result.topic_evidence_content_sha256})
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_sha256(<br>        {<br>            "domain": "landscout.planning_regulation.structure_result",<br>            "document_id": result.document_id,<br>            "archive_sha256": result.archive_sha256,<br>            "pdf_sha256": result.pdf_sha256,<br>            "index_content_sha256": result.index_content_sha256,<br>            "structure_profile": result.structure_profile,<br>            "structure_config_schema_version": result.structure_config_schema_version,<br>            "structure_config_sha256": result.structure_config_sha256,<br>            "zones_content_sha256": result.zones_content_sha256,<br>            "zoning_intersection_hash_columns": list(<br>                result.zoning_intersection_hash_columns<br>            ),<br>            "zoning_intersections_content_sha256": (<br>                result.zoning_intersections_content_sha256<br>            ),<br>            "source_records_sha256": result.source_records_sha256,<br>            "section_hash_schema_version": result.section_hash_schema_version,<br>            "sections_content_sha256": result.sections_content_sha256,<br>            "zone_map_content_sha256": result.zone_map_content_sha256,<br>            "topic_evidence_content_sha256": result.topic_evidence_content_sha256,<br>        }<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_result_with_hashes` via `_structure_result_content_sha256`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_result_with_hashes` via `_structure_result_content_sha256`
+- value/type reference: `landscout.stages.structure_planning_regulation::_result_with_hashes` via `_structure_result_content_sha256`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
+| `list` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_canonical_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4790,9 +5659,11 @@ def _structure_result_content_sha256(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_result_with_hashes`
+
+**Purpose:** Implements `result with hashes` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4802,40 +5673,38 @@ def _result_with_hashes(
 ) -> PlanningRegulationStructureResult:
 ```
 
-**Purpose**
-
-Private `planning` helper for result with hashes; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `PlanningRegulationStructureResult`.
-- Every observed return expression is reproduced without truncation:
-```python
-replace(component_result, structure_result_content_sha256=_structure_result_content_sha256(component_result))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_frame_hash`, `_structure_result_content_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `replace(<br>        component_result,<br>        structure_result_content_sha256=_structure_result_content_sha256(<br>            component_result<br>        ),<br>    )`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_result_with_hashes`
+- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `_result_with_hashes`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_result_with_hashes`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_result_with_hashes`
+- import: `tests.unit.test_interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     _result_with_hashes as _structure_with_hashes,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_unmapped_dominant_zone_is_rejected` via `_structure_with_hashes`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_unmapped_dominant_zone_is_rejected` via `_structure_with_hashes`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_structure_config_and_hierarchy_changes_are_rejected` via `_structure_with_hashes`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_structure_config_and_hierarchy_changes_are_rejected` via `_structure_with_hashes`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_factual_zone_mapping_counts_are_recomputed` via `_structure_with_hashes`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_factual_zone_mapping_counts_are_recomputed` via `_structure_with_hashes`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -4849,13 +5718,31 @@ replace(component_result, structure_result_content_sha256=_structure_result_cont
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_result_with_hashes`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_result_with_hashes`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `_structure_with_hashes`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `_structure_with_hashes`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `_structure_with_hashes`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_result_with_hashes`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_result_with_hashes`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` via `_result_with_hashes`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `replace` | `dataclasses.replace` |
+| `_frame_hash` | `landscout.stages.structure_planning_regulation._frame_hash` |
+| `_structure_result_content_sha256` | `landscout.stages.structure_planning_regulation._structure_result_content_sha256` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_frame_hash`<br>`_structure_result_content_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4894,9 +5781,11 @@ def _result_with_hashes(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_page_tuple`
+
+**Purpose:** Implements `page tuple` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4904,53 +5793,73 @@ def _result_with_hashes(
 def _page_tuple(value: object) -> tuple[int, ...]:
 ```
 
-**Purpose**
-
-Private `planning` helper for page tuple; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[int, ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple((_strict_positive_integer(item, 'section page number') for item in value))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(value, (tuple, list, np.ndarray))`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Section page_numbers must be a sequence')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `value` | positional-or-keyword | `object` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `tuple(<br>        _strict_positive_integer(item, "section page number") for item in value<br>    )`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Section page_numbers must be a sequence"<br>        )` under lexical guard `not isinstance(value, (tuple, list, np.ndarray))`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_page_tuple`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_page_tuple`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_sections` via `_page_tuple`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `_page_tuple`
+- direct call: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_page_tuple`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `_page_tuple`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
 ```python
 def _page_tuple(value: object) -> tuple[int, ...]:
     if not isinstance(value, (tuple, list, np.ndarray)):
-        raise PlanningRegulationStructureError("Section page_numbers must be a sequence")
-    return tuple(_strict_positive_integer(item, "section page number") for item in value)
+        raise PlanningRegulationStructureError(
+            "Section page_numbers must be a sequence"
+        )
+    return tuple(
+        _strict_positive_integer(item, "section page number") for item in value
+    )
 ```
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_sections`
+
+**Purpose:** Implements `validate sections` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -4963,69 +5872,110 @@ def _validate_sections(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent sections; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != SECTION_COLUMNS`.
-- Guard with a raise path: `frame.empty`.
-- Guard with a raise path: `result.source_records_sha256 != _source_records_sha256(records)`.
-- Guard with a raise path: `expected_record_start != len(records)`.
-- Guard with a raise path: `len(set(ids)) != len(ids)`.
-- Guard with a raise path: `section_id != f'SECTION-{sequence:04d}'`.
-- Guard with a raise path: `section_type not in _SECTION_TYPES`.
-- Guard with a raise path: `row['heading_normalized'] != _normalize_search_text(row['heading_raw'])`.
-- Guard with a raise path: `row['normalized_text'] != _normalize_search_text(row['raw_text'])`.
-- Guard with a raise path: `_strict_nonnegative_integer(row['character_count'], 'character count') != len(row['raw_text'])`.
-- Guard with a raise path: `start_record_id not in record_position or end_record_id not in record_position`.
-- Guard with a raise path: `start_record != expected_record_start or end_record < start_record`.
-- Guard with a raise path: `not row['raw_text'].strip() and (not blank_toc_other)`.
-- Guard with a raise path: `not row['heading_raw'].strip() and (not blank_toc_other)`.
-- Guard with a raise path: `_strict_positive_integer(row['source_record_count'], 'source record count') != len(segment)`.
-- Guard with a raise path: `_validated_sha256(row['source_records_sha256'], 'section source-record SHA256') != _source_records_sha256(segment)`.
-- Guard with a raise path: `row['raw_text'] != '\n'.join((record.raw for record in segment))`.
-- Guard with a raise path: `not pages or any((right <= left for left, right in pairwise(pages))) or (not set(pages).issubset(known_pages)) or (pages != expected_pages)`.
-- Guard with a raise path: `start != pages[0] or end != pages[-1] or end < start`.
-- Guard with a raise path: `_validated_sha256(row['section_content_sha256'], 'section content SHA256') != expected_hash`.
-- Guard with a raise path: `section_type == 'ARTICLE'`.
-- Guard with a raise path: `parent not in type_by_id or type_by_id[parent] != 'ZONE_CHAPTER'`.
-- Guard with a raise path: `section_type != 'ARTICLE'`.
-- Guard with a raise path: `order_by_id[parent] >= order_by_id[section_id]`.
-- Guard with a raise path: `zone_by_id[parent] != zone_by_id[section_id]`.
-- Guard with a raise path: `not isinstance(row[column], str)`.
-- Guard with a raise path: `row[column] != actual`.
-- Guard with a raise path: `zone_label is None`.
-- Guard with a raise path: `section_id not in parents`.
-- Guard with a raise path: `section_type == 'GENERAL'`.
-- Guard with a raise path: `zone_label is not None or section_id in parents`.
-- Guard with a raise path: `section_id in parents`.
-- Guard with a raise path: `section_type == 'ZONE_CHAPTER'`.
-- Guard with a raise path: `zone_label is None`.
-- Guard with a raise path: `zone_label is not None`.
-- Guard with a raise path: `value is not None and (not bool(pd.isna(value)))`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Article parent is missing')`, `PlanningRegulationStructureError('Article parent must occur earlier in source order')`, `PlanningRegulationStructureError('Article parent section is invalid')`, `PlanningRegulationStructureError('Article zone label differs from its parent chapter')`, `PlanningRegulationStructureError('Article zone label is missing')`, `PlanningRegulationStructureError('Every nonblank section must retain a factual heading')`, `PlanningRegulationStructureError('General section cannot have a zone label or parent')`, `PlanningRegulationStructureError('OTHER section cannot have a zone label')`, `PlanningRegulationStructureError('Only an explicit TOC OTHER section may contain blank-only text')`, `PlanningRegulationStructureError('Only articles may have a parent section')`, `PlanningRegulationStructureError('Regulation sections must not be empty')`, `PlanningRegulationStructureError('Retained source records are omitted from the section partition')`, `PlanningRegulationStructureError('Retained source-record hash differs')`, `PlanningRegulationStructureError('Section IDs must be deterministic and sequential')`, `PlanningRegulationStructureError('Section IDs must be unique')`, `PlanningRegulationStructureError('Section character count differs')`, `PlanningRegulationStructureError('Section content hash differs')`, `PlanningRegulationStructureError('Section heading normalization differs')`, `PlanningRegulationStructureError('Section lineage differs')`, `PlanningRegulationStructureError('Section page range is invalid or unordered')`, `PlanningRegulationStructureError('Section page references are invalid')`, `PlanningRegulationStructureError('Section raw text differs from its retained source records')`, `PlanningRegulationStructureError('Section record boundary is unknown')`, `PlanningRegulationStructureError('Section schema is not deterministic')`, `PlanningRegulationStructureError('Section source-record count differs')`, `PlanningRegulationStructureError('Section source-record hash differs')`, `PlanningRegulationStructureError('Section text normalization differs')`, `PlanningRegulationStructureError('Section type is invalid')`, `PlanningRegulationStructureError('Sections do not preserve the exact source-record partition')`, `PlanningRegulationStructureError('Zone chapter label is missing')`, `PlanningRegulationStructureError('Zone chapter or OTHER section cannot have a parent')`, `PlanningRegulationStructureError(f'Section {column} must be a string')`, `PlanningRegulationStructureError(f'{section_type} {label} must be null')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_section_content_sha256`, `_source_records_sha256`, `_validated_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: `ids`, `parents[section_id]`, `zone_by_id[section_id]`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError("Section schema is not deterministic")` under lexical guard `not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != SECTION_COLUMNS`.
+  - `PlanningRegulationStructureError("Regulation sections must not be empty")` under lexical guard `frame.empty`.
+  - `PlanningRegulationStructureError("Retained source-record hash differs")` under lexical guard `result.source_records_sha256 != _source_records_sha256(records)`.
+  - `PlanningRegulationStructureError(<br>                "Section IDs must be deterministic and sequential"<br>            )` under lexical guard `section_id != f"SECTION-{sequence:04d}"`.
+  - `PlanningRegulationStructureError("Section type is invalid")` under lexical guard `section_type not in _SECTION_TYPES`.
+  - `PlanningRegulationStructureError(<br>                    f"Section {column} must be a string"<br>                )` under lexical guard `not isinstance(row[column], str)`.
+  - `PlanningRegulationStructureError(<br>                "Section heading normalization differs"<br>            )` under lexical guard `row["heading_normalized"] != _normalize_search_text(row["heading_raw"])`.
+  - `PlanningRegulationStructureError("Section text normalization differs")` under lexical guard `row["normalized_text"] != _normalize_search_text(row["raw_text"])`.
+  - `PlanningRegulationStructureError("Section character count differs")` under lexical guard `_strict_nonnegative_integer(<br>            row["character_count"], "character count"<br>        ) != len(row["raw_text"])`.
+  - `PlanningRegulationStructureError("Section record boundary is unknown")` under lexical guard `start_record_id not in record_position<br>            or end_record_id not in record_position`.
+  - `PlanningRegulationStructureError(<br>                "Sections do not preserve the exact source-record partition"<br>            )` under lexical guard `start_record != expected_record_start or end_record < start_record`.
+  - `PlanningRegulationStructureError(<br>                "Only an explicit TOC OTHER section may contain blank-only text"<br>            )` under lexical guard `not row["raw_text"].strip() and not blank_toc_other`.
+  - `PlanningRegulationStructureError(<br>                "Every nonblank section must retain a factual heading"<br>            )` under lexical guard `not row["heading_raw"].strip() and not blank_toc_other`.
+  - `PlanningRegulationStructureError(<br>                "Section source-record count differs"<br>            )` under lexical guard `_strict_positive_integer(<br>            row["source_record_count"], "source record count"<br>        ) != len(segment)`.
+  - `PlanningRegulationStructureError("Section source-record hash differs")` under lexical guard `_validated_sha256(<br>            row["source_records_sha256"], "section source-record SHA256"<br>        ) != _source_records_sha256(segment)`.
+  - `PlanningRegulationStructureError(<br>                "Section raw text differs from its retained source records"<br>            )` under lexical guard `row["raw_text"] != "\n".join(record.raw for record in segment)`.
+  - `PlanningRegulationStructureError(<br>                "Section page references are invalid"<br>            )` under lexical guard `not pages<br>            or any(right <= left for left, right in pairwise(pages))<br>            or not set(pages).issubset(known_pages)<br>            or pages != expected_pages`.
+  - `PlanningRegulationStructureError(<br>                "Section page range is invalid or unordered"<br>            )` under lexical guard `start != pages[0] or end != pages[-1] or end < start`.
+  - `PlanningRegulationStructureError("Section lineage differs")` under lexical guard `row[column] != actual`.
+  - `PlanningRegulationStructureError("Section content hash differs")` under lexical guard `_validated_sha256(row["section_content_sha256"], "section content SHA256")<br>            != expected_hash`.
+  - `PlanningRegulationStructureError("Article zone label is missing")` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError("Article parent is missing")` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                    "General section cannot have a zone label or parent"<br>                )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                    "Zone chapter or OTHER section cannot have a parent"<br>                )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                        "Zone chapter label is missing"<br>                    )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                    "OTHER section cannot have a zone label"<br>                )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                        f"{section_type} {label} must be null"<br>                    )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>            "Retained source records are omitted from the section partition"<br>        )` under lexical guard `expected_record_start != len(records)`.
+  - `PlanningRegulationStructureError("Section IDs must be unique")` under lexical guard `len(set(ids)) != len(ids)`.
+  - `PlanningRegulationStructureError("Article parent section is invalid")` under lexical guard `parent not in type_by_id or type_by_id[parent] != "ZONE_CHAPTER"`.
+  - `PlanningRegulationStructureError(<br>                "Only articles may have a parent section"<br>            )` under lexical guard `section_type != "ARTICLE"`.
+  - `PlanningRegulationStructureError(<br>                "Article parent must occur earlier in source order"<br>            )` under lexical guard `order_by_id[parent] >= order_by_id[section_id]`.
+  - `PlanningRegulationStructureError(<br>                "Article zone label differs from its parent chapter"<br>            )` under lexical guard `zone_by_id[parent] != zone_by_id[section_id]`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validate_sections`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_sections`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_sections`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `_source_records_sha256` | `landscout.stages.structure_planning_regulation._source_records_sha256` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `index.pages["page_number"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `ids.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `row["raw_text"].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `row["heading_raw"].strip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+| `_validated_sha256` | `landscout.stages.structure_planning_regulation._validated_sha256` |
+| `"\n".join` | `unresolved local/third-party receiver; no ownership inferred` |
+| `dict.fromkeys` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_page_tuple` | `landscout.stages.structure_planning_regulation._page_tuple` |
+| `pairwise` | `itertools.pairwise` |
+| `set(pages).issubset` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_section_content_sha256` | `landscout.stages.structure_planning_regulation._section_content_sha256` |
+| `bool` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.isna` | `pandas.isna` |
+| `dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `zip` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame["section_type"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `parents.items` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_source_records_sha256`<br>`_validated_sha256`<br>`_section_content_sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `ids.append(section_id)`<br>`parents[section_id] = _strict_string(parent, "parent section ID")`<br>`zone_by_id[section_id] = zone_label` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5044,7 +5994,9 @@ def _validate_sections(
     if result.source_records_sha256 != _source_records_sha256(records):
         raise PlanningRegulationStructureError("Retained source-record hash differs")
     known_pages = set(index.pages["page_number"].tolist())
-    record_position = {record.record_id: position for position, record in enumerate(records)}
+    record_position = {
+        record.record_id: position for position, record in enumerate(records)
+    }
     ids: list[str] = []
     expected_record_start = 0
     parents: dict[str, str] = {}
@@ -5059,18 +6011,32 @@ def _validate_sections(
         section_type = _strict_string(row["section_type"], "section type")
         if section_type not in _SECTION_TYPES:
             raise PlanningRegulationStructureError("Section type is invalid")
-        for column in ("heading_raw", "heading_normalized", "raw_text", "normalized_text"):
+        for column in (
+            "heading_raw",
+            "heading_normalized",
+            "raw_text",
+            "normalized_text",
+        ):
             if not isinstance(row[column], str):
-                raise PlanningRegulationStructureError(f"Section {column} must be a string")
+                raise PlanningRegulationStructureError(
+                    f"Section {column} must be a string"
+                )
         if row["heading_normalized"] != _normalize_search_text(row["heading_raw"]):
-            raise PlanningRegulationStructureError("Section heading normalization differs")
+            raise PlanningRegulationStructureError(
+                "Section heading normalization differs"
+            )
         if row["normalized_text"] != _normalize_search_text(row["raw_text"]):
             raise PlanningRegulationStructureError("Section text normalization differs")
-        if _strict_nonnegative_integer(row["character_count"], "character count") != len(row["raw_text"]):
+        if _strict_nonnegative_integer(
+            row["character_count"], "character count"
+        ) != len(row["raw_text"]):
             raise PlanningRegulationStructureError("Section character count differs")
         start_record_id = _strict_string(row["start_record_id"], "start record ID")
         end_record_id = _strict_string(row["end_record_id"], "end record ID")
-        if start_record_id not in record_position or end_record_id not in record_position:
+        if (
+            start_record_id not in record_position
+            or end_record_id not in record_position
+        ):
             raise PlanningRegulationStructureError("Section record boundary is unknown")
         start_record = record_position[start_record_id]
         end_record = record_position[end_record_id]
@@ -5084,8 +6050,7 @@ def _validate_sections(
             section_type == "OTHER"
             and not row["raw_text"].strip()
             and any(
-                record.page_number
-                in config.document_layout.table_of_contents_pages
+                record.page_number in config.document_layout.table_of_contents_pages
                 for record in segment
             )
         )
@@ -5100,7 +6065,9 @@ def _validate_sections(
         if _strict_positive_integer(
             row["source_record_count"], "source record count"
         ) != len(segment):
-            raise PlanningRegulationStructureError("Section source-record count differs")
+            raise PlanningRegulationStructureError(
+                "Section source-record count differs"
+            )
         if _validated_sha256(
             row["source_records_sha256"], "section source-record SHA256"
         ) != _source_records_sha256(segment):
@@ -5117,11 +6084,15 @@ def _validate_sections(
             or not set(pages).issubset(known_pages)
             or pages != expected_pages
         ):
-            raise PlanningRegulationStructureError("Section page references are invalid")
+            raise PlanningRegulationStructureError(
+                "Section page references are invalid"
+            )
         start = _strict_positive_integer(row["start_page"], "section start page")
         end = _strict_positive_integer(row["end_page"], "section end page")
         if start != pages[0] or end != pages[-1] or end < start:
-            raise PlanningRegulationStructureError("Section page range is invalid or unordered")
+            raise PlanningRegulationStructureError(
+                "Section page range is invalid or unordered"
+            )
         for column, actual in (
             ("document_id", result.document_id),
             ("archive_sha256", result.archive_sha256),
@@ -5132,7 +6103,10 @@ def _validate_sections(
             if row[column] != actual:
                 raise PlanningRegulationStructureError("Section lineage differs")
         expected_hash = _section_content_sha256(row)
-        if _validated_sha256(row["section_content_sha256"], "section content SHA256") != expected_hash:
+        if (
+            _validated_sha256(row["section_content_sha256"], "section content SHA256")
+            != expected_hash
+        ):
             raise PlanningRegulationStructureError("Section content hash differs")
         parent = row["parent_section_id"]
         if parent is not None and not bool(pd.isna(parent)):
@@ -5195,7 +6169,9 @@ def _validate_sections(
             raise PlanningRegulationStructureError("Article parent section is invalid")
         section_type = type_by_id[section_id]
         if section_type != "ARTICLE":
-            raise PlanningRegulationStructureError("Only articles may have a parent section")
+            raise PlanningRegulationStructureError(
+                "Only articles may have a parent section"
+            )
         if order_by_id[parent] >= order_by_id[section_id]:
             raise PlanningRegulationStructureError(
                 "Article parent must occur earlier in source order"
@@ -5208,9 +6184,11 @@ def _validate_sections(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_zone_mapping`
+
+**Purpose:** Implements `validate zone mapping` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5221,49 +6199,74 @@ def _validate_zone_mapping(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent zone mapping; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != ZONE_MAPPING_COLUMNS`.
-- Guard with a raise path: `labels != sorted(labels) or len(set(labels)) != len(labels)`.
-- Guard with a raise path: `status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS`.
-- Guard with a raise path: `exact_methods[status] != method`.
-- Guard with a raise path: `status in {'EXACT', 'CONFIG_ALIAS'}`.
-- Guard with a raise path: `row['dominant_candidate_count'] > 0 and status not in {'EXACT', 'CONFIG_ALIAS'}`.
-- Guard with a raise path: `not counts['dominant_candidate_count'] <= counts['candidate_parcel_count'] <= counts['candidate_intersection_count']`.
-- Guard with a raise path: `column == 'zone_polygon_count' and count == 0`.
-- Guard with a raise path: `matched_id not in sections.index`.
-- Guard with a raise path: `matched_section['section_type'] != 'ZONE_CHAPTER'`.
-- Guard with a raise path: `matched_section['zone_chapter_label'] != resolved`.
-- Guard with a raise path: `status == 'EXACT' and resolved != label`.
-- Guard with a raise path: `status == 'CONFIG_ALIAS' and resolved != _resolved_alias(label, config.zone_aliases)`.
-- Guard with a raise path: `matched is not None and (not bool(pd.isna(matched)))`.
-- Guard with a raise path: `row[column] != actual`.
-- Guard with a raise path: `status == 'UNMAPPED' and row['resolved_zone_chapter_label'] is not None and (not bool(pd.isna(row['resolved_zone_chapter_label'])))`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Configured zone mapping differs from its final alias target')`, `PlanningRegulationStructureError('Dominant candidate zone is unresolved')`, `PlanningRegulationStructureError('Exact zone mapping must preserve the source label')`, `PlanningRegulationStructureError('Resolved zone label differs from its matched chapter')`, `PlanningRegulationStructureError('Resolved zone mapping must reference a zone chapter')`, `PlanningRegulationStructureError('Unmapped zone must not claim a resolved chapter label')`, `PlanningRegulationStructureError('Unresolved zone mapping has a section ID')`, `PlanningRegulationStructureError('Zone candidate coverage counts are mathematically inconsistent')`, `PlanningRegulationStructureError('Zone mapping lineage differs')`, `PlanningRegulationStructureError('Zone mapping schema is not deterministic')`, `PlanningRegulationStructureError('Zone mapping section is unknown')`, `PlanningRegulationStructureError('Zone mapping status or method is invalid')`, `PlanningRegulationStructureError('Zone mapping status/method combination is invalid')`, `PlanningRegulationStructureError('Zone mappings must be unique and sorted')`, `PlanningRegulationStructureError('Zone polygon count must be positive')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `counts[column]`, `labels`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Zone mapping schema is not deterministic"<br>        )` under lexical guard `not isinstance(frame, pd.DataFrame)<br>        or tuple(frame.columns) != ZONE_MAPPING_COLUMNS`.
+  - `PlanningRegulationStructureError(<br>                "Zone mapping status or method is invalid"<br>            )` under lexical guard `status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS`.
+  - `PlanningRegulationStructureError(<br>                "Zone mapping status/method combination is invalid"<br>            )` under lexical guard `exact_methods[status] != method`.
+  - `PlanningRegulationStructureError(<br>                    "Zone polygon count must be positive"<br>                )` under lexical guard `column == "zone_polygon_count" and count == 0`.
+  - `PlanningRegulationStructureError(<br>                    "Zone mapping section is unknown"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                    "Resolved zone mapping must reference a zone chapter"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                    "Resolved zone label differs from its matched chapter"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                    "Exact zone mapping must preserve the source label"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                    "Configured zone mapping differs from its final alias target"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                "Unresolved zone mapping has a section ID"<br>            )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                "Unmapped zone must not claim a resolved chapter label"<br>            )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                "Dominant candidate zone is unresolved"<br>            )` under lexical guard `row["dominant_candidate_count"] > 0 and status not in {<br>            "EXACT",<br>            "CONFIG_ALIAS",<br>        }`.
+  - `PlanningRegulationStructureError(<br>                "Zone candidate coverage counts are mathematically inconsistent"<br>            )` under lexical guard `not (<br>            counts["dominant_candidate_count"]<br>            <= counts["candidate_parcel_count"]<br>            <= counts["candidate_intersection_count"]<br>        )`.
+  - `PlanningRegulationStructureError("Zone mapping lineage differs")` under lexical guard `row[column] != actual`.
+  - `PlanningRegulationStructureError(<br>            "Zone mappings must be unique and sorted"<br>        )` under lexical guard `labels != sorted(labels) or len(set(labels)) != len(labels)`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validate_zone_mapping`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_zone_mapping`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_zone_mapping`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `result.sections.set_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `labels.append` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
+| `_resolved_alias` | `landscout.stages.structure_planning_regulation._resolved_alias` |
+| `bool` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.isna` | `pandas.isna` |
+| `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `labels.append(label)`<br>`counts[column] = count` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5273,8 +6276,13 @@ def _validate_zone_mapping(
     config: PlanningRegulationStructureConfig,
 ) -> None:
     frame = result.zone_mapping
-    if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != ZONE_MAPPING_COLUMNS:
-        raise PlanningRegulationStructureError("Zone mapping schema is not deterministic")
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != ZONE_MAPPING_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Zone mapping schema is not deterministic"
+        )
     labels: list[str] = []
     sections = result.sections.set_index("section_id", drop=False)
     exact_methods = {
@@ -5289,7 +6297,9 @@ def _validate_zone_mapping(
         status = _strict_string(row["mapping_status"], "mapping status")
         method = _strict_string(row["mapping_method"], "mapping method")
         if status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS:
-            raise PlanningRegulationStructureError("Zone mapping status or method is invalid")
+            raise PlanningRegulationStructureError(
+                "Zone mapping status or method is invalid"
+            )
         if exact_methods[status] != method:
             raise PlanningRegulationStructureError(
                 "Zone mapping status/method combination is invalid"
@@ -5304,12 +6314,16 @@ def _validate_zone_mapping(
             count = _strict_nonnegative_integer(row[column], column)
             counts[column] = count
             if column == "zone_polygon_count" and count == 0:
-                raise PlanningRegulationStructureError("Zone polygon count must be positive")
+                raise PlanningRegulationStructureError(
+                    "Zone polygon count must be positive"
+                )
         matched = row["matched_section_id"]
         if status in {"EXACT", "CONFIG_ALIAS"}:
             matched_id = _strict_string(matched, "matched section ID")
             if matched_id not in sections.index:
-                raise PlanningRegulationStructureError("Zone mapping section is unknown")
+                raise PlanningRegulationStructureError(
+                    "Zone mapping section is unknown"
+                )
             resolved = _strict_string(
                 row["resolved_zone_chapter_label"], "resolved chapter label"
             )
@@ -5333,15 +6347,24 @@ def _validate_zone_mapping(
                     "Configured zone mapping differs from its final alias target"
                 )
         elif matched is not None and not bool(pd.isna(matched)):
-            raise PlanningRegulationStructureError("Unresolved zone mapping has a section ID")
-        elif status == "UNMAPPED" and row["resolved_zone_chapter_label"] is not None and not bool(
-            pd.isna(row["resolved_zone_chapter_label"])
+            raise PlanningRegulationStructureError(
+                "Unresolved zone mapping has a section ID"
+            )
+        elif (
+            status == "UNMAPPED"
+            and row["resolved_zone_chapter_label"] is not None
+            and not bool(pd.isna(row["resolved_zone_chapter_label"]))
         ):
             raise PlanningRegulationStructureError(
                 "Unmapped zone must not claim a resolved chapter label"
             )
-        if row["dominant_candidate_count"] > 0 and status not in {"EXACT", "CONFIG_ALIAS"}:
-            raise PlanningRegulationStructureError("Dominant candidate zone is unresolved")
+        if row["dominant_candidate_count"] > 0 and status not in {
+            "EXACT",
+            "CONFIG_ALIAS",
+        }:
+            raise PlanningRegulationStructureError(
+                "Dominant candidate zone is unresolved"
+            )
         if not (
             counts["dominant_candidate_count"]
             <= counts["candidate_parcel_count"]
@@ -5360,14 +6383,18 @@ def _validate_zone_mapping(
             if row[column] != actual:
                 raise PlanningRegulationStructureError("Zone mapping lineage differs")
     if labels != sorted(labels) or len(set(labels)) != len(labels):
-        raise PlanningRegulationStructureError("Zone mappings must be unique and sorted")
+        raise PlanningRegulationStructureError(
+            "Zone mappings must be unique and sorted"
+        )
 ```
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_topic_evidence`
+
+**Purpose:** Implements `validate topic evidence` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5380,52 +6407,90 @@ def _validate_topic_evidence(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent topic evidence; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS`.
-- Guard with a raise path: `topic not in config.topics`.
-- Guard with a raise path: `term not in config.topics[topic]`.
-- Guard with a raise path: `normalized != _normalize_search_text(term)`.
-- Guard with a raise path: `section_id not in sections.index`.
-- Guard with a raise path: `page not in page_set or page not in _page_tuple(sections.at[section_id, 'page_numbers'])`.
-- Guard with a raise path: `(section_id, page) not in fragments`.
-- Guard with a raise path: `count < 1`.
-- Guard with a raise path: `not isinstance(row['raw_context'], str) or not isinstance(row['normalized_context'], str)`.
-- Guard with a raise path: `scope not in _EVIDENCE_SCOPES`.
-- Guard with a raise path: `scope != expected_scope`.
-- Guard with a raise path: `row['match_policy'] != config.topic_match_policy.identifier`.
-- Guard with a raise path: `not retained_matches`.
-- Guard with a raise path: `count != len(retained_matches)`.
-- Guard with a raise path: `row['raw_context'] != expected_raw_context or row['normalized_context'] != expected_normalized_context or row['raw_context'] not in raw_fragment`.
-- Guard with a raise path: `key in keys`.
-- Guard with a raise path: `actual != expected`.
-- Guard with a raise path: `_strict_nonnegative_integer(row[column], column) != expected`.
-- Guard with a raise path: `row[column] != actual`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Evidence scope is invalid')`, `PlanningRegulationStructureError('Topic context differs from retained source text')`, `PlanningRegulationStructureError('Topic contexts must be strings')`, `PlanningRegulationStructureError('Topic evidence has no retained source-text match')`, `PlanningRegulationStructureError('Topic evidence lineage differs')`, `PlanningRegulationStructureError('Topic evidence page is absent from its retained section text')`, `PlanningRegulationStructureError('Topic evidence references an unknown page')`, `PlanningRegulationStructureError('Topic evidence references an unknown section')`, `PlanningRegulationStructureError('Topic evidence row is duplicated')`, `PlanningRegulationStructureError('Topic evidence schema is not deterministic')`, `PlanningRegulationStructureError('Topic evidence scope differs from its section location')`, `PlanningRegulationStructureError('Topic evidence search term is unconfigured')`, `PlanningRegulationStructureError('Topic evidence topic is unconfigured')`, `PlanningRegulationStructureError('Topic match policy differs')`, `PlanningRegulationStructureError('Topic match provenance differs from source text')`, `PlanningRegulationStructureError('Topic occurrence count differs from retained source spans')`, `PlanningRegulationStructureError('Topic occurrence count is invalid')`, `PlanningRegulationStructureError('Topic search normalization differs')`, `PlanningRegulationStructureError(f'Topic evidence {column} differs from its section')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
+| `builds` | positional-or-keyword | `Sequence[_SectionBuild]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `keys`.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Topic evidence schema is not deterministic"<br>        )` under lexical guard `not isinstance(frame, pd.DataFrame)<br>        or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence topic is unconfigured"<br>            )` under lexical guard `topic not in config.topics`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence search term is unconfigured"<br>            )` under lexical guard `term not in config.topics[topic]`.
+  - `PlanningRegulationStructureError("Topic search normalization differs")` under lexical guard `normalized != _normalize_search_text(term)`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence references an unknown section"<br>            )` under lexical guard `section_id not in sections.index`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence references an unknown page"<br>            )` under lexical guard `page not in page_set or page not in _page_tuple(<br>            sections.at[section_id, "page_numbers"]<br>        )`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence page is absent from its retained section text"<br>            )` under lexical guard `(section_id, page) not in fragments`.
+  - `PlanningRegulationStructureError("Topic occurrence count is invalid")` under lexical guard `count < 1`.
+  - `PlanningRegulationStructureError("Topic contexts must be strings")` under lexical guard `not isinstance(row["raw_context"], str) or not isinstance(<br>            row["normalized_context"], str<br>        )`.
+  - `PlanningRegulationStructureError("Evidence scope is invalid")` under lexical guard `scope not in _EVIDENCE_SCOPES`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence scope differs from its section location"<br>            )` under lexical guard `scope != expected_scope`.
+  - `PlanningRegulationStructureError(<br>                    f"Topic evidence {column} differs from its section"<br>                )` under lexical guard `actual != expected`.
+  - `PlanningRegulationStructureError("Topic match policy differs")` under lexical guard `row["match_policy"] != config.topic_match_policy.identifier`.
+  - `PlanningRegulationStructureError(<br>                "Topic evidence has no retained source-text match"<br>            )` under lexical guard `not retained_matches`.
+  - `PlanningRegulationStructureError(<br>                    "Topic match provenance differs from source text"<br>                )` under lexical guard `_strict_nonnegative_integer(row[column], column) != expected`.
+  - `PlanningRegulationStructureError(<br>                "Topic occurrence count differs from retained source spans"<br>            )` under lexical guard `count != len(retained_matches)`.
+  - `PlanningRegulationStructureError(<br>                "Topic context differs from retained source text"<br>            )` under lexical guard `row["raw_context"] != expected_raw_context<br>            or row["normalized_context"] != expected_normalized_context<br>            or row["raw_context"] not in raw_fragment`.
+  - `PlanningRegulationStructureError("Topic evidence row is duplicated")` under lexical guard `key in keys`.
+  - `PlanningRegulationStructureError("Topic evidence lineage differs")` under lexical guard `row[column] != actual`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validate_topic_evidence`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_topic_evidence`
+- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `_validate_topic_evidence`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `result.sections.set_index` | `unresolved local/third-party receiver; no ownership inferred` |
+| `str` | `unresolved local/third-party receiver; no ownership inferred` |
+| `set` | `unresolved local/third-party receiver; no ownership inferred` |
+| `index.pages["page_number"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+| `_page_tuple` | `landscout.stages.structure_planning_regulation._page_tuple` |
+| `_evidence_scope` | `landscout.stages.structure_planning_regulation._evidence_scope` |
+| `bool` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.isna` | `pandas.isna` |
+| `_normalize_search_text_with_mapping` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_literal_topic_matches` | `landscout.stages.structure_planning_regulation._literal_topic_matches` |
+| `expected_positions.items` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
+| `len` | `unresolved local/third-party receiver; no ownership inferred` |
+| `max` | `unresolved local/third-party receiver; no ownership inferred` |
+| `min` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_raw_context` | `unresolved local/third-party receiver; no ownership inferred` |
+| `keys.add` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `keys.add(key)` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5437,8 +6502,13 @@ def _validate_topic_evidence(
     builds: Sequence[_SectionBuild],
 ) -> None:
     frame = result.topic_evidence
-    if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS:
-        raise PlanningRegulationStructureError("Topic evidence schema is not deterministic")
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Topic evidence schema is not deterministic"
+        )
     sections = result.sections.set_index("section_id", drop=False)
     fragments = {
         (str(build.row["section_id"]), page_number): raw_fragment
@@ -5450,29 +6520,43 @@ def _validate_topic_evidence(
     for row in frame.to_dict("records"):
         topic = _strict_string(row["topic"], "topic")
         if topic not in config.topics:
-            raise PlanningRegulationStructureError("Topic evidence topic is unconfigured")
+            raise PlanningRegulationStructureError(
+                "Topic evidence topic is unconfigured"
+            )
         term = _strict_string(row["search_term"], "search term")
         if term not in config.topics[topic]:
             raise PlanningRegulationStructureError(
                 "Topic evidence search term is unconfigured"
             )
-        normalized = _strict_string(row["normalized_search_term"], "normalized search term")
+        normalized = _strict_string(
+            row["normalized_search_term"], "normalized search term"
+        )
         if normalized != _normalize_search_text(term):
             raise PlanningRegulationStructureError("Topic search normalization differs")
         section_id = _strict_string(row["section_id"], "topic section ID")
         if section_id not in sections.index:
-            raise PlanningRegulationStructureError("Topic evidence references an unknown section")
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown section"
+            )
         page = _strict_positive_integer(row["page_number"], "topic page number")
-        if page not in page_set or page not in _page_tuple(sections.at[section_id, "page_numbers"]):
-            raise PlanningRegulationStructureError("Topic evidence references an unknown page")
+        if page not in page_set or page not in _page_tuple(
+            sections.at[section_id, "page_numbers"]
+        ):
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown page"
+            )
         if (section_id, page) not in fragments:
             raise PlanningRegulationStructureError(
                 "Topic evidence page is absent from its retained section text"
             )
-        count = _strict_positive_integer(row["occurrence_count"], "topic occurrence count")
+        count = _strict_positive_integer(
+            row["occurrence_count"], "topic occurrence count"
+        )
         if count < 1:
             raise PlanningRegulationStructureError("Topic occurrence count is invalid")
-        if not isinstance(row["raw_context"], str) or not isinstance(row["normalized_context"], str):
+        if not isinstance(row["raw_context"], str) or not isinstance(
+            row["normalized_context"], str
+        ):
             raise PlanningRegulationStructureError("Topic contexts must be strings")
         scope = _strict_string(row["evidence_scope"], "evidence scope")
         if scope not in _EVIDENCE_SCOPES:
@@ -5525,9 +6609,7 @@ def _validate_topic_evidence(
             raise PlanningRegulationStructureError(
                 "Topic occurrence count differs from retained source spans"
             )
-        context_start = max(
-            0, first.normalized_start - config.topic_context_characters
-        )
+        context_start = max(0, first.normalized_start - config.topic_context_characters)
         context_end = min(
             len(normalized_fragment),
             first.normalized_end + config.topic_context_characters,
@@ -5561,9 +6643,11 @@ def _validate_topic_evidence(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_build_structure_result`
+
+**Purpose:** Implements `build structure result` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5580,38 +6664,59 @@ def _build_structure_result(
 ]:
 ```
 
-**Purpose**
-
-Constructs structure result; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `tuple[PlanningRegulationStructureResult, tuple[_SectionBuild, ...], tuple[_LineRecord, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(_result_with_hashes(result), builds, records)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_intersection_hash_columns`.
-- Hashing: `_config_sha256`, `_input_frame_sha256`, `_source_records_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_result_with_hashes(result), builds, records`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_build_structure_result`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `_build_structure_result`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_build_structure_result`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_build_structure_result`
+- direct call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_build_structure_result`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_build_structure_result`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_build_sections` | `landscout.stages.structure_planning_regulation._build_sections` |
+| `_build_zone_mapping` | `landscout.stages.structure_planning_regulation._build_zone_mapping` |
+| `_build_topic_evidence` | `landscout.stages.structure_planning_regulation._build_topic_evidence` |
+| `_intersection_hash_columns` | `landscout.stages.structure_planning_regulation._intersection_hash_columns` |
+| `PlanningRegulationStructureResult` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult` |
+| `_config_sha256` | `landscout.stages.structure_planning_regulation._config_sha256` |
+| `_input_frame_sha256` | `landscout.stages.structure_planning_regulation._input_frame_sha256` |
+| `_source_records_sha256` | `landscout.stages.structure_planning_regulation._source_records_sha256` |
+| `_result_with_hashes` | `landscout.stages.structure_planning_regulation._result_with_hashes` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_intersection_hash_columns`<br>`_config_sha256`<br>`_input_frame_sha256`<br>`_source_records_sha256`<br>`_result_with_hashes` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5670,9 +6775,11 @@ def _build_structure_result(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_result_self`
+
+**Purpose:** Implements `validate result self` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5688,43 +6795,76 @@ def _validate_result_self(
 ) -> None:
 ```
 
-**Purpose**
-
-Rejects malformed or inconsistent result self; exact branches, calls, and return construction are reproduced below.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `not isinstance(result, PlanningRegulationStructureResult)`.
-- Guard with a raise path: `result.document_id != index.document_id or result.archive_sha256 != index.archive_sha256 or result.pdf_sha256 != index.pdf_sha256 or (result.index_content_sha256 != index.index_content_sha256)`.
-- Guard with a raise path: `config_schema != config.schema_version`.
-- Guard with a raise path: `result.structure_config_sha256 != _config_sha256(config)`.
-- Guard with a raise path: `result.zones_content_sha256 != expected_zones_hash`.
-- Guard with a raise path: `type(result.zoning_intersection_hash_columns) is not tuple or not all((isinstance(column, str) for column in result.zoning_intersection_hash_columns)) or result.zoning_intersection_hash_columns != expected_intersection_columns`.
-- Guard with a raise path: `result.zoning_intersections_content_sha256 != expected_intersections_hash`.
-- Guard with a raise path: `schema != SECTION_HASH_SCHEMA_VERSION`.
-- Guard with a raise path: `_validated_sha256(result.structure_result_content_sha256, 'structure result content SHA256') != expected.structure_result_content_sha256`.
-- Guard with a raise path: `_validated_sha256(actual, f'{label} content SHA256') != wanted`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Complete structure result hash differs')`, `PlanningRegulationStructureError('Intersection hash columns differ from the factual input schema')`, `PlanningRegulationStructureError('Intersection input hash differs')`, `PlanningRegulationStructureError('Structure config hash differs')`, `PlanningRegulationStructureError('Structure config schema version differs')`, `PlanningRegulationStructureError('Structure result lineage differs from index')`, `PlanningRegulationStructureError('Unsupported section hash schema version')`, `PlanningRegulationStructureError('Zone input hash differs')`, `PlanningRegulationStructureError('result must be a PlanningRegulationStructureResult')`, `PlanningRegulationStructureError(f'{label} content hash differs')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `builds` | positional-or-keyword | `Sequence[_SectionBuild]` | `required` |
+| `records` | positional-or-keyword | `Sequence[_LineRecord]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_intersection_hash_columns`.
-- Hashing: `_config_sha256`, `_input_frame_sha256`, `_validated_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "result must be a PlanningRegulationStructureResult"<br>        )` under lexical guard `not isinstance(result, PlanningRegulationStructureResult)`.
+  - `PlanningRegulationStructureError(<br>            "Structure result lineage differs from index"<br>        )` under lexical guard `result.document_id != index.document_id<br>        or result.archive_sha256 != index.archive_sha256<br>        or result.pdf_sha256 != index.pdf_sha256<br>        or result.index_content_sha256 != index.index_content_sha256`.
+  - `PlanningRegulationStructureError(<br>            "Structure config schema version differs"<br>        )` under lexical guard `config_schema != config.schema_version`.
+  - `PlanningRegulationStructureError("Structure config hash differs")` under lexical guard `result.structure_config_sha256 != _config_sha256(config)`.
+  - `PlanningRegulationStructureError("Zone input hash differs")` under lexical guard `result.zones_content_sha256 != expected_zones_hash`.
+  - `PlanningRegulationStructureError(<br>            "Intersection hash columns differ from the factual input schema"<br>        )` under lexical guard `type(result.zoning_intersection_hash_columns) is not tuple<br>        or not all(<br>            isinstance(column, str)<br>            for column in result.zoning_intersection_hash_columns<br>        )<br>        or result.zoning_intersection_hash_columns != expected_intersection_columns`.
+  - `PlanningRegulationStructureError("Intersection input hash differs")` under lexical guard `result.zoning_intersections_content_sha256 != expected_intersections_hash`.
+  - `PlanningRegulationStructureError(<br>            "Unsupported section hash schema version"<br>        )` under lexical guard `schema != SECTION_HASH_SCHEMA_VERSION`.
+  - `PlanningRegulationStructureError(f"{label} content hash differs")` under lexical guard `_validated_sha256(actual, f"{label} content SHA256") != wanted`.
+  - `PlanningRegulationStructureError("Complete structure result hash differs")` under lexical guard `_validated_sha256(<br>            result.structure_result_content_sha256,<br>            "structure result content SHA256",<br>        )<br>        != expected.structure_result_content_sha256`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_validate_result_self`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validate_result_self`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_validate_result_self`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
+| `_validated_sha256` | `landscout.stages.structure_planning_regulation._validated_sha256` |
+| `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
+| `_config_sha256` | `landscout.stages.structure_planning_regulation._config_sha256` |
+| `_input_frame_sha256` | `landscout.stages.structure_planning_regulation._input_frame_sha256` |
+| `_intersection_hash_columns` | `landscout.stages.structure_planning_regulation._intersection_hash_columns` |
+| `type` | `unresolved local/third-party receiver; no ownership inferred` |
+| `all` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_validate_sections` | `landscout.stages.structure_planning_regulation._validate_sections` |
+| `_validate_zone_mapping` | `landscout.stages.structure_planning_regulation._validate_zone_mapping` |
+| `_validate_topic_evidence` | `landscout.stages.structure_planning_regulation._validate_topic_evidence` |
+| `_result_with_hashes` | `landscout.stages.structure_planning_regulation._result_with_hashes` |
+| `replace` | `dataclasses.replace` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `_validated_sha256`<br>`_config_sha256`<br>`_input_frame_sha256`<br>`_intersection_hash_columns`<br>`_result_with_hashes` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5757,7 +6897,9 @@ def _validate_result_self(
         or result.pdf_sha256 != index.pdf_sha256
         or result.index_content_sha256 != index.index_content_sha256
     ):
-        raise PlanningRegulationStructureError("Structure result lineage differs from index")
+        raise PlanningRegulationStructureError(
+            "Structure result lineage differs from index"
+        )
     _validated_sha256(result.archive_sha256, "archive SHA256")
     _validated_sha256(result.pdf_sha256, "PDF SHA256")
     _validated_sha256(result.index_content_sha256, "index content SHA256")
@@ -5803,17 +6945,21 @@ def _validate_result_self(
         result.section_hash_schema_version, "section hash schema version"
     )
     if schema != SECTION_HASH_SCHEMA_VERSION:
-        raise PlanningRegulationStructureError("Unsupported section hash schema version")
+        raise PlanningRegulationStructureError(
+            "Unsupported section hash schema version"
+        )
     _validate_sections(index, result, records, config)
     _validate_zone_mapping(result, config)
     _validate_topic_evidence(index, result, config, builds)
-    expected = _result_with_hashes(replace(
-        result,
-        sections_content_sha256="",
-        zone_map_content_sha256="",
-        topic_evidence_content_sha256="",
-        structure_result_content_sha256="",
-    ))
+    expected = _result_with_hashes(
+        replace(
+            result,
+            sections_content_sha256="",
+            zone_map_content_sha256="",
+            topic_evidence_content_sha256="",
+            structure_result_content_sha256="",
+        )
+    )
     for actual, wanted, label in (
         (result.sections_content_sha256, expected.sections_content_sha256, "sections"),
         (result.zone_map_content_sha256, expected.zone_map_content_sha256, "zone map"),
@@ -5825,18 +6971,23 @@ def _validate_result_self(
     ):
         if _validated_sha256(actual, f"{label} content SHA256") != wanted:
             raise PlanningRegulationStructureError(f"{label} content hash differs")
-    if _validated_sha256(
-        result.structure_result_content_sha256,
-        "structure result content SHA256",
-    ) != expected.structure_result_content_sha256:
+    if (
+        _validated_sha256(
+            result.structure_result_content_sha256,
+            "structure result content SHA256",
+        )
+        != expected.structure_result_content_sha256
+    ):
         raise PlanningRegulationStructureError("Complete structure result hash differs")
 ```
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_resolved_config`
+
+**Purpose:** Implements `resolved config` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5846,40 +6997,54 @@ def _resolved_config(
 ) -> PlanningRegulationStructureConfig:
 ```
 
-**Purpose**
-
-Private `planning` helper for resolved config; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `PlanningRegulationStructureConfig`.
-- Every observed return expression is reproduced without truncation:
-```python
-load_planning_regulation_structure_config(config)
 
-PlanningRegulationStructureConfig.model_validate(config.model_dump(mode='python'))
-```
+**Inputs**
 
-**Validation and exceptions**
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig \| str \| Path` | `required` |
 
-- Guard with a raise path: `isinstance(config, PlanningRegulationStructureConfig)`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Planning structure configuration is invalid')`.
+**Return and exception contract**
 
-**Side effects**
+- Exact observed return expressions:
+  - `PlanningRegulationStructureConfig.model_validate(<br>                config.model_dump(mode="python")<br>            )`
+  - `load_planning_regulation_structure_config(config)`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>                "Planning structure configuration is invalid"<br>            )` under lexical guard `isinstance(config, PlanningRegulationStructureConfig)`.
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+**Qualified relationships**
 
-**Repository interfaces and consumers**
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_resolved_config`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_resolved_config`
+- direct call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_resolved_config`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `_resolved_config`
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_resolved_config`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `_resolved_config`.
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `load_planning_regulation_structure_config` | `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5901,9 +7066,11 @@ def _resolved_config(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_canonical_frame_rows`
+
+**Purpose:** Implements `canonical frame rows` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5911,37 +7078,48 @@ def _resolved_config(
 def _canonical_frame_rows(frame: pd.DataFrame, columns: Sequence[str]) -> object:
 ```
 
-**Purpose**
-
-Private `planning` helper for canonical frame rows; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `object`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_value(frame.loc[:, columns].to_dict('records'))
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `frame` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `columns` | positional-or-keyword | `Sequence[str]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_canonical_value(frame.loc[:, columns].to_dict("records"))`
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::_compare_expected_result` via `_canonical_frame_rows`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::_compare_expected_result` via `_canonical_frame_rows`
+- value/type reference: `landscout.stages.structure_planning_regulation::_compare_expected_result` via `_canonical_frame_rows`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_canonical_value` | `landscout.stages.structure_planning_regulation._canonical_value` |
+| `frame.loc[:, columns].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5952,9 +7130,11 @@ def _canonical_frame_rows(frame: pd.DataFrame, columns: Sequence[str]) -> object
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_compare_expected_result`
+
+**Purpose:** Implements `compare expected result` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -5965,36 +7145,52 @@ def _compare_expected_result(
 ) -> None:
 ```
 
-**Purpose**
-
-Private `planning` helper for compare expected result; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `getattr(result, field) != getattr(expected, field)`.
-- Guard with a raise path: `tuple(actual_frame.columns) != tuple(columns)`.
-- Guard with a raise path: `_canonical_frame_rows(actual_frame, columns) != _canonical_frame_rows(expected_frame, columns)`.
-- Explicit raise expressions: `PlanningRegulationStructureError(f'Structure result {field} differs from rebuilt source evidence')`, `PlanningRegulationStructureError(f'{name} differs from rebuilt source evidence')`, `PlanningRegulationStructureError(f'{name} schema differs from rebuilt source evidence')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `expected` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>                f"Structure result {field} differs from rebuilt source evidence"<br>            )` under lexical guard `getattr(result, field) != getattr(expected, field)`.
+  - `PlanningRegulationStructureError(<br>                f"{name} schema differs from rebuilt source evidence"<br>            )` under lexical guard `tuple(actual_frame.columns) != tuple(columns)`.
+  - `PlanningRegulationStructureError(<br>                f"{name} differs from rebuilt source evidence"<br>            )` under lexical guard `_canonical_frame_rows(actual_frame, columns) != _canonical_frame_rows(<br>            expected_frame, columns<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_compare_expected_result`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_compare_expected_result`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_compare_expected_result`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `getattr` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_canonical_frame_rows` | `landscout.stages.structure_planning_regulation._canonical_frame_rows` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6047,9 +7243,11 @@ def _compare_expected_result(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_section_page_fragments`
+
+**Purpose:** Implements `section page fragments` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 
 **Exact signature**
 
@@ -6060,37 +7258,55 @@ def _section_page_fragments(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Private `planning` helper for section page fragments; its complete implementation below is the authoritative behavioral contract.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- Guard with a raise path: `frame.duplicated(['section_id', 'page_number']).any()`.
-- Explicit raise expressions: `PlanningRegulationStructureError('Section/page fragment identity is not unique')`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
+| `builds` | positional-or-keyword | `Sequence[_SectionBuild]` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `sha256`, `sha256(raw_text.encode('utf-8')).hexdigest`.
-- Environment/process effects: none.
-- In-memory mutation: `frame['page_number']`.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `frame`
+- Explicit raise paths:
+  - `PlanningRegulationStructureError(<br>            "Section/page fragment identity is not unique"<br>        )` under lexical guard `frame.duplicated(["section_id", "page_number"]).any()`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure_with_fragments` via `_section_page_fragments`.
+Inbound conservative repository consumers:
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_section_page_fragments`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `_section_page_fragments`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `sha256(<br>                raw_text.encode("utf-8")<br>            ).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
+| `sha256` | `hashlib.sha256` |
+| `raw_text.encode` | `unresolved local/third-party receiver; no ownership inferred` |
+| `pd.DataFrame` | `pandas.DataFrame` |
+| `frame["page_number"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.duplicated(["section_id", "page_number"]).any` | `unresolved local/third-party receiver; no ownership inferred` |
+| `frame.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | `sha256(<br>                raw_text.encode("utf-8")<br>            ).hexdigest`<br>`sha256` |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | `frame["page_number"] = frame["page_number"].astype("int64")` |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6111,9 +7327,7 @@ def _section_page_fragments(
             "archive_sha256": result.archive_sha256,
             "pdf_sha256": result.pdf_sha256,
             "index_content_sha256": result.index_content_sha256,
-            "structure_result_content_sha256": (
-                result.structure_result_content_sha256
-            ),
+            "structure_result_content_sha256": (result.structure_result_content_sha256),
             "structure_profile": result.structure_profile,
         }
         for build in builds
@@ -6144,9 +7358,11 @@ def _section_page_fragments(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `validate_planning_regulation_structure_with_fragments`
+
+**Purpose:** Validate the complete structure and return its retained page fragments.
 
 **Exact signature**
 
@@ -6160,37 +7376,31 @@ def validate_planning_regulation_structure_with_fragments(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Validate the complete structure and return its retained page fragments.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_section_page_fragments(result, builds)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError('Planning regulation structure validation failed safely')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `zoning_intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig \| str \| Path` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `_section_page_fragments(result, builds)`
+- Explicit raise paths:
+  - `re-raise`.
+  - `PlanningRegulationStructureError(<br>            "Planning regulation structure validation failed safely"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -6199,14 +7409,20 @@ _section_page_fragments(result, builds)
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `landscout.stages.interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- direct call: `landscout.stages.interpret_bess_zoning::_build_result` via `validate_planning_regulation_structure_with_fragments`
+- value/type reference: `landscout.stages.interpret_bess_zoning::_build_result` via `validate_planning_regulation_structure_with_fragments`
+- direct call: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure` via `validate_planning_regulation_structure_with_fragments`
+- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure` via `validate_planning_regulation_structure_with_fragments`
+- direct call: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `validate_planning_regulation_structure_with_fragments`
+- value/type reference: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `validate_planning_regulation_structure_with_fragments`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -6220,11 +7436,36 @@ _section_page_fragments(result, builds)
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `validate_planning_regulation_structure_with_fragments`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::validate_planning_regulation_structure` via `validate_planning_regulation_structure_with_fragments`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::planning_regulation_section_page_fragments` via `validate_planning_regulation_structure_with_fragments`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments` via `validate_planning_regulation_structure_with_fragments`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_can_return_validated_fragments` via `validate_planning_regulation_structure_with_fragments`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_can_return_validated_fragments` via `validate_planning_regulation_structure_with_fragments`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_resolved_config` | `landscout.stages.structure_planning_regulation._resolved_config` |
+| `_validate_document_lock` | `landscout.stages.structure_planning_regulation._validate_document_lock` |
+| `_validated_zoning_inputs` | `landscout.stages.structure_planning_regulation._validated_zoning_inputs` |
+| `_build_structure_result` | `landscout.stages.structure_planning_regulation._build_structure_result` |
+| `_validate_result_self` | `landscout.stages.structure_planning_regulation._validate_result_self` |
+| `_compare_expected_result` | `landscout.stages.structure_planning_regulation._compare_expected_result` |
+| `_section_page_fragments` | `landscout.stages.structure_planning_regulation._section_page_fragments` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6271,9 +7512,11 @@ def validate_planning_regulation_structure_with_fragments(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `validate_planning_regulation_structure`
+
+**Purpose:** Rebuild and validate the complete structure from all factual inputs.
 
 **Exact signature**
 
@@ -6287,34 +7530,28 @@ def validate_planning_regulation_structure(
 ) -> None:
 ```
 
-**Purpose**
-
-Rebuild and validate the complete structure from all factual inputs.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `zoning_intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig \| str \| Path` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -6323,8 +7560,10 @@ Rebuild and validate the complete structure from all factual inputs.
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- direct call: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `validate_planning_regulation_structure`
+- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `validate_planning_regulation_structure`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -6338,23 +7577,57 @@ Rebuild and validate the complete structure from all factual inputs.
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `src/landscout/stages/structure_planning_regulation.py::structure_planning_regulation` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::_validate` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `validate_planning_regulation_structure`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change` via `validate_planning_regulation_structure`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::_validate` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_validate` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_document_layout_accepts_real_first_and_last_indexed_pages` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_document_layout_accepts_real_first_and_last_indexed_pages` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_existing_empty_toc_page_is_valid_not_nonexistent` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_existing_empty_toc_page_is_valid_not_nonexistent` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_changed_ambiguous_grammar` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_wrong_intersection_source_zone_id_is_rejected` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_wrong_intersection_source_zone_id_is_rejected` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_upper_bound_uses_shared_relative_tolerance` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_upper_bound_uses_shared_relative_tolerance` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_hash_columns_are_actual_and_deterministic` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_hash_columns_are_actual_and_deterministic` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_optional_intersection_metric_change_invalidates_existing_result` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_optional_intersection_metric_change_invalidates_existing_result` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_hash_column_lineage_mutation_is_rejected` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_hash_column_lineage_mutation_is_rejected` via `validate_planning_regulation_structure`
+- direct call: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_post_build_source_change` via `validate_planning_regulation_structure`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_source_complete_validator_rejects_post_build_source_change` via `validate_planning_regulation_structure`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `validate_planning_regulation_structure_with_fragments` | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6379,9 +7652,11 @@ def validate_planning_regulation_structure(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `planning_regulation_section_page_fragments`
+
+**Purpose:** Return validated retained raw text for every section and source page.
 
 **Exact signature**
 
@@ -6395,37 +7670,31 @@ def planning_regulation_section_page_fragments(
 ) -> pd.DataFrame:
 ```
 
-**Purpose**
-
-Return validated retained raw text for every section and source page.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-validate_planning_regulation_structure_with_fragments(index, zones, zoning_intersections, config, result)
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError('Planning regulation section/page fragments could not be rebuilt safely')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `zoning_intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig \| str \| Path` | `required` |
+| `result` | positional-or-keyword | `PlanningRegulationStructureResult` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `validate_planning_regulation_structure_with_fragments(<br>            index,<br>            zones,<br>            zoning_intersections,<br>            config,<br>            result,<br>        )`
+- Explicit raise paths:
+  - `re-raise`.
+  - `PlanningRegulationStructureError(<br>            "Planning regulation section/page fragments could not be rebuilt safely"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -6434,16 +7703,41 @@ validate_planning_regulation_structure_with_fragments(index, zones, zoning_inter
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `tests.unit.test_interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     planning_regulation_section_page_fragments,
     structure_planning_regulation,
-)`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::_policy` via `planning_regulation_section_page_fragments`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `planning_regulation_section_page_fragments`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_exact_section_page_occurrence_is_auditable` via `planning_regulation_section_page_fragments`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `planning_regulation_section_page_fragments`.
+)`
+- direct call: `tests.unit.test_interpret_bess_zoning::_policy` via `planning_regulation_section_page_fragments`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::_policy` via `planning_regulation_section_page_fragments`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `planning_regulation_section_page_fragments`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `planning_regulation_section_page_fragments`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_exact_section_page_occurrence_is_auditable` via `planning_regulation_section_page_fragments`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_exact_section_page_occurrence_is_auditable` via `planning_regulation_section_page_fragments`
+- direct call: `tests.unit.test_interpret_bess_zoning::test_repeated_excerpt_occurrence_is_bound_to_policy` via `planning_regulation_section_page_fragments`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::test_repeated_excerpt_occurrence_is_bound_to_policy` via `planning_regulation_section_page_fragments`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `validate_planning_regulation_structure_with_fragments` | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6475,9 +7769,11 @@ def planning_regulation_section_page_fragments(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `structure_planning_regulation`
+
+**Purpose:** Build source-locked sections, exact zone mappings, and literal topic evidence.
 
 **Exact signature**
 
@@ -6490,37 +7786,30 @@ def structure_planning_regulation(
 ) -> PlanningRegulationStructureResult:
 ```
 
-**Purpose**
-
-Build source-locked sections, exact zone mappings, and literal topic evidence.
-
-**Return contract**
-
+- Exact decorators: none.
 - Declared return annotation: `PlanningRegulationStructureResult`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
 
-**Validation and exceptions**
+**Inputs**
 
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningRegulationStructureError('Planning regulation structure could not be built safely')`, `re-raise`.
+| Name | Kind | Annotation | Default |
+|---|---|---|---|
+| `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
+| `zones` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `zoning_intersections` | positional-or-keyword | `pd.DataFrame` | `required` |
+| `config` | positional-or-keyword | `PlanningRegulationStructureConfig \| str \| Path` | `required` |
 
-**Side effects**
+**Return and exception contract**
 
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
+- Exact observed return expressions:
+  - `result`
+- Explicit raise paths:
+  - `re-raise`.
+  - `PlanningRegulationStructureError(<br>            "Planning regulation structure could not be built safely"<br>        )`.
 
-**Repository interfaces and consumers**
+**Qualified relationships**
 
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+Inbound conservative repository consumers:
+- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
@@ -6529,13 +7818,22 @@ result
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- import: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- import: `tests.integration.test_gpu_planning_end_to_end::<module>` via `from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureResult,
+    structure_planning_regulation,
+)`
+- direct call: `tests.integration.test_gpu_planning_end_to_end::_build_physical_chain` via `structure_planning_regulation`
+- value/type reference: `tests.integration.test_gpu_planning_end_to_end::_build_physical_chain` via `structure_planning_regulation`
+- import: `tests.unit.test_interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     planning_regulation_section_page_fragments,
     structure_planning_regulation,
-)`.
-- import: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.stages.structure_planning_regulation import (
+)`
+- direct call: `tests.unit.test_interpret_bess_zoning::inputs` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_interpret_bess_zoning::inputs` via `structure_planning_regulation`
+- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
     SECTION_HASH_SCHEMA_VERSION,
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
@@ -6549,32 +7847,84 @@ result
     structure_planning_regulation,
     validate_planning_regulation_structure,
     validate_planning_regulation_structure_with_fragments,
-)`.
-- direct call: `tests/unit/test_interpret_bess_zoning.py::inputs` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::valid_result` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::_structure_with_document_layout` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected` via `structure_planning_regulation`.
-- direct call: `tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target` via `structure_planning_regulation`.
+)`
+- direct call: `tests.unit.test_structure_planning_regulation::valid_result` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::valid_result` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_document_layout_rejects_nonexistent_indexed_pages` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_document_layout_rejects_nonexistent_indexed_pages` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_document_lock_mismatch_is_rejected` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_document_lock_mismatch_is_rejected` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_inputs_are_not_mutated` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_inputs_are_not_mutated` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_body_page_extraction_error_stops_structure` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_body_page_extraction_error_stops_structure` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_successfully_extracted_body_page_remains_valid` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_successfully_extracted_body_page_remains_valid` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_dominant_unmapped_zone_stops_processing` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_dominant_unmapped_zone_stops_processing` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_two_zone_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_two_zone_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_two_article_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_two_article_patterns_matching_one_line_are_ambiguous` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_general_and_article_cross_category_match_is_ambiguous` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_general_and_article_cross_category_match_is_ambiguous` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_zone_and_general_cross_category_match_is_ambiguous` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_zone_and_general_cross_category_match_is_ambiguous` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_ambiguous_continuation_candidate_fails_with_record_diagnostic` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_normal_muret_compatible_grammar_remains_deterministic` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_normal_muret_compatible_grammar_remains_deterministic` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_area_cannot_exceed_available_geometry_area` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_area_cannot_exceed_available_geometry_area` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_upper_bound_uses_shared_relative_tolerance` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_upper_bound_uses_shared_relative_tolerance` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_hash_columns_are_actual_and_deterministic` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_hash_columns_are_actual_and_deterministic` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_optional_intersection_metric_change_invalidates_existing_result` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_optional_intersection_metric_change_invalidates_existing_result` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_intersection_hash_column_lineage_mutation_is_rejected` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_intersection_hash_column_lineage_mutation_is_rejected` via `structure_planning_regulation`
+- direct call: `tests.unit.test_structure_planning_regulation::test_alias_chain_resolves_to_final_configured_target` via `structure_planning_regulation`
+- value/type reference: `tests.unit.test_structure_planning_regulation::test_alias_chain_resolves_to_final_configured_target` via `structure_planning_regulation`
+
+Outbound call expressions and conservative ownership:
+| Exact call expression | Resolved owner |
+|---|---|
+| `_resolved_config` | `landscout.stages.structure_planning_regulation._resolved_config` |
+| `_validate_document_lock` | `landscout.stages.structure_planning_regulation._validate_document_lock` |
+| `_validated_zoning_inputs` | `landscout.stages.structure_planning_regulation._validated_zoning_inputs` |
+| `_build_structure_result` | `landscout.stages.structure_planning_regulation._build_structure_result` |
+| `validate_planning_regulation_structure` | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+
+**Source-observed side-effect matrix**
+
+A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+
+| Category | Exact evidence |
+|---|---|
+| Network I/O | None directly present. |
+| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive write or publication | None directly present. |
+| Hashing/byte identity | None directly present. |
+| CRS/geometry/spatial calculation | None directly present. |
+| External process/environment | None directly present. |
+| In-memory mutation | None directly present. |
+| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6617,14 +7967,109 @@ def structure_planning_regulation(
 
 **Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
-## 7. Data contracts
+## 7. Validation and data-contract summary
 
-### `_ZONE_INPUT_COLUMNS` — canonical or derived frame-column schema
+- Canonical schema/mapping declarations inventoried above: `_normalize_search_text_with_mapping`, `SECTION_HASH_SCHEMA_VERSION`, `STRUCTURE_MANIFEST_SCHEMA_VERSION`, `_SUPPORTED_CONFIG_SCHEMA_VERSION`, `_MAPPING_STATUSES`, `_MAPPING_METHODS`, `_ZONE_INPUT_COLUMNS`, `_REQUIRED_INTERSECTION_INPUT_COLUMNS`, `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`, `SECTION_COLUMNS`, `ZONE_MAPPING_COLUMNS`, `TOPIC_EVIDENCE_COLUMNS`.
+- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
+
+## 8. Public exports and package ownership
+
+Exact `__all__` members and local origins:
+
+| Export | Local origin binding |
+|---|---|
+| `PlanningRegulationStructureConfig` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig` |
+| `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
+| `PlanningRegulationStructureResult` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult` |
+| `load_planning_regulation_structure_config` | `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` |
+| `planning_regulation_section_page_fragments` | `landscout.stages.structure_planning_regulation.planning_regulation_section_page_fragments` |
+| `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
+| `validate_planning_regulation_structure` | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure` |
+| `validate_planning_regulation_structure_with_fragments` | `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments` |
+
+## 9. Trust, provenance, side effects, and business boundary
+
+- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
+- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+
+## 10. Change impact
+
+A source-byte change invalidates the SHA above and requires re-auditing imports/re-exports, constants/aliases/schemas, model fields/immutability, qualified callers, side effects, controlled errors, tests, source/artifact locks, and the exact full snapshot.
+
+## 11. Exact complete current file content
+
+The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
 
 ```python
+"""Structure a validated planning regulation into factual, auditable evidence."""
+
+from __future__ import annotations
+
+import json
+import math
+import re
+from collections import Counter
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, replace
+from hashlib import sha256
+from itertools import pairwise
+from numbers import Integral, Real
+from pathlib import Path
+from typing import Literal
+
+import numpy as np
+import pandas as pd  # type: ignore[import-untyped]
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    model_validator,
+)
+
+from landscout.common.immutable_mapping import freeze_mapping
+from landscout.common.planning_text import (
+    normalize_planning_search_text,
+    normalize_planning_search_text_with_mapping,
+    raw_context_from_spans,
+)
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
+from landscout.stages.index_planning_regulation import (
+    PlanningRegulationIndex,
+    validate_planning_regulation_index,
+)
+from landscout.stages.planning_overlay import technical_overlay_tolerance
+
+_normalize_search_text = normalize_planning_search_text
+_normalize_search_text_with_mapping = normalize_planning_search_text_with_mapping
+_raw_context = raw_context_from_spans
+
+__all__ = [
+    "PlanningRegulationStructureConfig",
+    "PlanningRegulationStructureError",
+    "PlanningRegulationStructureResult",
+    "load_planning_regulation_structure_config",
+    "planning_regulation_section_page_fragments",
+    "structure_planning_regulation",
+    "validate_planning_regulation_structure",
+    "validate_planning_regulation_structure_with_fragments",
+]
+
+SECTION_HASH_SCHEMA_VERSION = 3
+STRUCTURE_MANIFEST_SCHEMA_VERSION = 4
+_SUPPORTED_CONFIG_SCHEMA_VERSION = 2
+
+_SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
+_MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"})
+_MAPPING_METHODS = frozenset({"EXACT_HEADING", "CONFIG_ALIAS", "NONE", "AMBIGUOUS"})
+_EVIDENCE_SCOPES = frozenset({"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"})
+
 _ZONE_INPUT_COLUMNS = (
     "planning_zone_id",
     "source_zone_id",
@@ -6632,19 +8077,6 @@ _ZONE_INPUT_COLUMNS = (
     "source_document_id",
     "source_archive_sha256",
 )
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `source_zone_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_document_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-
-### `_REQUIRED_INTERSECTION_INPUT_COLUMNS` — required input frame fields (unordered when stored as a set)
-
-```python
 _REQUIRED_INTERSECTION_INPUT_COLUMNS = (
     "parcel_id",
     "planning_zone_id",
@@ -6655,36 +8087,11 @@ _REQUIRED_INTERSECTION_INPUT_COLUMNS = (
     "source_document_id",
     "source_archive_sha256",
 )
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 3 | `source_zone_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 7 | `source_document_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-
-### `_OPTIONAL_INTERSECTION_INPUT_COLUMNS` — canonical or derived frame-column schema
-
-```python
 _OPTIONAL_INTERSECTION_INPUT_COLUMNS = (
     "parcel_metric_area_m2",
     "zone_area_m2",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 2 | `zone_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-
-### `SECTION_COLUMNS` — canonical or derived frame-column schema
-
-```python
 SECTION_COLUMNS = (
     "section_id",
     "parent_section_id",
@@ -6711,38 +8118,7 @@ SECTION_COLUMNS = (
     "index_content_sha256",
     "structure_profile",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `parent_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 3 | `section_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `heading_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `heading_normalized` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `article_number_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 8 | `article_title_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `start_record_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 10 | `end_record_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 11 | `source_record_count` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 12 | `source_records_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `start_page` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `end_page` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `page_numbers` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `raw_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `normalized_text` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 18 | `character_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 19 | `section_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 20 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 21 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 22 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 23 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 24 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-### `ZONE_MAPPING_COLUMNS` — canonical or derived frame-column schema
-
-```python
 ZONE_MAPPING_COLUMNS = (
     "source_zone_label_raw",
     "resolved_zone_chapter_label",
@@ -6759,28 +8135,7 @@ ZONE_MAPPING_COLUMNS = (
     "index_content_sha256",
     "structure_profile",
 )
-```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `source_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `mapping_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `mapping_method` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `matched_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 6 | `zone_polygon_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 7 | `candidate_parcel_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 8 | `candidate_intersection_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 9 | `dominant_candidate_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 10 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 11 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 12 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 13 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 14 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-### `TOPIC_EVIDENCE_COLUMNS` — canonical or derived frame-column schema
-
-```python
 TOPIC_EVIDENCE_COLUMNS = (
     "topic",
     "search_term",
@@ -6804,83 +8159,2346 @@ TOPIC_EVIDENCE_COLUMNS = (
     "index_content_sha256",
     "structure_profile",
 )
+
+
+class PlanningRegulationStructureError(ValueError):
+    """Raised when factual regulation structure integrity cannot be proven."""
+
+
+class _StrictConfigModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+
+class DocumentLockConfig(_StrictConfigModel):
+    document_id: StrictStr = Field(min_length=1)
+    pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    normalization_profile: StrictStr = Field(min_length=1)
+
+
+class DocumentLayoutConfig(_StrictConfigModel):
+    body_start_page: StrictInt = Field(ge=1)
+    table_of_contents_pages: tuple[StrictInt, ...] = ()
+    max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)
+    include_table_of_contents_in_topic_evidence: StrictBool = False
+
+    @model_validator(mode="after")
+    def _validate_pages(self) -> DocumentLayoutConfig:
+        pages = self.table_of_contents_pages
+        if any(page < 1 for page in pages) or tuple(sorted(set(pages))) != pages:
+            raise ValueError(
+                "table_of_contents_pages must contain unique ascending positive integers"
+            )
+        return self
+
+
+class HeadingPatternsConfig(_StrictConfigModel):
+    zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)
+    article: tuple[StrictStr, ...] = Field(min_length=1)
+    general_section: tuple[StrictStr, ...] = Field(min_length=1)
+    continuation: tuple[StrictStr, ...] = ()
+
+
+class IgnoredPatternsConfig(_StrictConfigModel):
+    page_headers: tuple[StrictStr, ...] = ()
+    page_footers: tuple[StrictStr, ...] = ()
+
+
+class TopicMatchPolicyConfig(_StrictConfigModel):
+    boundary_mode: Literal["token"]
+    overlap_resolution: Literal["longest_match"]
+
+    @property
+    def identifier(self) -> str:
+        return f"{self.boundary_mode}_{self.overlap_resolution}"
+
+
+class PlanningRegulationStructureConfig(_StrictConfigModel):
+    """Strict, document-locked grammar for one factual regulation structure."""
+
+    schema_version: StrictInt
+    structure_profile: StrictStr = Field(min_length=1)
+    document_lock: DocumentLockConfig
+    document_layout: DocumentLayoutConfig
+    heading_patterns: HeadingPatternsConfig
+    ignored_patterns: IgnoredPatternsConfig
+    zone_aliases: dict[StrictStr, StrictStr]
+    topics: dict[StrictStr, tuple[StrictStr, ...]]
+    topic_match_policy: TopicMatchPolicyConfig
+    topic_context_characters: StrictInt = Field(ge=0)
+
+    @model_validator(mode="after")
+    def _validate_grammar(self) -> PlanningRegulationStructureConfig:
+        if self.schema_version != _SUPPORTED_CONFIG_SCHEMA_VERSION:
+            raise ValueError(
+                f"unsupported structure config schema: {self.schema_version}"
+            )
+        _exact_config_string(self.structure_profile, "structure_profile")
+        _exact_config_string(self.document_lock.document_id, "document_id")
+        _exact_config_string(
+            self.document_lock.normalization_profile,
+            "normalization_profile",
+        )
+        pattern_groups = (
+            self.heading_patterns.zone_chapter,
+            self.heading_patterns.article,
+            self.heading_patterns.general_section,
+            self.heading_patterns.continuation,
+            self.ignored_patterns.page_headers,
+            self.ignored_patterns.page_footers,
+        )
+        for patterns in pattern_groups:
+            if len(set(patterns)) != len(patterns):
+                raise ValueError("regular-expression patterns must be unique")
+            for pattern in patterns:
+                _exact_config_string(pattern, "regular-expression pattern")
+                try:
+                    re.compile(pattern)
+                except re.error as error:
+                    raise ValueError(
+                        f"invalid regular expression: {pattern}"
+                    ) from error
+        structural_pattern_owners: dict[str, str] = {}
+        for category, patterns in (
+            ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
+            ("GENERAL", self.heading_patterns.general_section),
+            ("ARTICLE", self.heading_patterns.article),
+        ):
+            for pattern in patterns:
+                previous = structural_pattern_owners.get(pattern)
+                if previous is not None:
+                    raise ValueError(
+                        "identical structural heading regex is reused across "
+                        f"groups {previous} and {category}"
+                    )
+                structural_pattern_owners[pattern] = category
+        required_captures = (
+            (self.heading_patterns.zone_chapter, {"label"}, "zone chapter"),
+            (
+                self.heading_patterns.article,
+                {"zone", "number", "title"},
+                "zone article",
+            ),
+            (
+                self.heading_patterns.general_section,
+                {"number", "title"},
+                "general section",
+            ),
+        )
+        for patterns, required, label in required_captures:
+            for pattern in patterns:
+                missing = required.difference(re.compile(pattern).groupindex)
+                if missing:
+                    raise ValueError(
+                        f"{label} pattern lacks named captures: {sorted(missing)}"
+                    )
+        for alias, target in self.zone_aliases.items():
+            _exact_config_string(alias, "zone alias")
+            _exact_config_string(target, "zone alias target")
+        _validate_alias_cycles(self.zone_aliases)
+        if not self.topics:
+            raise ValueError("topics must not be empty")
+        for topic in sorted(self.topics):
+            terms = self.topics[topic]
+            _exact_config_string(topic, "topic")
+            if not terms:
+                raise ValueError(f"topic {topic!r} must contain literal terms")
+            normalized: set[str] = set()
+            for term in terms:
+                _exact_config_string(term, "topic search term")
+                normalized_term = _normalize_search_text(term)
+                if not normalized_term or normalized_term in normalized:
+                    raise ValueError(
+                        f"topic {topic!r} contains duplicate normalized terms"
+                    )
+                normalized.add(normalized_term)
+        object.__setattr__(self, "zone_aliases", freeze_mapping(self.zone_aliases))
+        object.__setattr__(self, "topics", freeze_mapping(self.topics))
+        return self
+
+
+@dataclass(frozen=True)
+class PlanningRegulationStructureResult:
+    """Immutable lineage envelope for regulation sections and factual evidence."""
+
+    document_id: str
+    archive_sha256: str
+    pdf_sha256: str
+    index_content_sha256: str
+    structure_profile: str
+    structure_config_schema_version: int
+    structure_config_sha256: str
+    zones_content_sha256: str
+    zoning_intersection_hash_columns: tuple[str, ...]
+    zoning_intersections_content_sha256: str
+    source_records_sha256: str
+    section_hash_schema_version: int
+    sections_content_sha256: str
+    zone_map_content_sha256: str
+    topic_evidence_content_sha256: str
+    structure_result_content_sha256: str
+    sections: pd.DataFrame
+    zone_mapping: pd.DataFrame
+    topic_evidence: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class _LineRecord:
+    record_id: str
+    page_number: int
+    page_line_number: int
+    raw: str
+
+
+@dataclass(frozen=True)
+class _HeadingEvent:
+    record_position: int
+    section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]
+    heading_raw: str
+    heading_normalized: str
+    zone_chapter_label: str | None
+    article_number_raw: str | None
+    article_title_raw: str | None
+
+
+@dataclass(frozen=True)
+class _StructuralHeadingMatch:
+    section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]
+    pattern_index: int
+    named_captures: tuple[tuple[str, str | None], ...]
+
+
+@dataclass(frozen=True)
+class _SectionBoundary:
+    record_position: int
+    event: _HeadingEvent | None
+    forced_table_of_contents: bool
+
+
+@dataclass(frozen=True)
+class _SectionBuild:
+    row: dict[str, object]
+    page_fragments: tuple[tuple[int, str], ...]
+
+
+def _exact_config_string(value: str, label: str) -> str:
+    if not value or value != value.strip():
+        raise ValueError(f"{label} must be a non-empty exact string")
+    return value
+
+
+def _validate_alias_cycles(aliases: Mapping[str, str]) -> None:
+    for start in aliases:
+        seen: set[str] = set()
+        current = start
+        while current in aliases:
+            if current in seen:
+                raise ValueError(f"zone alias cycle detected at {current!r}")
+            seen.add(current)
+            current = aliases[current]
+
+
+def load_planning_regulation_structure_config(
+    path: str | Path,
+) -> PlanningRegulationStructureConfig:
+    """Load and strictly validate a document-specific structure grammar."""
+
+    try:
+        config_path = Path(path)
+        payload = loads_strict_yaml(config_path.read_bytes())
+        if not isinstance(payload, Mapping):
+            raise PlanningRegulationStructureError(
+                "Planning structure configuration must be a mapping"
+            )
+        return PlanningRegulationStructureConfig.model_validate(payload)
+    except PlanningRegulationStructureError:
+        raise
+    except StrictYamlError as error:
+        raise PlanningRegulationStructureError(str(error)) from error
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Planning structure configuration is invalid"
+        ) from error
+
+
+def _strict_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise PlanningRegulationStructureError(
+            f"{label} must be a non-empty exact string"
+        )
+    return value
+
+
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise PlanningRegulationStructureError(f"{label} must be an integer")
+    result = int(value)
+    if result < 0:
+        raise PlanningRegulationStructureError(f"{label} must be non-negative")
+    return result
+
+
+def _strict_positive_integer(value: object, label: str) -> int:
+    result = _strict_nonnegative_integer(value, label)
+    if result == 0:
+        raise PlanningRegulationStructureError(f"{label} must be positive")
+    return result
+
+
+def _validated_sha256(value: object, label: str) -> str:
+    checksum = _strict_string(value, label)
+    if re.fullmatch(r"[0-9a-f]{64}", checksum) is None:
+        raise PlanningRegulationStructureError(
+            f"{label} must be exactly 64 lowercase hexadecimal characters"
+        )
+    return checksum
+
+
+def _canonical_value(value: object) -> object:
+    if value is None or value is pd.NA:
+        return None
+    if isinstance(value, np.generic):
+        return _canonical_value(value.item())
+    if isinstance(value, (tuple, list, np.ndarray)):
+        return [_canonical_value(item) for item in value]
+    if isinstance(value, Mapping):
+        return {str(key): _canonical_value(item) for key, item in value.items()}
+    if isinstance(value, float) and math.isnan(value):
+        return None
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    raise PlanningRegulationStructureError(
+        f"Value of type {type(value).__name__} cannot be canonically serialized"
+    )
+
+
+def _canonical_sha256(value: object) -> str:
+    try:
+        serialized = json.dumps(
+            _canonical_value(value),
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except PlanningRegulationStructureError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Canonical integrity serialization failed"
+        ) from error
+    return sha256(serialized).hexdigest()
+
+
+def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
+    payload = config.model_dump(mode="json")
+    payload["topics"] = {
+        topic: list(config.topics[topic]) for topic in sorted(config.topics)
+    }
+    return _canonical_sha256(
+        {
+            "domain": "landscout.planning_regulation.structure_config",
+            "config": payload,
+        }
+    )
+
+
+def _validate_document_lock(
+    index: PlanningRegulationIndex,
+    config: PlanningRegulationStructureConfig,
+) -> None:
+    validate_planning_regulation_index(index)
+    lock = config.document_lock
+    comparisons = (
+        (index.document_id, lock.document_id, "document ID"),
+        (index.pdf_sha256, lock.pdf_sha256, "PDF SHA256"),
+        (
+            index.pages_content_sha256,
+            lock.pages_content_sha256,
+            "pages content SHA256",
+        ),
+        (
+            index.index_content_sha256,
+            lock.index_content_sha256,
+            "index content SHA256",
+        ),
+        (
+            index.search_normalization_profile,
+            lock.normalization_profile,
+            "normalization profile",
+        ),
+    )
+    for actual, expected, label in comparisons:
+        if actual != expected:
+            raise PlanningRegulationStructureError(
+                f"Planning structure {label} differs from its document lock"
+            )
+    indexed_pages = tuple(
+        _strict_positive_integer(value, "indexed page number")
+        for value in index.pages["page_number"].tolist()
+    )
+    indexed_page_set = set(indexed_pages)
+    if config.document_layout.body_start_page not in indexed_page_set:
+        raise PlanningRegulationStructureError(
+            "body_start_page must reference a real indexed page"
+        )
+    missing_toc_pages = sorted(
+        set(config.document_layout.table_of_contents_pages).difference(indexed_page_set)
+    )
+    if missing_toc_pages:
+        raise PlanningRegulationStructureError(
+            "table_of_contents_pages reference nonexistent indexed pages: "
+            f"{missing_toc_pages}"
+        )
+    table_of_contents_pages = set(config.document_layout.table_of_contents_pages)
+    failed_body_pages = [
+        _strict_positive_integer(row["page_number"], "indexed page number")
+        for row in index.pages.to_dict("records")
+        if _strict_positive_integer(row["page_number"], "indexed page number")
+        >= config.document_layout.body_start_page
+        and row["page_number"] not in table_of_contents_pages
+        and row["extraction_status"] == "ERROR"
+    ]
+    if failed_body_pages:
+        raise PlanningRegulationStructureError(
+            f"Regulation body page extraction status is ERROR: {failed_body_pages}"
+        )
+
+
+def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
+    return tuple(re.compile(pattern) for pattern in patterns)
+
+
+def _matches_any(value: str, patterns: Sequence[re.Pattern[str]]) -> bool:
+    return any(pattern.fullmatch(value) is not None for pattern in patterns)
+
+
+def _retained_page_lines(
+    raw_text: str,
+    headers: Sequence[re.Pattern[str]],
+    footers: Sequence[re.Pattern[str]],
+) -> list[tuple[int, str]]:
+    lines = list(enumerate(raw_text.splitlines(), start=1))
+    start = 0
+    first_nonempty = next(
+        (position for position, (_, line) in enumerate(lines) if line.strip()),
+        None,
+    )
+    if first_nonempty is not None and _matches_any(
+        lines[first_nonempty][1].strip(), headers
+    ):
+        cursor = first_nonempty
+        while cursor < len(lines):
+            comparable = lines[cursor][1].strip()
+            if not comparable or _matches_any(comparable, headers):
+                cursor += 1
+                continue
+            break
+        start = cursor
+    end = len(lines)
+    last_nonempty = next(
+        (
+            position
+            for position in range(len(lines) - 1, start - 1, -1)
+            if lines[position][1].strip()
+        ),
+        None,
+    )
+    if last_nonempty is not None and _matches_any(
+        lines[last_nonempty][1].strip(), footers
+    ):
+        cursor = last_nonempty
+        while cursor >= start:
+            comparable = lines[cursor][1].strip()
+            if not comparable or _matches_any(comparable, footers):
+                cursor -= 1
+                continue
+            break
+        end = cursor + 1
+    return lines[start:end]
+
+
+def _line_records(
+    index: PlanningRegulationIndex,
+    config: PlanningRegulationStructureConfig,
+) -> list[_LineRecord]:
+    headers = _compiled(config.ignored_patterns.page_headers)
+    footers = _compiled(config.ignored_patterns.page_footers)
+    retained: list[tuple[int, int, str]] = []
+    for page in index.pages.to_dict("records"):
+        page_number = _strict_positive_integer(page["page_number"], "page number")
+        raw_text = page["raw_text"]
+        if not isinstance(raw_text, str):
+            raise PlanningRegulationStructureError("Page raw text must be a string")
+        retained.extend(
+            (page_number, line_number, raw_line)
+            for line_number, raw_line in _retained_page_lines(
+                raw_text, headers, footers
+            )
+        )
+    records = [
+        _LineRecord(
+            record_id=f"RECORD-{position:06d}",
+            page_number=page_number,
+            page_line_number=line_number,
+            raw=raw_line,
+        )
+        for position, (page_number, line_number, raw_line) in enumerate(
+            retained, start=1
+        )
+    ]
+    if not records:
+        raise PlanningRegulationStructureError("Regulation contains no structural text")
+    return records
+
+
+def _source_record_payload(record: _LineRecord) -> dict[str, object]:
+    return {
+        "record_id": record.record_id,
+        "page_number": record.page_number,
+        "page_line_number": record.page_line_number,
+        "raw_text": record.raw,
+    }
+
+
+def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.planning_regulation.source_records",
+            "section_hash_schema_version": SECTION_HASH_SCHEMA_VERSION,
+            "records": [_source_record_payload(record) for record in records],
+        }
+    )
+
+
+def _canonical_chapter_label(value: str) -> str:
+    label = re.sub(r"\s+", "", value)
+    return _strict_string(label, "zone chapter label")
+
+
+def _classify_structural_heading(
+    record: _LineRecord,
+    value: str,
+    pattern_groups: Sequence[
+        tuple[
+            Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"],
+            Sequence[re.Pattern[str]],
+        ]
+    ],
+) -> _StructuralHeadingMatch | None:
+    matches: list[_StructuralHeadingMatch] = []
+    for section_type, patterns in pattern_groups:
+        for pattern_index, pattern in enumerate(patterns):
+            match = pattern.fullmatch(value)
+            if match is None:
+                continue
+            matches.append(
+                _StructuralHeadingMatch(
+                    section_type=section_type,
+                    pattern_index=pattern_index,
+                    named_captures=tuple(match.groupdict().items()),
+                )
+            )
+    if len(matches) > 1:
+        diagnostics = ", ".join(
+            f"{match.section_type}[{match.pattern_index}]" for match in matches
+        )
+        raise PlanningRegulationStructureError(
+            "Ambiguous structural heading at "
+            f"{record.record_id}, page {record.page_number}, "
+            f"line {record.page_line_number}: {diagnostics}"
+        )
+    return matches[0] if matches else None
+
+
+def _heading_events(
+    records: Sequence[_LineRecord],
+    config: PlanningRegulationStructureConfig,
+) -> list[_HeadingEvent]:
+    zones = _compiled(config.heading_patterns.zone_chapter)
+    articles = _compiled(config.heading_patterns.article)
+    generals = _compiled(config.heading_patterns.general_section)
+    continuations = _compiled(config.heading_patterns.continuation)
+    structural_patterns: tuple[
+        tuple[
+            Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"],
+            Sequence[re.Pattern[str]],
+        ],
+        ...,
+    ] = (
+        ("ZONE_CHAPTER", zones),
+        ("GENERAL", generals),
+        ("ARTICLE", articles),
+    )
+    toc_pages = set(config.document_layout.table_of_contents_pages)
+    events: list[_HeadingEvent] = []
+    position = 0
+    while position < len(records):
+        record = records[position]
+        comparable = record.raw.strip()
+        if (
+            not comparable
+            or record.page_number < config.document_layout.body_start_page
+            or record.page_number in toc_pages
+        ):
+            position += 1
+            continue
+        structural_match = _classify_structural_heading(
+            record,
+            comparable,
+            structural_patterns,
+        )
+        if structural_match is None:
+            position += 1
+            continue
+        section_type = structural_match.section_type
+        groups = dict(structural_match.named_captures)
+        zone_label = groups.get("label") or groups.get("zone")
+        chapter_label = (
+            _canonical_chapter_label(zone_label) if zone_label is not None else None
+        )
+        article_number = groups.get("number")
+        title = groups.get("title")
+        heading_lines = [record.raw]
+        if section_type != "ZONE_CHAPTER":
+            cursor = position + 1
+            while (
+                cursor < len(records)
+                and len(heading_lines)
+                <= config.document_layout.max_heading_continuation_lines
+                and records[cursor].page_number == record.page_number
+            ):
+                candidate = records[cursor].raw.strip()
+                if not candidate:
+                    break
+                if (
+                    _classify_structural_heading(
+                        records[cursor],
+                        candidate,
+                        structural_patterns,
+                    )
+                    is not None
+                ):
+                    break
+                if not _matches_any(candidate, continuations):
+                    break
+                heading_lines.append(records[cursor].raw)
+                cursor += 1
+        heading_raw = "\n".join(heading_lines)
+        if title is not None:
+            continuation_titles = [line.strip() for line in heading_lines[1:]]
+            title = " ".join([title.strip(), *continuation_titles]).strip()
+            title = title or None
+        events.append(
+            _HeadingEvent(
+                record_position=position,
+                section_type=section_type,
+                heading_raw=heading_raw,
+                heading_normalized=_normalize_search_text(heading_raw),
+                zone_chapter_label=chapter_label,
+                article_number_raw=article_number,
+                article_title_raw=title,
+            )
+        )
+        position += len(heading_lines)
+    if not events:
+        raise PlanningRegulationStructureError(
+            "No regulation body headings matched the configured grammar"
+        )
+    return events
+
+
+def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ...]:
+    fragments: list[tuple[int, str]] = []
+    current_page: int | None = None
+    lines: list[str] = []
+    for record in records:
+        if current_page is not None and record.page_number != current_page:
+            fragments.append((current_page, "\n".join(lines)))
+            lines = []
+        current_page = record.page_number
+        lines.append(record.raw)
+    if current_page is not None:
+        fragments.append((current_page, "\n".join(lines)))
+    return tuple(fragments)
+
+
+def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]:
+    if not pages:
+        return ()
+    blocks: list[list[int]] = [[pages[0]]]
+    for page in pages[1:]:
+        if page == blocks[-1][-1] + 1:
+            blocks[-1].append(page)
+        else:
+            blocks.append([page])
+    return tuple(tuple(block) for block in blocks)
+
+
+def _section_starts(
+    records: Sequence[_LineRecord],
+    events: Sequence[_HeadingEvent],
+    config: PlanningRegulationStructureConfig,
+) -> list[_SectionBoundary]:
+    starts_by_position: dict[int, _SectionBoundary] = {
+        event.record_position: _SectionBoundary(
+            record_position=event.record_position,
+            event=event,
+            forced_table_of_contents=False,
+        )
+        for event in events
+    }
+    record_positions_by_page: dict[int, list[int]] = {}
+    for position, record in enumerate(records):
+        record_positions_by_page.setdefault(record.page_number, []).append(position)
+    for block in _contiguous_page_blocks(
+        config.document_layout.table_of_contents_pages
+    ):
+        positions = [
+            position
+            for page in block
+            for position in record_positions_by_page.get(page, [])
+        ]
+        if not positions:
+            continue
+        block_start = min(positions)
+        block_end = max(positions) + 1
+        starts_by_position[block_start] = _SectionBoundary(
+            record_position=block_start,
+            event=None,
+            forced_table_of_contents=True,
+        )
+        if block_end < len(records) and block_end not in starts_by_position:
+            starts_by_position[block_end] = _SectionBoundary(
+                record_position=block_end,
+                event=None,
+                forced_table_of_contents=False,
+            )
+    ordered = sorted(
+        starts_by_position.values(),
+        key=lambda boundary: boundary.record_position,
+    )
+    toc_pages = set(config.document_layout.table_of_contents_pages)
+    for boundary_index, boundary in enumerate(ordered):
+        if boundary.event is None:
+            continue
+        minimum_position = (
+            ordered[boundary_index - 1].record_position if boundary_index > 0 else 0
+        )
+        shifted_position = boundary.record_position
+        while (
+            shifted_position > minimum_position
+            and not records[shifted_position - 1].raw.strip()
+            and records[shifted_position - 1].page_number not in toc_pages
+        ):
+            shifted_position -= 1
+        ordered[boundary_index] = replace(
+            boundary,
+            record_position=shifted_position,
+        )
+    compacted: dict[int, _SectionBoundary] = {}
+    for boundary in ordered:
+        existing = compacted.get(boundary.record_position)
+        if (
+            existing is None
+            or boundary.forced_table_of_contents
+            or (not existing.forced_table_of_contents and boundary.event is not None)
+        ):
+            compacted[boundary.record_position] = boundary
+    ordered = sorted(
+        compacted.values(),
+        key=lambda boundary: boundary.record_position,
+    )
+    if not ordered:
+        raise PlanningRegulationStructureError(
+            "No regulation section boundary could be established"
+        )
+    first_boundary = ordered[0]
+    if first_boundary.record_position > 0:
+        prefix = records[: first_boundary.record_position]
+        if any(record.raw.strip() for record in prefix):
+            ordered.insert(
+                0,
+                _SectionBoundary(
+                    record_position=0,
+                    event=None,
+                    forced_table_of_contents=False,
+                ),
+            )
+        else:
+            ordered[0] = replace(first_boundary, record_position=0)
+    coalesced: list[_SectionBoundary] = []
+    for boundary_index, boundary in enumerate(ordered):
+        start = boundary.record_position
+        end = (
+            ordered[boundary_index + 1].record_position
+            if boundary_index + 1 < len(ordered)
+            else len(records)
+        )
+        if (
+            not boundary.forced_table_of_contents
+            and boundary.event is None
+            and not any(record.raw.strip() for record in records[start:end])
+        ):
+            if boundary_index + 1 < len(ordered):
+                ordered[boundary_index + 1] = replace(
+                    ordered[boundary_index + 1],
+                    record_position=start,
+                )
+                continue
+            if coalesced:
+                continue
+        coalesced.append(boundary)
+    return coalesced
+
+
+def _section_content_sha256(row: Mapping[str, object]) -> str:
+    content = {
+        column: row[column]
+        for column in SECTION_COLUMNS
+        if column != "section_content_sha256"
+    }
+    return _canonical_sha256(
+        {
+            "domain": "landscout.planning_regulation.section",
+            "section_hash_schema_version": SECTION_HASH_SCHEMA_VERSION,
+            "section": content,
+        }
+    )
+
+
+def _build_sections(
+    index: PlanningRegulationIndex,
+    config: PlanningRegulationStructureConfig,
+) -> tuple[pd.DataFrame, tuple[_SectionBuild, ...], tuple[_LineRecord, ...]]:
+    records = _line_records(index, config)
+    events = _heading_events(records, config)
+    starts = _section_starts(records, events, config)
+    builds: list[_SectionBuild] = []
+    current_chapter_id: str | None = None
+    current_chapter_label: str | None = None
+    for start_index, boundary in enumerate(starts):
+        start = boundary.record_position
+        event = boundary.event
+        end = (
+            starts[start_index + 1].record_position
+            if start_index + 1 < len(starts)
+            else len(records)
+        )
+        segment = records[start:end]
+        if not segment:
+            continue
+        section_id = f"SECTION-{len(builds) + 1:04d}"
+        if event is None:
+            section_type = "OTHER"
+            heading_raw = next(
+                (record.raw for record in segment if record.raw.strip()),
+                "",
+            )
+            heading_normalized = _normalize_search_text(heading_raw)
+            zone_label = None
+            article_number = None
+            article_title = None
+            parent_id = None
+        else:
+            section_type = event.section_type
+            heading_raw = event.heading_raw
+            heading_normalized = event.heading_normalized
+            article_number = event.article_number_raw
+            article_title = event.article_title_raw
+            if section_type == "ZONE_CHAPTER":
+                zone_label = event.zone_chapter_label
+                current_chapter_label = zone_label
+                current_chapter_id = section_id
+                parent_id = None
+            elif section_type == "ARTICLE":
+                if current_chapter_id is None or current_chapter_label is None:
+                    raise PlanningRegulationStructureError(
+                        "Zone article has no preceding zone chapter"
+                    )
+                if (
+                    event.zone_chapter_label is None
+                    or event.zone_chapter_label.casefold()
+                    != current_chapter_label.casefold()
+                ):
+                    raise PlanningRegulationStructureError(
+                        "Zone article label differs from its active chapter"
+                    )
+                zone_label = current_chapter_label
+                parent_id = current_chapter_id
+            else:
+                zone_label = None
+                parent_id = None
+                current_chapter_id = None
+                current_chapter_label = None
+        fragments = _page_fragments(segment)
+        pages = tuple(page for page, _ in fragments)
+        raw_text = "\n".join(record.raw for record in segment)
+        row: dict[str, object] = {
+            "section_id": section_id,
+            "parent_section_id": parent_id,
+            "section_type": section_type,
+            "heading_raw": heading_raw,
+            "heading_normalized": heading_normalized,
+            "zone_chapter_label": zone_label,
+            "article_number_raw": article_number,
+            "article_title_raw": article_title,
+            "start_record_id": segment[0].record_id,
+            "end_record_id": segment[-1].record_id,
+            "source_record_count": len(segment),
+            "source_records_sha256": _source_records_sha256(segment),
+            "start_page": pages[0],
+            "end_page": pages[-1],
+            "page_numbers": pages,
+            "raw_text": raw_text,
+            "normalized_text": _normalize_search_text(raw_text),
+            "character_count": len(raw_text),
+            "section_content_sha256": "",
+            "document_id": index.document_id,
+            "archive_sha256": index.archive_sha256,
+            "pdf_sha256": index.pdf_sha256,
+            "index_content_sha256": index.index_content_sha256,
+            "structure_profile": config.structure_profile,
+        }
+        row["section_content_sha256"] = _section_content_sha256(row)
+        builds.append(_SectionBuild(row=row, page_fragments=fragments))
+    frame = pd.DataFrame([build.row for build in builds], columns=SECTION_COLUMNS)
+    frame["start_page"] = frame["start_page"].astype("int64")
+    frame["end_page"] = frame["end_page"].astype("int64")
+    frame["source_record_count"] = frame["source_record_count"].astype("int64")
+    frame["character_count"] = frame["character_count"].astype("int64")
+    return frame, tuple(builds), tuple(records)
+
+
+def _validate_source_label_values(series: pd.Series, label: str) -> None:
+    for value in series.tolist():
+        _strict_string(value, label)
+
+
+def _validated_zoning_inputs(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    intersections: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if not isinstance(zones, pd.DataFrame) or not isinstance(
+        intersections, pd.DataFrame
+    ):
+        raise PlanningRegulationStructureError(
+            "Zones and zoning intersections must be DataFrames"
+        )
+    zone_required = {
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "source_document_id",
+        "source_archive_sha256",
+    }
+    relation_required = {
+        "parcel_id",
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "relation_type",
+        "intersection_area_m2",
+        "source_document_id",
+        "source_archive_sha256",
+    }
+    missing_zones = sorted(zone_required.difference(zones.columns))
+    missing_relations = sorted(relation_required.difference(intersections.columns))
+    if missing_zones:
+        raise PlanningRegulationStructureError(
+            f"Zone catalog is missing required columns: {missing_zones}"
+        )
+    if missing_relations:
+        raise PlanningRegulationStructureError(
+            f"Zoning intersections are missing required columns: {missing_relations}"
+        )
+    zone_copy = zones.copy(deep=True)
+    relation_copy = intersections.copy(deep=True)
+    _validate_source_label_values(zone_copy["planning_zone_id"], "planning zone ID")
+    _validate_source_label_values(zone_copy["source_zone_id"], "source zone ID")
+    _validate_source_label_values(zone_copy["zone_label_raw"], "zone label")
+    if zone_copy["planning_zone_id"].duplicated().any():
+        raise PlanningRegulationStructureError("Planning zone IDs must be unique")
+    if zone_copy["source_zone_id"].duplicated().any():
+        raise PlanningRegulationStructureError("Source zone IDs must be unique")
+    for column in ("source_document_id", "source_archive_sha256"):
+        _validate_source_label_values(zone_copy[column], f"zone {column}")
+    if not zone_copy["source_document_id"].eq(index.document_id).all():
+        raise PlanningRegulationStructureError(
+            "Zone document lineage differs from index"
+        )
+    if not zone_copy["source_archive_sha256"].eq(index.archive_sha256).all():
+        raise PlanningRegulationStructureError(
+            "Zone archive lineage differs from index"
+        )
+    for column in ("parcel_id", "planning_zone_id", "source_zone_id", "zone_label_raw"):
+        _validate_source_label_values(relation_copy[column], f"intersection {column}")
+    if relation_copy.duplicated(["parcel_id", "planning_zone_id"]).any():
+        raise PlanningRegulationStructureError(
+            "Parcel/zone intersection pairs must be unique"
+        )
+    known = set(zone_copy["planning_zone_id"].tolist())
+    if not set(relation_copy["planning_zone_id"].tolist()).issubset(known):
+        raise PlanningRegulationStructureError(
+            "Zoning intersections reference an unknown planning zone"
+        )
+    catalog_by_id = zone_copy.set_index("planning_zone_id")
+    expected_labels = relation_copy["planning_zone_id"].map(
+        catalog_by_id["zone_label_raw"]
+    )
+    if not expected_labels.eq(relation_copy["zone_label_raw"]).all():
+        raise PlanningRegulationStructureError(
+            "Intersection zone labels differ from the zone catalog"
+        )
+    expected_source_ids = relation_copy["planning_zone_id"].map(
+        catalog_by_id["source_zone_id"]
+    )
+    if not expected_source_ids.eq(relation_copy["source_zone_id"]).all():
+        raise PlanningRegulationStructureError(
+            "Intersection source-zone IDs differ from the zone catalog"
+        )
+    if not relation_copy["source_document_id"].eq(index.document_id).all():
+        raise PlanningRegulationStructureError(
+            "Intersection document lineage differs from index"
+        )
+    if not relation_copy["source_archive_sha256"].eq(index.archive_sha256).all():
+        raise PlanningRegulationStructureError(
+            "Intersection archive lineage differs from index"
+        )
+    allowed_relations = {"AREA_OVERLAP", "TOUCH_ONLY"}
+    if not set(relation_copy["relation_type"].tolist()).issubset(allowed_relations):
+        raise PlanningRegulationStructureError("Zoning relation type is invalid")
+    metrics: list[float] = []
+    for value in relation_copy["intersection_area_m2"].tolist():
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise PlanningRegulationStructureError("Intersection areas must be numeric")
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError, OverflowError) as error:
+            raise PlanningRegulationStructureError(
+                "Intersection areas must be finite"
+            ) from error
+        if not math.isfinite(numeric) or numeric < 0:
+            raise PlanningRegulationStructureError(
+                "Intersection areas must be finite and non-negative"
+            )
+        metrics.append(numeric)
+    relation_copy["intersection_area_m2"] = pd.Series(
+        metrics, index=relation_copy.index, dtype="float64"
+    )
+    positive = relation_copy["intersection_area_m2"].gt(0)
+    if not relation_copy.loc[positive, "relation_type"].eq("AREA_OVERLAP").all():
+        raise PlanningRegulationStructureError(
+            "Positive zoning relations must be AREA_OVERLAP"
+        )
+    if not relation_copy.loc[~positive, "relation_type"].eq("TOUCH_ONLY").all():
+        raise PlanningRegulationStructureError(
+            "Zero-area zoning relations must be TOUCH_ONLY"
+        )
+    for upper_column in ("parcel_metric_area_m2", "zone_area_m2"):
+        if upper_column not in relation_copy.columns:
+            continue
+        for area, upper in zip(
+            relation_copy["intersection_area_m2"].tolist(),
+            relation_copy[upper_column].tolist(),
+            strict=True,
+        ):
+            if isinstance(upper, bool) or not isinstance(upper, Real):
+                raise PlanningRegulationStructureError(
+                    f"{upper_column} must be numeric"
+                )
+            try:
+                numeric_upper = float(upper)
+            except (TypeError, ValueError, OverflowError) as error:
+                raise PlanningRegulationStructureError(
+                    f"{upper_column} must be finite"
+                ) from error
+            if not math.isfinite(numeric_upper) or numeric_upper < 0:
+                raise PlanningRegulationStructureError(
+                    f"{upper_column} must be finite and non-negative"
+                )
+            if area - numeric_upper > technical_overlay_tolerance(numeric_upper):
+                raise PlanningRegulationStructureError(
+                    f"Intersection area exceeds {upper_column}"
+                )
+    return zone_copy, relation_copy
+
+
+def _input_frame_sha256(
+    domain: str,
+    frame: pd.DataFrame,
+    columns: Sequence[str],
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": domain,
+            "columns": list(columns),
+            "rows": frame.loc[:, columns].to_dict("records"),
+        }
+    )
+
+
+def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
+    return _REQUIRED_INTERSECTION_INPUT_COLUMNS + tuple(
+        column
+        for column in _OPTIONAL_INTERSECTION_INPUT_COLUMNS
+        if column in frame.columns
+    )
+
+
+def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
+    if label not in aliases:
+        return None
+    current = label
+    visited: set[str] = set()
+    while current in aliases:
+        if current in visited:
+            raise PlanningRegulationStructureError("Zone alias cycle is invalid")
+        visited.add(current)
+        current = aliases[current]
+    return current
+
+
+def _dominant_counts(intersections: pd.DataFrame) -> Counter[str]:
+    positive = intersections.loc[
+        intersections["intersection_area_m2"].gt(0),
+        ["parcel_id", "planning_zone_id", "zone_label_raw", "intersection_area_m2"],
+    ].copy()
+    if positive.empty:
+        return Counter()
+    positive = positive.sort_values(
+        ["parcel_id", "intersection_area_m2", "planning_zone_id"],
+        ascending=[True, False, True],
+        kind="mergesort",
+    )
+    selected = positive.drop_duplicates("parcel_id", keep="first")
+    return Counter(selected["zone_label_raw"].tolist())
+
+
+def _build_zone_mapping(
+    index: PlanningRegulationIndex,
+    config: PlanningRegulationStructureConfig,
+    sections: pd.DataFrame,
+    zones: pd.DataFrame,
+    intersections: pd.DataFrame,
+) -> pd.DataFrame:
+    chapters = sections.loc[
+        sections["section_type"].eq("ZONE_CHAPTER"),
+        ["section_id", "zone_chapter_label"],
+    ]
+    chapters_by_label: dict[str, list[str]] = {}
+    for row in chapters.to_dict("records"):
+        label = _strict_string(row["zone_chapter_label"], "zone chapter label")
+        chapters_by_label.setdefault(label, []).append(row["section_id"])
+    zone_counts = Counter(zones["zone_label_raw"].tolist())
+    parcel_counts = (
+        intersections.groupby("zone_label_raw", sort=False)["parcel_id"]
+        .nunique()
+        .to_dict()
+    )
+    intersection_counts = Counter(intersections["zone_label_raw"].tolist())
+    dominant_counts = _dominant_counts(intersections)
+    rows: list[dict[str, object]] = []
+    for label in sorted(zone_counts):
+        exact_sections = chapters_by_label.get(label, [])
+        resolved: str | None = None
+        matched: str | None = None
+        if len(exact_sections) == 1:
+            status = "EXACT"
+            method = "EXACT_HEADING"
+            resolved = label
+            matched = exact_sections[0]
+        elif len(exact_sections) > 1:
+            status = "AMBIGUOUS"
+            method = "AMBIGUOUS"
+        else:
+            alias_target = _resolved_alias(label, config.zone_aliases)
+            alias_sections = chapters_by_label.get(alias_target or "", [])
+            if alias_target is not None and len(alias_sections) == 1:
+                status = "CONFIG_ALIAS"
+                method = "CONFIG_ALIAS"
+                resolved = alias_target
+                matched = alias_sections[0]
+            elif alias_target is not None and len(alias_sections) > 1:
+                status = "AMBIGUOUS"
+                method = "AMBIGUOUS"
+                resolved = alias_target
+            else:
+                status = "UNMAPPED"
+                method = "NONE"
+                resolved = None
+        rows.append(
+            {
+                "source_zone_label_raw": label,
+                "resolved_zone_chapter_label": resolved,
+                "mapping_status": status,
+                "mapping_method": method,
+                "matched_section_id": matched,
+                "zone_polygon_count": zone_counts[label],
+                "candidate_parcel_count": int(parcel_counts.get(label, 0)),
+                "candidate_intersection_count": intersection_counts[label],
+                "dominant_candidate_count": dominant_counts[label],
+                "document_id": index.document_id,
+                "archive_sha256": index.archive_sha256,
+                "pdf_sha256": index.pdf_sha256,
+                "index_content_sha256": index.index_content_sha256,
+                "structure_profile": config.structure_profile,
+            }
+        )
+    frame = pd.DataFrame(rows, columns=ZONE_MAPPING_COLUMNS)
+    for column in (
+        "zone_polygon_count",
+        "candidate_parcel_count",
+        "candidate_intersection_count",
+        "dominant_candidate_count",
+    ):
+        frame[column] = frame[column].astype("int64")
+    unresolved_dominant = frame.loc[
+        frame["dominant_candidate_count"].gt(0)
+        & ~frame["mapping_status"].isin({"EXACT", "CONFIG_ALIAS"}),
+        "source_zone_label_raw",
+    ].tolist()
+    if unresolved_dominant:
+        raise PlanningRegulationStructureError(
+            "Dominant candidate zone labels lack an exact configured chapter mapping: "
+            f"{unresolved_dominant}"
+        )
+    return frame
+
+
+@dataclass(frozen=True)
+class _TopicMatch:
+    term_index: int
+    search_term: str
+    normalized_term: str
+    normalized_start: int
+    normalized_end: int
+
+
+def _is_token_character(value: str) -> bool:
+    return value.isalnum() or value == "_"
+
+
+def _literal_topic_matches(
+    normalized_text: str,
+    terms: Sequence[str],
+) -> tuple[_TopicMatch, ...]:
+    candidates: list[_TopicMatch] = []
+    for term_index, search_term in enumerate(terms):
+        normalized_term = _normalize_search_text(search_term)
+        cursor = 0
+        while True:
+            start = normalized_text.find(normalized_term, cursor)
+            if start < 0:
+                break
+            end = start + len(normalized_term)
+            left_ok = start == 0 or not _is_token_character(normalized_text[start - 1])
+            right_ok = end == len(normalized_text) or not _is_token_character(
+                normalized_text[end]
+            )
+            if left_ok and right_ok:
+                candidates.append(
+                    _TopicMatch(
+                        term_index=term_index,
+                        search_term=search_term,
+                        normalized_term=normalized_term,
+                        normalized_start=start,
+                        normalized_end=end,
+                    )
+                )
+            cursor = start + 1
+    selected: list[_TopicMatch] = []
+    for candidate in sorted(
+        candidates,
+        key=lambda item: (
+            -(item.normalized_end - item.normalized_start),
+            item.term_index,
+            item.normalized_start,
+        ),
+    ):
+        if any(
+            candidate.normalized_start < existing.normalized_end
+            and existing.normalized_start < candidate.normalized_end
+            for existing in selected
+        ):
+            continue
+        selected.append(candidate)
+    return tuple(
+        sorted(
+            selected,
+            key=lambda item: (item.normalized_start, item.term_index),
+        )
+    )
+
+
+def _evidence_scope(section_type: str) -> str:
+    if section_type == "GENERAL":
+        return "GENERAL_RULE"
+    if section_type in {"ZONE_CHAPTER", "ARTICLE"}:
+        return "ZONE_SPECIFIC_RULE"
+    if section_type == "OTHER":
+        return "OTHER_TEXT"
+    raise PlanningRegulationStructureError(
+        "Topic evidence references an unsupported section type"
+    )
+
+
+def _build_topic_evidence(
+    index: PlanningRegulationIndex,
+    config: PlanningRegulationStructureConfig,
+    builds: Sequence[_SectionBuild],
+) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    context_characters = config.topic_context_characters
+    toc_pages = set(config.document_layout.table_of_contents_pages)
+    for topic in sorted(config.topics):
+        terms = config.topics[topic]
+        for build in builds:
+            section = build.row
+            for page_number, raw_fragment in build.page_fragments:
+                if (
+                    page_number in toc_pages
+                    and not config.document_layout.include_table_of_contents_in_topic_evidence
+                ):
+                    continue
+                normalized, spans = _normalize_search_text_with_mapping(raw_fragment)
+                matches = _literal_topic_matches(normalized, terms)
+                by_term: dict[int, list[_TopicMatch]] = {}
+                for match in matches:
+                    by_term.setdefault(match.term_index, []).append(match)
+                for term_index in range(len(terms)):
+                    retained = by_term.get(term_index, [])
+                    if not retained:
+                        continue
+                    first = retained[0]
+                    context_start = max(0, first.normalized_start - context_characters)
+                    context_end = min(
+                        len(normalized),
+                        first.normalized_end + context_characters,
+                    )
+                    raw_start = spans[first.normalized_start][0]
+                    raw_end = spans[first.normalized_end - 1][1]
+                    zone_label = section["zone_chapter_label"]
+                    rows.append(
+                        {
+                            "topic": topic,
+                            "search_term": first.search_term,
+                            "normalized_search_term": first.normalized_term,
+                            "match_policy": config.topic_match_policy.identifier,
+                            "section_id": section["section_id"],
+                            "evidence_scope": _evidence_scope(
+                                str(section["section_type"])
+                            ),
+                            "zone_chapter_label": zone_label,
+                            "article_number_raw": section["article_number_raw"],
+                            "page_number": page_number,
+                            "occurrence_count": len(retained),
+                            "first_match_normalized_start": first.normalized_start,
+                            "first_match_normalized_end": first.normalized_end,
+                            "first_match_raw_start": raw_start,
+                            "first_match_raw_end": raw_end,
+                            "raw_context": _raw_context(
+                                raw_fragment, spans, context_start, context_end
+                            ),
+                            "normalized_context": normalized[context_start:context_end],
+                            "document_id": index.document_id,
+                            "archive_sha256": index.archive_sha256,
+                            "pdf_sha256": index.pdf_sha256,
+                            "index_content_sha256": index.index_content_sha256,
+                            "structure_profile": config.structure_profile,
+                        }
+                    )
+    if not rows:
+        return pd.DataFrame(
+            {
+                column: pd.Series(
+                    dtype=(
+                        "int64"
+                        if column
+                        in {
+                            "page_number",
+                            "occurrence_count",
+                            "first_match_normalized_start",
+                            "first_match_normalized_end",
+                            "first_match_raw_start",
+                            "first_match_raw_end",
+                        }
+                        else "object"
+                    )
+                )
+                for column in TOPIC_EVIDENCE_COLUMNS
+            }
+        )
+    frame = pd.DataFrame(rows, columns=TOPIC_EVIDENCE_COLUMNS)
+    for column in (
+        "page_number",
+        "occurrence_count",
+        "first_match_normalized_start",
+        "first_match_normalized_end",
+        "first_match_raw_start",
+        "first_match_raw_end",
+    ):
+        frame[column] = frame[column].astype("int64")
+    return frame
+
+
+def _frame_hash(
+    domain: str,
+    result: PlanningRegulationStructureResult,
+    frame: pd.DataFrame,
+    columns: Sequence[str],
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": domain,
+            "section_hash_schema_version": result.section_hash_schema_version,
+            "document_id": result.document_id,
+            "archive_sha256": result.archive_sha256,
+            "pdf_sha256": result.pdf_sha256,
+            "index_content_sha256": result.index_content_sha256,
+            "structure_profile": result.structure_profile,
+            "structure_config_schema_version": result.structure_config_schema_version,
+            "structure_config_sha256": result.structure_config_sha256,
+            "zones_content_sha256": result.zones_content_sha256,
+            "zoning_intersection_hash_columns": list(
+                result.zoning_intersection_hash_columns
+            ),
+            "zoning_intersections_content_sha256": (
+                result.zoning_intersections_content_sha256
+            ),
+            "source_records_sha256": result.source_records_sha256,
+            "rows": frame.loc[:, columns].to_dict("records"),
+        }
+    )
+
+
+def _structure_result_content_sha256(
+    result: PlanningRegulationStructureResult,
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.planning_regulation.structure_result",
+            "document_id": result.document_id,
+            "archive_sha256": result.archive_sha256,
+            "pdf_sha256": result.pdf_sha256,
+            "index_content_sha256": result.index_content_sha256,
+            "structure_profile": result.structure_profile,
+            "structure_config_schema_version": result.structure_config_schema_version,
+            "structure_config_sha256": result.structure_config_sha256,
+            "zones_content_sha256": result.zones_content_sha256,
+            "zoning_intersection_hash_columns": list(
+                result.zoning_intersection_hash_columns
+            ),
+            "zoning_intersections_content_sha256": (
+                result.zoning_intersections_content_sha256
+            ),
+            "source_records_sha256": result.source_records_sha256,
+            "section_hash_schema_version": result.section_hash_schema_version,
+            "sections_content_sha256": result.sections_content_sha256,
+            "zone_map_content_sha256": result.zone_map_content_sha256,
+            "topic_evidence_content_sha256": result.topic_evidence_content_sha256,
+        }
+    )
+
+
+def _result_with_hashes(
+    result: PlanningRegulationStructureResult,
+) -> PlanningRegulationStructureResult:
+    component_result = replace(
+        result,
+        sections_content_sha256=_frame_hash(
+            "landscout.planning_regulation.sections",
+            result,
+            result.sections,
+            SECTION_COLUMNS,
+        ),
+        zone_map_content_sha256=_frame_hash(
+            "landscout.planning_regulation.zone_map",
+            result,
+            result.zone_mapping,
+            ZONE_MAPPING_COLUMNS,
+        ),
+        topic_evidence_content_sha256=_frame_hash(
+            "landscout.planning_regulation.topic_evidence",
+            result,
+            result.topic_evidence,
+            TOPIC_EVIDENCE_COLUMNS,
+        ),
+    )
+    return replace(
+        component_result,
+        structure_result_content_sha256=_structure_result_content_sha256(
+            component_result
+        ),
+    )
+
+
+def _page_tuple(value: object) -> tuple[int, ...]:
+    if not isinstance(value, (tuple, list, np.ndarray)):
+        raise PlanningRegulationStructureError(
+            "Section page_numbers must be a sequence"
+        )
+    return tuple(
+        _strict_positive_integer(item, "section page number") for item in value
+    )
+
+
+def _validate_sections(
+    index: PlanningRegulationIndex,
+    result: PlanningRegulationStructureResult,
+    records: Sequence[_LineRecord],
+    config: PlanningRegulationStructureConfig,
+) -> None:
+    frame = result.sections
+    if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != SECTION_COLUMNS:
+        raise PlanningRegulationStructureError("Section schema is not deterministic")
+    if frame.empty:
+        raise PlanningRegulationStructureError("Regulation sections must not be empty")
+    if result.source_records_sha256 != _source_records_sha256(records):
+        raise PlanningRegulationStructureError("Retained source-record hash differs")
+    known_pages = set(index.pages["page_number"].tolist())
+    record_position = {
+        record.record_id: position for position, record in enumerate(records)
+    }
+    ids: list[str] = []
+    expected_record_start = 0
+    parents: dict[str, str] = {}
+    zone_by_id: dict[str, str | None] = {}
+    for sequence, row in enumerate(frame.to_dict("records"), start=1):
+        section_id = _strict_string(row["section_id"], "section ID")
+        if section_id != f"SECTION-{sequence:04d}":
+            raise PlanningRegulationStructureError(
+                "Section IDs must be deterministic and sequential"
+            )
+        ids.append(section_id)
+        section_type = _strict_string(row["section_type"], "section type")
+        if section_type not in _SECTION_TYPES:
+            raise PlanningRegulationStructureError("Section type is invalid")
+        for column in (
+            "heading_raw",
+            "heading_normalized",
+            "raw_text",
+            "normalized_text",
+        ):
+            if not isinstance(row[column], str):
+                raise PlanningRegulationStructureError(
+                    f"Section {column} must be a string"
+                )
+        if row["heading_normalized"] != _normalize_search_text(row["heading_raw"]):
+            raise PlanningRegulationStructureError(
+                "Section heading normalization differs"
+            )
+        if row["normalized_text"] != _normalize_search_text(row["raw_text"]):
+            raise PlanningRegulationStructureError("Section text normalization differs")
+        if _strict_nonnegative_integer(
+            row["character_count"], "character count"
+        ) != len(row["raw_text"]):
+            raise PlanningRegulationStructureError("Section character count differs")
+        start_record_id = _strict_string(row["start_record_id"], "start record ID")
+        end_record_id = _strict_string(row["end_record_id"], "end record ID")
+        if (
+            start_record_id not in record_position
+            or end_record_id not in record_position
+        ):
+            raise PlanningRegulationStructureError("Section record boundary is unknown")
+        start_record = record_position[start_record_id]
+        end_record = record_position[end_record_id]
+        if start_record != expected_record_start or end_record < start_record:
+            raise PlanningRegulationStructureError(
+                "Sections do not preserve the exact source-record partition"
+            )
+        segment = records[start_record : end_record + 1]
+        expected_record_start = end_record + 1
+        blank_toc_other = (
+            section_type == "OTHER"
+            and not row["raw_text"].strip()
+            and any(
+                record.page_number in config.document_layout.table_of_contents_pages
+                for record in segment
+            )
+        )
+        if not row["raw_text"].strip() and not blank_toc_other:
+            raise PlanningRegulationStructureError(
+                "Only an explicit TOC OTHER section may contain blank-only text"
+            )
+        if not row["heading_raw"].strip() and not blank_toc_other:
+            raise PlanningRegulationStructureError(
+                "Every nonblank section must retain a factual heading"
+            )
+        if _strict_positive_integer(
+            row["source_record_count"], "source record count"
+        ) != len(segment):
+            raise PlanningRegulationStructureError(
+                "Section source-record count differs"
+            )
+        if _validated_sha256(
+            row["source_records_sha256"], "section source-record SHA256"
+        ) != _source_records_sha256(segment):
+            raise PlanningRegulationStructureError("Section source-record hash differs")
+        if row["raw_text"] != "\n".join(record.raw for record in segment):
+            raise PlanningRegulationStructureError(
+                "Section raw text differs from its retained source records"
+            )
+        expected_pages = tuple(dict.fromkeys(record.page_number for record in segment))
+        pages = _page_tuple(row["page_numbers"])
+        if (
+            not pages
+            or any(right <= left for left, right in pairwise(pages))
+            or not set(pages).issubset(known_pages)
+            or pages != expected_pages
+        ):
+            raise PlanningRegulationStructureError(
+                "Section page references are invalid"
+            )
+        start = _strict_positive_integer(row["start_page"], "section start page")
+        end = _strict_positive_integer(row["end_page"], "section end page")
+        if start != pages[0] or end != pages[-1] or end < start:
+            raise PlanningRegulationStructureError(
+                "Section page range is invalid or unordered"
+            )
+        for column, actual in (
+            ("document_id", result.document_id),
+            ("archive_sha256", result.archive_sha256),
+            ("pdf_sha256", result.pdf_sha256),
+            ("index_content_sha256", result.index_content_sha256),
+            ("structure_profile", result.structure_profile),
+        ):
+            if row[column] != actual:
+                raise PlanningRegulationStructureError("Section lineage differs")
+        expected_hash = _section_content_sha256(row)
+        if (
+            _validated_sha256(row["section_content_sha256"], "section content SHA256")
+            != expected_hash
+        ):
+            raise PlanningRegulationStructureError("Section content hash differs")
+        parent = row["parent_section_id"]
+        if parent is not None and not bool(pd.isna(parent)):
+            parents[section_id] = _strict_string(parent, "parent section ID")
+        zone_value = row["zone_chapter_label"]
+        zone_label = (
+            None
+            if zone_value is None or bool(pd.isna(zone_value))
+            else _strict_string(zone_value, "zone chapter label")
+        )
+        zone_by_id[section_id] = zone_label
+        article_number = row["article_number_raw"]
+        article_title = row["article_title_raw"]
+        if section_type == "ARTICLE":
+            if zone_label is None:
+                raise PlanningRegulationStructureError("Article zone label is missing")
+            _strict_string(article_number, "article number")
+            _strict_string(article_title, "article title")
+            if section_id not in parents:
+                raise PlanningRegulationStructureError("Article parent is missing")
+        elif section_type == "GENERAL":
+            if zone_label is not None or section_id in parents:
+                raise PlanningRegulationStructureError(
+                    "General section cannot have a zone label or parent"
+                )
+            _strict_string(article_number, "general article number")
+            _strict_string(article_title, "general article title")
+        else:
+            if section_id in parents:
+                raise PlanningRegulationStructureError(
+                    "Zone chapter or OTHER section cannot have a parent"
+                )
+            if section_type == "ZONE_CHAPTER":
+                if zone_label is None:
+                    raise PlanningRegulationStructureError(
+                        "Zone chapter label is missing"
+                    )
+            elif zone_label is not None:
+                raise PlanningRegulationStructureError(
+                    "OTHER section cannot have a zone label"
+                )
+            for value, label in (
+                (article_number, "article number"),
+                (article_title, "article title"),
+            ):
+                if value is not None and not bool(pd.isna(value)):
+                    raise PlanningRegulationStructureError(
+                        f"{section_type} {label} must be null"
+                    )
+    if expected_record_start != len(records):
+        raise PlanningRegulationStructureError(
+            "Retained source records are omitted from the section partition"
+        )
+    if len(set(ids)) != len(ids):
+        raise PlanningRegulationStructureError("Section IDs must be unique")
+    type_by_id = dict(zip(ids, frame["section_type"].tolist(), strict=True))
+    order_by_id = {section_id: position for position, section_id in enumerate(ids)}
+    for section_id, parent in parents.items():
+        if parent not in type_by_id or type_by_id[parent] != "ZONE_CHAPTER":
+            raise PlanningRegulationStructureError("Article parent section is invalid")
+        section_type = type_by_id[section_id]
+        if section_type != "ARTICLE":
+            raise PlanningRegulationStructureError(
+                "Only articles may have a parent section"
+            )
+        if order_by_id[parent] >= order_by_id[section_id]:
+            raise PlanningRegulationStructureError(
+                "Article parent must occur earlier in source order"
+            )
+        if zone_by_id[parent] != zone_by_id[section_id]:
+            raise PlanningRegulationStructureError(
+                "Article zone label differs from its parent chapter"
+            )
+
+
+def _validate_zone_mapping(
+    result: PlanningRegulationStructureResult,
+    config: PlanningRegulationStructureConfig,
+) -> None:
+    frame = result.zone_mapping
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != ZONE_MAPPING_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Zone mapping schema is not deterministic"
+        )
+    labels: list[str] = []
+    sections = result.sections.set_index("section_id", drop=False)
+    exact_methods = {
+        "EXACT": "EXACT_HEADING",
+        "CONFIG_ALIAS": "CONFIG_ALIAS",
+        "UNMAPPED": "NONE",
+        "AMBIGUOUS": "AMBIGUOUS",
+    }
+    for row in frame.to_dict("records"):
+        label = _strict_string(row["source_zone_label_raw"], "source zone label")
+        labels.append(label)
+        status = _strict_string(row["mapping_status"], "mapping status")
+        method = _strict_string(row["mapping_method"], "mapping method")
+        if status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS:
+            raise PlanningRegulationStructureError(
+                "Zone mapping status or method is invalid"
+            )
+        if exact_methods[status] != method:
+            raise PlanningRegulationStructureError(
+                "Zone mapping status/method combination is invalid"
+            )
+        counts: dict[str, int] = {}
+        for column in (
+            "zone_polygon_count",
+            "candidate_parcel_count",
+            "candidate_intersection_count",
+            "dominant_candidate_count",
+        ):
+            count = _strict_nonnegative_integer(row[column], column)
+            counts[column] = count
+            if column == "zone_polygon_count" and count == 0:
+                raise PlanningRegulationStructureError(
+                    "Zone polygon count must be positive"
+                )
+        matched = row["matched_section_id"]
+        if status in {"EXACT", "CONFIG_ALIAS"}:
+            matched_id = _strict_string(matched, "matched section ID")
+            if matched_id not in sections.index:
+                raise PlanningRegulationStructureError(
+                    "Zone mapping section is unknown"
+                )
+            resolved = _strict_string(
+                row["resolved_zone_chapter_label"], "resolved chapter label"
+            )
+            matched_section = sections.loc[matched_id]
+            if matched_section["section_type"] != "ZONE_CHAPTER":
+                raise PlanningRegulationStructureError(
+                    "Resolved zone mapping must reference a zone chapter"
+                )
+            if matched_section["zone_chapter_label"] != resolved:
+                raise PlanningRegulationStructureError(
+                    "Resolved zone label differs from its matched chapter"
+                )
+            if status == "EXACT" and resolved != label:
+                raise PlanningRegulationStructureError(
+                    "Exact zone mapping must preserve the source label"
+                )
+            if status == "CONFIG_ALIAS" and resolved != _resolved_alias(
+                label, config.zone_aliases
+            ):
+                raise PlanningRegulationStructureError(
+                    "Configured zone mapping differs from its final alias target"
+                )
+        elif matched is not None and not bool(pd.isna(matched)):
+            raise PlanningRegulationStructureError(
+                "Unresolved zone mapping has a section ID"
+            )
+        elif (
+            status == "UNMAPPED"
+            and row["resolved_zone_chapter_label"] is not None
+            and not bool(pd.isna(row["resolved_zone_chapter_label"]))
+        ):
+            raise PlanningRegulationStructureError(
+                "Unmapped zone must not claim a resolved chapter label"
+            )
+        if row["dominant_candidate_count"] > 0 and status not in {
+            "EXACT",
+            "CONFIG_ALIAS",
+        }:
+            raise PlanningRegulationStructureError(
+                "Dominant candidate zone is unresolved"
+            )
+        if not (
+            counts["dominant_candidate_count"]
+            <= counts["candidate_parcel_count"]
+            <= counts["candidate_intersection_count"]
+        ):
+            raise PlanningRegulationStructureError(
+                "Zone candidate coverage counts are mathematically inconsistent"
+            )
+        for column, actual in (
+            ("document_id", result.document_id),
+            ("archive_sha256", result.archive_sha256),
+            ("pdf_sha256", result.pdf_sha256),
+            ("index_content_sha256", result.index_content_sha256),
+            ("structure_profile", result.structure_profile),
+        ):
+            if row[column] != actual:
+                raise PlanningRegulationStructureError("Zone mapping lineage differs")
+    if labels != sorted(labels) or len(set(labels)) != len(labels):
+        raise PlanningRegulationStructureError(
+            "Zone mappings must be unique and sorted"
+        )
+
+
+def _validate_topic_evidence(
+    index: PlanningRegulationIndex,
+    result: PlanningRegulationStructureResult,
+    config: PlanningRegulationStructureConfig,
+    builds: Sequence[_SectionBuild],
+) -> None:
+    frame = result.topic_evidence
+    if (
+        not isinstance(frame, pd.DataFrame)
+        or tuple(frame.columns) != TOPIC_EVIDENCE_COLUMNS
+    ):
+        raise PlanningRegulationStructureError(
+            "Topic evidence schema is not deterministic"
+        )
+    sections = result.sections.set_index("section_id", drop=False)
+    fragments = {
+        (str(build.row["section_id"]), page_number): raw_fragment
+        for build in builds
+        for page_number, raw_fragment in build.page_fragments
+    }
+    page_set = set(index.pages["page_number"].tolist())
+    keys: set[tuple[str, str, str, int]] = set()
+    for row in frame.to_dict("records"):
+        topic = _strict_string(row["topic"], "topic")
+        if topic not in config.topics:
+            raise PlanningRegulationStructureError(
+                "Topic evidence topic is unconfigured"
+            )
+        term = _strict_string(row["search_term"], "search term")
+        if term not in config.topics[topic]:
+            raise PlanningRegulationStructureError(
+                "Topic evidence search term is unconfigured"
+            )
+        normalized = _strict_string(
+            row["normalized_search_term"], "normalized search term"
+        )
+        if normalized != _normalize_search_text(term):
+            raise PlanningRegulationStructureError("Topic search normalization differs")
+        section_id = _strict_string(row["section_id"], "topic section ID")
+        if section_id not in sections.index:
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown section"
+            )
+        page = _strict_positive_integer(row["page_number"], "topic page number")
+        if page not in page_set or page not in _page_tuple(
+            sections.at[section_id, "page_numbers"]
+        ):
+            raise PlanningRegulationStructureError(
+                "Topic evidence references an unknown page"
+            )
+        if (section_id, page) not in fragments:
+            raise PlanningRegulationStructureError(
+                "Topic evidence page is absent from its retained section text"
+            )
+        count = _strict_positive_integer(
+            row["occurrence_count"], "topic occurrence count"
+        )
+        if count < 1:
+            raise PlanningRegulationStructureError("Topic occurrence count is invalid")
+        if not isinstance(row["raw_context"], str) or not isinstance(
+            row["normalized_context"], str
+        ):
+            raise PlanningRegulationStructureError("Topic contexts must be strings")
+        scope = _strict_string(row["evidence_scope"], "evidence scope")
+        if scope not in _EVIDENCE_SCOPES:
+            raise PlanningRegulationStructureError("Evidence scope is invalid")
+        section = sections.loc[section_id]
+        expected_scope = _evidence_scope(str(section["section_type"]))
+        if scope != expected_scope:
+            raise PlanningRegulationStructureError(
+                "Topic evidence scope differs from its section location"
+            )
+        for column in ("zone_chapter_label", "article_number_raw"):
+            actual = row[column]
+            expected = section[column]
+            if (actual is None or bool(pd.isna(actual))) and (
+                expected is None or bool(pd.isna(expected))
+            ):
+                continue
+            if actual != expected:
+                raise PlanningRegulationStructureError(
+                    f"Topic evidence {column} differs from its section"
+                )
+        if row["match_policy"] != config.topic_match_policy.identifier:
+            raise PlanningRegulationStructureError("Topic match policy differs")
+        raw_fragment = fragments[(section_id, page)]
+        normalized_fragment, spans = _normalize_search_text_with_mapping(raw_fragment)
+        retained_matches = [
+            match
+            for match in _literal_topic_matches(
+                normalized_fragment, config.topics[topic]
+            )
+            if match.search_term == term
+        ]
+        if not retained_matches:
+            raise PlanningRegulationStructureError(
+                "Topic evidence has no retained source-text match"
+            )
+        first = retained_matches[0]
+        expected_positions = {
+            "first_match_normalized_start": first.normalized_start,
+            "first_match_normalized_end": first.normalized_end,
+            "first_match_raw_start": spans[first.normalized_start][0],
+            "first_match_raw_end": spans[first.normalized_end - 1][1],
+        }
+        for column, expected in expected_positions.items():
+            if _strict_nonnegative_integer(row[column], column) != expected:
+                raise PlanningRegulationStructureError(
+                    "Topic match provenance differs from source text"
+                )
+        if count != len(retained_matches):
+            raise PlanningRegulationStructureError(
+                "Topic occurrence count differs from retained source spans"
+            )
+        context_start = max(0, first.normalized_start - config.topic_context_characters)
+        context_end = min(
+            len(normalized_fragment),
+            first.normalized_end + config.topic_context_characters,
+        )
+        expected_raw_context = _raw_context(
+            raw_fragment, spans, context_start, context_end
+        )
+        expected_normalized_context = normalized_fragment[context_start:context_end]
+        if (
+            row["raw_context"] != expected_raw_context
+            or row["normalized_context"] != expected_normalized_context
+            or row["raw_context"] not in raw_fragment
+        ):
+            raise PlanningRegulationStructureError(
+                "Topic context differs from retained source text"
+            )
+        key = (topic, normalized, section_id, page)
+        if key in keys:
+            raise PlanningRegulationStructureError("Topic evidence row is duplicated")
+        keys.add(key)
+        for column, actual in (
+            ("document_id", result.document_id),
+            ("archive_sha256", result.archive_sha256),
+            ("pdf_sha256", result.pdf_sha256),
+            ("index_content_sha256", result.index_content_sha256),
+            ("structure_profile", result.structure_profile),
+        ):
+            if row[column] != actual:
+                raise PlanningRegulationStructureError("Topic evidence lineage differs")
+
+
+def _build_structure_result(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig,
+) -> tuple[
+    PlanningRegulationStructureResult,
+    tuple[_SectionBuild, ...],
+    tuple[_LineRecord, ...],
+]:
+    sections, builds, records = _build_sections(index, config)
+    zone_mapping = _build_zone_mapping(
+        index,
+        config,
+        sections,
+        zones,
+        intersections,
+    )
+    topic_evidence = _build_topic_evidence(index, config, builds)
+    intersection_hash_columns = _intersection_hash_columns(intersections)
+    result = PlanningRegulationStructureResult(
+        document_id=index.document_id,
+        archive_sha256=index.archive_sha256,
+        pdf_sha256=index.pdf_sha256,
+        index_content_sha256=index.index_content_sha256,
+        structure_profile=config.structure_profile,
+        structure_config_schema_version=config.schema_version,
+        structure_config_sha256=_config_sha256(config),
+        zones_content_sha256=_input_frame_sha256(
+            "landscout.planning_regulation.zones_input",
+            zones,
+            _ZONE_INPUT_COLUMNS,
+        ),
+        zoning_intersection_hash_columns=intersection_hash_columns,
+        zoning_intersections_content_sha256=_input_frame_sha256(
+            "landscout.planning_regulation.intersections_input",
+            intersections,
+            intersection_hash_columns,
+        ),
+        source_records_sha256=_source_records_sha256(records),
+        section_hash_schema_version=SECTION_HASH_SCHEMA_VERSION,
+        sections_content_sha256="",
+        zone_map_content_sha256="",
+        topic_evidence_content_sha256="",
+        structure_result_content_sha256="",
+        sections=sections,
+        zone_mapping=zone_mapping,
+        topic_evidence=topic_evidence,
+    )
+    return _result_with_hashes(result), builds, records
+
+
+def _validate_result_self(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig,
+    result: PlanningRegulationStructureResult,
+    builds: Sequence[_SectionBuild],
+    records: Sequence[_LineRecord],
+) -> None:
+    validate_planning_regulation_index(index)
+    if not isinstance(result, PlanningRegulationStructureResult):
+        raise PlanningRegulationStructureError(
+            "result must be a PlanningRegulationStructureResult"
+        )
+    for value, label in (
+        (result.document_id, "document ID"),
+        (result.archive_sha256, "archive SHA256"),
+        (result.pdf_sha256, "PDF SHA256"),
+        (result.index_content_sha256, "index content SHA256"),
+        (result.structure_profile, "structure profile"),
+    ):
+        _strict_string(value, label)
+    if (
+        result.document_id != index.document_id
+        or result.archive_sha256 != index.archive_sha256
+        or result.pdf_sha256 != index.pdf_sha256
+        or result.index_content_sha256 != index.index_content_sha256
+    ):
+        raise PlanningRegulationStructureError(
+            "Structure result lineage differs from index"
+        )
+    _validated_sha256(result.archive_sha256, "archive SHA256")
+    _validated_sha256(result.pdf_sha256, "PDF SHA256")
+    _validated_sha256(result.index_content_sha256, "index content SHA256")
+    config_schema = _strict_positive_integer(
+        result.structure_config_schema_version,
+        "structure config schema version",
+    )
+    if config_schema != config.schema_version:
+        raise PlanningRegulationStructureError(
+            "Structure config schema version differs"
+        )
+    _validated_sha256(result.structure_config_sha256, "structure config SHA256")
+    if result.structure_config_sha256 != _config_sha256(config):
+        raise PlanningRegulationStructureError("Structure config hash differs")
+    expected_zones_hash = _input_frame_sha256(
+        "landscout.planning_regulation.zones_input",
+        zones,
+        _ZONE_INPUT_COLUMNS,
+    )
+    expected_intersections_hash = _input_frame_sha256(
+        "landscout.planning_regulation.intersections_input",
+        intersections,
+        _intersection_hash_columns(intersections),
+    )
+    if result.zones_content_sha256 != expected_zones_hash:
+        raise PlanningRegulationStructureError("Zone input hash differs")
+    expected_intersection_columns = _intersection_hash_columns(intersections)
+    if (
+        type(result.zoning_intersection_hash_columns) is not tuple
+        or not all(
+            isinstance(column, str)
+            for column in result.zoning_intersection_hash_columns
+        )
+        or result.zoning_intersection_hash_columns != expected_intersection_columns
+    ):
+        raise PlanningRegulationStructureError(
+            "Intersection hash columns differ from the factual input schema"
+        )
+    if result.zoning_intersections_content_sha256 != expected_intersections_hash:
+        raise PlanningRegulationStructureError("Intersection input hash differs")
+    _validated_sha256(result.source_records_sha256, "source records SHA256")
+    schema = _strict_positive_integer(
+        result.section_hash_schema_version, "section hash schema version"
+    )
+    if schema != SECTION_HASH_SCHEMA_VERSION:
+        raise PlanningRegulationStructureError(
+            "Unsupported section hash schema version"
+        )
+    _validate_sections(index, result, records, config)
+    _validate_zone_mapping(result, config)
+    _validate_topic_evidence(index, result, config, builds)
+    expected = _result_with_hashes(
+        replace(
+            result,
+            sections_content_sha256="",
+            zone_map_content_sha256="",
+            topic_evidence_content_sha256="",
+            structure_result_content_sha256="",
+        )
+    )
+    for actual, wanted, label in (
+        (result.sections_content_sha256, expected.sections_content_sha256, "sections"),
+        (result.zone_map_content_sha256, expected.zone_map_content_sha256, "zone map"),
+        (
+            result.topic_evidence_content_sha256,
+            expected.topic_evidence_content_sha256,
+            "topic evidence",
+        ),
+    ):
+        if _validated_sha256(actual, f"{label} content SHA256") != wanted:
+            raise PlanningRegulationStructureError(f"{label} content hash differs")
+    if (
+        _validated_sha256(
+            result.structure_result_content_sha256,
+            "structure result content SHA256",
+        )
+        != expected.structure_result_content_sha256
+    ):
+        raise PlanningRegulationStructureError("Complete structure result hash differs")
+
+
+def _resolved_config(
+    config: PlanningRegulationStructureConfig | str | Path,
+) -> PlanningRegulationStructureConfig:
+    if isinstance(config, PlanningRegulationStructureConfig):
+        try:
+            return PlanningRegulationStructureConfig.model_validate(
+                config.model_dump(mode="python")
+            )
+        except Exception as error:
+            raise PlanningRegulationStructureError(
+                "Planning structure configuration is invalid"
+            ) from error
+    return load_planning_regulation_structure_config(config)
+
+
+def _canonical_frame_rows(frame: pd.DataFrame, columns: Sequence[str]) -> object:
+    return _canonical_value(frame.loc[:, columns].to_dict("records"))
+
+
+def _compare_expected_result(
+    result: PlanningRegulationStructureResult,
+    expected: PlanningRegulationStructureResult,
+) -> None:
+    scalar_fields = (
+        "document_id",
+        "archive_sha256",
+        "pdf_sha256",
+        "index_content_sha256",
+        "structure_profile",
+        "structure_config_schema_version",
+        "structure_config_sha256",
+        "zones_content_sha256",
+        "zoning_intersection_hash_columns",
+        "zoning_intersections_content_sha256",
+        "source_records_sha256",
+        "section_hash_schema_version",
+        "sections_content_sha256",
+        "zone_map_content_sha256",
+        "topic_evidence_content_sha256",
+        "structure_result_content_sha256",
+    )
+    for field in scalar_fields:
+        if getattr(result, field) != getattr(expected, field):
+            raise PlanningRegulationStructureError(
+                f"Structure result {field} differs from rebuilt source evidence"
+            )
+    for name, columns in (
+        ("sections", SECTION_COLUMNS),
+        ("zone_mapping", ZONE_MAPPING_COLUMNS),
+        ("topic_evidence", TOPIC_EVIDENCE_COLUMNS),
+    ):
+        actual_frame = getattr(result, name)
+        expected_frame = getattr(expected, name)
+        if tuple(actual_frame.columns) != tuple(columns):
+            raise PlanningRegulationStructureError(
+                f"{name} schema differs from rebuilt source evidence"
+            )
+        if _canonical_frame_rows(actual_frame, columns) != _canonical_frame_rows(
+            expected_frame, columns
+        ):
+            raise PlanningRegulationStructureError(
+                f"{name} differs from rebuilt source evidence"
+            )
+
+
+def _section_page_fragments(
+    result: PlanningRegulationStructureResult,
+    builds: Sequence[_SectionBuild],
+) -> pd.DataFrame:
+    rows = [
+        {
+            "section_id": build.row["section_id"],
+            "page_number": page_number,
+            "raw_text": raw_text,
+            "section_page_fragment_sha256": sha256(
+                raw_text.encode("utf-8")
+            ).hexdigest(),
+            "document_id": result.document_id,
+            "archive_sha256": result.archive_sha256,
+            "pdf_sha256": result.pdf_sha256,
+            "index_content_sha256": result.index_content_sha256,
+            "structure_result_content_sha256": (result.structure_result_content_sha256),
+            "structure_profile": result.structure_profile,
+        }
+        for build in builds
+        for page_number, raw_text in build.page_fragments
+    ]
+    frame = pd.DataFrame(
+        rows,
+        columns=(
+            "section_id",
+            "page_number",
+            "raw_text",
+            "section_page_fragment_sha256",
+            "document_id",
+            "archive_sha256",
+            "pdf_sha256",
+            "index_content_sha256",
+            "structure_result_content_sha256",
+            "structure_profile",
+        ),
+    )
+    frame["page_number"] = frame["page_number"].astype("int64")
+    if frame.duplicated(["section_id", "page_number"]).any():
+        raise PlanningRegulationStructureError(
+            "Section/page fragment identity is not unique"
+        )
+    return frame
+
+
+def validate_planning_regulation_structure_with_fragments(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> pd.DataFrame:
+    """Validate the complete structure and return its retained page fragments."""
+
+    try:
+        resolved_config = _resolved_config(config)
+        _validate_document_lock(index, resolved_config)
+        zones_copy, intersections_copy = _validated_zoning_inputs(
+            index, zones, zoning_intersections
+        )
+        expected, builds, records = _build_structure_result(
+            index,
+            zones_copy,
+            intersections_copy,
+            resolved_config,
+        )
+        _validate_result_self(
+            index,
+            zones_copy,
+            intersections_copy,
+            resolved_config,
+            result,
+            builds,
+            records,
+        )
+        _compare_expected_result(result, expected)
+        return _section_page_fragments(result, builds)
+    except PlanningRegulationStructureError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Planning regulation structure validation failed safely"
+        ) from error
+
+
+def validate_planning_regulation_structure(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> None:
+    """Rebuild and validate the complete structure from all factual inputs."""
+
+    validate_planning_regulation_structure_with_fragments(
+        index,
+        zones,
+        zoning_intersections,
+        config,
+        result,
+    )
+
+
+def planning_regulation_section_page_fragments(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> pd.DataFrame:
+    """Return validated retained raw text for every section and source page."""
+
+    try:
+        return validate_planning_regulation_structure_with_fragments(
+            index,
+            zones,
+            zoning_intersections,
+            config,
+            result,
+        )
+    except PlanningRegulationStructureError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Planning regulation section/page fragments could not be rebuilt safely"
+        ) from error
+
+
+def structure_planning_regulation(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+) -> PlanningRegulationStructureResult:
+    """Build source-locked sections, exact zone mappings, and literal topic evidence."""
+
+    try:
+        resolved_config = _resolved_config(config)
+        _validate_document_lock(index, resolved_config)
+        zones_copy, intersections_copy = _validated_zoning_inputs(
+            index, zones, zoning_intersections
+        )
+        result, _, _ = _build_structure_result(
+            index,
+            zones_copy,
+            intersections_copy,
+            resolved_config,
+        )
+        validate_planning_regulation_structure(
+            index,
+            zones_copy,
+            intersections_copy,
+            resolved_config,
+            result,
+        )
+        return result
+    except PlanningRegulationStructureError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Planning regulation structure could not be built safely"
+        ) from error
 ```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `topic` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `normalized_search_term` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `match_policy` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 6 | `evidence_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `article_number_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `occurrence_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `first_match_normalized_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `first_match_normalized_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `first_match_raw_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 14 | `first_match_raw_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `raw_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `normalized_context` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 18 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 19 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 20 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 21 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module defines an exact `__all__` contract:
-
-| Export | Kind | Origin | Included in `__all__` |
-|---|---|---|---|
-| `PlanningRegulationStructureConfig` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `PlanningRegulationStructureError` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `PlanningRegulationStructureResult` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `load_planning_regulation_structure_config` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `planning_regulation_section_page_fragments` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `structure_planning_regulation` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `validate_planning_regulation_structure` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-| `validate_planning_regulation_structure_with_fragments` | public symbol defined in this module | `defined in `src/landscout/stages/structure_planning_regulation.py`` | yes |
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

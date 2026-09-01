@@ -1,16 +1,13 @@
 from math import isfinite
-from numbers import Real
 
 import geopandas as gpd  # type: ignore[import-untyped]
 from shapely.errors import GEOSException  # type: ignore[import-untyped]
 
-from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses
+from landscout.common.cadastre_contract import validate_normalized_cadastre_parcels
 from landscout.geo.crs import LAMBERT93, WGS84
 from landscout.geo.geometry import parcel_shape_metrics_m
 
-REQUIRED_COLUMNS = frozenset(
-    {"parcel_id", "geometry_status", "area_m2", "geometry"}
-)
+REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry_status", "area_m2", "geometry"})
 DERIVED_METRIC_COLUMNS = (
     "length_m",
     "width_m",
@@ -27,52 +24,18 @@ class ShapeEnrichmentError(ValueError):
 
 
 def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    if not isinstance(parcels, gpd.GeoDataFrame):
-        raise ShapeEnrichmentError("Candidate parcels must be a GeoDataFrame")
-    if parcels.columns.duplicated().any():
-        raise ShapeEnrichmentError("Candidate parcel columns must be unique")
-    missing_columns = REQUIRED_COLUMNS - set(parcels.columns)
-    if missing_columns:
-        formatted = ", ".join(sorted(missing_columns))
-        raise ShapeEnrichmentError(f"Missing required candidate columns: {formatted}")
-    if parcels.crs is None:
-        raise ShapeEnrichmentError("Candidate parcel CRS is required")
-    if parcels.crs != WGS84:
-        raise ShapeEnrichmentError("Candidate parcels must use EPSG:4326")
-    if parcels.active_geometry_name != "geometry":
-        raise ShapeEnrichmentError("An active geometry column is required")
-    identifiers = parcels["parcel_id"]
-    if identifiers.isna().any():
-        raise ShapeEnrichmentError("parcel_id values must not be null")
-    if any(
-        not isinstance(identifier, str)
-        or not identifier
-        or identifier != identifier.strip()
-        for identifier in identifiers
-    ):
-        raise ShapeEnrichmentError(
-            "parcel_id values must be exact non-empty strings"
-        )
-    if identifiers.duplicated().any():
-        raise ShapeEnrichmentError("parcel_id values must be unique")
     try:
-        validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
+        validated = validate_normalized_cadastre_parcels(parcels)
     except ValueError as error:
         raise ShapeEnrichmentError(str(error)) from error
-    valid_geometry = parcels["geometry_status"] == "VALID"
-    if any(
-        isinstance(value, bool)
-        or not isinstance(value, Real)
-        or not isfinite(float(value))
-        or float(value) <= 0
-        for value in parcels.loc[valid_geometry, "area_m2"]
-    ):
+    collisions = {"shape_status", *DERIVED_METRIC_COLUMNS} & set(validated.columns)
+    if collisions:
         raise ShapeEnrichmentError(
-            "area_m2 must be a strict positive finite numeric value when "
-            "geometry_status is VALID"
+            "Candidate parcels collide with generated shape columns: "
+            + ", ".join(sorted(collisions))
         )
 
-    output = parcels.reset_index(drop=True).copy()
+    output = validated.reset_index(drop=True).copy()
     output["shape_status"] = "ERROR"
     for column in DERIVED_METRIC_COLUMNS:
         output[column] = float("nan")
@@ -106,15 +69,22 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             )
             if not all(isfinite(value) for value in metrics):
                 continue
-        except (AttributeError, GEOSException, IndexError, TypeError, ValueError, ZeroDivisionError):
+        except (
+            AttributeError,
+            GEOSException,
+            IndexError,
+            TypeError,
+            ValueError,
+            ZeroDivisionError,
+        ):
             continue
 
         output.loc[index, "shape_status"] = "VALID"
         for column, value in zip(DERIVED_METRIC_COLUMNS, metrics, strict=True):
             output.loc[index, column] = value
 
-    input_ids = set(parcels["parcel_id"])
+    input_ids = set(validated["parcel_id"])
     output_ids = set(output["parcel_id"])
-    if len(output) != len(parcels) or input_ids != output_ids:
+    if len(output) != len(validated) or input_ids != output_ids:
         raise ShapeEnrichmentError("Shape enrichment did not preserve exact parcel IDs")
     return output

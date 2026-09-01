@@ -41,6 +41,7 @@ from landscout.common.bess_application_contract import (
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.common.planning_overlay import technical_overlay_tolerance
+from landscout.common.strict_json import loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
@@ -1217,17 +1218,6 @@ def validate_bess_planning_feature_application_result(
         ) from error
 
 
-def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    output: dict[str, object] = {}
-    for key, value in pairs:
-        if key in output:
-            raise BessPlanningFeatureApplicationError(
-                f"Duplicate JSON application artifact key: {key!r}"
-            )
-        output[key] = value
-    return output
-
-
 def _read_verified_artifact(
     path: Path,
     record: BessPlanningFeatureApplicationArtifactRecord,
@@ -1291,10 +1281,7 @@ def load_bess_planning_feature_application_artifacts(
         validate_planning_feature_code_result_envelope(coded_result)
         validate_bess_planning_feature_policy_result_envelope(policy_result)
         _validate_coded_policy_compatibility(coded_result, policy_result)
-        payload = json.loads(
-            Path(manifest_path).read_text(encoding="utf-8"),
-            object_pairs_hook=_unique_json_object,
-        )
+        payload = loads_strict_json_object(Path(manifest_path).read_bytes())
         manifest = BessPlanningFeatureApplicationArtifactManifest.model_validate(
             payload
         )

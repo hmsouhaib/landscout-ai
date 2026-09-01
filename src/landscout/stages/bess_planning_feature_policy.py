@@ -17,7 +17,6 @@ from typing import Literal
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -29,6 +28,9 @@ from pydantic import (
 
 from landscout.common.artifact_paths import validate_portable_parquet_filename
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.immutable_mapping import freeze_mapping
+from landscout.common.strict_json import loads_strict_json_object
+from landscout.common.strict_yaml import StrictYamlError, loads_strict_yaml
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
@@ -320,31 +322,10 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
             raise ValueError(
                 "canonical policy-entry SHA256 differs from policy entries"
             )
+        object.__setattr__(
+            self, "status_priority", freeze_mapping(self.status_priority)
+        )
         return self
-
-
-class _UniqueKeyLoader(yaml.SafeLoader):
-    pass
-
-
-def _construct_unique_mapping(
-    loader: yaml.SafeLoader,
-    node: yaml.MappingNode,
-    deep: bool = False,
-) -> dict[object, object]:
-    result: dict[object, object] = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in result:
-            raise BessPlanningFeaturePolicyError(f"Duplicate YAML policy key: {key!r}")
-        result[key] = loader.construct_object(value_node, deep=deep)
-    return result
-
-
-_UniqueKeyLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    _construct_unique_mapping,
-)
 
 
 def load_bess_planning_feature_policy_config(
@@ -353,14 +334,14 @@ def load_bess_planning_feature_policy_config(
     """Load a strict offline BESS policy for official CNIG feature-code pairs."""
 
     try:
-        payload = yaml.load(
-            Path(path).read_text(encoding="utf-8"), Loader=_UniqueKeyLoader
-        )
+        payload = loads_strict_yaml(Path(path).read_bytes())
         if not isinstance(payload, Mapping):
             raise BessPlanningFeaturePolicyError("BESS CNIG policy must be a mapping")
         return BessPlanningFeaturePolicyConfig.model_validate(payload)
     except BessPlanningFeaturePolicyError:
         raise
+    except StrictYamlError as error:
+        raise BessPlanningFeaturePolicyError(str(error)) from error
     except Exception as error:
         raise BessPlanningFeaturePolicyError(
             "BESS CNIG feature policy is invalid"
@@ -967,17 +948,6 @@ def validate_bess_planning_feature_policy_result_envelope(
         ) from error
 
 
-def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    output: dict[str, object] = {}
-    for key, value in pairs:
-        if key in output:
-            raise BessPlanningFeaturePolicyError(
-                f"Duplicate JSON artifact key: {key!r}"
-            )
-        output[key] = value
-    return output
-
-
 def load_bess_planning_feature_policy_artifacts(
     parquet_path: str | Path,
     manifest_path: str | Path,
@@ -987,10 +957,7 @@ def load_bess_planning_feature_policy_artifacts(
     try:
         parquet = Path(parquet_path)
         manifest_file = Path(manifest_path)
-        payload = json.loads(
-            manifest_file.read_text(encoding="utf-8"),
-            object_pairs_hook=_unique_json_object,
-        )
+        payload = loads_strict_json_object(manifest_file.read_bytes())
         manifest = BessPlanningFeaturePolicyArtifactManifest.model_validate(payload)
         if manifest.parquet_filename != parquet.name:
             raise BessPlanningFeaturePolicyError(

@@ -9,7 +9,7 @@ commune code + cache root
   -> download_cadastre_parcelles
   -> CadastreDownload
   -> load_cadastre_parcels
-  -> source GeoDataFrame
+  -> CadastreParcelSource(download, parcels)
   -> normalize_cadastre_parcels
   -> normalized parcel GeoDataFrame
   -> filter_parcels_by_area
@@ -17,7 +17,7 @@ commune code + cache root
   -> filter_parcels_by_shape / profile_shape_distribution
 ```
 
-`download_cadastre_parcelles` constructs the official commune archive URL, safely streams gzip bytes, and publishes a byte/hash/timestamp sidecar transactionally. `load_cadastre_parcels` validates the supplied download envelope and the current gzip bytes before and after parsing, but returns only the parsed GeoJSON attributes plus geometry: it does **not** append provider, URL, timestamp, size, or SHA lineage columns. The loader does not independently re-pin the official Cadastre host, so this step is byte/physical-integrity validation against the supplied envelope rather than IGN-equivalent source-complete revalidation. Normalization preserves WGS84 geometry, classifies `geometry_status`, and uses EPSG:2154 only to calculate `area_m2`. Area and shape filters create explicit screening results rather than a ranking.
+`download_cadastre_parcelles` constructs the exact official commune archive URL, safely streams gzip bytes, and publishes a strict byte/hash/timestamp sidecar transactionally. `load_cadastre_parcels` returns a source-bound object that retains both the verified download and parsed parcels. Normalization validates the official download identity, rereads the physical gzip, exact-compares the supplied frame with that fresh read, and normalizes the fresh frame. It preserves WGS84 geometry, classifies `geometry_status`, and uses EPSG:2154 only to calculate `area_m2`. Area and shape filters validate the canonical parcel contract and create explicit screening results rather than a ranking.
 
 ## Grid
 
@@ -37,7 +37,7 @@ IgnBdTopoSourceConfig
   -> GridCoverageAssessmentResult
 ```
 
-The public proximity function normalizes the verified source exactly once; callers cannot nominate arbitrary normalized line/post frames. The result contains an unchanged parcel copy plus nearest line/post and exact-voltage evidence. Coverage assessment owns one proximity call and one configured department-coverage load from the same extraction, then adds boundary diagnostics. Profiles summarize existing rows without changing them.
+The public proximity function normalizes the verified source exactly once; callers cannot nominate arbitrary normalized line/post frames. IGN revalidation reproduces globally distinct roles from immutable config, reloads the physical layers, and the normalizer derives its output only from the fresh result. The result contains an unchanged parcel copy plus nearest line/post and exact-voltage evidence. Coverage assessment owns one proximity call and one freshly configured department-coverage load from the same extraction, then adds boundary diagnostics. Profiles summarize existing rows without changing them.
 
 ## Road
 
@@ -57,7 +57,7 @@ IgnBdTopoExtraction + IgnBdTopoSourceConfig
   -> RoadProximityCoverageAssessmentResult
 ```
 
-Normalization copies raw IGN access/restriction attributes without semantic coercion. Policy application reloads checked-in bytes, classifies each row under exact precedence, and preserves every normalized fact. Proximity builds a separate STRtree for each distance-eligible policy class, retains deterministic ties, and never indexes `NOT_DISTANCE_PROXY`. Coverage diagnosis compares those distances with the full parcel-to-department-boundary margin.
+Normalization revalidates configured role and download/extraction lineage, uses the freshly reread road object, and copies raw IGN access/restriction attributes without semantic coercion. Policy application reloads checked-in bytes, classifies each row under exact precedence, and preserves every normalized fact. Proximity builds a separate STRtree for each distance-eligible policy class, retains deterministic ties, and never indexes `NOT_DISTANCE_PROXY`. Coverage diagnosis compares those distances with a freshly loaded configured department boundary and the full parcel-to-boundary margin.
 
 ## Planning — spatial facts
 
@@ -70,7 +70,7 @@ GpuSourceConfig
   -> extract_gpu_document
   -> GpuExtraction
   -> discover/inspect/ingest_gpu_planning_document
-  -> GpuPlanningDocument
+  -> GpuPlanningDocument(source_config, source_config_sha256, ...)
 ```
 
 From `GpuPlanningDocument`, zoning and feature flows remain separate:
@@ -85,7 +85,7 @@ parcels + planning document
   -> ParcelPlanningFeaturesResult
 ```
 
-Both stages source-completely validate normalized inputs by rebuilding from physical GPU layers. Zoning produces factual parcel-zone intersection/summary data. Feature enrichment produces canonical surface/line/point catalogs and factual relation types/metrics.
+The planning document retains a canonical hash of the exact immutable GPU config. Every later physical revalidator verifies that identity, extraction inventory, and globally unique logical-role selection. Both stages source-completely validate normalized inputs by rebuilding from physical GPU layers. Zoning requires and reconstructs every column in the exact `PARCEL_ZONING_OUTPUT_COLUMNS` summary contract. Feature enrichment produces canonical surface/line/point catalogs and factual relation types/metrics.
 
 ## Planning — written regulation
 
@@ -99,7 +99,7 @@ GpuPlanningDocument
   -> BessZoningPrecheckResult
 ```
 
-The index binds the selected written PDF bytes and page/text records. Structure configuration maps only deterministic headings, source spans, sections, zone aliases, and topic evidence. The written-zoning policy links exact source excerpts into routes and parcel prechecks. Raw source text, structured evidence, policy interpretation, and parcel result are different frames/envelopes.
+The index binds the selected written PDF bytes and page/text records. Structure configuration maps only deterministic headings, source spans, sections, zone aliases, and topic evidence; an `ERROR` on an applicable body page fails closed while a blank successfully extracted page remains valid. For every configured zone chapter, policy validation requires exactly one child article for every configured required article number and requires the same chapter-scoped sections in `reviewed_section_ids`. The written-zoning policy links exact source excerpts into routes and parcel prechecks. Raw source text, structured evidence, policy interpretation, and parcel result are different frames/envelopes.
 
 ## Planning — official CNIG feature meaning
 

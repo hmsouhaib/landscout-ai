@@ -145,6 +145,13 @@ _POST_OUTPUT_MAPPING = {
     "source_edition": "nearest_post_source_edition",
     "source_archive_sha256": "nearest_post_source_archive_sha256",
 }
+_PARCEL_OUTPUT_COLUMNS = frozenset(
+    {
+        *_LINE_OUTPUT_MAPPING.values(),
+        *_EXACT_LINE_OUTPUT_MAPPING.values(),
+        *_POST_OUTPUT_MAPPING.values(),
+    }
+)
 
 
 class GridProximityError(ValueError):
@@ -270,15 +277,22 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
     if not parcels.geometry.is_valid.all():
         raise GridProximityError("Parcel geometries must be valid")
     geometry_types = set(parcels.geometry.geom_type.dropna())
-    unsupported = sorted(
-        str(value) for value in geometry_types - PARCEL_GEOMETRY_TYPES
-    )
+    unsupported = sorted(str(value) for value in geometry_types - PARCEL_GEOMETRY_TYPES)
     if unsupported:
         raise GridProximityError(
             "Parcel geometries must be Polygon or MultiPolygon; found: "
             + ", ".join(unsupported)
         )
     return source_crs
+
+
+def _reject_parcel_output_collisions(parcels: gpd.GeoDataFrame) -> None:
+    collisions = _PARCEL_OUTPUT_COLUMNS & set(parcels.columns)
+    if collisions:
+        raise GridProximityError(
+            "Parcel input collides with generated grid-proximity columns: "
+            + ", ".join(sorted(collisions))
+        )
 
 
 def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
@@ -317,15 +331,15 @@ def _validate_grid(
         )
     if identifiers.duplicated().any():
         raise GridProximityError(f"{label} grid_feature_id values must be unique")
-    if frame["grid_feature_type"].isna().any() or not frame[
-        "grid_feature_type"
-    ].eq(feature_type).all():
-        raise GridProximityError(
-            f"{label} grid_feature_type must be {feature_type}"
-        )
-    if frame["spatial_role"].isna().any() or not frame["spatial_role"].eq(
-        SPATIAL_ROLE
-    ).all():
+    if (
+        frame["grid_feature_type"].isna().any()
+        or not frame["grid_feature_type"].eq(feature_type).all()
+    ):
+        raise GridProximityError(f"{label} grid_feature_type must be {feature_type}")
+    if (
+        frame["spatial_role"].isna().any()
+        or not frame["spatial_role"].eq(SPATIAL_ROLE).all()
+    ):
         raise GridProximityError(f"{label} spatial_role must be PROXY_GEOMETRY")
 
     declared_status = frame["geometry_status"]
@@ -343,8 +357,7 @@ def _validate_grid(
     unsupported = sorted(str(value) for value in valid_types - allowed_geometry_types)
     if unsupported:
         raise GridProximityError(
-            f"{label} has unsupported VALID geometry types: "
-            + ", ".join(unsupported)
+            f"{label} has unsupported VALID geometry types: " + ", ".join(unsupported)
         )
     return frame.loc[valid_mask].reset_index(drop=True).copy()
 
@@ -411,9 +424,9 @@ def _nearest_feature_rows(
             "distance_m": distances,
         }
     )
-    matches["grid_feature_id"] = features.iloc[
-        matches["feature_position"].to_numpy()
-    ]["grid_feature_id"].to_numpy()
+    matches["grid_feature_id"] = features.iloc[matches["feature_position"].to_numpy()][
+        "grid_feature_id"
+    ].to_numpy()
     matches = matches.sort_values(
         ["parcel_position", "distance_m", "grid_feature_id"],
         kind="mergesort",
@@ -423,7 +436,9 @@ def _nearest_feature_rows(
         "parcel_position"
     )
     if selected["parcel_position"].tolist() != list(range(parcel_count)):
-        raise GridProximityError("Nearest-neighbour matching did not cover every parcel")
+        raise GridProximityError(
+            "Nearest-neighbour matching did not cover every parcel"
+        )
 
     feature_positions = selected["feature_position"].to_numpy()
     output = features.iloc[feature_positions].loc[:, list(attribute_columns)].copy()
@@ -444,9 +459,7 @@ def _attach_matches(
 
 def _validate_distance_values(values: pd.Series, label: str) -> None:
     non_null = values.dropna()
-    numeric_values = [
-        _finite_real_as_float(value) for value in non_null.tolist()
-    ]
+    numeric_values = [_finite_real_as_float(value) for value in non_null.tolist()]
     if any(value is None for value in numeric_values):
         raise GridProximityError(f"{label} distances must be numeric and finite")
     numeric = np.asarray(numeric_values, dtype="float64")
@@ -483,9 +496,7 @@ def _validate_tie_counts(
             raise GridProximityError(f"{label} matched rows require tie_count")
         numeric = _finite_real_as_float(value)
         if numeric is None or not numeric.is_integer() or numeric < 1:
-            raise GridProximityError(
-                f"{label} tie_count must be a finite integer >= 1"
-            )
+            raise GridProximityError(f"{label} tie_count must be a finite integer >= 1")
 
 
 def _validate_match_integrity(
@@ -523,9 +534,10 @@ def _validate_match_integrity(
         for column in id_columns:
             if frame[column].isna().any():
                 raise GridProximityError(f"{label} matched rows require {column}")
-        if voltage_column is not None and not frame[voltage_column].map(
-            _is_positive_finite_number
-        ).all():
+        if (
+            voltage_column is not None
+            and not frame[voltage_column].map(_is_positive_finite_number).all()
+        ):
             raise GridProximityError(
                 f"{label} voltage must be numeric, finite, and > 0"
             )
@@ -538,9 +550,7 @@ def _validate_match_integrity(
         if column not in frame.columns:
             raise GridProximityError(f"Missing {label} match column: {column}")
         if frame[column].notna().any():
-            raise GridProximityError(
-                f"{label} unmatched rows must have null {column}"
-            )
+            raise GridProximityError(f"{label} unmatched rows must have null {column}")
 
 
 def _validate_voltage_coverage(
@@ -594,7 +604,9 @@ def _validate_voltage_table(
             "Voltage proximity levels must be numeric, finite, and > 0"
         )
     if table.duplicated(["parcel_id", "voltage_kv"]).any():
-        raise GridProximityError("Voltage proximity parcel/voltage pairs must be unique")
+        raise GridProximityError(
+            "Voltage proximity parcel/voltage pairs must be unique"
+        )
     table_levels = tuple(
         sorted({float(value) for value in raw_voltage_values.tolist()})
     )
@@ -626,9 +638,7 @@ def _validate_voltage_table(
         "source_archive_sha256",
     ):
         if table[column].isna().any():
-            raise GridProximityError(
-                f"Voltage-level matched rows require {column}"
-            )
+            raise GridProximityError(f"Voltage-level matched rows require {column}")
     return levels
 
 
@@ -693,16 +703,12 @@ def _validate_exact_representation_consistency(
     expected = ordered.drop_duplicates("_parcel_position", keep="first")
     expected = expected.set_index("_parcel_position").reindex(range(len(parcels)))
     if expected["parcel_id"].isna().any():
-        raise GridProximityError(
-            "Voltage-level proximity does not cover every parcel"
-        )
+        raise GridProximityError("Voltage-level proximity does not cover every parcel")
 
     minimum_distance = candidates.groupby("_parcel_position", sort=False)[
         "_distance"
     ].transform("min")
-    tied_level_winners = candidates.loc[
-        candidates["_distance"].eq(minimum_distance)
-    ]
+    tied_level_winners = candidates.loc[candidates["_distance"].eq(minimum_distance)]
     expected_ties = tied_level_winners.groupby("_parcel_position", sort=False)[
         "_tie_count"
     ].agg(lambda values: sum(values.tolist()))
@@ -726,9 +732,7 @@ def _validate_exact_representation_consistency(
         ("nearest_exact_line_source_archive_sha256", "source_archive_sha256"),
     )
     for parcel_column, table_column in field_mapping:
-        if not _null_safe_series_equal(
-            actual[parcel_column], expected[table_column]
-        ):
+        if not _null_safe_series_equal(actual[parcel_column], expected[table_column]):
             raise GridProximityError(
                 f"Global exact-line {parcel_column} is inconsistent with "
                 "voltage-level proximity"
@@ -784,9 +788,10 @@ def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
         voltage_column="nearest_exact_line_voltage_kv",
         unmatched_null_columns=tuple(_EXACT_LINE_OUTPUT_MAPPING.values()),
     )
-    if levels and not parcels["nearest_exact_line_voltage_kv"].map(float).isin(
+    if (
         levels
-    ).all():
+        and not parcels["nearest_exact_line_voltage_kv"].map(float).isin(levels).all()
+    ):
         raise GridProximityError(
             "Nearest exact-line voltage does not match source coverage"
         )
@@ -814,7 +819,9 @@ def _validate_output_integrity(
     source_ids = source_parcels["parcel_id"].reset_index(drop=True)
     output_ids = output["parcel_id"].reset_index(drop=True)
     if not source_ids.equals(output_ids):
-        raise GridProximityError("Grid proximity enrichment changed parcel IDs or order")
+        raise GridProximityError(
+            "Grid proximity enrichment changed parcel IDs or order"
+        )
     source_crs = _validated_crs(source_parcels.crs, "Input parcel")
     output_crs = _validated_crs(output.crs, "Output parcel")
     if not source_crs.equals(output_crs):
@@ -896,6 +903,7 @@ def _enrich_parcel_grid_proximity_from_normalized(
     """
 
     _validate_parcels(parcels)
+    _reject_parcel_output_collisions(parcels)
     valid_lines = _validate_grid(
         electric_lines,
         label="Electric-line grid",
@@ -975,10 +983,9 @@ def enrich_parcel_grid_proximity(
                 "electricity source must be an IgnBdTopoElectricityData"
             )
         if type(source_config) is not IgnBdTopoSourceConfig:
-            raise GridProximityError(
-                "source_config must be an IgnBdTopoSourceConfig"
-            )
+            raise GridProximityError("source_config must be an IgnBdTopoSourceConfig")
         _validate_parcels(parcels)
+        _reject_parcel_output_collisions(parcels)
         normalized = normalize_ign_electricity(electricity_source, source_config)
         if type(normalized) is not NormalizedIgnElectricityData:
             raise GridProximityError(

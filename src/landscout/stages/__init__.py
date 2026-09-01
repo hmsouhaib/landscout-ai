@@ -64,6 +64,8 @@ from landscout.stages.enrich_planning_features import (
     validate_normalized_planning_feature_inputs,
 )
 from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )
@@ -179,6 +181,7 @@ __all__ = [
     "ParcelFilterError",
     "ParcelPlanningFeaturesResult",
     "ParcelRoadProximityResult",
+    "ParcelZoningResult",
     "PlanningFeatureCodeError",
     "PlanningFeatureCodeResult",
     "PlanningFeatureInputValidation",
@@ -189,6 +192,7 @@ __all__ = [
     "PlanningRegulationStructureConfig",
     "PlanningRegulationStructureError",
     "PlanningRegulationStructureResult",
+    "PlanningZoningError",
     "RoadProximityCoverageAssessmentResult",
     "RoadProximityCoverageError",
     "RoadProximityError",

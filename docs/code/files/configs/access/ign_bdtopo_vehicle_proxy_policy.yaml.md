@@ -112,106 +112,524 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 | `decision_outcomes.open_or_toll` | `"GENERAL_VEHICLE_PROXY"` | `str` | path is a mapping key/list member validated by the enclosing model and validators; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `open or toll` under the exact parent path `decision_outcomes`. | `apply_ign_road_vehicle_proxy_policy` |
 | `decision_outcomes.unknown` | `"UNKNOWN_REVIEW"` | `str` | path is a mapping key/list member validated by the enclosing model and validators; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `unknown` under the exact parent path `decision_outcomes`. | `apply_ign_road_vehicle_proxy_policy` |
 
+## STEP 7F.1A.4 dependent-model refresh
+
+- The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy`; section 5 now embeds the exact current owning model sources and qualified consumers.
+- Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
+- No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+
 ## 5. Classes / models / dataclasses
 
-Authoritative owning model: `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicy`. The checked-in file currently validates as `IgnRoadVehicleProxyPolicy`.
+- Exact checked-in configuration SHA256 remains `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`; its values are unchanged by STEP 7F.1A.4.
+- Authoritative loader/config boundary: `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy`.
+- Owning Python module: `landscout.stages.road_vehicle_proxy_policy`.
+- The owning model declarations below are refreshed from the current source so frozen/deeply immutable fields, strict serialization, exact domains, validators, and internal metadata schemas cannot remain stale merely because the YAML bytes did not change.
+
+### `_StrictPolicyModel`
+
+**Source purpose:** Defines `_StrictPolicyModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `BaseModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
 
 ```python
 class _StrictPolicyModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
+```
 
-class _CompiledClasses:
-    general_vehicle_proxy: str
-    limited_vehicle_proxy: str
-    restricted_review: str
-    not_general_vehicle_proxy: str
-    not_distance_proxy: str
-    unknown_review: str
+### `_NavigationReferenceConfig`
 
-    @property
-    def values(self) -> tuple[str, ...]:
-        return (
-            self.general_vehicle_proxy,
-            self.limited_vehicle_proxy,
-            self.restricted_review,
-            self.not_general_vehicle_proxy,
-            self.not_distance_proxy,
-            self.unknown_review,
+**Source purpose:** Defines `_NavigationReferenceConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `publisher` | `Literal['IGN']` | `required` | `publisher: Literal["IGN"]` |
+| `title` | `Literal['Calcul d’itinéraire']` | `required` | `title: Literal["Calcul d’itinéraire"]` |
+| `revision` | `Literal['2026-05-27']` | `required` | `revision: Literal["2026-05-27"]` |
+| `evidence_scope` | `Literal['GENERAL_CAR_ROUTING_RULES']` | `required` | `evidence_scope: Literal["GENERAL_CAR_ROUTING_RULES"]` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _NavigationReferenceConfig(_StrictPolicyModel):
+    publisher: Literal["IGN"]
+    title: Literal["Calcul d’itinéraire"]
+    revision: Literal["2026-05-27"]
+    evidence_scope: Literal["GENERAL_CAR_ROUTING_RULES"]
+```
+
+### `_BdTopoProductReferenceConfig`
+
+**Source purpose:** Defines `_BdTopoProductReferenceConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `publisher` | `Literal['IGN']` | `required` | `publisher: Literal["IGN"]` |
+| `title` | `Literal['BD TOPO® Version 3.5 - Descriptif de contenu']` | `required` | `title: Literal["BD TOPO® Version 3.5 - Descriptif de contenu"]` |
+| `document_id` | `Literal['DC_BDTOPO_3-5']` | `required` | `document_id: Literal["DC_BDTOPO_3-5"]` |
+| `revision` | `Literal['2025-11']` | `required` | `revision: Literal["2025-11"]` |
+| `evidence_scope` | `Literal['SOURCE_ATTRIBUTE_SEMANTICS']` | `required` | `evidence_scope: Literal["SOURCE_ATTRIBUTE_SEMANTICS"]` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _BdTopoProductReferenceConfig(_StrictPolicyModel):
+    publisher: Literal["IGN"]
+    title: Literal["BD TOPO® Version 3.5 - Descriptif de contenu"]
+    document_id: Literal["DC_BDTOPO_3-5"]
+    revision: Literal["2025-11"]
+    evidence_scope: Literal["SOURCE_ATTRIBUTE_SEMANTICS"]
+```
+
+### `_ReferencesConfig`
+
+**Source purpose:** Defines `_ReferencesConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `navigation` | `_NavigationReferenceConfig` | `required` | `navigation: _NavigationReferenceConfig` |
+| `bdtopo_product` | `_BdTopoProductReferenceConfig` | `required` | `bdtopo_product: _BdTopoProductReferenceConfig` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _ReferencesConfig(_StrictPolicyModel):
+    navigation: _NavigationReferenceConfig
+    bdtopo_product: _BdTopoProductReferenceConfig
+```
+
+### `_ClassesConfig`
+
+**Source purpose:** Defines `_ClassesConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `general_vehicle_proxy` | `Literal['GENERAL_VEHICLE_PROXY']` | `required` | `general_vehicle_proxy: Literal["GENERAL_VEHICLE_PROXY"]` |
+| `limited_vehicle_proxy` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `limited_vehicle_proxy: Literal["LIMITED_VEHICLE_PROXY"]` |
+| `restricted_review` | `Literal['RESTRICTED_REVIEW']` | `required` | `restricted_review: Literal["RESTRICTED_REVIEW"]` |
+| `not_general_vehicle_proxy` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `not_general_vehicle_proxy: Literal["NOT_GENERAL_VEHICLE_PROXY"]` |
+| `not_distance_proxy` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `not_distance_proxy: Literal["NOT_DISTANCE_PROXY"]` |
+| `unknown_review` | `Literal['UNKNOWN_REVIEW']` | `required` | `unknown_review: Literal["UNKNOWN_REVIEW"]` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _ClassesConfig(_StrictPolicyModel):
+    general_vehicle_proxy: Literal["GENERAL_VEHICLE_PROXY"]
+    limited_vehicle_proxy: Literal["LIMITED_VEHICLE_PROXY"]
+    restricted_review: Literal["RESTRICTED_REVIEW"]
+    not_general_vehicle_proxy: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    not_distance_proxy: Literal["NOT_DISTANCE_PROXY"]
+    unknown_review: Literal["UNKNOWN_REVIEW"]
+```
+
+### `_AssetStateConfig`
+
+**Source purpose:** Defines `_AssetStateConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `in_service` | `_NonEmptyStrings` | `required` | `in_service: _NonEmptyStrings` |
+| `project_geometry_not_significant` | `_NonEmptyStrings` | `required` | `project_geometry_not_significant: _NonEmptyStrings` |
+| `under_construction` | `_NonEmptyStrings` | `required` | `under_construction: _NonEmptyStrings` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _AssetStateConfig(_StrictPolicyModel):
+    in_service: _NonEmptyStrings
+    project_geometry_not_significant: _NonEmptyStrings
+    under_construction: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.in_service,
+            self.project_geometry_not_significant,
+            self.under_construction,
         )
+        for name, values in zip(
+            (
+                "in_service",
+                "project_geometry_not_significant",
+                "under_construction",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "asset_state")
+        if groups != (("En service",), ("En projet",), ("En construction",)):
+            raise ValueError("asset_state groups must cover the exact source domain")
+        return self
+```
 
-class _CompiledAssetState:
-    in_service: frozenset[str]
-    project_geometry_not_significant: frozenset[str]
-    under_construction: frozenset[str]
+### `_LightVehicleAccessConfig`
 
-class _CompiledNavigationReference:
-    publisher: str
-    title: str
-    revision: str
-    evidence_scope: str
+**Source purpose:** Defines `_LightVehicleAccessConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
 
-class _CompiledBdTopoProductReference:
-    publisher: str
-    title: str
-    document_id: str
-    revision: str
-    evidence_scope: str
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
 
-class _CompiledLightVehicleAccess:
-    open: frozenset[str]
-    toll: frozenset[str]
-    rights_restricted: frozenset[str]
-    physically_impossible: frozenset[str]
+**Fields and model attributes**
 
-class _CompiledRoadNature:
-    general_motor_road: frozenset[str]
-    limited_motor_proxy: frozenset[str]
-    non_general_vehicle: frozenset[str]
-    special_review: frozenset[str]
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `open` | `_NonEmptyStrings` | `required` | `open: _NonEmptyStrings` |
+| `toll` | `_NonEmptyStrings` | `required` | `toll: _NonEmptyStrings` |
+| `rights_restricted` | `_NonEmptyStrings` | `required` | `rights_restricted: _NonEmptyStrings` |
+| `physically_impossible` | `_NonEmptyStrings` | `required` | `physically_impossible: _NonEmptyStrings` |
 
-class _CompiledImportance:
-    known: frozenset[str]
-    limited: frozenset[str]
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
 
-class _CompiledDecisionOutcomes:
-    fictitious_geometry: str
-    project_geometry_not_significant: str
-    not_in_service: str
-    physically_impossible: str
-    non_general_vehicle_nature: str
-    rights_restricted: str
-    private_road: str
-    temporal_closure: str
-    known_restriction: str
-    other_recorded_restriction: str
-    special_nature: str
-    limited_nature: str
-    importance_6: str
-    narrow_carriageway: str
-    open_or_toll: str
-    unknown: str
+**Qualified consumers**
 
-class IgnRoadVehicleProxyPolicy:
-    """Immutable policy evidence compiled from the exact checked-in YAML bytes."""
+- No conservative direct repository consumer was found.
 
-    policy_id: str
-    schema_version: int
-    scope: str
-    navigation_reference: _CompiledNavigationReference
-    bdtopo_product_reference: _CompiledBdTopoProductReference
-    evidence_checked_on: str
-    vehicle_scope: str
-    heavy_vehicle_access: str
-    classes: _CompiledClasses
-    asset_state: _CompiledAssetState
-    light_vehicle_access: _CompiledLightVehicleAccess
-    nature: _CompiledRoadNature
-    known_restriction_review: frozenset[str]
-    importance: _CompiledImportance
-    width_below_m: float
-    decision_precedence: tuple[str, ...]
-    decision_outcomes: _CompiledDecisionOutcomes
-    config_sha256: str
+**Exact class source**
+
+```python
+class _LightVehicleAccessConfig(_StrictPolicyModel):
+    open: _NonEmptyStrings
+    toll: _NonEmptyStrings
+    rights_restricted: _NonEmptyStrings
+    physically_impossible: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.open,
+            self.toll,
+            self.rights_restricted,
+            self.physically_impossible,
+        )
+        for name, values in zip(
+            ("open", "toll", "rights_restricted", "physically_impossible"),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "light_vehicle_access")
+        return self
+```
+
+### `_RoadNatureConfig`
+
+**Source purpose:** Defines `_RoadNatureConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `general_motor_road` | `_NonEmptyStrings` | `required` | `general_motor_road: _NonEmptyStrings` |
+| `limited_motor_proxy` | `_NonEmptyStrings` | `required` | `limited_motor_proxy: _NonEmptyStrings` |
+| `non_general_vehicle` | `_NonEmptyStrings` | `required` | `non_general_vehicle: _NonEmptyStrings` |
+| `special_review` | `_NonEmptyStrings` | `required` | `special_review: _NonEmptyStrings` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _RoadNatureConfig(_StrictPolicyModel):
+    general_motor_road: _NonEmptyStrings
+    limited_motor_proxy: _NonEmptyStrings
+    non_general_vehicle: _NonEmptyStrings
+    special_review: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.general_motor_road,
+            self.limited_motor_proxy,
+            self.non_general_vehicle,
+            self.special_review,
+        )
+        for name, values in zip(
+            (
+                "general_motor_road",
+                "limited_motor_proxy",
+                "non_general_vehicle",
+                "special_review",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "nature")
+        return self
+```
+
+### `_ImportanceConfig`
+
+**Source purpose:** Defines `_ImportanceConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `known` | `_NonEmptyStrings` | `required` | `known: _NonEmptyStrings` |
+| `limited` | `_NonEmptyStrings` | `required` | `limited: _NonEmptyStrings` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _ImportanceConfig(_StrictPolicyModel):
+    known: _NonEmptyStrings
+    limited: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_domain(self) -> Self:
+        _require_unique(self.known, "importance.known")
+        _require_unique(self.limited, "importance.limited")
+        if self.known != ("1", "2", "3", "4", "5", "6"):
+            raise ValueError("importance.known must cover exactly source values 1-6")
+        if self.limited != ("6",):
+            raise ValueError("importance.limited must contain exactly source value '6'")
+        if not set(self.limited).issubset(self.known):
+            raise ValueError("importance.limited must be a subset of importance.known")
+        return self
+```
+
+### `_SourceValuesConfig`
+
+**Source purpose:** Defines `_SourceValuesConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `asset_state` | `_AssetStateConfig` | `required` | `asset_state: _AssetStateConfig` |
+| `light_vehicle_access` | `_LightVehicleAccessConfig` | `required` | `light_vehicle_access: _LightVehicleAccessConfig` |
+| `nature` | `_RoadNatureConfig` | `required` | `nature: _RoadNatureConfig` |
+| `known_restriction_review` | `_NonEmptyStrings` | `required` | `known_restriction_review: _NonEmptyStrings` |
+| `importance` | `_ImportanceConfig` | `required` | `importance: _ImportanceConfig` |
+| `width_below_m` | `Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]` | `required` | `width_below_m: Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _SourceValuesConfig(_StrictPolicyModel):
+    asset_state: _AssetStateConfig
+    light_vehicle_access: _LightVehicleAccessConfig
+    nature: _RoadNatureConfig
+    known_restriction_review: _NonEmptyStrings
+    importance: _ImportanceConfig
+    width_below_m: Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]
+
+    @model_validator(mode="after")
+    def _valid_values(self) -> Self:
+        _require_unique(self.known_restriction_review, "known_restriction_review")
+        return self
+```
+
+### `_DecisionOutcomesConfig`
+
+**Source purpose:** Defines `_DecisionOutcomesConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `fictitious_geometry` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `fictitious_geometry: Literal["NOT_DISTANCE_PROXY"]` |
+| `project_geometry_not_significant` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `project_geometry_not_significant: Literal["NOT_DISTANCE_PROXY"]` |
+| `not_in_service` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `not_in_service: Literal["NOT_GENERAL_VEHICLE_PROXY"]` |
+| `physically_impossible` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `physically_impossible: Literal["NOT_GENERAL_VEHICLE_PROXY"]` |
+| `non_general_vehicle_nature` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `non_general_vehicle_nature: Literal["NOT_GENERAL_VEHICLE_PROXY"]` |
+| `rights_restricted` | `Literal['RESTRICTED_REVIEW']` | `required` | `rights_restricted: Literal["RESTRICTED_REVIEW"]` |
+| `private_road` | `Literal['RESTRICTED_REVIEW']` | `required` | `private_road: Literal["RESTRICTED_REVIEW"]` |
+| `temporal_closure` | `Literal['RESTRICTED_REVIEW']` | `required` | `temporal_closure: Literal["RESTRICTED_REVIEW"]` |
+| `known_restriction` | `Literal['RESTRICTED_REVIEW']` | `required` | `known_restriction: Literal["RESTRICTED_REVIEW"]` |
+| `other_recorded_restriction` | `Literal['RESTRICTED_REVIEW']` | `required` | `other_recorded_restriction: Literal["RESTRICTED_REVIEW"]` |
+| `special_nature` | `Literal['RESTRICTED_REVIEW']` | `required` | `special_nature: Literal["RESTRICTED_REVIEW"]` |
+| `limited_nature` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `limited_nature: Literal["LIMITED_VEHICLE_PROXY"]` |
+| `importance_6` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `importance_6: Literal["LIMITED_VEHICLE_PROXY"]` |
+| `narrow_carriageway` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `narrow_carriageway: Literal["LIMITED_VEHICLE_PROXY"]` |
+| `open_or_toll` | `Literal['GENERAL_VEHICLE_PROXY']` | `required` | `open_or_toll: Literal["GENERAL_VEHICLE_PROXY"]` |
+| `unknown` | `Literal['UNKNOWN_REVIEW']` | `required` | `unknown: Literal["UNKNOWN_REVIEW"]` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- No conservative direct repository consumer was found.
+
+**Exact class source**
+
+```python
+class _DecisionOutcomesConfig(_StrictPolicyModel):
+    fictitious_geometry: Literal["NOT_DISTANCE_PROXY"]
+    project_geometry_not_significant: Literal["NOT_DISTANCE_PROXY"]
+    not_in_service: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    physically_impossible: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    non_general_vehicle_nature: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    rights_restricted: Literal["RESTRICTED_REVIEW"]
+    private_road: Literal["RESTRICTED_REVIEW"]
+    temporal_closure: Literal["RESTRICTED_REVIEW"]
+    known_restriction: Literal["RESTRICTED_REVIEW"]
+    other_recorded_restriction: Literal["RESTRICTED_REVIEW"]
+    special_nature: Literal["RESTRICTED_REVIEW"]
+    limited_nature: Literal["LIMITED_VEHICLE_PROXY"]
+    importance_6: Literal["LIMITED_VEHICLE_PROXY"]
+    narrow_carriageway: Literal["LIMITED_VEHICLE_PROXY"]
+    open_or_toll: Literal["GENERAL_VEHICLE_PROXY"]
+    unknown: Literal["UNKNOWN_REVIEW"]
+```
+
+### `_PolicyConfig`
+
+**Source purpose:** Defines `_PolicyConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+
+- Exact decorators: none.
+- Exact bases: `_StrictPolicyModel`.
+
+**Fields and model attributes**
+
+| Field | Annotation/kind | Default or assignment | Exact declaration |
+|---|---|---|---|
+| `policy_id` | `_ExactString` | `required` | `policy_id: _ExactString` |
+| `schema_version` | `StrictInt` | `required` | `schema_version: StrictInt` |
+| `scope` | `_ExactString` | `required` | `scope: _ExactString` |
+| `references` | `_ReferencesConfig` | `required` | `references: _ReferencesConfig` |
+| `evidence_checked_on` | `Literal['2026-08-16']` | `required` | `evidence_checked_on: Literal["2026-08-16"]` |
+| `vehicle_scope` | `Literal['LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK']` | `required` | `vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]` |
+| `heavy_vehicle_access` | `Literal['NOT_PROVEN']` | `required` | `heavy_vehicle_access: Literal["NOT_PROVEN"]` |
+| `classes` | `_ClassesConfig` | `required` | `classes: _ClassesConfig` |
+| `source_values` | `_SourceValuesConfig` | `required` | `source_values: _SourceValuesConfig` |
+| `decision_precedence` | `_NonEmptyStrings` | `required` | `decision_precedence: _NonEmptyStrings` |
+| `decision_outcomes` | `_DecisionOutcomesConfig` | `required` | `decision_outcomes: _DecisionOutcomesConfig` |
+
+Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Qualified consumers**
+
+- value/type reference: `landscout.stages.road_vehicle_proxy_policy::_compile_policy` via `_PolicyConfig`
+- value/type reference: `landscout.stages.road_vehicle_proxy_policy::load_ign_road_vehicle_proxy_policy` via `_PolicyConfig`
+
+**Exact class source**
+
+```python
+class _PolicyConfig(_StrictPolicyModel):
+    policy_id: _ExactString
+    schema_version: StrictInt
+    scope: _ExactString
+    references: _ReferencesConfig
+    evidence_checked_on: Literal["2026-08-16"]
+    vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]
+    heavy_vehicle_access: Literal["NOT_PROVEN"]
+    classes: _ClassesConfig
+    source_values: _SourceValuesConfig
+    decision_precedence: _NonEmptyStrings
+    decision_outcomes: _DecisionOutcomesConfig
+
+    @model_validator(mode="after")
+    def _valid_identity_and_precedence(self) -> Self:
+        if self.policy_id != _POLICY_ID:
+            raise ValueError("policy_id is not the approved v2 policy identity")
+        if self.schema_version != 2:
+            raise ValueError("schema_version must be exactly 2")
+        if self.scope != _POLICY_SCOPE:
+            raise ValueError("scope is not the approved official IGN evidence scope")
+        if self.decision_precedence != _EXPECTED_PRECEDENCE:
+            raise ValueError("decision_precedence differs from approved v2 order")
+        return self
 ```
 
 ## 6. Functions and methods
@@ -261,3 +679,199 @@ The loader/model companion and relevant test companion document exact valid/inva
 ## 17. Change impact
 
 Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.
+
+## 18. Complete readable configuration and authoritative raw-byte snapshot
+
+### Complete readable YAML
+
+The following is the complete decoded UTF-8 configuration with line endings normalized to LF for stable Markdown display. Every character and logical line is present, but this readable fence is not the authority for original CR/LF byte positions.
+
+```yaml
+policy_id: "ign_bdtopo_general_vehicle_proxy_v2"
+schema_version: 2
+scope: "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
+
+references:
+  navigation:
+    publisher: "IGN"
+    title: "Calcul d’itinéraire"
+    revision: "2026-05-27"
+    evidence_scope: "GENERAL_CAR_ROUTING_RULES"
+  bdtopo_product:
+    publisher: "IGN"
+    title: "BD TOPO® Version 3.5 - Descriptif de contenu"
+    document_id: "DC_BDTOPO_3-5"
+    revision: "2025-11"
+    evidence_scope: "SOURCE_ATTRIBUTE_SEMANTICS"
+
+evidence_checked_on: "2026-08-16"
+vehicle_scope: "LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"
+heavy_vehicle_access: "NOT_PROVEN"
+
+classes:
+  general_vehicle_proxy: "GENERAL_VEHICLE_PROXY"
+  limited_vehicle_proxy: "LIMITED_VEHICLE_PROXY"
+  restricted_review: "RESTRICTED_REVIEW"
+  not_general_vehicle_proxy: "NOT_GENERAL_VEHICLE_PROXY"
+  not_distance_proxy: "NOT_DISTANCE_PROXY"
+  unknown_review: "UNKNOWN_REVIEW"
+
+source_values:
+  asset_state:
+    in_service:
+      - "En service"
+    project_geometry_not_significant:
+      - "En projet"
+    under_construction:
+      - "En construction"
+
+  light_vehicle_access:
+    open:
+      - "Libre"
+    toll:
+      - "A péage"
+    rights_restricted:
+      - "Restreint aux ayants droit"
+    physically_impossible:
+      - "Physiquement impossible"
+
+  nature:
+    general_motor_road:
+      - "Route à 1 chaussée"
+      - "Route à 2 chaussées"
+      - "Rond-point"
+      - "Bretelle"
+      - "Type autoroutier"
+    limited_motor_proxy:
+      - "Route empierrée"
+      - "Chemin"
+    non_general_vehicle:
+      - "Escalier"
+      - "Sentier"
+      - "Piste cyclable"
+    special_review:
+      - "Bac ou liaison maritime"
+
+  known_restriction_review:
+    - "Plot amovible"
+    - "Voie de tramway utilisable par les véhicules de secours"
+    - "Voie verte"
+    - "Aménagement mixte hors voie verte"
+    - "Piste cyclable"
+    - "Entrée avec gardien"
+    - "Passage barré"
+
+  importance:
+    known:
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+      - "6"
+    limited:
+      - "6"
+
+  width_below_m: 2.9
+
+decision_precedence:
+  - "FICTITIOUS_GEOMETRY"
+  - "PROJECT_GEOMETRY_NOT_SIGNIFICANT"
+  - "NOT_IN_SERVICE"
+  - "PHYSICALLY_IMPOSSIBLE"
+  - "NON_GENERAL_VEHICLE_NATURE"
+  - "RIGHTS_RESTRICTED"
+  - "PRIVATE_ROAD"
+  - "TEMPORAL_CLOSURE"
+  - "KNOWN_RESTRICTION"
+  - "OTHER_RECORDED_RESTRICTION"
+  - "SPECIAL_NATURE"
+  - "LIMITED_NATURE"
+  - "IMPORTANCE_6"
+  - "NARROW_CARRIAGEWAY"
+  - "OPEN_OR_TOLL"
+  - "UNKNOWN"
+
+decision_outcomes:
+  fictitious_geometry: "NOT_DISTANCE_PROXY"
+  project_geometry_not_significant: "NOT_DISTANCE_PROXY"
+  not_in_service: "NOT_GENERAL_VEHICLE_PROXY"
+  physically_impossible: "NOT_GENERAL_VEHICLE_PROXY"
+  non_general_vehicle_nature: "NOT_GENERAL_VEHICLE_PROXY"
+  rights_restricted: "RESTRICTED_REVIEW"
+  private_road: "RESTRICTED_REVIEW"
+  temporal_closure: "RESTRICTED_REVIEW"
+  known_restriction: "RESTRICTED_REVIEW"
+  other_recorded_restriction: "RESTRICTED_REVIEW"
+  special_nature: "RESTRICTED_REVIEW"
+  limited_nature: "LIMITED_VEHICLE_PROXY"
+  importance_6: "LIMITED_VEHICLE_PROXY"
+  narrow_carriageway: "LIMITED_VEHICLE_PROXY"
+  open_or_toll: "GENERAL_VEHICLE_PROXY"
+  unknown: "UNKNOWN_REVIEW"
+```
+
+### Authoritative raw-byte payload
+
+- Raw byte length: `3168`.
+- Raw SHA256: `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166` (identical to **File identity**).
+- Encoding: RFC 4648 Base64, wrapped for display only. Decoding the concatenated payload reproduces every original byte, including mixed CRLF/LF positions.
+
+```text
+cG9saWN5X2lkOiAiaWduX2JkdG9wb19nZW5lcmFsX3ZlaGljbGVfcHJveHlfdjIiCnNjaGVtYV92
+ZXJzaW9uOiAyCnNjb3BlOiAiT0ZGSUNJQUxfSUdOX0NBUl9ST1VUSU5HX0VWSURFTkNFX09OTFki
+CgpyZWZlcmVuY2VzOgogIG5hdmlnYXRpb246CiAgICBwdWJsaXNoZXI6ICJJR04iCiAgICB0aXRs
+ZTogIkNhbGN1bCBk4oCZaXRpbsOpcmFpcmUiCiAgICByZXZpc2lvbjogIjIwMjYtMDUtMjciCiAg
+ICBldmlkZW5jZV9zY29wZTogIkdFTkVSQUxfQ0FSX1JPVVRJTkdfUlVMRVMiCiAgYmR0b3BvX3By
+b2R1Y3Q6CiAgICBwdWJsaXNoZXI6ICJJR04iCiAgICB0aXRsZTogIkJEIFRPUE/CriBWZXJzaW9u
+IDMuNSAtIERlc2NyaXB0aWYgZGUgY29udGVudSIKICAgIGRvY3VtZW50X2lkOiAiRENfQkRUT1BP
+XzMtNSIKICAgIHJldmlzaW9uOiAiMjAyNS0xMSIKICAgIGV2aWRlbmNlX3Njb3BlOiAiU09VUkNF
+X0FUVFJJQlVURV9TRU1BTlRJQ1MiCgpldmlkZW5jZV9jaGVja2VkX29uOiAiMjAyNi0wOC0xNiIK
+dmVoaWNsZV9zY29wZTogIkxJR0hUX1ZFSElDTEVfQU5EX0dFTkVSQUxfQ0FSX05FVFdPUksiCmhl
+YXZ5X3ZlaGljbGVfYWNjZXNzOiAiTk9UX1BST1ZFTiIKCmNsYXNzZXM6CiAgZ2VuZXJhbF92ZWhp
+Y2xlX3Byb3h5OiAiR0VORVJBTF9WRUhJQ0xFX1BST1hZIgogIGxpbWl0ZWRfdmVoaWNsZV9wcm94
+eTogIkxJTUlURURfVkVISUNMRV9QUk9YWSIKICByZXN0cmljdGVkX3JldmlldzogIlJFU1RSSUNU
+RURfUkVWSUVXIgogIG5vdF9nZW5lcmFsX3ZlaGljbGVfcHJveHk6ICJOT1RfR0VORVJBTF9WRUhJ
+Q0xFX1BST1hZIgogIG5vdF9kaXN0YW5jZV9wcm94eTogIk5PVF9ESVNUQU5DRV9QUk9YWSIKICB1
+bmtub3duX3JldmlldzogIlVOS05PV05fUkVWSUVXIgoKc291cmNlX3ZhbHVlczoKICBhc3NldF9z
+dGF0ZToKICAgIGluX3NlcnZpY2U6CiAgICAgIC0gIkVuIHNlcnZpY2UiCiAgICBwcm9qZWN0X2dl
+b21ldHJ5X25vdF9zaWduaWZpY2FudDoKICAgICAgLSAiRW4gcHJvamV0IgogICAgdW5kZXJfY29u
+c3RydWN0aW9uOgogICAgICAtICJFbiBjb25zdHJ1Y3Rpb24iCgogIGxpZ2h0X3ZlaGljbGVfYWNj
+ZXNzOgogICAgb3BlbjoKICAgICAgLSAiTGlicmUiCiAgICB0b2xsOgogICAgICAtICJBIHDDqWFn
+ZSIKICAgIHJpZ2h0c19yZXN0cmljdGVkOgogICAgICAtICJSZXN0cmVpbnQgYXV4IGF5YW50cyBk
+cm9pdCIKICAgIHBoeXNpY2FsbHlfaW1wb3NzaWJsZToKICAgICAgLSAiUGh5c2lxdWVtZW50IGlt
+cG9zc2libGUiCgogIG5hdHVyZToKICAgIGdlbmVyYWxfbW90b3Jfcm9hZDoKICAgICAgLSAiUm91
+dGUgw6AgMSBjaGF1c3PDqWUiCiAgICAgIC0gIlJvdXRlIMOgIDIgY2hhdXNzw6llcyIKICAgICAg
+LSAiUm9uZC1wb2ludCIKICAgICAgLSAiQnJldGVsbGUiCiAgICAgIC0gIlR5cGUgYXV0b3JvdXRp
+ZXIiCiAgICBsaW1pdGVkX21vdG9yX3Byb3h5OgogICAgICAtICJSb3V0ZSBlbXBpZXJyw6llIgog
+ICAgICAtICJDaGVtaW4iCiAgICBub25fZ2VuZXJhbF92ZWhpY2xlOgogICAgICAtICJFc2NhbGll
+ciIKICAgICAgLSAiU2VudGllciIKICAgICAgLSAiUGlzdGUgY3ljbGFibGUiCiAgICBzcGVjaWFs
+X3JldmlldzoKICAgICAgLSAiQmFjIG91IGxpYWlzb24gbWFyaXRpbWUiCgogIGtub3duX3Jlc3Ry
+aWN0aW9uX3JldmlldzoKICAgIC0gIlBsb3QgYW1vdmlibGUiCiAgICAtICJWb2llIGRlIHRyYW13
+YXkgdXRpbGlzYWJsZSBwYXIgbGVzIHbDqWhpY3VsZXMgZGUgc2Vjb3VycyIKICAgIC0gIlZvaWUg
+dmVydGUiCiAgICAtICJBbcOpbmFnZW1lbnQgbWl4dGUgaG9ycyB2b2llIHZlcnRlIgogICAgLSAi
+UGlzdGUgY3ljbGFibGUiCiAgICAtICJFbnRyw6llIGF2ZWMgZ2FyZGllbiIKICAgIC0gIlBhc3Nh
+Z2UgYmFycsOpIgoKICBpbXBvcnRhbmNlOgogICAga25vd246CiAgICAgIC0gIjEiCiAgICAgIC0g
+IjIiCiAgICAgIC0gIjMiCiAgICAgIC0gIjQiCiAgICAgIC0gIjUiCiAgICAgIC0gIjYiCiAgICBs
+aW1pdGVkOgogICAgICAtICI2IgoKICB3aWR0aF9iZWxvd19tOiAyLjkKCmRlY2lzaW9uX3ByZWNl
+ZGVuY2U6CiAgLSAiRklDVElUSU9VU19HRU9NRVRSWSIKICAtICJQUk9KRUNUX0dFT01FVFJZX05P
+VF9TSUdOSUZJQ0FOVCIKICAtICJOT1RfSU5fU0VSVklDRSIKICAtICJQSFlTSUNBTExZX0lNUE9T
+U0lCTEUiCiAgLSAiTk9OX0dFTkVSQUxfVkVISUNMRV9OQVRVUkUiCiAgLSAiUklHSFRTX1JFU1RS
+SUNURUQiCiAgLSAiUFJJVkFURV9ST0FEIgogIC0gIlRFTVBPUkFMX0NMT1NVUkUiCiAgLSAiS05P
+V05fUkVTVFJJQ1RJT04iCiAgLSAiT1RIRVJfUkVDT1JERURfUkVTVFJJQ1RJT04iCiAgLSAiU1BF
+Q0lBTF9OQVRVUkUiCiAgLSAiTElNSVRFRF9OQVRVUkUiCiAgLSAiSU1QT1JUQU5DRV82IgogIC0g
+Ik5BUlJPV19DQVJSSUFHRVdBWSIKICAtICJPUEVOX09SX1RPTEwiCiAgLSAiVU5LTk9XTiIKCmRl
+Y2lzaW9uX291dGNvbWVzOgogIGZpY3RpdGlvdXNfZ2VvbWV0cnk6ICJOT1RfRElTVEFOQ0VfUFJP
+WFkiCiAgcHJvamVjdF9nZW9tZXRyeV9ub3Rfc2lnbmlmaWNhbnQ6ICJOT1RfRElTVEFOQ0VfUFJP
+WFkiCiAgbm90X2luX3NlcnZpY2U6ICJOT1RfR0VORVJBTF9WRUhJQ0xFX1BST1hZIgogIHBoeXNp
+Y2FsbHlfaW1wb3NzaWJsZTogIk5PVF9HRU5FUkFMX1ZFSElDTEVfUFJPWFkiCiAgbm9uX2dlbmVy
+YWxfdmVoaWNsZV9uYXR1cmU6ICJOT1RfR0VORVJBTF9WRUhJQ0xFX1BST1hZIgogIHJpZ2h0c19y
+ZXN0cmljdGVkOiAiUkVTVFJJQ1RFRF9SRVZJRVciCiAgcHJpdmF0ZV9yb2FkOiAiUkVTVFJJQ1RF
+RF9SRVZJRVciCiAgdGVtcG9yYWxfY2xvc3VyZTogIlJFU1RSSUNURURfUkVWSUVXIgogIGtub3du
+X3Jlc3RyaWN0aW9uOiAiUkVTVFJJQ1RFRF9SRVZJRVciCiAgb3RoZXJfcmVjb3JkZWRfcmVzdHJp
+Y3Rpb246ICJSRVNUUklDVEVEX1JFVklFVyIKICBzcGVjaWFsX25hdHVyZTogIlJFU1RSSUNURURf
+UkVWSUVXIgogIGxpbWl0ZWRfbmF0dXJlOiAiTElNSVRFRF9WRUhJQ0xFX1BST1hZIgogIGltcG9y
+dGFuY2VfNjogIkxJTUlURURfVkVISUNMRV9QUk9YWSIKICBuYXJyb3dfY2FycmlhZ2V3YXk6ICJM
+SU1JVEVEX1ZFSElDTEVfUFJPWFkiCiAgb3Blbl9vcl90b2xsOiAiR0VORVJBTF9WRUhJQ0xFX1BS
+T1hZIgogIHVua25vd246ICJVTktOT1dOX1JFVklFVyIK
+```

@@ -34,6 +34,8 @@ from landscout.sources.gpu_fr import (
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = [
+    "ParcelZoningResult",
+    "PlanningZoningError",
     "intersect_parcels_with_gpu_zoning",
     "validate_normalized_planning_zoning_inputs",
 ]
@@ -210,14 +212,11 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
     collisions = sorted(PARCEL_ZONING_OUTPUT_COLUMNS & set(parcels.columns))
     if collisions:
         raise PlanningZoningError(
-            "Parcels already contain zoning output columns: "
-            + ", ".join(collisions)
+            "Parcels already contain zoning output columns: " + ", ".join(collisions)
         )
     _active_geometry(parcels, "Parcel")
     crs = _readable_crs(parcels.crs, "Parcel")
-    _validate_exact_string_ids(
-        parcels["parcel_id"], "parcel_id", require_unique=True
-    )
+    _validate_exact_string_ids(parcels["parcel_id"], "parcel_id", require_unique=True)
     _validate_polygon_geometries(parcels, "Parcel")
     return crs
 
@@ -248,19 +247,17 @@ def _validate_planning_document(
     document = archive.document
     provider = _strict_nonempty_string(document.provider, "GPU provider")
     portal = _strict_nonempty_string(document.portal, "GPU portal")
-    commune_code = _strict_nonempty_string(
-        document.commune_code, "GPU commune code"
-    )
+    commune_code = _strict_nonempty_string(document.commune_code, "GPU commune code")
     document_id = _strict_nonempty_string(document.document_id, "GPU document ID")
-    document_type = _strict_nonempty_string(
-        document.document_type, "GPU document type"
-    )
+    document_type = _strict_nonempty_string(document.document_type, "GPU document type")
     archive_name = _strict_nonempty_string(document.archive_name, "GPU archive name")
     archive_sha256 = _strict_nonempty_string(archive.sha256, "GPU archive SHA256")
     if len(archive_sha256) != 64 or any(
         character not in "0123456789abcdefABCDEF" for character in archive_sha256
     ):
-        raise PlanningZoningError("GPU archive SHA256 must contain 64 hexadecimal chars")
+        raise PlanningZoningError(
+            "GPU archive SHA256 must contain 64 hexadecimal chars"
+        )
 
     zoning = planning_document.zoning
     if zoning.logical_name != "zoning":
@@ -286,9 +283,7 @@ def _validate_planning_document(
     _validate_exact_string_ids(
         source[source_zone_column], source_zone_column, require_unique=True
     )
-    source_document_column = GPU_ZONING_SOURCE_FIELDS[
-        "source_document_reference_raw"
-    ]
+    source_document_column = GPU_ZONING_SOURCE_FIELDS["source_document_reference_raw"]
     _validate_exact_string_ids(
         source[source_document_column], source_document_column, require_unique=False
     )
@@ -453,9 +448,7 @@ def _candidate_intersections(
             columns=("_parcel_position", "_zone_position", "_intersection_geometry")
         )
 
-    parcel_positions = candidates["_parcel_position"].to_numpy(
-        dtype="int64", copy=True
-    )
+    parcel_positions = candidates["_parcel_position"].to_numpy(dtype="int64", copy=True)
     zone_positions = candidates["_zone_position"].to_numpy(dtype="int64", copy=True)
     try:
         intersection_geometry = shapely_intersection(
@@ -487,9 +480,7 @@ def _candidate_intersections(
             "parcel_id": metric_parcels["parcel_id"].to_numpy(copy=False)[
                 parcel_positions
             ],
-            "planning_zone_id": selected_zones["planning_zone_id"].to_numpy(
-                copy=True
-            ),
+            "planning_zone_id": selected_zones["planning_zone_id"].to_numpy(copy=True),
             "source_zone_id": selected_zones["source_zone_id"].to_numpy(copy=True),
             "zone_type_raw": selected_zones["zone_type_raw"].to_numpy(copy=True),
             "zone_label_raw": selected_zones["zone_label_raw"].to_numpy(copy=True),
@@ -505,9 +496,9 @@ def _candidate_intersections(
             "source_document_id": selected_zones["source_document_id"].to_numpy(
                 copy=True
             ),
-            "source_archive_sha256": selected_zones[
-                "source_archive_sha256"
-            ].to_numpy(copy=True),
+            "source_archive_sha256": selected_zones["source_archive_sha256"].to_numpy(
+                copy=True
+            ),
             "source_layer": selected_zones["source_layer"].to_numpy(copy=True),
             "source_validity_date_raw": selected_zones[
                 "source_validity_date_raw"
@@ -593,9 +584,7 @@ def _parcel_summary(
             raw_sum[position] = raw_area
             try:
                 union_area = float(
-                    shapely_area(
-                        union_all(group["_intersection_geometry"].to_numpy())
-                    )
+                    shapely_area(union_all(group["_intersection_geometry"].to_numpy()))
                 )
             except Exception as error:
                 raise PlanningZoningError(
@@ -673,9 +662,7 @@ def _validate_numeric_columns(
             try:
                 numeric = float(value)
             except (TypeError, ValueError, OverflowError) as error:
-                raise PlanningZoningError(
-                    f"{label} {column} must be finite"
-                ) from error
+                raise PlanningZoningError(f"{label} {column} must be finite") from error
             if not isfinite(numeric) or numeric < 0:
                 raise PlanningZoningError(
                     f"{label} {column} must be finite and non-negative"
@@ -695,9 +682,7 @@ def _validate_result(
         raise PlanningZoningError("Parcel zoning output index changed")
     if output.crs != input_parcels.crs:
         raise PlanningZoningError("Parcel zoning output CRS changed")
-    if not np.array_equal(
-        output.geometry.to_wkb(), input_parcels.geometry.to_wkb()
-    ):
+    if not np.array_equal(output.geometry.to_wkb(), input_parcels.geometry.to_wkb()):
         raise PlanningZoningError("Parcel zoning output geometry changed")
 
     if not CRS.from_user_input(result.zones.crs).equals(CRS.from_epsg(2154)):
@@ -743,7 +728,9 @@ def _validate_result(
         "zoning_gap_area_m2",
         "zoning_overlap_excess_area_m2",
     )
-    _validate_numeric_columns(output, required_summary, "Parcel zoning", allow_null=False)
+    _validate_numeric_columns(
+        output, required_summary, "Parcel zoning", allow_null=False
+    )
     coverage = output["zoning_coverage_pct"].to_numpy(dtype="float64")
     if (coverage > 100.0).any():
         raise PlanningZoningError("Parcel zoning coverage must not exceed 100 percent")
@@ -770,7 +757,10 @@ def _compare_exact_frame(
                 raise PlanningZoningError(
                     f"{label} values or row order differ from reconstruction"
                 )
-            if supplied.geometry.to_wkb().tolist() != expected.geometry.to_wkb().tolist():
+            if (
+                supplied.geometry.to_wkb().tolist()
+                != expected.geometry.to_wkb().tolist()
+            ):
                 raise PlanningZoningError(
                     f"{label} geometry or row order differs from reconstruction"
                 )
@@ -809,6 +799,14 @@ def validate_normalized_planning_zoning_inputs(
             raise PlanningZoningError(
                 "Zoning intersections must be a non-geospatial DataFrame"
             )
+        missing_summary_columns = sorted(
+            PARCEL_ZONING_OUTPUT_COLUMNS.difference(parcels.columns)
+        )
+        if missing_summary_columns:
+            raise PlanningZoningError(
+                "Required parcel zoning summary columns are missing: "
+                f"{missing_summary_columns}"
+            )
         validated_sources = revalidate_gpu_spatial_layer_sources(
             planning_document,
             (planning_document.zoning,),
@@ -824,10 +822,12 @@ def validate_normalized_planning_zoning_inputs(
             data=validated_sources[0].data,
         )
         fresh_document = replace(planning_document, zoning=fresh_zoning)
-        present_summary_columns = tuple(
-            column for column in PARCEL_ZONING_OUTPUT_COLUMNS if column in parcels.columns
+        summary_columns = tuple(
+            column
+            for column in parcels.columns
+            if column in PARCEL_ZONING_OUTPUT_COLUMNS
         )
-        source_parcels = parcels.drop(columns=list(present_summary_columns)).copy()
+        source_parcels = parcels.drop(columns=list(summary_columns)).copy()
         expected = intersect_parcels_with_gpu_zoning(
             source_parcels,
             fresh_document,
@@ -842,10 +842,12 @@ def validate_normalized_planning_zoning_inputs(
             raise PlanningZoningError(
                 "Parcel zoning index differs from spatial reconstruction"
             )
-        for column in present_summary_columns:
+        for column in summary_columns:
             supplied = parcels[column]
             rebuilt = expected.parcels[column]
-            if str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(rebuilt):
+            if str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(
+                rebuilt
+            ):
                 raise PlanningZoningError(
                     f"Parcel zoning summary differs from reconstruction: {column}"
                 )
@@ -876,9 +878,7 @@ def intersect_parcels_with_gpu_zoning(
     zones = _normalize_zones(source_zones, context)
     metric_parcels = _metric_parcels(parcels)
     work = _candidate_intersections(metric_parcels, zones)
-    parcel_output = _parcel_summary(
-        parcels, metric_parcels, zones, work, context
-    )
+    parcel_output = _parcel_summary(parcels, metric_parcels, zones, work, context)
     intersections = (
         _empty_intersections()
         if work.empty

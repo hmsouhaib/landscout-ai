@@ -20,6 +20,7 @@ from shapely.geometry import (
     Polygon,
 )
 
+import landscout.sources.ign_bdtopo_fr as ign_source
 from landscout import stages
 from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
@@ -48,14 +49,22 @@ from landscout.stages.enrich_grid_proximity import (
 ARCHIVE_SHA256 = "a" * 64
 EDITION = "2026-06-15"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-coverage-ign-"))
-SOURCE_CONFIG = load_ign_bdtopo_source_config()
+_SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
+_SOURCE_CONFIG_PAYLOAD.update(
+    {
+        "source_url": "https://example.test/BDTOPO.7z",
+        "checksum_url": None,
+        "official_checksum_algorithm": None,
+        "official_checksum": None,
+        "expected_archive_size_bytes": 1,
+    }
+)
+SOURCE_CONFIG = IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)
 ALTERNATE_COVERAGE_LAYER = "zone_administrative"
 
 
 def _coverage(
-    geometry: object = Polygon(
-        [(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]
-    ),
+    geometry: object = Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),
     *,
     crs: str | None = "EPSG:2154",
     spatial_role: str = "SOURCE_COVERAGE_BOUNDARY",
@@ -93,6 +102,13 @@ def _coverage(
         driver="GPKG",
         append=True,
     )
+    pyogrio.write_dataframe(
+        dummy,
+        geopackage_path,
+        layer="troncon_de_route",
+        driver="GPKG",
+        append=True,
+    )
     raw_frame = gpd.read_file(geopackage_path, layer="departement", engine="pyogrio")
     payload = geopackage_path.read_bytes()
     digest = sha256(payload).hexdigest()
@@ -100,7 +116,7 @@ def _coverage(
     (extraction_path / ".landscout-extraction.json").write_text(
         json.dumps(
             {
-                "schema_version": 2,
+                "schema_version": 3,
                 "archive_sha256": ARCHIVE_SHA256,
                 "geopackage_relative_path": "data.gpkg",
                 "geopackage_size_bytes": len(payload),
@@ -108,13 +124,23 @@ def _coverage(
                 "all_layer_names": list(layer_names),
                 "electric_lines_layer": "ligne_electrique",
                 "transformation_posts_layer": "poste_de_transformation",
+                "road_segments_layer": "troncon_de_route",
+                "department_layer": "departement",
+                "extracted_entries": [
+                    {
+                        "relative_path": "data.gpkg",
+                        "kind": "file",
+                        "size_bytes": len(payload),
+                        "sha256": digest,
+                    }
+                ],
                 "spatial_role": "PROXY_GEOMETRY",
             }
         ),
         encoding="utf-8",
     )
     archive = IgnBdTopoDownload(
-        provider="IGN",
+        provider=SOURCE_CONFIG.provider,
         product="BD TOPO",
         department_code="31",
         edition=EDITION,
@@ -144,11 +170,13 @@ def _coverage(
         all_layer_names=layer_names,
         electric_lines_layer="ligne_electrique",
         transformation_posts_layer="poste_de_transformation",
+        road_segments_layer="troncon_de_route",
+        department_layer="departement",
         cache_hit=True,
     )
     frame = raw_frame.copy()
     for column, value in {
-        "source_provider": "IGN",
+        "source_provider": SOURCE_CONFIG.provider,
         "source_product": "BD TOPO",
         "source_department_code": "31",
         "source_edition": EDITION,
@@ -169,7 +197,9 @@ def _coverage(
         source_feature_count=1,
         selected_feature_count=1,
         columns=("code_insee", "nom_officiel", "geometry"),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in raw_frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in raw_frame.dtypes.items()
+        ),
         null_geometry_count=int(raw_frame.geometry.isna().sum()),
         empty_geometry_count=int(
             (non_null_geometry & raw_frame.geometry.is_empty).sum()
@@ -185,7 +215,7 @@ def _coverage(
         extraction=extraction,
         coverage=frame,
         summary=summary,
-        source_provider="IGN",
+        source_provider=SOURCE_CONFIG.provider,
         source_product="BD TOPO",
         source_department_code="31",
         source_edition=EDITION,
@@ -201,9 +231,7 @@ def _with_alternate_coverage_layer(
 ) -> tuple[IgnBdTopoDepartmentCoverage, IgnBdTopoDepartmentCoverage]:
     alternate = gpd.GeoDataFrame(
         {"code_insee": ["31"], "nom_officiel": ["Alternate coverage"]},
-        geometry=[
-            Polygon([(0, 0), (0, 900), (900, 900), (900, 0), (0, 0)])
-        ],
+        geometry=[Polygon([(0, 0), (0, 900), (900, 900), (900, 0), (0, 0)])],
         crs="EPSG:2154",
     )
     geopackage_path = source.extraction.geopackage_path
@@ -223,6 +251,14 @@ def _with_alternate_coverage_layer(
         geopackage_size_bytes=len(payload),
         geopackage_sha256=digest,
         all_layer_names=list(layer_names),
+        extracted_entries=[
+            {
+                "relative_path": "data.gpkg",
+                "kind": "file",
+                "size_bytes": len(payload),
+                "sha256": digest,
+            }
+        ],
     )
     marker_path.write_text(json.dumps(marker), encoding="utf-8")
     extraction = replace(
@@ -231,31 +267,28 @@ def _with_alternate_coverage_layer(
         geopackage_sha256=digest,
         all_layer_names=layer_names,
     )
-    configured = replace(
-        source,
-        extraction=extraction,
-        coverage=source.coverage.copy(),
+    configured = load_ign_bdtopo_department_coverage(
+        extraction,
+        SOURCE_CONFIG,
     )
-    configured.coverage["source_layer"] = "departement"
-    alternate_config_payload = SOURCE_CONFIG.model_dump(mode="python")
-    alternate_config_payload["coverage"]["department_layer"] = {
-        "class_label": "Zone administrative",
-        "match_tokens": ("zone", "administrative"),
-        "department_code_field": "code_insee",
-    }
-    alternate_config = IgnBdTopoSourceConfig.model_validate(
-        alternate_config_payload
+    alternate_loaded = gpd.read_file(
+        geopackage_path,
+        layer=ALTERNATE_COVERAGE_LAYER,
+        engine="pyogrio",
     )
-    forged = load_ign_bdtopo_department_coverage(extraction, alternate_config)
+    forged = ign_source._department_coverage_from_frame(
+        extraction,
+        alternate_loaded,
+        ALTERNATE_COVERAGE_LAYER,
+        "code_insee",
+    )
     return configured, forged
 
 
 def test_coverage_assessment_reproduces_configured_logical_layer() -> None:
     configured, forged = _with_alternate_coverage_layer(_coverage())
 
-    loaded = load_ign_bdtopo_department_coverage(
-        configured.extraction, SOURCE_CONFIG
-    )
+    loaded = load_ign_bdtopo_department_coverage(configured.extraction, SOURCE_CONFIG)
     result = assess_grid_coverage(_proximity(), loaded, SOURCE_CONFIG)
     assert result.source_coverage.source_layer == "departement"
 
@@ -303,7 +336,9 @@ def _lines(
             "source_layer": ["ligne_electrique"] * len(values),
             "spatial_role": ["PROXY_GEOMETRY"] * len(values),
             "geometry_status": ["VALID"] * len(values),
-            "voltage_raw": [None if value is None else str(value) for value in voltage_values],
+            "voltage_raw": [
+                None if value is None else str(value) for value in voltage_values
+            ],
             "voltage_status": statuses,
             "voltage_kv": voltage_values,
             "voltage_upper_bound_kv": [None] * len(values),
@@ -311,8 +346,7 @@ def _lines(
             "asset_status_raw": ["En service"] * len(values),
         },
         geometry=[
-            LineString([(200 + value, 50), (200 + value, 250)])
-            for value in values
+            LineString([(200 + value, 50), (200 + value, 250)]) for value in values
         ],
         crs="EPSG:2154",
     )
@@ -394,15 +428,18 @@ def test_public_coverage_owns_proximity_and_configured_coverage_once() -> None:
     parcels = _parcels()
     proximity = _proximity()
 
-    with patch(
-        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
-        return_value=proximity,
-        create=True,
-    ) as proximity_stage, patch(
-        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
-        return_value=coverage,
-        create=True,
-    ) as coverage_loader:
+    with (
+        patch(
+            "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+            return_value=proximity,
+            create=True,
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+            return_value=coverage,
+            create=True,
+        ) as coverage_loader,
+    ):
         result = public_assess_grid_coverage(parcels, source, SOURCE_CONFIG)
 
     proximity_stage.assert_called_once_with(parcels, source, SOURCE_CONFIG)
@@ -414,39 +451,69 @@ def test_public_coverage_proximity_failure_stops_coverage_loading() -> None:
     coverage = _coverage()
     source = _electricity_source(coverage.extraction)
 
-    with patch(
-        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
-        side_effect=ValueError("physical electricity source changed"),
-        create=True,
-    ) as proximity_stage, patch(
-        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
-        create=True,
-    ) as coverage_loader, pytest.raises(GridCoverageAssessmentError):
+    with (
+        patch(
+            "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+            side_effect=ValueError("physical electricity source changed"),
+            create=True,
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+            create=True,
+        ) as coverage_loader,
+        pytest.raises(GridCoverageAssessmentError),
+    ):
         public_assess_grid_coverage(_parcels(), source, SOURCE_CONFIG)
 
     proximity_stage.assert_called_once()
     coverage_loader.assert_not_called()
 
 
+def test_public_coverage_rejects_generated_parcel_column_before_proximity() -> None:
+    parcels = _parcels()
+    parcels["grid_source_boundary_distance_m"] = 0.0
+    source = _electricity_source(cast(Any, None))
+
+    with (
+        patch(
+            "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+            create=True,
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+            create=True,
+        ) as coverage_loader,
+        pytest.raises(GridCoverageAssessmentError, match="collides.*generated"),
+    ):
+        public_assess_grid_coverage(parcels, source, SOURCE_CONFIG)
+
+    proximity_stage.assert_not_called()
+    coverage_loader.assert_not_called()
+
+
 def test_caller_provided_proximity_and_coverage_are_not_public_inputs() -> None:
     forged_proximity = _proximity(line_distances=[0.0], post_distance_m=0.0)
     forged_coverage = _coverage()
-    assert forged_proximity.parcels[
-        "nearest_line_proxy_distance_m"
-    ].eq(0.0).all()
-    assert forged_proximity.parcels[
-        "nearest_line_source_archive_sha256"
-    ].eq(ARCHIVE_SHA256).all()
+    assert forged_proximity.parcels["nearest_line_proxy_distance_m"].eq(0.0).all()
+    assert (
+        forged_proximity.parcels["nearest_line_source_archive_sha256"]
+        .eq(ARCHIVE_SHA256)
+        .all()
+    )
 
-    with patch(
-        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
-        create=True,
-    ) as proximity_stage, patch(
-        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
-        create=True,
-    ) as coverage_loader, pytest.raises(
-        GridCoverageAssessmentError,
-        match="parcels|GeoDataFrame",
+    with (
+        patch(
+            "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+            create=True,
+        ) as proximity_stage,
+        patch(
+            "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+            create=True,
+        ) as coverage_loader,
+        pytest.raises(
+            GridCoverageAssessmentError,
+            match="parcels|GeoDataFrame",
+        ),
     ):
         public_assess_grid_coverage(
             cast(Any, forged_proximity),
@@ -465,9 +532,7 @@ def test_caller_provided_proximity_and_coverage_are_not_public_inputs() -> None:
         MultiPolygon(
             [
                 Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),
-                Polygon(
-                    [(2000, 0), (2000, 100), (2100, 100), (2100, 0), (2000, 0)]
-                ),
+                Polygon([(2000, 0), (2000, 100), (2100, 100), (2100, 0), (2000, 0)]),
             ]
         ),
     ],
@@ -510,9 +575,7 @@ def test_invalid_coverage_geometry_is_rejected(
     message: str,
 ) -> None:
     with pytest.raises(GridCoverageAssessmentError, match=message):
-        assess_grid_coverage(
-            _proximity(), _coverage(geometry, crs=crs), SOURCE_CONFIG
-        )
+        assess_grid_coverage(_proximity(), _coverage(geometry, crs=crs), SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize(
@@ -545,13 +608,9 @@ def test_strict_geometric_boundary_proof(
 @pytest.mark.parametrize(
     "parcel_geometry",
     [
-        Polygon(
-            [(950, 100), (950, 200), (1050, 200), (1050, 100), (950, 100)]
-        ),
+        Polygon([(950, 100), (950, 200), (1050, 200), (1050, 100), (950, 100)]),
         Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),
-        Polygon(
-            [(1100, 100), (1100, 200), (1200, 200), (1200, 100), (1100, 100)]
-        ),
+        Polygon([(1100, 100), (1100, 200), (1200, 200), (1200, 100), (1100, 100)]),
     ],
     ids=["crossing", "touching", "outside"],
 )
@@ -607,9 +666,9 @@ def test_assessment_preserves_proximity_values_and_does_not_mutate_input() -> No
         table_before,
     )
     assert result.parcels["parcel_id"].tolist() == parcels_before["parcel_id"].tolist()
-    assert result.voltage_level_proximity[
-        ["parcel_id", "voltage_kv"]
-    ].equals(table_before[["parcel_id", "voltage_kv"]])
+    assert result.voltage_level_proximity[["parcel_id", "voltage_kv"]].equals(
+        table_before[["parcel_id", "voltage_kv"]]
+    )
 
 
 def test_geographic_parcel_storage_crs_and_geometry_are_preserved() -> None:
@@ -623,9 +682,9 @@ def test_geographic_parcel_storage_crs_and_geometry_are_preserved() -> None:
     assert result.parcels.geometry.geom_equals_exact(
         proximity.parcels.geometry, tolerance=0, align=False
     ).all()
-    assert result.parcels.iloc[0][
-        "grid_source_boundary_distance_m"
-    ] == pytest.approx(100.0, abs=1e-6)
+    assert result.parcels.iloc[0]["grid_source_boundary_distance_m"] == pytest.approx(
+        100.0, abs=1e-6
+    )
 
 
 def test_profile_reports_dynamic_voltage_and_boundary_distributions() -> None:
@@ -708,7 +767,9 @@ def test_coverage_summary_schema_must_match_selected_source_columns(
         dtypes[0] = (dtypes[0][0], "float64")
         changed = replace(summary, dtypes=tuple(dtypes))
 
-    with pytest.raises(GridCoverageAssessmentError, match="summary|column|dtype|schema"):
+    with pytest.raises(
+        GridCoverageAssessmentError, match="summary|column|dtype|schema"
+    ):
         assess_grid_coverage(
             _proximity(), replace(coverage, summary=changed), SOURCE_CONFIG
         )

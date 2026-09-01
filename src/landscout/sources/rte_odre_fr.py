@@ -7,13 +7,13 @@ from math import isfinite
 from numbers import Real
 from pathlib import Path
 from shutil import copy2, copyfileobj
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 
-import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     HttpUrl,
@@ -21,8 +21,11 @@ from pydantic import (
     ValidationError,
     field_validator,
 )
+from pydantic_core import PydanticCustomError
 
 from landscout.common.safe_http import open_safe_https
+from landscout.common.strict_json import StrictJsonError, loads_strict_json_object
+from landscout.common.strict_yaml import loads_strict_yaml
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/rte_odre_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/rte_odre")
@@ -60,15 +63,37 @@ DatasetIdentifier = Annotated[
 ]
 
 
+def _strict_nonnegative_finite_number(value: object) -> object:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise PydanticCustomError(
+            "strict_number",
+            "value must be a strict finite non-negative number",
+        )
+    try:
+        numeric_value = float(value)
+    except (OverflowError, TypeError, ValueError) as error:
+        raise ValueError("value must be a strict finite non-negative number") from error
+    if not isfinite(numeric_value) or value < 0:
+        raise ValueError("value must be a strict finite non-negative number")
+    return value
+
+
+StrictNonNegativeFloat = Annotated[
+    float,
+    BeforeValidator(_strict_nonnegative_finite_number),
+    Field(ge=0, allow_inf_nan=False),
+]
+
+
 class RteDatasetConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     dataset_id: DatasetIdentifier
     preferred_format: ExportFormat
 
 
 class RteDatasetsConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     sites: RteDatasetConfig
     overhead_lines: RteDatasetConfig
@@ -76,7 +101,7 @@ class RteDatasetsConfig(BaseModel):
 
 
 class RteOdreApiConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     base_url: HttpUrl
 
@@ -99,16 +124,16 @@ class RteOdreApiConfig(BaseModel):
 
 
 class RteOdreCacheConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
-    max_age_hours: float = Field(ge=0, allow_inf_nan=False)
+    max_age_hours: StrictNonNegativeFloat
 
 
 class RteOdreSourceConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
-    provider: NonEmptyString
-    portal: NonEmptyString
+    provider: Literal["RTE"]
+    portal: Literal["ODRE"]
     api: RteOdreApiConfig
     datasets: RteDatasetsConfig
     cache: RteOdreCacheConfig
@@ -155,7 +180,10 @@ class RteOdreExportSummary:
         for name, value in counts.items():
             if not isinstance(value, int) or isinstance(value, bool) or value < 0:
                 raise ValueError(f"{name} must be a non-negative integer")
-        if self.null_geometry_count + self.non_null_geometry_count != self.feature_count:
+        if (
+            self.null_geometry_count + self.non_null_geometry_count
+            != self.feature_count
+        ):
             raise ValueError("Geometry counts must add up to feature_count")
         if not isinstance(self.geometry_types, tuple) or any(
             not isinstance(value, str) or not value for value in self.geometry_types
@@ -184,9 +212,8 @@ class RteOdreDownload:
 def load_rte_odre_source_config(
     path: Path = DEFAULT_CONFIG_PATH,
 ) -> RteOdreSourceConfig:
-    with path.open(encoding="utf-8") as stream:
-        content = yaml.safe_load(stream)
-    if not isinstance(content, dict):
+    content = loads_strict_yaml(path.read_bytes())
+    if type(content) is not dict:
         raise TypeError(f"Expected a YAML mapping in {path}")
     return RteOdreSourceConfig.model_validate(content)
 
@@ -236,9 +263,7 @@ def build_rte_odre_export_url(
     validated_config = _validated_source_config(config)
     dataset = _get_dataset_config(validated_config, logical_name)
     export_format = quote(dataset.preferred_format, safe="")
-    return _dataset_api_url(
-        validated_config, logical_name, f"/exports/{export_format}"
-    )
+    return _dataset_api_url(validated_config, logical_name, f"/exports/{export_format}")
 
 
 def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
@@ -265,13 +290,9 @@ def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
             timeout=timeout,
             headers={"User-Agent": "LandScout-AI/0.1"},
         ) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            payload = loads_strict_json_object(response.read())
+    except (HTTPError, URLError, OSError, StrictJsonError) as error:
         raise RteOdreDownloadError(f"RTE/ODRE request failed: {source_url}") from error
-    if not isinstance(payload, dict):
-        raise RteOdreDownloadError(
-            f"RTE/ODRE response is not a JSON object: {source_url}"
-        )
     return payload
 
 
@@ -331,15 +352,18 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
     if not path.is_file() or path.stat().st_size == 0:
         raise RteOdreDownloadError(f"GeoJSON export is missing or empty: {path}")
     try:
-        with path.open(encoding="utf-8") as stream:
-            payload = json.load(stream)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise RteOdreDownloadError(f"GeoJSON export is not valid UTF-8 JSON: {path}") from error
-    if not isinstance(payload, dict) or payload.get("type") != "FeatureCollection":
+        payload = loads_strict_json_object(path.read_bytes())
+    except (OSError, StrictJsonError) as error:
+        raise RteOdreDownloadError(
+            f"GeoJSON export is not valid finite UTF-8 JSON: {path}"
+        ) from error
+    if payload.get("type") != "FeatureCollection":
         raise RteOdreDownloadError("GeoJSON export must be a FeatureCollection")
     features = payload.get("features")
     if not isinstance(features, list):
-        raise RteOdreDownloadError("GeoJSON FeatureCollection must contain a features list")
+        raise RteOdreDownloadError(
+            "GeoJSON FeatureCollection must contain a features list"
+        )
 
     null_geometry_count = 0
     geometry_types: set[str] = set()
@@ -440,8 +464,24 @@ def _validate_geojson_geometry(geometry: object) -> str:
 
 
 def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
-    if not isinstance(payload, dict):
+    if type(payload) is not dict:
         raise TypeError("Missing cached dataset metadata")
+    expected_keys = {
+        "dataset_id",
+        "title",
+        "publisher",
+        "modified",
+        "data_processed",
+        "metadata_processed",
+        "license",
+        "records_count",
+        "geometry_precision_status",
+    }
+    if set(payload) != expected_keys:
+        raise ValueError("Cached dataset metadata schema differs")
+    dataset_id = payload["dataset_id"]
+    if type(dataset_id) is not str or not dataset_id:
+        raise TypeError("Invalid cached dataset ID")
     precision_status = payload["geometry_precision_status"]
     allowed_statuses = {
         "EXACT_NOT_CLAIMED",
@@ -449,12 +489,10 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
         "MISSING",
         "UNKNOWN",
     }
-    if precision_status not in allowed_statuses:
+    if type(precision_status) is not str or precision_status not in allowed_statuses:
         raise ValueError("Invalid cached geometry precision status")
     records_count = payload["records_count"]
-    if records_count is not None and (
-        not isinstance(records_count, int) or isinstance(records_count, bool)
-    ):
+    if records_count is not None and (type(records_count) is not int):
         raise TypeError("Invalid cached records count")
     optional_values: dict[str, str | None] = {}
     for field_name in (
@@ -466,11 +504,11 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
         "license",
     ):
         value = payload[field_name]
-        if value is not None and not isinstance(value, str):
+        if value is not None and type(value) is not str:
             raise TypeError(f"Invalid cached metadata value: {field_name}")
         optional_values[field_name] = value
     return RteOdreDatasetMetadata(
-        dataset_id=str(payload["dataset_id"]),
+        dataset_id=dataset_id,
         title=optional_values["title"],
         publisher=optional_values["publisher"],
         modified=optional_values["modified"],
@@ -478,16 +516,24 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
         metadata_processed=optional_values["metadata_processed"],
         license=optional_values["license"],
         records_count=records_count,
-        geometry_precision_status=precision_status,
+        geometry_precision_status=cast(GeometryPrecisionStatus, precision_status),
     )
 
 
 def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
-    if not isinstance(payload, dict):
+    if type(payload) is not dict:
         raise TypeError("Missing cached export summary")
+    expected_keys = {
+        "feature_count",
+        "null_geometry_count",
+        "non_null_geometry_count",
+        "geometry_types",
+    }
+    if set(payload) != expected_keys:
+        raise ValueError("Cached export summary schema differs")
     geometry_types = payload["geometry_types"]
-    if not isinstance(geometry_types, list) or any(
-        not isinstance(value, str) for value in geometry_types
+    if type(geometry_types) is not list or any(
+        type(value) is not str for value in geometry_types
     ):
         raise TypeError("Invalid cached geometry types")
     return RteOdreExportSummary(
@@ -639,13 +685,43 @@ def _load_cached_download(
         return None
     dataset = _get_dataset_config(config, logical_name)
     try:
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        if not isinstance(metadata, dict):
+        metadata = loads_strict_json_object(metadata_path.read_bytes())
+        expected_keys = {
+            "logical_name",
+            "dataset_id",
+            "provider",
+            "portal",
+            "source_url",
+            "export_format",
+            "download_timestamp",
+            "filename",
+            "file_size",
+            "sha256",
+            "dataset_metadata",
+            "export_summary",
+        }
+        if set(metadata) != expected_keys:
+            return None
+        string_fields = (
+            "logical_name",
+            "dataset_id",
+            "provider",
+            "portal",
+            "source_url",
+            "export_format",
+            "download_timestamp",
+            "filename",
+            "sha256",
+        )
+        if any(type(metadata[field]) is not str for field in string_fields):
+            return None
+        if type(metadata["file_size"]) is not int:
             return None
         fresh_summary = _validate_geojson(archive_path)
         file_size = archive_path.stat().st_size
         checksum = _sha256(archive_path)
-        download_timestamp = str(metadata["download_timestamp"])
+        download_timestamp = metadata["download_timestamp"]
+        assert isinstance(download_timestamp, str)
         downloaded_at = datetime.fromisoformat(download_timestamp)
         if downloaded_at.tzinfo is None:
             return None
@@ -694,7 +770,6 @@ def _load_cached_download(
         OSError,
         TypeError,
         ValueError,
-        json.JSONDecodeError,
         RteOdreDownloadError,
     ):
         return None

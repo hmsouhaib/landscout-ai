@@ -39,7 +39,9 @@ from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuLayerSummary,
     GpuPlanningDocument,
+    GpuSourceConfig,
     GpuSpatialLayerReference,
+    load_gpu_source_config,
 )
 from landscout.stages import enrich_planning_features as planning_features_module
 from landscout.stages.enrich_planning_features import (
@@ -258,7 +260,7 @@ def _planning_document(
     )
     metadata = GpuDocumentMetadata(
         provider="Géoportail de l'Urbanisme",
-        portal="GPU",
+        portal="G\u00e9oportail de l'Urbanisme",
         commune_code="31395",
         partition="DU_31395",
         document_id=DOCUMENT_ID,
@@ -318,9 +320,28 @@ def _planning_document(
         standard_models=(STANDARD,),
         cache_hit=True,
     )
+    config_payload = load_gpu_source_config(
+        Path("configs/sources/gpu_fr.yaml")
+    ).model_dump(mode="python")
+    for role in config_payload["spatial_layers"]:
+        config_payload["spatial_layers"][role]["match_tokens"] = [f"unused_{role}"]
+    config_payload["spatial_layers"]["zoning"]["match_tokens"] = ["ZONING"]
+    for layer in related:
+        config_payload["spatial_layers"][layer.logical_name]["match_tokens"] = [
+            layer.reference.source_layer
+        ]
+    source_config = GpuSourceConfig.model_validate(config_payload)
+    related_by_logical_name = {layer.logical_name: layer for layer in related}
+    related = tuple(
+        related_by_logical_name[logical_name]
+        for logical_name in gpu_source_module._GPU_LOGICAL_LAYER_NAMES
+        if logical_name != "zoning" and logical_name in related_by_logical_name
+    )
     return GpuPlanningDocument(
+        source_config=source_config,
+        source_config_sha256=gpu_source_module._source_config_sha256(source_config),
         extraction=extraction,
-        all_spatial_layers=(zoning_ref, *(layer.reference for layer in related)),
+        all_spatial_layers=gpu_source_module.discover_gpu_spatial_layers(extraction),
         zoning=zoning,
         related_layers=related,
     )
@@ -1060,11 +1081,12 @@ def _refresh_extraction_inventory(
         extraction.archive.sha256,
         files,
     )
+    updated_extraction = replace(extraction, files=files)
     return replace(
         planning_document,
-        extraction=replace(
-            extraction,
-            files=files,
+        extraction=updated_extraction,
+        all_spatial_layers=gpu_source_module.discover_gpu_spatial_layers(
+            updated_extraction
         ),
     )
 
@@ -2185,9 +2207,11 @@ def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
         _validate_source_complete(planning_document, parcels, result)
 
 
-def test_shapefile_family_excludes_dotted_sibling_dataset(tmp_path: Path) -> None:
+def test_dotted_sibling_dataset_is_not_a_sidecar_and_makes_role_ambiguous(
+    tmp_path: Path,
+) -> None:
     planning_document, parcels, result = _shapefile_source_complete_contract(tmp_path)
-    before = _validate_source_complete(planning_document, parcels, result)
+    _validate_source_complete(planning_document, parcels, result)
     primary = planning_document.related_layers[0].reference.dataset_path
     sibling = primary.with_name(f"{primary.stem}.archive.shp")
     gpd.GeoDataFrame(
@@ -2196,11 +2220,11 @@ def test_shapefile_family_excludes_dotted_sibling_dataset(tmp_path: Path) -> Non
         crs="EPSG:2154",
     ).to_file(sibling, driver="ESRI Shapefile", engine="pyogrio", index=False)
     refreshed = _refresh_extraction_inventory(planning_document)
-    after = _validate_source_complete(refreshed, parcels, result)
-    assert after.related_source_file_count == before.related_source_file_count
-    assert (
-        after.gpu_related_source_files_sha256 == before.gpu_related_source_files_sha256
-    )
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="Related GPU spatial sources failed physical revalidation",
+    ):
+        _validate_source_complete(refreshed, parcels, result)
 
 
 @pytest.mark.parametrize("bad_item", [None, object()])
