@@ -42,7 +42,10 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
-from landscout.common.immutable_mapping import freeze_mapping, to_plain_json_value
+from landscout.common.immutable_mapping import (
+    freeze_json_mapping,
+    to_plain_json_value,
+)
 from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.common.strict_json import loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -154,6 +157,8 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureApplicationArtifactRecord:
+        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
+        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
         validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be a non-negative integer")
@@ -163,10 +168,10 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
         expected_geospatial = self.artifact_role != "RELATIONS"
         if self.geospatial is not expected_geospatial:
             raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = self.frame_schema_signature.get("crs")
-        signature_geometry = self.frame_schema_signature.get("geometry_column")
+        signature_crs = frozen_signature.get("crs")
+        signature_geometry = frozen_signature.get("geometry_column")
         if expected_geospatial:
-            if self.crs is None or signature_crs != self.crs:
+            if frozen_crs is None or signature_crs != frozen_crs:
                 raise ValueError("geospatial artifact CRS is missing or inconsistent")
             if not isinstance(signature_geometry, str) or not signature_geometry:
                 raise ValueError("geospatial artifact geometry column is missing")
@@ -175,10 +180,10 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
         object.__setattr__(
             self,
             "frame_schema_signature",
-            freeze_mapping(self.frame_schema_signature),
+            frozen_signature,
         )
-        if self.crs is not None:
-            object.__setattr__(self, "crs", freeze_mapping(self.crs))
+        if frozen_crs is not None:
+            object.__setattr__(self, "crs", frozen_crs)
         return self
 
 
@@ -1262,7 +1267,7 @@ def _read_verified_artifact(
             f"Artifact {record.artifact_role} row count differs"
         )
     signature = deterministic_frame_schema_signature(frame)
-    if freeze_mapping(signature) != record.frame_schema_signature:
+    if freeze_json_mapping(signature) != record.frame_schema_signature:
         raise BessPlanningFeatureApplicationError(
             f"Artifact {record.artifact_role} frame schema differs"
         )
@@ -1271,7 +1276,10 @@ def _read_verified_artifact(
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} geospatial contract differs"
             )
-        if freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict()) != record.crs:
+        if (
+            freeze_json_mapping(CRS.from_user_input(frame.crs).to_json_dict())
+            != record.crs
+        ):
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} CRS differs"
             )

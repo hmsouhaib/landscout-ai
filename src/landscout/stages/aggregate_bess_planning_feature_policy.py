@@ -39,7 +39,10 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
-from landscout.common.immutable_mapping import freeze_mapping, to_plain_json_value
+from landscout.common.immutable_mapping import (
+    freeze_json_mapping,
+    to_plain_json_value,
+)
 from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.common.strict_json import loads_strict_json, loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -231,6 +234,8 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
+        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
+        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
         validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be non-negative")
@@ -240,19 +245,19 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
         expected_geo = self.artifact_role == "PARCELS"
         if self.geospatial is not expected_geo:
             raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = self.frame_schema_signature.get("crs")
+        signature_crs = frozen_signature.get("crs")
         if expected_geo:
-            if self.crs is None or signature_crs != self.crs:
+            if frozen_crs is None or signature_crs != frozen_crs:
                 raise ValueError("parcel artifact CRS is missing or inconsistent")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("relation artifact must not declare CRS")
         object.__setattr__(
             self,
             "frame_schema_signature",
-            freeze_mapping(self.frame_schema_signature),
+            frozen_signature,
         )
-        if self.crs is not None:
-            object.__setattr__(self, "crs", freeze_mapping(self.crs))
+        if frozen_crs is not None:
+            object.__setattr__(self, "crs", frozen_crs)
         return self
 
 
@@ -1415,7 +1420,7 @@ def _read_verified_artifact(
             "Aggregation artifact row count differs"
         )
     if (
-        freeze_mapping(deterministic_frame_schema_signature(frame))
+        freeze_json_mapping(deterministic_frame_schema_signature(frame))
         != record.frame_schema_signature
     ):
         raise BessPlanningFeatureParcelAggregationError(
@@ -1425,7 +1430,7 @@ def _read_verified_artifact(
         if (
             not isinstance(frame, gpd.GeoDataFrame)
             or frame.crs is None
-            or freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict())
+            or freeze_json_mapping(CRS.from_user_input(frame.crs).to_json_dict())
             != record.crs
         ):
             raise BessPlanningFeatureParcelAggregationError(

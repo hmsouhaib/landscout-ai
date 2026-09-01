@@ -6,12 +6,12 @@
 - File type: unit/regression test
 - Layer: test evidence
 - Responsibility: Proves that every loaded trust-bearing configuration/policy family has no reachable mutable collection, rejects all relevant in-place mutation operations, isolates caller aliases, and preserves canonical hashes.
-- Source SHA256: `96db7e7dcb6e452787cafc6c5bb45062d8d38456402fe52c451cc234a4f6c1a5`
+- Source SHA256: `325383428aaa376e3b30380bbc8e9a2c925c618e280b254a286aaa15eb80ab1a`
 
-## 1. STEP 7F.1A.4.1 contract delta
+## 1. STEP 7F.1A.4.2 contract delta
 
-- Inventories every loaded trust-bearing family, recursively rejects reachable mutable collections, exercises tuple/mapping/frozenset mutation operations, proves alias isolation, and pins canonical hashes.
-- This correction changes no business rule, source identity, geometry algorithm, policy evidence, scoring boundary, or public trust-boundary revalidation.
+- Rejects mutable/non-canonical leaves for both artifact records and proves canonical values, cycles, CRS evidence, immutable copies, Pydantic deep copies, aliases, and hash locks.
+- Unsupported leaves are rejected rather than retained or stringified; existing valid JSON shapes, schemas, hashes, and business boundaries remain unchanged.
 
 ## 2. Purpose and architectural position
 
@@ -119,6 +119,183 @@ No classes are declared.
 - Decorators: none
 - Source purpose: No callable docstring; exact source below is authoritative.
 
+## 6B. STEP 7F.1A.4.2 authoritative changed contracts
+
+This section supersedes older source excerpts for the named callables. The exact complete current file snapshot in section 11 remains authoritative for every declaration.
+
+### `_mapping_values_view`
+
+```python
+def _mapping_values_view() -> object:
+    source = {"dynamic": "value"}
+    return source.values()
+```
+
+### `_cyclic_list`
+
+```python
+def _cyclic_list() -> object:
+    value: list[object] = []
+    value.append(value)
+    return value
+```
+
+### `_non_string_key_mapping`
+
+```python
+def _non_string_key_mapping() -> object:
+    return {1: "not canonical JSON"}
+```
+
+### `_geospatial_artifact_record_payload`
+
+```python
+def _geospatial_artifact_record_payload(
+    record_type: type[BaseModel],
+) -> dict[str, object]:
+    crs = {
+        "type": "ProjectedCRS",
+        "name": "RGF93 v1 / Lambert-93",
+        "coordinate_system": {"axis": [{"name": "Easting"}]},
+    }
+    if record_type is BessPlanningFeatureApplicationArtifactRecord:
+        role, filename = "SURFACE_FEATURES", "surface.parquet"
+    else:
+        role, filename = "PARCELS", "parcels.parquet"
+    payload = _artifact_record_payload(role, filename)
+    payload["geospatial"] = True
+    payload["crs"] = crs
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["geometry_column"] = "geometry"
+    signature["crs"] = crs
+    return payload
+```
+
+### `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
+
+```python
+def test_artifact_integrity_record_rejects_mutable_bytearray_alias(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    mutable = bytearray(b"abc")
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["mutable_leaf"] = mutable
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+```
+
+### `test_artifact_integrity_record_rejects_noncanonical_nested_leaf`
+
+```python
+def test_artifact_integrity_record_rejects_noncanonical_nested_leaf(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+    value_factory: Callable[[], object],
+) -> None:
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["nested"] = {"leaf": value_factory()}
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+```
+
+### `test_artifact_integrity_record_rejects_mutable_crs_leaf`
+
+```python
+def test_artifact_integrity_record_rejects_mutable_crs_leaf(
+    record_type: type[BaseModel],
+) -> None:
+    payload = _geospatial_artifact_record_payload(record_type)
+    crs = payload["crs"]
+    assert isinstance(crs, dict)
+    crs["mutable_leaf"] = bytearray(b"abc")
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+```
+
+### `test_artifact_integrity_record_accepts_only_canonical_json_values`
+
+```python
+def test_artifact_integrity_record_accepts_only_canonical_json_values(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["canonical_values"] = {
+        "none": None,
+        "string": "value",
+        "boolean": True,
+        "integer": 3,
+        "float": 1.25,
+        "ordered": ["list", {"nested": (1, 2)}],
+    }
+
+    record = record_type.model_validate(payload)
+    retained = record.__dict__["frame_schema_signature"]
+    assert retained["canonical_values"]["ordered"] == (
+        "list",
+        {"nested": (1, 2)},
+    )
+    expected = _artifact_record_payload(role, filename)
+    expected_signature = expected["frame_schema_signature"]
+    assert isinstance(expected_signature, dict)
+    expected_signature["canonical_values"] = {
+        "none": None,
+        "string": "value",
+        "boolean": True,
+        "integer": 3,
+        "float": 1.25,
+        "ordered": ["list", {"nested": [1, 2]}],
+    }
+    assert record.model_dump(mode="json", warnings="error") == expected
+```
+
+### `test_frozen_mapping_copy_and_deepcopy_preserve_identity`
+
+```python
+def test_frozen_mapping_copy_and_deepcopy_preserve_identity() -> None:
+    value = load_planning_regulation_structure_config(STRUCTURE_PATH).zone_aliases
+
+    assert copy.copy(value) is value
+    assert copy.deepcopy(value) is value
+```
+
+### `test_artifact_integrity_record_deep_model_copy_remains_immutable`
+
+```python
+def test_artifact_integrity_record_deep_model_copy_remains_immutable(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    del role, filename
+    record = record_type.model_validate(
+        _geospatial_artifact_record_payload(record_type)
+    )
+
+    copied = record.model_copy(deep=True)
+
+    assert copied is not record
+    assert (
+        copied.__dict__["frame_schema_signature"]
+        is record.__dict__["frame_schema_signature"]
+    )
+    assert copied.__dict__["crs"] is record.__dict__["crs"]
+    _assert_no_reachable_mutable_collection(copied, seen=set())
+```
 ## 7. Test inventory
 
 - Exact `test_*` count: 6
@@ -150,16 +327,18 @@ A source-byte change invalidates this companion SHA and requires re-auditing mod
 
 The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
 
-````python
+```python
 from __future__ import annotations
 
+import copy
 import operator
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import fields, is_dataclass
 from pathlib import Path
 
+import numpy as np
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from landscout.common.immutable_mapping import FrozenDict
 from landscout.config import AoiConfig, load_scan_config
@@ -216,6 +395,32 @@ WRITTEN_ZONING_PATH = ROOT / "configs/planning/muret_bess_zoning_policy.yaml"
 CNIG_PATH = ROOT / "configs/planning/cnig_plu_2017_feature_codes.yaml"
 BESS_POLICY_PATH = ROOT / "configs/planning/muret_bess_cnig_feature_policy.yaml"
 
+ARTIFACT_RECORD_CASES = (
+    (
+        BessPlanningFeatureApplicationArtifactRecord,
+        "RELATIONS",
+        "relations.parquet",
+    ),
+    (
+        BessPlanningFeatureParcelAggregationArtifactRecord,
+        "RELATION_ASSESSMENTS",
+        "relation_assessments.parquet",
+    ),
+)
+
+
+class _MutableLeaf:
+    def __init__(self) -> None:
+        self.values: list[str] = ["caller-owned"]
+
+
+class _StringSubclass(str):
+    pass
+
+
+class _IntegerSubclass(int):
+    pass
+
 
 def _artifact_record_payload(role: str, filename: str) -> dict[str, object]:
     return {
@@ -234,6 +439,192 @@ def _artifact_record_payload(role: str, filename: str) -> dict[str, object]:
         "geospatial": False,
         "crs": None,
     }
+
+
+def _mapping_values_view() -> object:
+    source = {"dynamic": "value"}
+    return source.values()
+
+
+def _cyclic_list() -> object:
+    value: list[object] = []
+    value.append(value)
+    return value
+
+
+def _non_string_key_mapping() -> object:
+    return {1: "not canonical JSON"}
+
+
+def _geospatial_artifact_record_payload(
+    record_type: type[BaseModel],
+) -> dict[str, object]:
+    crs = {
+        "type": "ProjectedCRS",
+        "name": "RGF93 v1 / Lambert-93",
+        "coordinate_system": {"axis": [{"name": "Easting"}]},
+    }
+    if record_type is BessPlanningFeatureApplicationArtifactRecord:
+        role, filename = "SURFACE_FEATURES", "surface.parquet"
+    else:
+        role, filename = "PARCELS", "parcels.parquet"
+    payload = _artifact_record_payload(role, filename)
+    payload["geospatial"] = True
+    payload["crs"] = crs
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["geometry_column"] = "geometry"
+    signature["crs"] = crs
+    return payload
+
+
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+def test_artifact_integrity_record_rejects_mutable_bytearray_alias(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    mutable = bytearray(b"abc")
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["mutable_leaf"] = mutable
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+
+
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+@pytest.mark.parametrize(
+    "value_factory",
+    [
+        lambda: b"bytes",
+        lambda: _MutableLeaf(),
+        _mapping_values_view,
+        lambda: {"not", "json"},
+        lambda: frozenset({"not", "json"}),
+        lambda: np.array([1, 2]),
+        lambda: np.int64(1),
+        lambda: np.float64(1.5),
+        lambda: _StringSubclass("value"),
+        lambda: _IntegerSubclass(1),
+        _non_string_key_mapping,
+        _cyclic_list,
+        lambda: float("nan"),
+        lambda: float("inf"),
+        lambda: float("-inf"),
+    ],
+    ids=(
+        "bytes",
+        "mutable-custom-object",
+        "dynamic-values-view",
+        "set",
+        "frozenset",
+        "numpy-array",
+        "numpy-integer",
+        "numpy-float",
+        "string-subclass",
+        "integer-subclass",
+        "non-string-mapping-key",
+        "cyclic-list",
+        "nan",
+        "positive-infinity",
+        "negative-infinity",
+    ),
+)
+def test_artifact_integrity_record_rejects_noncanonical_nested_leaf(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+    value_factory: Callable[[], object],
+) -> None:
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["nested"] = {"leaf": value_factory()}
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+
+
+@pytest.mark.parametrize("record_type", [case[0] for case in ARTIFACT_RECORD_CASES])
+def test_artifact_integrity_record_rejects_mutable_crs_leaf(
+    record_type: type[BaseModel],
+) -> None:
+    payload = _geospatial_artifact_record_payload(record_type)
+    crs = payload["crs"]
+    assert isinstance(crs, dict)
+    crs["mutable_leaf"] = bytearray(b"abc")
+
+    with pytest.raises(ValidationError, match="canonical JSON"):
+        record_type.model_validate(payload)
+
+
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+def test_artifact_integrity_record_accepts_only_canonical_json_values(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    payload = _artifact_record_payload(role, filename)
+    signature = payload["frame_schema_signature"]
+    assert isinstance(signature, dict)
+    signature["canonical_values"] = {
+        "none": None,
+        "string": "value",
+        "boolean": True,
+        "integer": 3,
+        "float": 1.25,
+        "ordered": ["list", {"nested": (1, 2)}],
+    }
+
+    record = record_type.model_validate(payload)
+    retained = record.__dict__["frame_schema_signature"]
+    assert retained["canonical_values"]["ordered"] == (
+        "list",
+        {"nested": (1, 2)},
+    )
+    expected = _artifact_record_payload(role, filename)
+    expected_signature = expected["frame_schema_signature"]
+    assert isinstance(expected_signature, dict)
+    expected_signature["canonical_values"] = {
+        "none": None,
+        "string": "value",
+        "boolean": True,
+        "integer": 3,
+        "float": 1.25,
+        "ordered": ["list", {"nested": [1, 2]}],
+    }
+    assert record.model_dump(mode="json", warnings="error") == expected
+
+
+def test_frozen_mapping_copy_and_deepcopy_preserve_identity() -> None:
+    value = load_planning_regulation_structure_config(STRUCTURE_PATH).zone_aliases
+
+    assert copy.copy(value) is value
+    assert copy.deepcopy(value) is value
+
+
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+def test_artifact_integrity_record_deep_model_copy_remains_immutable(
+    record_type: type[BaseModel],
+    role: str,
+    filename: str,
+) -> None:
+    del role, filename
+    record = record_type.model_validate(
+        _geospatial_artifact_record_payload(record_type)
+    )
+
+    copied = record.model_copy(deep=True)
+
+    assert copied is not record
+    assert (
+        copied.__dict__["frame_schema_signature"]
+        is record.__dict__["frame_schema_signature"]
+    )
+    assert copied.__dict__["crs"] is record.__dict__["crs"]
+    _assert_no_reachable_mutable_collection(copied, seen=set())
 
 
 def _loaded_trust_values() -> tuple[object, ...]:
@@ -419,4 +810,4 @@ def test_canonical_config_and_policy_hashes_match_starting_commit() -> None:
         _source_config_sha256(gpu)
         == "c076a8fddbee2323f177b612101eb4d1b7fabcb578bac9509567205187ac7df2"
     )
-````
+```

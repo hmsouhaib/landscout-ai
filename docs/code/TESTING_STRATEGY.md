@@ -32,7 +32,7 @@ Tests monkeypatch `Path.replace`, link/junction predicates, open/unlink calls, a
 
 ### Determinism and immutability
 
-Tests reorder rows/input mappings, deep-copy source objects, mutate coordinated hashes/manifests, and compare exact output frames. Frozen dataclass/Pydantic structures are recursively walked to reject reachable built-in mutable collections; tuple, immutable-mapping, and frozenset tests require append/item/update/delete/set mutations to fail immediately, and caller-owned nested payload aliases are mutated after validation. Deterministic tie handling, JSON ordering, pair ordering, section partitioning, and hash payload order receive permanent regressions.
+Tests reorder rows/input mappings, deep-copy source objects, mutate coordinated hashes/manifests, and compare exact output frames. Frozen dataclass/Pydantic structures are recursively walked to reject reachable built-in mutable collections; tuple, immutable-mapping, and frozenset tests require append/item/update/delete/set mutations to fail immediately, and caller-owned nested payload aliases are mutated after validation. Artifact-integrity tests reject mutable/custom leaves, collection views, sets, NumPy objects, non-finite floats, cycles, and non-string mapping keys; they also prove immutable mapping copy/deep-copy identity, Pydantic deep-copy safety, unchanged canonical JSON dumps, and retained physical schema/CRS comparison. Deterministic tie handling, JSON ordering, pair ordering, section partitioning, and hash payload order receive permanent regressions.
 
 ### Lightweight versus source-complete validation
 

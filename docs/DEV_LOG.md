@@ -3,11 +3,22 @@
 ## Current project state
 
 - Current phase: End-to-end source-authority and planning-completeness hardening
-- Latest completed step: STEP 7F.1A.4.1
-- Current step: STEP 7F.1A.4.1 complete
+- Latest completed step: STEP 7F.1A.4.2
+- Current step: STEP 7F.1A.4.2 complete
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: none selected
+
+## STEP 7F.1A.4.2 — Reject mutable/non-canonical leaves in immutable integrity mappings
+
+- Status: Complete. Canonical-JSON leaf validation, immutable copy/deep-copy support, permanent regressions, focused and complete repository execution, quality gates, and exact companion synchronization all pass.
+- Proven defect and red-first evidence: both application and parcel-aggregation artifact records accepted a caller-owned `bytearray` under `frame_schema_signature` instead of raising validation errors. `copy.copy(FrozenDict)` raised `TypeError: frozen mapping cannot be mutated`, and `model_copy(deep=True)` for both affected records raised `TypeError: cannot pickle 'mappingproxy' object`. The isolated final-form red selection therefore produced five intended failures on starting SHA `b5c2fb9dc48f2467e6cb7da811946117d01bcc38`.
+- Canonical immutable JSON contract: artifact schema and CRS evidence accept only `None`, exact strings, booleans, exact integers, finite exact floats, mappings with exact string keys and recursively canonical values, and ordered lists/tuples retained as tuples. Mapping/list input aliases are recursively copied. Collection cycles fail closed.
+- Rejected values: bytes, bytearrays, sets, frozensets, dynamic mapping views, mutable custom objects, string/integer subclasses, NumPy arrays and scalars, NaN, positive/negative infinity, non-string nested mapping keys, cyclic collections, and any other unsupported leaf raise Pydantic validation errors containing the canonical-JSON contract. Unsupported objects are neither retained nor stringified. Both `frame_schema_signature` and `crs` have explicit regressions.
+- Copy behavior: `FrozenDict.__copy__` and `FrozenDict.__deepcopy__` return the same deeply immutable instance; deep copy memoization retains identity. `model_copy(deep=True)` succeeds for both affected Pydantic records, returns a distinct model, reuses the immutable schema/CRS mappings safely, and exposes no reachable mutable collection.
+- Serialization, schemas, and hashes: explicit artifact field serializers still emit the exact established plain JSON mapping/list shape, and physical artifact loaders compare schema/CRS evidence through the same canonical immutable representation. Application manifest schema `2`, aggregation manifest schema `1`, and all business/result/hash schema versions are unchanged. The structure, written-zoning, CNIG-profile, BESS-policy, and GPU-config SHA256 locks remain respectively `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`, `ef1f7cd0f5589e9a07428d25cd2b1a844e7cd49fb6db359951eb6c812c767586`, `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`, `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`, and `c076a8fddbee2323f177b612101eb4d1b7fabcb578bac9509567205187ac7df2`.
+- Validation: the dedicated deep-immutability suite passed 62 tests in 0.86 seconds; the mandated application/aggregation focused command passed 465 tests with one environment-only pytest-cache warning in 528.19 seconds; and the complete repository passed 3,123 tests with 5 expected warnings in 808.81 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 101 Python files formatted; `uv run mypy src` reported no issues in 48 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: no source URL, snapshot, cache/extraction/recovery behavior, safe-HTTPS contract, Cadastre/IGN/GPU/INPN authority, geometry algorithm/tolerance, zoning relation/formula, required-article rule, evidence excerpt/offset/hash, UP/AUp/ICPE meaning, scoring/ranking behavior, or functional STEP 7F feature changed.
 
 ## STEP 7F.1A.4.1 — Make trust-bearing configuration deeply immutable
 

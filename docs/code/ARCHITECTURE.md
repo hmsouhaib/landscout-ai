@@ -14,7 +14,7 @@ Internal dependency-bottom contracts: duplicate-rejecting strict YAML/JSON parsi
 
 ### `src/landscout/config.py` and `configs/`
 
-Pydantic models load scan/profile configuration. Source adapters and policy compilers have their own strict checked-in YAML models. Trust-bearing YAML rejects duplicate keys, decision-input models are frozen, and every reachable ordered sequence, set, and mapping is recursively copied into tuple, frozenset, or a backing-alias-free immutable mapping. Public source boundaries still reconstruct and revalidate configuration from canonical model data rather than trusting a supplied instance. Configuration is an input identity; it does not prove downloaded bytes until an adapter validates those bytes.
+Pydantic models load scan/profile configuration. Source adapters and policy compilers have their own strict checked-in YAML models. Trust-bearing YAML rejects duplicate keys, decision-input models are frozen, and every reachable ordered sequence, set, and mapping is recursively copied into tuple, frozenset, or a backing-alias-free immutable mapping. Integrity mappings persisted as strict JSON additionally reject bytes, mutable/custom objects, mapping views, sets, NumPy values, non-finite numbers, cycles, non-string keys, and every other non-canonical leaf rather than retaining or stringifying them. Public source boundaries still reconstruct and revalidate configuration from canonical model data rather than trusting a supplied instance. Configuration is an input identity; it does not prove downloaded bytes until an adapter validates those bytes.
 
 ### `src/landscout/geo`
 

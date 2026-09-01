@@ -14,6 +14,8 @@ Review strict Pydantic fields/validators, recursively copied tuple/frozenset/imm
 
 Review every trust-bearing YAML/JSON reader, not only source config files. YAML mappings must reject duplicate keys at any depth. JSON must use strict UTF-8, reject duplicate keys/non-finite or overflow numbers, and require an object where the schema expects one. Re-run config/policy, HTTP-response, cache/marker, and planning-manifest regressions; deterministic writers and existing valid bytes should remain unchanged.
 
+For immutable artifact-integrity mappings, review both parser input and in-memory model construction. Recursively accepted values are only null, exact strings, booleans, integers, finite floats, exact-string-keyed mappings, and ordered lists/tuples. Unsupported leaves, collection views, cycles, sets, binary values, and NumPy objects fail validation; they are never retained or stringified. Re-run copy/deep-copy identity, Pydantic deep-copy, plain JSON dump, physical schema/CRS comparison, schema-version, and canonical-hash locks together.
+
 ## Changing `safe_http`
 
 Review all five adapter call sites and `test_safe_http.py`. Preserve HTTPS-only identity, localhost/numeric-IP handling, all-address DNS validation, no re-resolution, numeric socket endpoint, peer verification, default TLS verification, original SNI/Host, case-insensitive header uniqueness, pre-DNS rejection of credentials/caller-owned hop-by-hop headers, safe ordinary-header redirect behavior, proxy independence, redirect ownership, 2xx-only completion, streaming, and response/connection cleanup. Run every source-adapter suite because transport error translation occurs there.

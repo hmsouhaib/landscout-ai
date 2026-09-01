@@ -7,12 +7,12 @@
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Aggregates source-bound planning feature-policy relation evidence into parcel-level precheck summaries.
-- Source SHA256: `ad5820e06bf2f0f0100859875a9989e94185c8e1a88939f363c10c39297d62aa`
+- Source SHA256: `27bc7dcc9c67fead2c6f0638b033aab6e98282cfd2d865aec37dbf11b681c598`
 
-## 1. STEP 7F.1A.4.1 contract delta
+## 1. STEP 7F.1A.4.2 contract delta
 
-- Recursively freezes aggregation artifact schema/CRS evidence, removes caller aliases, preserves its plain manifest representation, and compares physical readback through the same immutable canonical form.
-- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
+- Validates aggregation artifact schema/CRS evidence through the strict canonical-JSON freezer before retaining or comparing it.
+- Unsupported leaves are rejected rather than retained or stringified; existing valid JSON shapes, schemas, hashes, and business boundaries remain unchanged.
 
 ## 2. Purpose and architectural position
 
@@ -788,6 +788,8 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
+        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
+        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
         validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be non-negative")
@@ -797,19 +799,19 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
         expected_geo = self.artifact_role == "PARCELS"
         if self.geospatial is not expected_geo:
             raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = self.frame_schema_signature.get("crs")
+        signature_crs = frozen_signature.get("crs")
         if expected_geo:
-            if self.crs is None or signature_crs != self.crs:
+            if frozen_crs is None or signature_crs != frozen_crs:
                 raise ValueError("parcel artifact CRS is missing or inconsistent")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("relation artifact must not declare CRS")
         object.__setattr__(
             self,
             "frame_schema_signature",
-            freeze_mapping(self.frame_schema_signature),
+            frozen_signature,
         )
-        if self.crs is not None:
-            object.__setattr__(self, "crs", freeze_mapping(self.crs))
+        if frozen_crs is not None:
+            object.__setattr__(self, "crs", frozen_crs)
         return self
 ```
 
@@ -4683,6 +4685,91 @@ def _read_verified_artifact(
     return frame
 ```
 
+## 6B. STEP 7F.1A.4.2 authoritative changed contracts
+
+This section supersedes older source excerpts for the named callables. The exact complete current file snapshot in section 11 remains authoritative for every declaration.
+
+### `BessPlanningFeatureParcelAggregationArtifactRecord._validate_record`
+
+```python
+def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
+        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
+        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
+        validate_portable_parquet_filename(self.filename, "artifact filename")
+        if type(self.row_count) is not int or self.row_count < 0:
+            raise ValueError("artifact row_count must be non-negative")
+        if type(self.size_bytes) is not int or self.size_bytes < 1:
+            raise ValueError("artifact size_bytes must be positive")
+        _sha256_string(self.sha256, "artifact SHA256")
+        expected_geo = self.artifact_role == "PARCELS"
+        if self.geospatial is not expected_geo:
+            raise ValueError("artifact geospatial flag differs from its role")
+        signature_crs = frozen_signature.get("crs")
+        if expected_geo:
+            if frozen_crs is None or signature_crs != frozen_crs:
+                raise ValueError("parcel artifact CRS is missing or inconsistent")
+        elif self.crs is not None or signature_crs is not None:
+            raise ValueError("relation artifact must not declare CRS")
+        object.__setattr__(
+            self,
+            "frame_schema_signature",
+            frozen_signature,
+        )
+        if frozen_crs is not None:
+            object.__setattr__(self, "crs", frozen_crs)
+        return self
+```
+
+### `_read_verified_artifact`
+
+```python
+def _read_verified_artifact(
+    path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord
+) -> pd.DataFrame:
+    if path.name != record.filename:
+        raise BessPlanningFeatureParcelAggregationError(
+            "Aggregation artifact filename differs"
+        )
+    payload = path.read_bytes()
+    if len(payload) != record.size_bytes:
+        raise BessPlanningFeatureParcelAggregationError(
+            "Aggregation artifact byte size differs"
+        )
+    if sha256(payload).hexdigest() != record.sha256:
+        raise BessPlanningFeatureParcelAggregationError(
+            "Aggregation artifact SHA256 differs"
+        )
+    buffer = BytesIO(payload)
+    frame: pd.DataFrame = (
+        gpd.read_parquet(buffer) if record.geospatial else pd.read_parquet(buffer)
+    )
+    if len(frame) != record.row_count:
+        raise BessPlanningFeatureParcelAggregationError(
+            "Aggregation artifact row count differs"
+        )
+    if (
+        freeze_json_mapping(deterministic_frame_schema_signature(frame))
+        != record.frame_schema_signature
+    ):
+        raise BessPlanningFeatureParcelAggregationError(
+            "Aggregation artifact frame schema differs"
+        )
+    if record.geospatial:
+        if (
+            not isinstance(frame, gpd.GeoDataFrame)
+            or frame.crs is None
+            or freeze_json_mapping(CRS.from_user_input(frame.crs).to_json_dict())
+            != record.crs
+        ):
+            raise BessPlanningFeatureParcelAggregationError(
+                "Aggregation parcel artifact CRS differs"
+            )
+    elif isinstance(frame, gpd.GeoDataFrame):
+        raise BessPlanningFeatureParcelAggregationError(
+            "Relation assessment artifact is unexpectedly geospatial"
+        )
+    return frame
+```
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `RESULT_HASH_SCHEMA_VERSION`, `ARTIFACT_MANIFEST_SCHEMA_VERSION`, `APPLICATION_RESULT_HASH_SCHEMA_VERSION`, `PARCEL_COLUMNS`, `RELATION_COLUMNS`, `PARCEL_STRING_COLUMNS`, `PARCEL_INTEGER_COLUMNS`, `PARCEL_BOOL_COLUMNS`, `RELATION_STRING_COLUMNS`, `RESULT_FRAME_FIELDS`, `RESULT_SCALAR_FIELDS`.
@@ -4757,7 +4844,10 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
-from landscout.common.immutable_mapping import freeze_mapping, to_plain_json_value
+from landscout.common.immutable_mapping import (
+    freeze_json_mapping,
+    to_plain_json_value,
+)
 from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.common.strict_json import loads_strict_json, loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -4949,6 +5039,8 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
+        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
+        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
         validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be non-negative")
@@ -4958,19 +5050,19 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
         expected_geo = self.artifact_role == "PARCELS"
         if self.geospatial is not expected_geo:
             raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = self.frame_schema_signature.get("crs")
+        signature_crs = frozen_signature.get("crs")
         if expected_geo:
-            if self.crs is None or signature_crs != self.crs:
+            if frozen_crs is None or signature_crs != frozen_crs:
                 raise ValueError("parcel artifact CRS is missing or inconsistent")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("relation artifact must not declare CRS")
         object.__setattr__(
             self,
             "frame_schema_signature",
-            freeze_mapping(self.frame_schema_signature),
+            frozen_signature,
         )
-        if self.crs is not None:
-            object.__setattr__(self, "crs", freeze_mapping(self.crs))
+        if frozen_crs is not None:
+            object.__setattr__(self, "crs", frozen_crs)
         return self
 
 
@@ -6133,7 +6225,7 @@ def _read_verified_artifact(
             "Aggregation artifact row count differs"
         )
     if (
-        freeze_mapping(deterministic_frame_schema_signature(frame))
+        freeze_json_mapping(deterministic_frame_schema_signature(frame))
         != record.frame_schema_signature
     ):
         raise BessPlanningFeatureParcelAggregationError(
@@ -6143,7 +6235,7 @@ def _read_verified_artifact(
         if (
             not isinstance(frame, gpd.GeoDataFrame)
             or frame.crs is None
-            or freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict())
+            or freeze_json_mapping(CRS.from_user_input(frame.crs).to_json_dict())
             != record.crs
         ):
             raise BessPlanningFeatureParcelAggregationError(

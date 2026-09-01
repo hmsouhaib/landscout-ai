@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
+import math
 from collections.abc import Iterator, Mapping
 from types import MappingProxyType
-from typing import cast
+from typing import Self, cast
 
 
 class FrozenDict[Key, Value](Mapping[Key, Value]):
@@ -37,6 +37,13 @@ class FrozenDict[Key, Value](Mapping[Key, Value]):
         if isinstance(other, Mapping):
             return dict(self.items()) == dict(other.items())
         return False
+
+    def __copy__(self) -> Self:
+        return self
+
+    def __deepcopy__(self, memo: dict[int, object]) -> Self:
+        memo[id(self)] = self
+        return self
 
     def __setattr__(self, name: str, value: object) -> None:
         del name, value
@@ -80,23 +87,84 @@ def freeze_mapping[Key, Value](
     return FrozenDict(value)
 
 
+def freeze_json_value(value: object) -> object:
+    """Recursively validate and freeze one canonical JSON value."""
+
+    return _freeze_json_value(value, active=set())
+
+
+def _freeze_json_value(value: object, *, active: set[int]) -> object:
+    """Validate one canonical JSON value while rejecting collection cycles."""
+
+    if value is None or type(value) in (str, bool, int):
+        return value
+    if type(value) is float:
+        if not math.isfinite(value):
+            raise ValueError("canonical JSON numbers must be finite")
+        return value
+    if isinstance(value, Mapping):
+        return _freeze_json_mapping(value, active=active)
+    if isinstance(value, (list, tuple)):
+        identity = id(value)
+        if identity in active:
+            raise ValueError("canonical JSON collections must not contain cycles")
+        active.add(identity)
+        try:
+            return tuple(_freeze_json_value(member, active=active) for member in value)
+        finally:
+            active.remove(identity)
+    raise ValueError(
+        "canonical JSON values must be null, exact strings, booleans, integers, "
+        "finite floats, string-keyed mappings, lists, or tuples"
+    )
+
+
+def freeze_json_mapping[Key](
+    value: Mapping[Key, object],
+) -> FrozenDict[str, object]:
+    """Copy a string-keyed canonical JSON mapping into an immutable value."""
+
+    return _freeze_json_mapping(value, active=set())
+
+
+def _freeze_json_mapping[Key](
+    value: Mapping[Key, object],
+    *,
+    active: set[int],
+) -> FrozenDict[str, object]:
+    """Validate one canonical JSON mapping while rejecting collection cycles."""
+
+    identity = id(value)
+    if identity in active:
+        raise ValueError("canonical JSON collections must not contain cycles")
+    active.add(identity)
+    frozen: dict[str, object] = {}
+    try:
+        for key, member in value.items():
+            if type(key) is not str:
+                raise ValueError("canonical JSON mapping keys must be exact strings")
+            frozen[cast(str, key)] = _freeze_json_value(member, active=active)
+        return FrozenDict(frozen)
+    finally:
+        active.remove(identity)
+
+
 def to_plain_json_value(value: object) -> object:
     """Return a fresh canonical JSON-compatible copy of an immutable value."""
 
     if isinstance(value, Mapping):
-        return {key: to_plain_json_value(member) for key, member in value.items()}
-    if isinstance(value, tuple):
+        result: dict[str, object] = {}
+        for key, member in value.items():
+            if type(key) is not str:
+                raise ValueError("canonical JSON mapping keys must be exact strings")
+            result[key] = to_plain_json_value(member)
+        return result
+    if isinstance(value, (list, tuple)):
         return [to_plain_json_value(member) for member in value]
-    if isinstance(value, frozenset):
-        members = [to_plain_json_value(member) for member in value]
-        return sorted(
-            members,
-            key=lambda member: json.dumps(
-                member,
-                ensure_ascii=False,
-                allow_nan=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            ),
-        )
-    return value
+    if value is None or type(value) in (str, bool, int):
+        return value
+    if type(value) is float:
+        if not math.isfinite(value):
+            raise ValueError("canonical JSON numbers must be finite")
+        return value
+    raise ValueError("unsupported canonical JSON value")
