@@ -7,12 +7,12 @@
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Applies exact coded-result and policy-result evidence to planning feature catalogs and relations.
-- Source SHA256: `911527985762d94e9e029aa6babc27e4aa89cb7ba3bf4c15ccebbef0d6fb6060`
+- Source SHA256: `43e17f75e284dd245951ea7ff5e42cccb1c0718c845208302a63780b7fd35e1a`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1A.4.1 contract delta
 
-- Uses strict/frozen upstream policy/config contracts and independently revalidates supplied result envelopes before local source-bound comparison.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Recursively freezes application artifact schema/CRS evidence, removes caller aliases, preserves its plain manifest representation, and compares physical readback through the same immutable canonical form.
+- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
 
 ## 2. Purpose and architectural position
 
@@ -504,9 +504,15 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
     row_count: StrictInt
     size_bytes: StrictInt
     sha256: StrictStr
-    frame_schema_signature: dict[StrictStr, object]
+    frame_schema_signature: Mapping[StrictStr, object]
     geospatial: StrictBool
-    crs: dict[StrictStr, object] | None
+    crs: Mapping[StrictStr, object] | None
+
+    @field_serializer("frame_schema_signature", "crs")
+    def _serialize_immutable_json_mapping(
+        self, value: Mapping[str, object] | None
+    ) -> object:
+        return to_plain_json_value(value)
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureApplicationArtifactRecord:
@@ -528,6 +534,13 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
                 raise ValueError("geospatial artifact geometry column is missing")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("non-geospatial artifact must not declare a CRS")
+        object.__setattr__(
+            self,
+            "frame_schema_signature",
+            freeze_mapping(self.frame_schema_signature),
+        )
+        if self.crs is not None:
+            object.__setattr__(self, "crs", freeze_mapping(self.crs))
         return self
 ```
 
@@ -4294,6 +4307,82 @@ def load_bess_planning_feature_application_artifacts(
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
+## 6A. STEP 7F.1A.4.1 changed callable contracts
+
+### `BessPlanningFeatureApplicationArtifactRecord._serialize_immutable_json_mapping` — STEP 7F.1A.4.1 current contract
+
+- Exact signature: `def _serialize_immutable_json_mapping( self, value: Mapping[str, object] | None ) -> object:`
+- Exact decorators: `@field_serializer("frame_schema_signature", "crs")`
+- Purpose: The exact implementation below defines the callable contract.
+- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+
+**Complete source-ordered implementation**
+
+```python
+def _serialize_immutable_json_mapping(
+        self, value: Mapping[str, object] | None
+    ) -> object:
+        return to_plain_json_value(value)
+```
+
+### `_read_verified_artifact` — STEP 7F.1A.4.1 current contract
+
+- Exact signature: `def _read_verified_artifact( path: Path, record: BessPlanningFeatureApplicationArtifactRecord, ) -> pd.DataFrame:`
+- Exact decorators: none
+- Purpose: The exact implementation below defines the callable contract.
+- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+
+**Complete source-ordered implementation**
+
+```python
+def _read_verified_artifact(
+    path: Path,
+    record: BessPlanningFeatureApplicationArtifactRecord,
+) -> pd.DataFrame:
+    if path.name != record.filename:
+        raise BessPlanningFeatureApplicationError(
+            f"Artifact {record.artifact_role} filename differs"
+        )
+    payload = path.read_bytes()
+    if len(payload) != record.size_bytes:
+        raise BessPlanningFeatureApplicationError(
+            f"Artifact {record.artifact_role} byte size differs"
+        )
+    if sha256(payload).hexdigest() != record.sha256:
+        raise BessPlanningFeatureApplicationError(
+            f"Artifact {record.artifact_role} SHA256 differs"
+        )
+    buffer = BytesIO(payload)
+    frame: pd.DataFrame
+    if record.geospatial:
+        frame = gpd.read_parquet(buffer)
+    else:
+        frame = pd.read_parquet(buffer)
+    if len(frame) != record.row_count:
+        raise BessPlanningFeatureApplicationError(
+            f"Artifact {record.artifact_role} row count differs"
+        )
+    signature = deterministic_frame_schema_signature(frame)
+    if freeze_mapping(signature) != record.frame_schema_signature:
+        raise BessPlanningFeatureApplicationError(
+            f"Artifact {record.artifact_role} frame schema differs"
+        )
+    if record.geospatial:
+        if not isinstance(frame, gpd.GeoDataFrame) or frame.crs is None:
+            raise BessPlanningFeatureApplicationError(
+                f"Artifact {record.artifact_role} geospatial contract differs"
+            )
+        if freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict()) != record.crs:
+            raise BessPlanningFeatureApplicationError(
+                f"Artifact {record.artifact_role} CRS differs"
+            )
+    elif isinstance(frame, gpd.GeoDataFrame):
+        raise BessPlanningFeatureApplicationError(
+            "Relations artifact unexpectedly loaded as geospatial"
+        )
+    return frame
+```
+
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `RESULT_HASH_SCHEMA_VERSION`, `ARTIFACT_MANIFEST_SCHEMA_VERSION`, `RELATION_FEATURE_AGREEMENT_COLUMNS`, `RESULT_FRAME_FIELDS`, `RESULT_SCALAR_FIELDS`.
@@ -4335,6 +4424,7 @@ from __future__ import annotations
 import json
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
@@ -4352,6 +4442,7 @@ from pydantic import (
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 from pyproj import CRS
@@ -4370,6 +4461,7 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.immutable_mapping import freeze_mapping, to_plain_json_value
 from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.common.strict_json import loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -4469,9 +4561,15 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
     row_count: StrictInt
     size_bytes: StrictInt
     sha256: StrictStr
-    frame_schema_signature: dict[StrictStr, object]
+    frame_schema_signature: Mapping[StrictStr, object]
     geospatial: StrictBool
-    crs: dict[StrictStr, object] | None
+    crs: Mapping[StrictStr, object] | None
+
+    @field_serializer("frame_schema_signature", "crs")
+    def _serialize_immutable_json_mapping(
+        self, value: Mapping[str, object] | None
+    ) -> object:
+        return to_plain_json_value(value)
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureApplicationArtifactRecord:
@@ -4493,6 +4591,13 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
                 raise ValueError("geospatial artifact geometry column is missing")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("non-geospatial artifact must not declare a CRS")
+        object.__setattr__(
+            self,
+            "frame_schema_signature",
+            freeze_mapping(self.frame_schema_signature),
+        )
+        if self.crs is not None:
+            object.__setattr__(self, "crs", freeze_mapping(self.crs))
         return self
 
 
@@ -5576,7 +5681,7 @@ def _read_verified_artifact(
             f"Artifact {record.artifact_role} row count differs"
         )
     signature = deterministic_frame_schema_signature(frame)
-    if signature != record.frame_schema_signature:
+    if freeze_mapping(signature) != record.frame_schema_signature:
         raise BessPlanningFeatureApplicationError(
             f"Artifact {record.artifact_role} frame schema differs"
         )
@@ -5585,7 +5690,7 @@ def _read_verified_artifact(
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} geospatial contract differs"
             )
-        if CRS.from_user_input(frame.crs).to_json_dict() != record.crs:
+        if freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict()) != record.crs:
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} CRS differs"
             )

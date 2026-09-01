@@ -7,12 +7,12 @@
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `aggregate_bess_planning_feature_policy` contracts exercised in this file.
-- Source SHA256: `1d7ebf63f11dea764e93c8f78e7b9b7f456a4401e5afb1c1998d9bcdfbb31c94`
+- Source SHA256: `52f53bc0808d49b0a50f4b09b2383af9b473308824472bfc3f6a3faf99479d83`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1A.4.1 contract delta
 
-- Refreshes permanent STEP 7F.1A.4 regression coverage for aggregate bess planning feature policy; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Adds permanent nested-alias and immediate-mutation regressions for the aggregation artifact record while retaining all prior aggregation tests.
+- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
 
 ## 2. Purpose and architectural position
 
@@ -8347,6 +8347,18 @@ def test_aggregation_manifest_rejects_nonportable_filename(
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
+## 6A. STEP 7F.1A.4.1 changed callable contracts
+
+### `_aggregation_artifact_record_payload`
+
+- Exact signature: `def _aggregation_artifact_record_payload() -> dict[str, object]:`
+- Builds the nested plain schema/CRS payload used to prove recursive copying, retained canonical serialization, and alias isolation.
+
+### `test_aggregation_artifact_record_is_deeply_immutable_without_aliases`
+
+- Exact signature: `def test_aggregation_artifact_record_is_deeply_immutable_without_aliases() -> None:`
+- Mutates caller-owned nested input after validation and requires the retained record to remain unchanged; direct mapping and nested sequence/mapping mutation must fail immediately.
+
 ## 7. Test-specific regression contract
 
 - Test functions: **60**.
@@ -8441,6 +8453,7 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
+from collections.abc import Mapping
 from dataclasses import fields, replace
 from hashlib import sha256
 from io import BytesIO
@@ -8469,6 +8482,7 @@ from landscout.common.planning_feature_schema import relation_columns, relation_
 from landscout.common.strict_json import loads_strict_json_object
 from landscout.stages.aggregate_bess_planning_feature_policy import (
     BessPlanningFeatureParcelAggregationArtifactManifest,
+    BessPlanningFeatureParcelAggregationArtifactRecord,
     BessPlanningFeatureParcelAggregationError,
     BessPlanningFeatureParcelAggregationResult,
     aggregate_bess_planning_feature_policy_to_parcels,
@@ -8519,6 +8533,63 @@ RELATION_COLUMNS = (
 )
 _LAST_SOURCE_PARCELS: gpd.GeoDataFrame | None = None
 _LAST_APPLICATION_RESULT: object | None = None
+
+
+def _aggregation_artifact_record_payload() -> dict[str, object]:
+    crs = {
+        "type": "ProjectedCRS",
+        "name": "RGF93 v1 / Lambert-93",
+        "coordinate_system": {"axis": [{"name": "Easting"}]},
+    }
+    return {
+        "artifact_role": "PARCELS",
+        "filename": "parcels.parquet",
+        "row_count": 1,
+        "size_bytes": 1,
+        "sha256": "a" * 64,
+        "frame_schema_signature": {
+            "columns": ["geometry"],
+            "dtypes": ["geometry"],
+            "index_class": "pandas.core.indexes.range.RangeIndex",
+            "index_names": [None],
+            "index_level_dtypes": ["int64"],
+            "geometry_column": "geometry",
+            "crs": crs,
+        },
+        "geospatial": True,
+        "crs": crs,
+    }
+
+
+def test_aggregation_artifact_record_is_deeply_immutable_without_aliases() -> None:
+    payload = _aggregation_artifact_record_payload()
+    record = BessPlanningFeatureParcelAggregationArtifactRecord.model_validate(payload)
+
+    payload_signature = payload["frame_schema_signature"]
+    assert isinstance(payload_signature, dict)
+    payload_columns = payload_signature["columns"]
+    assert isinstance(payload_columns, list)
+    payload_columns.append("caller_mutation")
+    payload_crs = payload["crs"]
+    assert isinstance(payload_crs, dict)
+    payload_crs["caller_mutation"] = True
+
+    assert record.frame_schema_signature["columns"] == ("geometry",)
+    assert record.crs is not None
+    assert "caller_mutation" not in record.crs
+    assert record.model_dump(mode="json", warnings="error") == (
+        _aggregation_artifact_record_payload()
+    )
+    with pytest.raises(TypeError, match="frozen"):
+        record.frame_schema_signature["new"] = "value"
+    with pytest.raises(AttributeError):
+        record.frame_schema_signature["columns"].append("new")
+    with pytest.raises(TypeError, match="frozen"):
+        record.crs["new"] = "value"
+    coordinate_system = record.crs["coordinate_system"]
+    assert isinstance(coordinate_system, Mapping)
+    with pytest.raises(TypeError, match="frozen"):
+        coordinate_system["new"] = "value"
 
 
 def _aggregation_fixture() -> tuple[

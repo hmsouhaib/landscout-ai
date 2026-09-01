@@ -7,12 +7,12 @@
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
-- Source SHA256: `eb8acddb789a6ca8717bd70df9a40c32c8f1a689a3a0ae7b3b9ffc55d2ab3af4`
+- Source SHA256: `2338569ce08bf5fc632803299c3ea3913301b6722ba63befc24edd276165d614`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1A.4.1 contract delta
 
-- Fails closed when an applicable body page has extraction status ERROR while retaining valid blank-page handling.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Declares structure aliases/topics as Mapping values, retains recursive freezing, and serializes them to the same established Python/JSON shapes so the structure hash and schema stay unchanged.
+- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
 
 ## 2. Purpose and architectural position
 
@@ -944,10 +944,24 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
     document_layout: DocumentLayoutConfig
     heading_patterns: HeadingPatternsConfig
     ignored_patterns: IgnoredPatternsConfig
-    zone_aliases: dict[StrictStr, StrictStr]
-    topics: dict[StrictStr, tuple[StrictStr, ...]]
+    zone_aliases: Mapping[StrictStr, StrictStr]
+    topics: Mapping[StrictStr, tuple[StrictStr, ...]]
     topic_match_policy: TopicMatchPolicyConfig
     topic_context_characters: StrictInt = Field(ge=0)
+
+    @field_serializer("zone_aliases")
+    def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
+        return dict(value)
+
+    @field_serializer("topics")
+    def _serialize_topics(
+        self,
+        value: Mapping[str, tuple[str, ...]],
+        info: SerializationInfo,
+    ) -> dict[str, tuple[str, ...] | list[str]]:
+        if info.mode == "json":
+            return {topic: list(terms) for topic, terms in value.items()}
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_grammar(self) -> PlanningRegulationStructureConfig:
@@ -7970,6 +7984,42 @@ def structure_planning_regulation(
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
+## 6A. STEP 7F.1A.4.1 changed callable contracts
+
+### `PlanningRegulationStructureConfig._serialize_zone_aliases` — STEP 7F.1A.4.1 current contract
+
+- Exact signature: `def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:`
+- Exact decorators: `@field_serializer("zone_aliases")`
+- Purpose: The exact implementation below defines the callable contract.
+- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+
+**Complete source-ordered implementation**
+
+```python
+def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
+        return dict(value)
+```
+
+### `PlanningRegulationStructureConfig._serialize_topics` — STEP 7F.1A.4.1 current contract
+
+- Exact signature: `def _serialize_topics( self, value: Mapping[str, tuple[str, ...]], info: SerializationInfo, ) -> dict[str, tuple[str, ...] | list[str]]:`
+- Exact decorators: `@field_serializer("topics")`
+- Purpose: The exact implementation below defines the callable contract.
+- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+
+**Complete source-ordered implementation**
+
+```python
+def _serialize_topics(
+        self,
+        value: Mapping[str, tuple[str, ...]],
+        info: SerializationInfo,
+    ) -> dict[str, tuple[str, ...] | list[str]]:
+        if info.mode == "json":
+            return {topic: list(terms) for topic, terms in value.items()}
+        return dict(value)
+```
+
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `_normalize_search_text_with_mapping`, `SECTION_HASH_SCHEMA_VERSION`, `STRUCTURE_MANIFEST_SCHEMA_VERSION`, `_SUPPORTED_CONFIG_SCHEMA_VERSION`, `_MAPPING_STATUSES`, `_MAPPING_METHODS`, `_ZONE_INPUT_COLUMNS`, `_REQUIRED_INTERSECTION_INPUT_COLUMNS`, `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`, `SECTION_COLUMNS`, `ZONE_MAPPING_COLUMNS`, `TOPIC_EVIDENCE_COLUMNS`.
@@ -8027,9 +8077,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    SerializationInfo,
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 
@@ -8223,10 +8275,24 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
     document_layout: DocumentLayoutConfig
     heading_patterns: HeadingPatternsConfig
     ignored_patterns: IgnoredPatternsConfig
-    zone_aliases: dict[StrictStr, StrictStr]
-    topics: dict[StrictStr, tuple[StrictStr, ...]]
+    zone_aliases: Mapping[StrictStr, StrictStr]
+    topics: Mapping[StrictStr, tuple[StrictStr, ...]]
     topic_match_policy: TopicMatchPolicyConfig
     topic_context_characters: StrictInt = Field(ge=0)
+
+    @field_serializer("zone_aliases")
+    def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
+        return dict(value)
+
+    @field_serializer("topics")
+    def _serialize_topics(
+        self,
+        value: Mapping[str, tuple[str, ...]],
+        info: SerializationInfo,
+    ) -> dict[str, tuple[str, ...] | list[str]]:
+        if info.mode == "json":
+            return {topic: list(terms) for topic, terms in value.items()}
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_grammar(self) -> PlanningRegulationStructureConfig:

@@ -7,11 +7,12 @@
 - Layer: engineering history
 - Domain: repository history
 - Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `21853e1cfc59a6fb743c55abacecfaae0ee59994d13de1ef4cb508f39e9afba2`
+- Source SHA256: `3516e0ecd34415642f8281fe31b080ba40ff58a3b1353ba3154ae56f9adda1ca`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1A.4.1 contract delta
 
-- Adds the source-faithful STEP 7F.1A.4 engineering record while leaving final validation gates explicitly pending for the root run.
+- Adds the factual STEP 7F.1A.4.1 inventory, immutable representation, red-first evidence, unchanged canonical hashes/schemas, focused/full results, and unchanged boundary.
+- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
 
 ## 2. Purpose and authority
 
@@ -25,6 +26,7 @@ Chronological headings present in the exact current history:
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1A.4.1 — Make trust-bearing configuration deeply immutable`
 - `## STEP 7F.1A.4 — Close end-to-end source authority and planning-completeness gaps`
 - `## STEP 7F.1A.3.2 — Correct qualified-reference ownership and semantic documentation`
 - `### CODE FOLLOW-UP OBSERVATIONS`
@@ -272,16 +274,9 @@ Chronological headings present in the exact current history:
 - `### Exact representation contract`
 - `### Real Muret/D031 regression and read-back`
 
-The current STEP 7F.1A.4 entry deliberately labels final integrated validation as pending. Historical completed-step counts and evidence are not rewritten as current-run results.
+## 4. Exact complete current file content
 
-## 4. Side effects and change impact
-
-- This declarative/history file performs no runtime network, filesystem, CRS, geometry, policy, or parcel operation by itself.
-- Any byte change invalidates the SHA above and requires updating this companion; project-tool changes also require lock/tool validation where applicable.
-
-## 5. Exact complete current file content
-
-The following UTF-8 snapshot is complete and byte-bound, not an excerpt.
+The following UTF-8 snapshot is complete. Its raw-byte SHA256 is the value in **File identity**.
 
 ````markdown
 # LandScout AI development log
@@ -289,11 +284,23 @@ The following UTF-8 snapshot is complete and byte-bound, not an excerpt.
 ## Current project state
 
 - Current phase: End-to-end source-authority and planning-completeness hardening
-- Latest completed step: STEP 7F.1A.4
-- Current step: STEP 7F.1A.4 complete
+- Latest completed step: STEP 7F.1A.4.1
+- Current step: STEP 7F.1A.4.1 complete
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: none selected
+
+## STEP 7F.1A.4.1 — Make trust-bearing configuration deeply immutable
+
+- Status: Complete. Deep-immutability implementation, permanent regressions, full repository execution, static/dependency gates, and exact companion synchronization all pass.
+- Inventory: loaded scan/profile AOI and threshold collections; GPU/IGN logical-layer collections; RTE/INPN source and integrity records; planning-structure grammar, alias, topic, and nested term collections; written-zoning chapter, evidence, route, reviewed-section, and required-article collections; CNIG code-profile collections; BESS planning-feature entries and status-priority mapping; compiled road-policy sequences and set vocabularies; and application/aggregation artifact schema and CRS mappings were audited. Existing ordered collections were already tuples, road-policy set domains were already frozensets, and source integrity inventories were already tuples. The live shallow-freeze defect was retained mutable mapping/list state in application and aggregation artifact-record schema/CRS evidence; the existing structure and BESS decision mappings also used a mutation-blocking `dict` subclass whose backing representation was hardened.
+- Immutable representation: ordered semantics remain tuples, set semantics remain frozensets, and mappings now use a recursively copied `FrozenDict` backed by a private `MappingProxyType`. Nested mappings, lists/tuples, and sets/frozensets recursively become immutable mappings, tuples, and frozensets. Mutation methods, item replacement/deletion, in-place union, and backing-attribute reassignment fail immediately. Caller-owned payloads are copied before retention, so later alias mutation cannot change validated trust objects.
+- Serialization and trust boundaries: explicit field serializers preserve the established plain JSON/Python payloads for planning structure, BESS status priorities, artifact schema signatures, and CRS evidence. Artifact physical readback compares canonical immutable representations. Existing public boundary reconstruction and revalidation remain in place; immutability does not replace source/config trust-boundary validation.
+- Hash/schema impact: no schema or hash version changed. Starting-commit and corrected code produce the same structure SHA256 `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`, written-zoning policy SHA256 `ef1f7cd0f5589e9a07428d25cd2b1a844e7cd49fb6db359951eb6c812c767586`, CNIG profile SHA256 `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`, BESS planning-feature policy SHA256 `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`, and GPU source-config SHA256 `c076a8fddbee2323f177b612101eb4d1b7fabcb578bac9509567205187ac7df2`. Artifact-record JSON dumps are byte-shape compatible with their original plain mappings/lists.
+- Test-first evidence: two nested-alias regressions failed on the starting implementation because appending to the caller-owned schema `columns` list changed the validated application and aggregation records. After correction, the dedicated deep-immutability suite passes 23 tests and proves recursive absence of reachable built-in mutable collections, immediate tuple/mapping/frozenset mutation failure, backing-alias isolation, and the five canonical hash locks.
+- Focused validation: the final dedicated suite passed 23 tests; source/config families passed 580 tests in 13.04 seconds; structure, written-zoning, CNIG, BESS-policy, and road-policy suites passed 623 tests in 169.67 seconds; application and aggregation suites passed 403 tests in 518.98 seconds.
+- Final validation: the first complete invocation reached the repository tests but the inaccessible Windows user pytest temp root caused setup-only `PermissionError` failures. The same mandatory `uv run pytest -q` invocation, with `TEMP` and `TMP` pointed to a repository-local ignored directory, passed 3,084 tests with 5 expected warnings in 803.54 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 101 Python files formatted; `uv run mypy src` reported no issues in 48 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: source URLs, pinned identities, cache/extraction/recovery behavior, source snapshots, geometry algorithms/tolerances, source-complete revalidation, zoning relations/formulas, required-article completeness, evidence excerpts/offsets/hashes, UP/AUp/ICPE semantics, and all scoring/ranking boundaries are unchanged. No new functional STEP 7F feature was added.
 
 ## STEP 7F.1A.4 — Close end-to-end source authority and planning-completeness gaps
 

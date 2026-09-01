@@ -8,7 +8,7 @@ Review the adapter config YAML/model, package exports, shared safe HTTPS boundar
 
 ## Changing source configuration
 
-Review strict Pydantic fields/validators, frozen/deeply immutable nested values, duplicate/extra-key handling, URL origin/path locks, exact provider/product identities, strict finite numeric fields, expected size/SHA/checksum, cache identity, logical-role uniqueness, source lineage copied to frames/results, tests that mutate loaded config, and any persisted source/result hashes. Public operations must reconstruct/revalidate configuration at the trust boundary. GPU config changes also change its canonical config SHA and every planning document that retains it.
+Review strict Pydantic fields/validators, recursively copied tuple/frozenset/immutable-mapping values at every depth, input-alias isolation, duplicate/extra-key handling, URL origin/path locks, exact provider/product identities, strict finite numeric fields, expected size/SHA/checksum, cache identity, logical-role uniqueness, source lineage copied to frames/results, immediate mutation-operation regressions, and any persisted source/result hashes. Explicit field serializers must preserve the established plain JSON/Python shape used by canonical hashes. Public operations must still reconstruct/revalidate configuration at the trust boundary. GPU config changes also change its canonical config SHA and every planning document that retains it.
 
 ## Changing strict serialization
 

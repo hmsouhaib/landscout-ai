@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
@@ -22,6 +23,7 @@ from pydantic import (
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 from pyproj import CRS
@@ -40,6 +42,7 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.immutable_mapping import freeze_mapping, to_plain_json_value
 from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.common.strict_json import loads_strict_json_object
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -139,9 +142,15 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
     row_count: StrictInt
     size_bytes: StrictInt
     sha256: StrictStr
-    frame_schema_signature: dict[StrictStr, object]
+    frame_schema_signature: Mapping[StrictStr, object]
     geospatial: StrictBool
-    crs: dict[StrictStr, object] | None
+    crs: Mapping[StrictStr, object] | None
+
+    @field_serializer("frame_schema_signature", "crs")
+    def _serialize_immutable_json_mapping(
+        self, value: Mapping[str, object] | None
+    ) -> object:
+        return to_plain_json_value(value)
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureApplicationArtifactRecord:
@@ -163,6 +172,13 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
                 raise ValueError("geospatial artifact geometry column is missing")
         elif self.crs is not None or signature_crs is not None:
             raise ValueError("non-geospatial artifact must not declare a CRS")
+        object.__setattr__(
+            self,
+            "frame_schema_signature",
+            freeze_mapping(self.frame_schema_signature),
+        )
+        if self.crs is not None:
+            object.__setattr__(self, "crs", freeze_mapping(self.crs))
         return self
 
 
@@ -1246,7 +1262,7 @@ def _read_verified_artifact(
             f"Artifact {record.artifact_role} row count differs"
         )
     signature = deterministic_frame_schema_signature(frame)
-    if signature != record.frame_schema_signature:
+    if freeze_mapping(signature) != record.frame_schema_signature:
         raise BessPlanningFeatureApplicationError(
             f"Artifact {record.artifact_role} frame schema differs"
         )
@@ -1255,7 +1271,7 @@ def _read_verified_artifact(
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} geospatial contract differs"
             )
-        if CRS.from_user_input(frame.crs).to_json_dict() != record.crs:
+        if freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict()) != record.crs:
             raise BessPlanningFeatureApplicationError(
                 f"Artifact {record.artifact_role} CRS differs"
             )

@@ -7,12 +7,12 @@
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Compiles and validates the checked-in BESS policy for official CNIG planning-feature meanings.
-- Source SHA256: `bfb8f2bcb90764557f17e1af21284167d2824777775d32ed58401ec031ad2954`
+- Source SHA256: `9568f12e7f70c8e7d06b105020d486e285d0a2eef2a0eee5a266d5c1a7d545dd`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1A.4.1 contract delta
 
-- Uses strict duplicate-safe policy YAML, frozen/deeply immutable decision inputs, and public-boundary reconstruction without changing policy meaning or hashes.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Declares the BESS status-priority table as an immutable Mapping and adds an explicit serializer preserving the canonical policy payload and hash.
+- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
 
 ## 2. Purpose and architectural position
 
@@ -791,9 +791,15 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
     local_regulation_content_interpreted: StrictBool
     legal_conclusion_produced: StrictBool
     source_lock: PolicySourceLock
-    status_priority: dict[PrecheckStatus, StrictInt]
+    status_priority: Mapping[PrecheckStatus, StrictInt]
     canonical_policy_entries_sha256: StrictStr
     entries: tuple[PolicyEntry, ...]
+
+    @field_serializer("status_priority")
+    def _serialize_status_priority(
+        self, value: Mapping[PrecheckStatus, int]
+    ) -> dict[PrecheckStatus, int]:
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
@@ -4307,6 +4313,24 @@ def validate_bess_planning_feature_policy_result(
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
+## 6A. STEP 7F.1A.4.1 changed callable contracts
+
+### `BessPlanningFeaturePolicyConfig._serialize_status_priority` — STEP 7F.1A.4.1 current contract
+
+- Exact signature: `def _serialize_status_priority( self, value: Mapping[PrecheckStatus, int] ) -> dict[PrecheckStatus, int]:`
+- Exact decorators: `@field_serializer("status_priority")`
+- Purpose: The exact implementation below defines the callable contract.
+- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+
+**Complete source-ordered implementation**
+
+```python
+def _serialize_status_priority(
+        self, value: Mapping[PrecheckStatus, int]
+    ) -> dict[PrecheckStatus, int]:
+        return dict(value)
+```
+
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `POLICY_SCHEMA_VERSION`, `RESULT_HASH_SCHEMA_VERSION`, `ARTIFACT_MANIFEST_SCHEMA_VERSION`, `POLICY_TABLE_COLUMNS`, `POLICY_TABLE_DTYPES`, `POLICY_TABLE_SCHEMA_SIGNATURE`, `POLICY_RESULT_SCALAR_FIELDS`.
@@ -4368,6 +4392,7 @@ from pydantic import (
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 
@@ -4614,9 +4639,15 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
     local_regulation_content_interpreted: StrictBool
     legal_conclusion_produced: StrictBool
     source_lock: PolicySourceLock
-    status_priority: dict[PrecheckStatus, StrictInt]
+    status_priority: Mapping[PrecheckStatus, StrictInt]
     canonical_policy_entries_sha256: StrictStr
     entries: tuple[PolicyEntry, ...]
+
+    @field_serializer("status_priority")
+    def _serialize_status_priority(
+        self, value: Mapping[PrecheckStatus, int]
+    ) -> dict[PrecheckStatus, int]:
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:

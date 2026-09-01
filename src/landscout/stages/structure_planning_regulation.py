@@ -20,9 +20,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    SerializationInfo,
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 
@@ -216,10 +218,24 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
     document_layout: DocumentLayoutConfig
     heading_patterns: HeadingPatternsConfig
     ignored_patterns: IgnoredPatternsConfig
-    zone_aliases: dict[StrictStr, StrictStr]
-    topics: dict[StrictStr, tuple[StrictStr, ...]]
+    zone_aliases: Mapping[StrictStr, StrictStr]
+    topics: Mapping[StrictStr, tuple[StrictStr, ...]]
     topic_match_policy: TopicMatchPolicyConfig
     topic_context_characters: StrictInt = Field(ge=0)
+
+    @field_serializer("zone_aliases")
+    def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
+        return dict(value)
+
+    @field_serializer("topics")
+    def _serialize_topics(
+        self,
+        value: Mapping[str, tuple[str, ...]],
+        info: SerializationInfo,
+    ) -> dict[str, tuple[str, ...] | list[str]]:
+        if info.mode == "json":
+            return {topic: list(terms) for topic, terms in value.items()}
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_grammar(self) -> PlanningRegulationStructureConfig:

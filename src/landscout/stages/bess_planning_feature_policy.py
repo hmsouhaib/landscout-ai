@@ -23,6 +23,7 @@ from pydantic import (
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )
 
@@ -269,9 +270,15 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
     local_regulation_content_interpreted: StrictBool
     legal_conclusion_produced: StrictBool
     source_lock: PolicySourceLock
-    status_priority: dict[PrecheckStatus, StrictInt]
+    status_priority: Mapping[PrecheckStatus, StrictInt]
     canonical_policy_entries_sha256: StrictStr
     entries: tuple[PolicyEntry, ...]
+
+    @field_serializer("status_priority")
+    def _serialize_status_priority(
+        self, value: Mapping[PrecheckStatus, int]
+    ) -> dict[PrecheckStatus, int]:
+        return dict(value)
 
     @model_validator(mode="after")
     def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
