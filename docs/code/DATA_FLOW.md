@@ -126,9 +126,13 @@ InpnProtectedAreasSourceConfig
   -> InpnProtectedAreasDownload
   -> extract_inpn_protected_areas_archive
   -> InpnProtectedAreasExtraction(files inventory)
+  -> validate_inpn_protected_areas_extraction
+  -> build_inpn_protected_areas_catalog
+  -> InpnProtectedAreasCatalog(package/layer/field metadata)
+  -> validate_inpn_protected_areas_catalog
 ```
 
-The flow currently stops at safe, byte-bound file inventory. No protected-area GeoPackage is opened by a production environmental stage; there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
+The flow currently stops at a portable, source-bound metadata catalog. The extraction validator rebuilds the complete current physical inventory; the builder uses metadata-only OGR calls between pre/post extraction validation; and the independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
 
 ## Result preservation pattern
 

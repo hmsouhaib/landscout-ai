@@ -4,7 +4,11 @@ Use the relevant file companions first: they list exact callers, tests, constant
 
 ## Changing a source adapter
 
-Review the adapter config YAML/model, package exports, shared safe HTTPS boundary, cache sidecar/result dataclasses, archive/extraction validation, physical-source consumers, and all adapter tests. Preserve the ordering of cache checks versus network, before/after hashing, controlled errors, and source-complete consumers. Cadastre changes affect normalization; IGN changes affect grid/road/coverage; GPU changes affect every planning branch; INPN changes affect the environment inventory foundation; RTE changes affect its source envelopes.
+Review the adapter config YAML/model, package exports, shared safe HTTPS boundary, cache sidecar/result dataclasses, archive/extraction validation, physical-source consumers, and all adapter tests. Preserve the ordering of cache checks versus network, before/after hashing, controlled errors, and source-complete consumers. Cadastre changes affect normalization; IGN changes affect grid/road/coverage; GPU changes affect every planning branch; INPN changes affect both fresh extraction authority and the physical metadata catalog; RTE changes affect its source envelopes.
+
+## Changing the INPN metadata catalog
+
+Review fresh extraction reconstruction, complete extracted-file accounting, safe package containment, package/layer/field physical ordering, exact metadata keys, feature-count forcing, geometry-type agreement, raw/canonical CRS, empty/populated/non-spatial bounds rules, portable catalog hash schema, aggregate counts, per-package and global pre/post byte validation, and independent rebuild comparison. Use only metadata APIs; feature readers and environmental category/parcel-policy semantics remain outside this layer. A catalog hash payload change requires an explicit schema decision and real-cache evidence must remain zero-network.
 
 ## Changing source configuration
 

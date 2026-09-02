@@ -30,6 +30,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     download_inpn_protected_areas_archive,
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
+    validate_inpn_protected_areas_extraction,
 )
 
 CONFIG_PATH = Path("configs/sources/inpn_protected_areas_fr.yaml")
@@ -42,6 +43,7 @@ EXPECTED_EXPORTS = {
     "download_inpn_protected_areas_archive",
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
+    "validate_inpn_protected_areas_extraction",
 }
 
 
@@ -1450,3 +1452,103 @@ def test_no_stale_parts_after_download_or_extraction_success(tmp_path: Path) -> 
     assert extraction.extraction_path.is_dir()
     assert not list(Path(config.cache_root).rglob("*.part"))
     assert not list(Path(config.cache_root).rglob("*.bak"))
+
+
+def test_extraction_revalidation_returns_fresh_source_bound_result(
+    tmp_path: Path,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+
+    fresh = validate_inpn_protected_areas_extraction(extraction, config)
+
+    assert fresh == extraction
+    assert fresh is not extraction
+    assert fresh.download is not extraction.download
+    assert fresh.files is not extraction.files
+
+
+@pytest.mark.parametrize("bad_extraction", [None, object(), True])
+def test_extraction_revalidation_rejects_wrong_type(
+    tmp_path: Path,
+    bad_extraction: object,
+) -> None:
+    with pytest.raises(InpnProtectedAreasSourceError, match="extraction|type"):
+        validate_inpn_protected_areas_extraction(
+            bad_extraction,  # type: ignore[arg-type]
+            _config(tmp_path),
+        )
+
+
+def test_extraction_revalidation_rejects_wrong_path(tmp_path: Path) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    forged = replace(extraction, extraction_path=tmp_path / "other")
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="path|extraction"):
+        validate_inpn_protected_areas_extraction(forged, config)
+
+
+@pytest.mark.parametrize("mutation", ["path", "size", "sha256"])
+def test_extraction_revalidation_rejects_forged_file_inventory(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    item = extraction.files[0]
+    if mutation == "path":
+        forged_item = replace(item, relative_path="EP/forged.txt")
+    elif mutation == "size":
+        forged_item = replace(item, file_size=item.file_size + 1)
+    else:
+        forged_item = replace(item, sha256="0" * 64)
+    forged = replace(extraction, files=(forged_item,))
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="inventory|extraction"):
+        validate_inpn_protected_areas_extraction(forged, config)
+
+
+@pytest.mark.parametrize("mutation", ["missing", "extra", "content"])
+def test_extraction_revalidation_rejects_physical_inventory_mutation(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    path = extraction.extraction_path.joinpath(
+        *extraction.files[0].relative_path.split("/")
+    )
+    if mutation == "missing":
+        path.unlink()
+    elif mutation == "extra":
+        (extraction.extraction_path / "extra.txt").write_bytes(b"extra")
+    else:
+        payload = path.read_bytes()
+        path.write_bytes(b"x" * len(payload))
+
+    with pytest.raises(
+        InpnProtectedAreasSourceError,
+        match="physical|inventory|cache|Extracted",
+    ):
+        validate_inpn_protected_areas_extraction(extraction, config)
+
+
+def test_extraction_revalidation_rejects_link_or_junction_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    target = extraction.extraction_path.joinpath(
+        *extraction.files[0].relative_path.split("/")
+    )
+    original = inpn._is_link_or_junction
+
+    def simulated_link(path: Path) -> bool:
+        return path == target or original(path)
+
+    monkeypatch.setattr(inpn, "_is_link_or_junction", simulated_link)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="link|junction|physical"):
+        validate_inpn_protected_areas_extraction(extraction, config)

@@ -7,12 +7,12 @@
 - Layer: engineering history
 - Domain: repository history
 - Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `3d72798e3b6307f57d908c6f70e77f2ed6043568b3c58fea57509ee835a565c9`
+- Source SHA256: `1deafbcff3666607aab24cea11e4a1f58f91802c56fa70d6e39cd99f870313ab`
 
-## 1. STEP 7F.1A.4.2.2 canonical companion correction delta
+## 1. STEP 7F.1B.1 catalog evidence delta
 
-- Records the final documentation-only correction after independent review of the approved immutable-leaf implementation and synchronized companions.
-- Restores exact `Mapping` artifact-record declarations, separates source annotations from retained `FrozenDict` values and fresh plain-JSON serialization, and completes every current `FrozenDict` method algorithm without changing production or test behavior.
+- Records the source-bound INPN EP metadata catalog implementation, controlled offline real-cache evidence, exact package/layer facts, and complete validation results.
+- Keeps historical entries intact while making the latest factual source state visible.
 
 ## 2. Purpose and authority
 
@@ -26,6 +26,7 @@ Chronological headings present in the exact current history:
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1B.1 — Build exact INPN EP GeoPackage metadata catalog`
 - `## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions`
 - `## STEP 7F.1A.4.2.1 — Synchronize canonical living documentation`
 - `## STEP 7F.1A.4.2 — Reject mutable/non-canonical leaves in immutable integrity mappings`
@@ -279,19 +280,49 @@ Chronological headings present in the exact current history:
 
 ## 4. Exact complete current file content
 
-The following UTF-8 snapshot is complete. Its raw-byte SHA256 is the value in **File identity**.
+This byte-bound snapshot is the complete current repository file.
 
-````markdown
+```markdown
 # LandScout AI development log
 
 ## Current project state
 
-- Current phase: End-to-end source-authority and planning-completeness hardening
-- Latest completed step: STEP 7F.1A.4.2.2
-- Current step: STEP 7F.1A.4.2.2 complete
+- Current phase: Environmental source evidence
+- Latest completed step: STEP 7F.1B.1
+- Current step: STEP 7F.1B.1 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: none selected
+- Next step waiting for review: independent review of the physical EP metadata catalog
+
+## STEP 7F.1B.1 — Build exact INPN EP GeoPackage metadata catalog
+
+- Status: Complete. A source-bound metadata-only physical catalog now accounts for every verified EP extraction file, GeoPackage, OGR layer, and ordered attribute field without materializing feature rows or assigning environmental meaning.
+- Extraction authority: `validate_inpn_protected_areas_extraction(extraction, config)` requires exact runtime types, reconstructs the frozen source config and embedded download, requires the configured extraction root and exact Boolean cache state, validates the extraction marker, physically rescans every safe regular file, recomputes size/SHA256, exact-compares the caller inventory, and returns newly constructed download/extraction objects carrying the fresh physical tuple.
+- Metadata contract: immutable `InpnProtectedAreasFieldCatalog`, `InpnProtectedAreasLayerCatalog`, `InpnProtectedAreasGeoPackageCatalog`, and `InpnProtectedAreasCatalog` records preserve extraction/package/layer/field order, exact feature counts, uninterpreted geometry-type values, raw CRS text, pyproj-proven authority, canonical WKT2:2019, explicit populated/empty/non-spatial bounds, complete archive/package lineage, and aggregate counts. Every extracted file must be a verified GeoPackage with at least one visible layer; exact, casefold, and Unicode-NFKC identity collisions fail closed.
+- Inspection and TOCTOU: the builder uses only `pyogrio.list_layers(path)` and `pyogrio.read_info(path, layer=..., force_feature_count=True, force_total_bounds=True)`. Package bytes are verified before and after metadata calls, and the complete extraction is freshly revalidated before and after all inspection. `validate_inpn_protected_areas_catalog` validates every intrinsic domain/source lock, independently rebuilds from current physical files, and exact-compares the complete result rather than trusting a hash alone.
+- Portable identity: catalog hash schema `1` is canonical UTF-8 JSON with sorted keys, compact separators, `ensure_ascii=False`, and `allow_nan=False`. It includes source/archive identity, ordered physical metadata, and aggregates, while excluding absolute cache/extraction paths, cache-hit state, timestamps, Python representations, object identity, and machine-specific paths.
+- Controlled real-source verification: one read-only run used the existing approved cache with both DNS resolution and download transport replaced by immediate failures. Archive and extraction were verified cache hits, network calls/downloads were zero, all 15 extracted files remained regular `.gpkg` files, independent validation passed, and runtime was 5.510 seconds. Archive SHA256 remained `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`; the catalog contains 15 packages, 15 layers, 195 fields, 11,381 features, zero non-GeoPackage files, and content SHA256 `557e17bda046624a4f3507aa883993d16133a921a4616949ba732ab4ee70bb9c`.
+
+| Relative package path | File SHA256 | Layer name | Features | Geometry type raw | CRS authority | Fields | Total bounds |
+|---|---|---|---:|---|---|---:|---|
+| `EP/sig_blm.gpkg` | `a183bcdf38f508943a7535b39a4d34c419595adbf9419e49f3d3238cf7dc6699` | `sig_blm` | 4 | `MultiPolygon` | `EPSG:32620` | 13 | `(494954.0137, 1950470.0043, 583112.9093, 2025155.2335)` |
+| `EP/sig_cli.gpkg` | `c150500dbb5e99060ad507e7950f39fc10084d3c98a4727dd7f144e5616107d6` | `sig_cli` | 1 | `MultiPolygon` | `EPSG:32612` | 13 | `(671080.0864, 1115373.3362, 719382.0443, 1163548.3188)` |
+| `EP/sig_epa.gpkg` | `a5ab3fa031af445470c4462565acfd55f904284ff1f012471b95b06aea4de125` | `sig_epa` | 5 | `MultiPolygon` | `EPSG:32738` | 13 | `(-3789.25600000005, 7493062.0841, 880937.7261, 8822044.5043)` |
+| `EP/sig_glp.gpkg` | `802cde41d4f2e27f001ebe5da9742d9d519e51fe1b8a8a77624481c2dd791fc8` | `sig_glp` | 94 | `MultiPolygon` | `EPSG:32620` | 13 | `(519927.9637, 1665713.2503, 1083293.01, 2055310.133)` |
+| `EP/sig_guf.gpkg` | `f52c3c9561af5b638dd17c1b6f14d755b2d2898e1ef0ba678650fc7fd2eacc33` | `sig_guf` | 42 | `MultiPolygon` | `EPSG:2972` | 13 | `(99570.4873000002, 233520.0645, 429623.8876, 642298.9683)` |
+| `EP/sig_maf.gpkg` | `17d5062e67ec8fee3cd70454f595f4b6a312fe4634c4176538768084a56edf1d` | `sig_maf` | 21 | `MultiPolygon` | `EPSG:32620` | 13 | `(434790.4656, 1976185.5268, 524921.2136, 2011241.6704)` |
+| `EP/sig_metrop.gpkg` | `57c18dedcaeb28aa40c74af2d273d0f1f48678a9249ab01a2978c1d6977f7583` | `sig_metrop` | 10,872 | `MultiPolygon` | `EPSG:2154` | 13 | `(75945.1652000025, 5984426.6673, 1401587.5623, 7135517.6259)` |
+| `EP/sig_mtq.gpkg` | `b585dcad51dc78cc5f273a2c2da2eb3c3e2ff03ece303ec3111ceb7fee97acf5` | `sig_mtq` | 79 | `MultiPolygon` | `EPSG:32620` | 13 | `(520055.1595, 1556643.2723, 1085571.1993, 1833951.5644)` |
+| `EP/sig_myt.gpkg` | `c99b60758a6472bf900c45ea9158686407d98c5f2bc296733401577b3868e2d4` | `sig_myt` | 30 | `MultiPolygon` | `EPSG:32738` | 13 | `(350109.8306, 8393412.0014, 681383.3389, 8768462.8917)` |
+| `EP/sig_ncl.gpkg` | `2348f34420b59a930dfd93994ebff3d9c9f9ae6c9e3c98edd5057583e1959d51` | `sig_ncl` | 88 | `MultiPolygon` | `EPSG:32758` | 13 | `(-421565.3768, 7101762.9457, 1438096.3286, 8360168.8313)` |
+| `EP/sig_pyf.gpkg` | `8db8a10fcf6cf1914a9664f1fcfbfdd24379ad61fd16bd173a6086dc83d9e6de` | `sig_pyf` | 87 | `MultiPolygon` | `EPSG:32705` | 13 | `(-49643.5285999998, 6502679.0036, 2725834.7579, 9485760.0085)` |
+| `EP/sig_reu.gpkg` | `341ce23f76e10d465fea74df0891bca2dd51a97096f902f1e8d735164ccc2b52` | `sig_reu` | 44 | `MultiPolygon` | `EPSG:2975` | 13 | `(313642.529999606, 7634489.4428, 379236.6, 7690882.3864)` |
+| `EP/sig_spm.gpkg` | `6db736b64ee13ab2223e45476ec243ccfd549fa81188463c6e453200cecca356` | `sig_spm` | 2 | `MultiPolygon` | `EPSG:32621` | 13 | `(547977.7866747527, 5184547.6196, 563865.1536, 5209816.029657059)` |
+| `EP/sig_subant.gpkg` | `23e8f1fc2e0ee2a4650da801a2544d2c5a1091d6351adee9f621cd88e02fc61d` | `sig_subant` | 11 | `MultiPolygon` | `EPSG:32342` | 13 | `(-1337689.9373, 4100873.8107, 1631467.1533, 6155468.5163)` |
+| `EP/sig_tadl.gpkg` | `831aea828fbb02bfd428f82c183ed8217e6dada572f2dc4797ac2e6ccca60fe7` | `sig_tadl` | 1 | `MultiPolygon` | `EPSG:32753` | 13 | `(140.000388639325, -66.6746135205968, 140.027762750552, -66.660531007899)` |
+
+- Tests and gates: the extraction suite passed 140 tests in 1.71 seconds; the catalog suite passed 58 tests in 3.12 seconds; the combined focused suites passed 198 tests in 4.26 seconds; and the complete repository passed 3,193 tests with 4 expected warnings in 1,192.72 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 103 Python files formatted; `uv run mypy src` reported no issues in 49 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: acquisition inventory, physical metadata catalog, environmental category semantics, parcel spatial relation, environmental policy, and scoring remain distinct stages. This step assigns no category meaning, makes no Natura 2000 or ZNIEFF interpretation, loads no parcels or feature rows, computes no parcel intersection/distance, creates no environmental exclusion/suitability result, and performs no scoring or ranking.
 
 ## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions
 
@@ -4361,4 +4392,4 @@ All distances remain 2D planar proxy distances calculated in EPSG:2154 from full
 Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
 
 No BESS grid-distance threshold is selected here.
-````
+```

@@ -2,7 +2,7 @@
 
 ## Current implemented scope
 
-The environment domain currently implements only acquisition, exact snapshot verification, safe caching/extraction, and complete file inventory for the PatriNat/INPN protected-areas reference archive. No production module opens those GeoPackages for environmental semantics or parcel analysis.
+The environment domain currently implements acquisition, exact snapshot verification, safe caching/extraction, complete file inventory, and metadata-only physical GeoPackage cataloging for the PatriNat/INPN protected-areas reference archive. The catalog opens OGR metadata only; no production module reads feature rows, assigns environmental semantics, or performs parcel analysis.
 
 ```mermaid
 flowchart TD
@@ -11,7 +11,9 @@ flowchart TD
     Download --> Bytes[InpnProtectedAreasDownload]
     Bytes --> Extract[extract_inpn_protected_areas_archive]
     Extract --> Inventory[InpnProtectedAreasExtraction and exact file inventory]
-    Inventory -. not implemented .-> Semantics[Category interpretation]
+    Inventory --> Revalidate[validate_inpn_protected_areas_extraction]
+    Revalidate --> Catalog[metadata-only InpnProtectedAreasCatalog]
+    Catalog -. not implemented .-> Semantics[Category interpretation]
     Semantics -. not implemented .-> Overlay[Parcel intersection]
     Overlay -. not implemented .-> Decision[Environmental score or exclusion]
 ```
@@ -64,20 +66,26 @@ Extraction never calls `extractall`; validated regular members are streamed to e
 
 Directory rebuild completes and validates under `.part` while the old cache remains intact, then publishes transactionally with `.bak` rollback. Recovery material is preserved on rollback failure.
 
+## Metadata-only physical catalog
+
+`validate_inpn_protected_areas_extraction` reconstructs configuration and download authority, rescans and hashes the complete extraction, validates the marker, exact-compares the supplied inventory, and returns a newly constructed extraction from fresh physical facts. `build_inpn_protected_areas_catalog` uses only `pyogrio.list_layers` and `pyogrio.read_info(..., force_feature_count=True, force_total_bounds=True)`. It preserves deterministic package, layer, and field order; exact feature counts and geometry-type text; raw and canonical CRS evidence; bounds; archive/package hashes; and aggregate counts. It revalidates the full extraction before and after inspection. `validate_inpn_protected_areas_catalog` checks every intrinsic field and independently rebuilds and exact-compares the catalog.
+
+Catalog hash schema 1 uses canonical JSON over portable factual content. Absolute cache/extraction paths, cache-hit state, timestamps, Python representations, and object identity are excluded.
+
 ## Current factual result
 
-The approved snapshot contains 15 regular extracted files recorded by path/size/SHA. Their `.gpkg` suffix is an inventory fact only. The source adapter does not classify protected-area categories or open GIS layers.
+The approved snapshot contains 15 regular extracted files recorded by path/size/SHA; all 15 are GeoPackages. Controlled offline metadata inspection found 15 OGR layers, 195 ordered fields, and 11,381 total features. Its catalog content SHA256 is `557e17bda046624a4f3507aa883993d16133a921a4616949ba732ab4ee70bb9c`. These are physical metadata facts only; the source and catalog adapters do not classify protected-area categories.
 
 ## Explicitly not implemented
 
 - protected-area category semantics;
 - Natura 2000 interpretation;
 - ZNIEFF interpretation;
-- protected-area geometry/layer selection;
+- semantic protected-area geometry/layer selection;
 - parcel intersection or distance;
 - environmental evidence policy;
 - exclusion or suitability decision;
 - environmental or global score;
 - parcel rejection/ranking.
 
-Future environmental work must start from this exact source-bound extraction and introduce its own reviewed category, geometry, CRS, provenance, and parcel-analysis contracts; this document does not invent them.
+Future environmental work must start from this exact source-bound catalog and introduce its own reviewed category, geometry-selection, provenance, and parcel-analysis contracts; this document does not invent them.

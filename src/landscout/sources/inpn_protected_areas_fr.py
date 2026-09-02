@@ -994,6 +994,93 @@ def extract_inpn_protected_areas_archive(
             pass
 
 
+def validate_inpn_protected_areas_extraction(
+    extraction: InpnProtectedAreasExtraction,
+    config: InpnProtectedAreasSourceConfig,
+) -> InpnProtectedAreasExtraction:
+    """Rebuild one extraction envelope from its current verified physical files."""
+
+    try:
+        validated_config = _validated_config(config)
+        if type(extraction) is not InpnProtectedAreasExtraction:
+            raise InpnProtectedAreasSourceError(
+                "extraction must be an exact InpnProtectedAreasExtraction"
+            )
+        if type(extraction.download) is not InpnProtectedAreasDownload:
+            raise InpnProtectedAreasSourceError(
+                "extraction download must be an exact InpnProtectedAreasDownload"
+            )
+        if not isinstance(extraction.extraction_path, Path):
+            raise InpnProtectedAreasSourceError(
+                "extraction path must be a pathlib Path"
+            )
+        if type(extraction.cache_hit) is not bool:
+            raise InpnProtectedAreasSourceError("extraction cache_hit must be boolean")
+        if type(extraction.files) is not tuple or any(
+            type(item) is not InpnProtectedAreasExtractedFile
+            for item in extraction.files
+        ):
+            raise InpnProtectedAreasSourceError(
+                "extraction inventory must be an exact immutable file tuple"
+            )
+        for item in extraction.files:
+            _validate_inventory_relative_path(item.relative_path)
+            if type(item.file_size) is not int or item.file_size < 0:
+                raise InpnProtectedAreasSourceError(
+                    "extraction inventory file size must be a non-negative integer"
+                )
+            if (
+                type(item.sha256) is not str
+                or re.fullmatch(r"[0-9a-f]{64}", item.sha256) is None
+            ):
+                raise InpnProtectedAreasSourceError(
+                    "extraction inventory file SHA256 is invalid"
+                )
+
+        validated_download = _validate_download(
+            extraction.download,
+            validated_config,
+        )
+        expected_root = validated_download.path.parent / "x" / validated_download.sha256
+        if extraction.extraction_path != expected_root:
+            raise InpnProtectedAreasSourceError(
+                "extraction path differs from the configured source identity"
+            )
+        fresh_files = _validate_extraction_cache(expected_root, validated_download)
+        if extraction.files != fresh_files:
+            raise InpnProtectedAreasSourceError(
+                "extraction inventory differs from the fresh physical inventory"
+            )
+        fresh_download = InpnProtectedAreasDownload(
+            provider=validated_download.provider,
+            authority=validated_download.authority,
+            program=validated_download.program,
+            dataset_id=validated_download.dataset_id,
+            dataset_name=validated_download.dataset_name,
+            declared_version=validated_download.declared_version,
+            reference_page_url=validated_download.reference_page_url,
+            archive_url=validated_download.archive_url,
+            download_timestamp=validated_download.download_timestamp,
+            filename=validated_download.filename,
+            file_size=validated_download.file_size,
+            sha256=validated_download.sha256,
+            path=validated_download.path,
+            cache_hit=validated_download.cache_hit,
+        )
+        return InpnProtectedAreasExtraction(
+            download=fresh_download,
+            extraction_path=expected_root,
+            files=fresh_files,
+            cache_hit=extraction.cache_hit,
+        )
+    except InpnProtectedAreasSourceError:
+        raise
+    except (AttributeError, OSError, TypeError, ValueError) as error:
+        raise InpnProtectedAreasSourceError(
+            "INPN protected-areas extraction revalidation failed safely"
+        ) from error
+
+
 __all__ = [
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
@@ -1003,4 +1090,5 @@ __all__ = [
     "download_inpn_protected_areas_archive",
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
+    "validate_inpn_protected_areas_extraction",
 ]

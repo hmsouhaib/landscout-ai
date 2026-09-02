@@ -6,17 +6,17 @@
 - File type: Python source
 - Layer: source adapter
 - Domain: official source acquisition and physical authority
-- Responsibility: Acquires the pinned PatriNat/INPN EP archive and safely caches, validates, extracts, and inventories its files.
-- Source SHA256: `e3bde487e43bfb70fa0edc7ad39a0231cbac7163c167793984dc947ea35cf6b4`
+- Responsibility: Acquires the pinned PatriNat/INPN EP archive and safely caches, validates, extracts, inventories, and freshly revalidates its files.
+- Source SHA256: `f9f525fdf0255cc4ec8589f1f3ee20993ddddcc4ab1be0e9d02e04fc3a7a650d`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1B.1 contract delta
 
-- Moves trust-bearing configuration/cache/extraction JSON/YAML to shared strict decoders and strict finite numeric models without changing the pinned EP snapshot.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Adds `validate_inpn_protected_areas_extraction`, the public source-complete boundary used by physical metadata cataloging.
+- The validator reconstructs exact config/download authority, rescans and hashes every extracted regular file, validates the extraction marker, exact-compares the supplied inventory, and returns a fresh object. The pinned EP bytes, schemas, and acquisition behavior do not change.
 
 ## 2. Purpose and architectural position
 
-Acquires the pinned PatriNat/INPN EP archive and safely caches, validates, extracts, and inventories its files.
+Acquires the pinned PatriNat/INPN EP archive and safely caches, validates, extracts, inventories, and freshly revalidates its files.
 
 The file belongs to the **source adapter** layer and **official source acquisition and physical authority** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -4328,6 +4328,13 @@ def extract_inpn_protected_areas_archive(
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
 
+### `validate_inpn_protected_areas_extraction`
+
+- Signature: `validate_inpn_protected_areas_extraction(extraction: InpnProtectedAreasExtraction, config: InpnProtectedAreasSourceConfig) -> InpnProtectedAreasExtraction`.
+- Requires exact source-bound runtime types and immutable tuple inventory domains.
+- Reconstructs/revalidates config and embedded download, requires the configured extraction root, validates exact `cache_hit`, physically rebuilds the current inventory through the schema-v1 marker boundary, and exact-compares the caller tuple.
+- Returns newly constructed download/extraction objects whose file tuple comes from the fresh physical scan. Controlled source errors contain filesystem/type failures.
+
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `DOWNLOAD_METADATA_SCHEMA_VERSION`, `EXTRACTION_METADATA_SCHEMA_VERSION`.
@@ -4347,6 +4354,7 @@ Exact `__all__` members and local origins:
 | `download_inpn_protected_areas_archive` | `landscout.sources.inpn_protected_areas_fr.download_inpn_protected_areas_archive` |
 | `extract_inpn_protected_areas_archive` | `landscout.sources.inpn_protected_areas_fr.extract_inpn_protected_areas_archive` |
 | `load_inpn_protected_areas_source_config` | `landscout.sources.inpn_protected_areas_fr.load_inpn_protected_areas_source_config` |
+| `validate_inpn_protected_areas_extraction` | `landscout.sources.inpn_protected_areas_fr.validate_inpn_protected_areas_extraction` |
 
 ## 9. Trust, provenance, side effects, and business boundary
 
@@ -4360,7 +4368,7 @@ A source-byte change invalidates the SHA above and requires re-auditing imports/
 
 ## 11. Exact complete current file content
 
-The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+This byte-bound snapshot is the complete current repository file.
 
 ```python
 """Verified acquisition and factual inventory of the official INPN EP archive.
@@ -5359,6 +5367,93 @@ def extract_inpn_protected_areas_archive(
             pass
 
 
+def validate_inpn_protected_areas_extraction(
+    extraction: InpnProtectedAreasExtraction,
+    config: InpnProtectedAreasSourceConfig,
+) -> InpnProtectedAreasExtraction:
+    """Rebuild one extraction envelope from its current verified physical files."""
+
+    try:
+        validated_config = _validated_config(config)
+        if type(extraction) is not InpnProtectedAreasExtraction:
+            raise InpnProtectedAreasSourceError(
+                "extraction must be an exact InpnProtectedAreasExtraction"
+            )
+        if type(extraction.download) is not InpnProtectedAreasDownload:
+            raise InpnProtectedAreasSourceError(
+                "extraction download must be an exact InpnProtectedAreasDownload"
+            )
+        if not isinstance(extraction.extraction_path, Path):
+            raise InpnProtectedAreasSourceError(
+                "extraction path must be a pathlib Path"
+            )
+        if type(extraction.cache_hit) is not bool:
+            raise InpnProtectedAreasSourceError("extraction cache_hit must be boolean")
+        if type(extraction.files) is not tuple or any(
+            type(item) is not InpnProtectedAreasExtractedFile
+            for item in extraction.files
+        ):
+            raise InpnProtectedAreasSourceError(
+                "extraction inventory must be an exact immutable file tuple"
+            )
+        for item in extraction.files:
+            _validate_inventory_relative_path(item.relative_path)
+            if type(item.file_size) is not int or item.file_size < 0:
+                raise InpnProtectedAreasSourceError(
+                    "extraction inventory file size must be a non-negative integer"
+                )
+            if (
+                type(item.sha256) is not str
+                or re.fullmatch(r"[0-9a-f]{64}", item.sha256) is None
+            ):
+                raise InpnProtectedAreasSourceError(
+                    "extraction inventory file SHA256 is invalid"
+                )
+
+        validated_download = _validate_download(
+            extraction.download,
+            validated_config,
+        )
+        expected_root = validated_download.path.parent / "x" / validated_download.sha256
+        if extraction.extraction_path != expected_root:
+            raise InpnProtectedAreasSourceError(
+                "extraction path differs from the configured source identity"
+            )
+        fresh_files = _validate_extraction_cache(expected_root, validated_download)
+        if extraction.files != fresh_files:
+            raise InpnProtectedAreasSourceError(
+                "extraction inventory differs from the fresh physical inventory"
+            )
+        fresh_download = InpnProtectedAreasDownload(
+            provider=validated_download.provider,
+            authority=validated_download.authority,
+            program=validated_download.program,
+            dataset_id=validated_download.dataset_id,
+            dataset_name=validated_download.dataset_name,
+            declared_version=validated_download.declared_version,
+            reference_page_url=validated_download.reference_page_url,
+            archive_url=validated_download.archive_url,
+            download_timestamp=validated_download.download_timestamp,
+            filename=validated_download.filename,
+            file_size=validated_download.file_size,
+            sha256=validated_download.sha256,
+            path=validated_download.path,
+            cache_hit=validated_download.cache_hit,
+        )
+        return InpnProtectedAreasExtraction(
+            download=fresh_download,
+            extraction_path=expected_root,
+            files=fresh_files,
+            cache_hit=extraction.cache_hit,
+        )
+    except InpnProtectedAreasSourceError:
+        raise
+    except (AttributeError, OSError, TypeError, ValueError) as error:
+        raise InpnProtectedAreasSourceError(
+            "INPN protected-areas extraction revalidation failed safely"
+        ) from error
+
+
 __all__ = [
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
@@ -5368,5 +5463,6 @@ __all__ = [
     "download_inpn_protected_areas_archive",
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
+    "validate_inpn_protected_areas_extraction",
 ]
 ```

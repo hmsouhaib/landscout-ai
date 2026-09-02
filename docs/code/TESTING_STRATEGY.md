@@ -18,7 +18,7 @@ Tests create real Shapely geometries and GeoDataFrames to exercise CRS, validity
 
 ### Synthetic physical sources
 
-Cadastre tests use real gzip GeoJSON sources to prove `CadastreParcelSource` binds official download identity and normalization consumes a fresh exact physical reread. IGN/GPU tests write temporary archives/GeoPackages and use physical alternate layers, globally colliding roles, inventories, summaries, marker files, recovery states, and byte tampering. These tests are stronger than coordinated in-memory frame mutations because public revalidators must reproduce configured roles/config identity and use freshly reread verified physical bytes.
+Cadastre tests use real gzip GeoJSON sources to prove `CadastreParcelSource` binds official download identity and normalization consumes a fresh exact physical reread. IGN/GPU tests write temporary archives/GeoPackages and use physical alternate layers, globally colliding roles, inventories, summaries, marker files, recovery states, and byte tampering. INPN catalog tests use synthetic spatial, non-spatial, empty, multilayer, and multipackage GeoPackages to prove complete ordered metadata inspection, Unicode identity collision rejection, strict count/CRS/bounds domains, canonical hashing, pre/post byte protection, and independent physical rebuild validation. Feature-row readers are patched to fail. These tests are stronger than coordinated in-memory mutations because public revalidators must reproduce physical source authority from freshly verified bytes.
 
 ### Safe network boundary
 

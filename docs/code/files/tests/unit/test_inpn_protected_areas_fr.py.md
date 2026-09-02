@@ -7,12 +7,12 @@
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
 - Responsibility: Provides complete unit and regression coverage for the `inpn_protected_areas_fr` contracts exercised in this file.
-- Source SHA256: `dfa10d1c6a5e3e5fbdc125ba119c5124d7f1d38636684383291269fbde5428f7`
+- Source SHA256: `3de30791195ceaa0b42b863626513920e1f90335b726e17747d847180070af8a`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1B.1 contract delta
 
-- Refreshes permanent STEP 7F.1A.4 regression coverage for inpn protected areas fr; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Adds permanent public extraction-revalidation coverage without altering the existing acquisition/cache/ZIP/extraction suite.
+- Regressions require fresh returned objects, exact types and configured path, caller tuple equality, current path/size/SHA facts, missing/extra/same-size mutation rejection, and link/junction rejection.
 
 ## 2. Purpose and architectural position
 
@@ -7890,9 +7890,13 @@ def test_no_stale_parts_after_download_or_extraction_success(tmp_path: Path) -> 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
+### STEP 7F.1B.1 extraction revalidation regressions
+
+The appended tests prove that a valid extraction returns newly constructed source-bound objects; wrong types/paths and forged path/size/SHA records fail; physical missing, extra, and same-size content changes fail; and simulated links/junctions fail. These tests use only synthetic local ZIP/extraction bytes.
+
 ## 7. Test-specific regression contract
 
-- Test functions: **50**.
+- Test functions: **56**.
 - Pytest fixtures (decorator-proven): **0**.
 
 ### Per-test regression index
@@ -7966,7 +7970,7 @@ A source-byte change invalidates the SHA above and requires re-auditing imports/
 
 ## 11. Exact complete current file content
 
-The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+This byte-bound snapshot is the complete current repository file.
 
 ```python
 from __future__ import annotations
@@ -8001,6 +8005,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     download_inpn_protected_areas_archive,
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
+    validate_inpn_protected_areas_extraction,
 )
 
 CONFIG_PATH = Path("configs/sources/inpn_protected_areas_fr.yaml")
@@ -8013,6 +8018,7 @@ EXPECTED_EXPORTS = {
     "download_inpn_protected_areas_archive",
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
+    "validate_inpn_protected_areas_extraction",
 }
 
 
@@ -9421,4 +9427,104 @@ def test_no_stale_parts_after_download_or_extraction_success(tmp_path: Path) -> 
     assert extraction.extraction_path.is_dir()
     assert not list(Path(config.cache_root).rglob("*.part"))
     assert not list(Path(config.cache_root).rglob("*.bak"))
+
+
+def test_extraction_revalidation_returns_fresh_source_bound_result(
+    tmp_path: Path,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+
+    fresh = validate_inpn_protected_areas_extraction(extraction, config)
+
+    assert fresh == extraction
+    assert fresh is not extraction
+    assert fresh.download is not extraction.download
+    assert fresh.files is not extraction.files
+
+
+@pytest.mark.parametrize("bad_extraction", [None, object(), True])
+def test_extraction_revalidation_rejects_wrong_type(
+    tmp_path: Path,
+    bad_extraction: object,
+) -> None:
+    with pytest.raises(InpnProtectedAreasSourceError, match="extraction|type"):
+        validate_inpn_protected_areas_extraction(
+            bad_extraction,  # type: ignore[arg-type]
+            _config(tmp_path),
+        )
+
+
+def test_extraction_revalidation_rejects_wrong_path(tmp_path: Path) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    forged = replace(extraction, extraction_path=tmp_path / "other")
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="path|extraction"):
+        validate_inpn_protected_areas_extraction(forged, config)
+
+
+@pytest.mark.parametrize("mutation", ["path", "size", "sha256"])
+def test_extraction_revalidation_rejects_forged_file_inventory(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    item = extraction.files[0]
+    if mutation == "path":
+        forged_item = replace(item, relative_path="EP/forged.txt")
+    elif mutation == "size":
+        forged_item = replace(item, file_size=item.file_size + 1)
+    else:
+        forged_item = replace(item, sha256="0" * 64)
+    forged = replace(extraction, files=(forged_item,))
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="inventory|extraction"):
+        validate_inpn_protected_areas_extraction(forged, config)
+
+
+@pytest.mark.parametrize("mutation", ["missing", "extra", "content"])
+def test_extraction_revalidation_rejects_physical_inventory_mutation(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    path = extraction.extraction_path.joinpath(
+        *extraction.files[0].relative_path.split("/")
+    )
+    if mutation == "missing":
+        path.unlink()
+    elif mutation == "extra":
+        (extraction.extraction_path / "extra.txt").write_bytes(b"extra")
+    else:
+        payload = path.read_bytes()
+        path.write_bytes(b"x" * len(payload))
+
+    with pytest.raises(
+        InpnProtectedAreasSourceError,
+        match="physical|inventory|cache|Extracted",
+    ):
+        validate_inpn_protected_areas_extraction(extraction, config)
+
+
+def test_extraction_revalidation_rejects_link_or_junction_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    target = extraction.extraction_path.joinpath(
+        *extraction.files[0].relative_path.split("/")
+    )
+    original = inpn._is_link_or_junction
+
+    def simulated_link(path: Path) -> bool:
+        return path == target or original(path)
+
+    monkeypatch.setattr(inpn, "_is_link_or_junction", simulated_link)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="link|junction|physical"):
+        validate_inpn_protected_areas_extraction(extraction, config)
 ```

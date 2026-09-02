@@ -89,7 +89,10 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - Cold download and cache reuse require exact configured size/SHA plus strict schema-v1 sidecar equality.
 - ZIP validation examines the complete inventory before manual extraction and rejects traversal, platform collisions, links/special files, encryption, and unsafe destinations.
 - The schema-v1 extraction marker binds archive SHA/size and a lexically ordered full regular-file inventory. Cache reuse rescans and rehashes every file and rejects missing, modified, renamed, extra, linked, or special entries.
-- The current chain stops at factual inventory; it does not open a protected-area GeoPackage in a production analysis stage.
+- `validate_inpn_protected_areas_extraction` reconstructs exact config/download authority, physically rescans and rehashes the complete extraction, validates the marker, exact-compares the caller tuple, and returns a fresh source-bound object.
+- The metadata-only catalog validates every GeoPackage's bytes and safe contained path, catalogs every OGR-visible layer and ordered field, and records exact counts, uninterpreted geometry metadata, canonical CRS evidence, bounds, and portable canonical-JSON identity. Full extraction validation before and after inspection closes the catalog-build mutation window.
+- `validate_inpn_protected_areas_catalog` validates every intrinsic domain and source lock, independently rebuilds from fresh physical files, and exact-compares the complete result rather than trusting its hash alone.
+- The current chain stops at factual physical metadata. It does not materialize protected-area feature rows, interpret categories, or perform parcel analysis.
 
 ## Cache recovery as trust state
 

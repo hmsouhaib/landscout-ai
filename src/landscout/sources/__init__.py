@@ -77,6 +77,15 @@ from landscout.sources.ign_bdtopo_fr import (
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )
+from landscout.sources.inpn_protected_areas_catalog_fr import (
+    InpnProtectedAreasCatalog,
+    InpnProtectedAreasCatalogError,
+    InpnProtectedAreasFieldCatalog,
+    InpnProtectedAreasGeoPackageCatalog,
+    InpnProtectedAreasLayerCatalog,
+    build_inpn_protected_areas_catalog,
+    validate_inpn_protected_areas_catalog,
+)
 from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
@@ -86,6 +95,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     download_inpn_protected_areas_archive,
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
+    validate_inpn_protected_areas_extraction,
 )
 from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
@@ -144,9 +154,14 @@ __all__ = [
     "IgnBdTopoLogicalLayersConfig",
     "IgnBdTopoRoadData",
     "IgnBdTopoSourceConfig",
+    "InpnProtectedAreasCatalog",
+    "InpnProtectedAreasCatalogError",
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
     "InpnProtectedAreasExtraction",
+    "InpnProtectedAreasFieldCatalog",
+    "InpnProtectedAreasGeoPackageCatalog",
+    "InpnProtectedAreasLayerCatalog",
     "InpnProtectedAreasSourceConfig",
     "InpnProtectedAreasSourceError",
     "MissingGeometryColumnError",
@@ -161,6 +176,7 @@ __all__ = [
     "build_gpu_document_list_url",
     "build_gpu_partition",
     "build_gpu_partition_download_url",
+    "build_inpn_protected_areas_catalog",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
     "discover_current_gpu_document",
@@ -192,4 +208,6 @@ __all__ = [
     "revalidate_gpu_spatial_layer_sources",
     "validate_gpu_archive",
     "validate_ign_bdtopo_archive",
+    "validate_inpn_protected_areas_catalog",
+    "validate_inpn_protected_areas_extraction",
 ]

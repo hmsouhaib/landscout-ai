@@ -6,17 +6,17 @@
 - File type: Python source
 - Layer: source adapter
 - Domain: official source acquisition and physical authority
-- Responsibility: Re-exports approved source-bound adapter APIs, including the Cadastre parcel source boundary, without presenting raw-path helpers as equivalent trust roots.
-- Source SHA256: `260f039d39728f2f7a8892f8a6549dff659d1b235c68390c94c16f0005032bba`
+- Responsibility: Re-exports approved source-bound adapter APIs, including Cadastre authority and INPN extraction/catalog trust boundaries, without presenting raw-path helpers as equivalent trust roots.
+- Source SHA256: `113c9fcf94d926f244f795844e115a42398e2ffcb15b3ed380583831fd234987`
 
-## 1. STEP 7F.1A.4 contract delta
+## 1. STEP 7F.1B.1 contract delta
 
-- Publishes the approved source-bound Cadastre API while retaining the distinction between high-level authority and raw-path helpers.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- Publishes the source-complete INPN extraction validator and the immutable catalog models, controlled error, builder, and independent validator.
+- Low-level path/metadata helpers remain internal; no environmental semantic API is exported.
 
 ## 2. Purpose and architectural position
 
-Re-exports approved source-bound adapter APIs, including the Cadastre parcel source boundary, without presenting raw-path helpers as equivalent trust roots.
+Re-exports approved source-bound adapter APIs, including Cadastre authority and INPN extraction/catalog trust boundaries, without presenting raw-path helpers as equivalent trust roots.
 
 The file belongs to the **source adapter** layer and **official source acquisition and physical authority** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -111,6 +111,15 @@ The file belongs to the **source adapter** layer and **official source acquisiti
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )`
+- `from landscout.sources.inpn_protected_areas_catalog_fr import (
+    InpnProtectedAreasCatalog,
+    InpnProtectedAreasCatalogError,
+    InpnProtectedAreasFieldCatalog,
+    InpnProtectedAreasGeoPackageCatalog,
+    InpnProtectedAreasLayerCatalog,
+    build_inpn_protected_areas_catalog,
+    validate_inpn_protected_areas_catalog,
+)`
 - `from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
@@ -120,6 +129,7 @@ The file belongs to the **source adapter** layer and **official source acquisiti
     download_inpn_protected_areas_archive,
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
+    validate_inpn_protected_areas_extraction,
 )`
 - `from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
@@ -188,9 +198,14 @@ __all__ = [
     "IgnBdTopoLogicalLayersConfig",
     "IgnBdTopoRoadData",
     "IgnBdTopoSourceConfig",
+    "InpnProtectedAreasCatalog",
+    "InpnProtectedAreasCatalogError",
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
     "InpnProtectedAreasExtraction",
+    "InpnProtectedAreasFieldCatalog",
+    "InpnProtectedAreasGeoPackageCatalog",
+    "InpnProtectedAreasLayerCatalog",
     "InpnProtectedAreasSourceConfig",
     "InpnProtectedAreasSourceError",
     "MissingGeometryColumnError",
@@ -205,6 +220,7 @@ __all__ = [
     "build_gpu_document_list_url",
     "build_gpu_partition",
     "build_gpu_partition_download_url",
+    "build_inpn_protected_areas_catalog",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
     "discover_current_gpu_document",
@@ -236,6 +252,8 @@ __all__ = [
     "revalidate_gpu_spatial_layer_sources",
     "validate_gpu_archive",
     "validate_ign_bdtopo_archive",
+    "validate_inpn_protected_areas_catalog",
+    "validate_inpn_protected_areas_extraction",
 ]
 ```
 
@@ -284,9 +302,14 @@ __all__ = [
   - `IgnBdTopoLogicalLayersConfig`
   - `IgnBdTopoRoadData`
   - `IgnBdTopoSourceConfig`
+  - `InpnProtectedAreasCatalog`
+  - `InpnProtectedAreasCatalogError`
   - `InpnProtectedAreasDownload`
   - `InpnProtectedAreasExtractedFile`
   - `InpnProtectedAreasExtraction`
+  - `InpnProtectedAreasFieldCatalog`
+  - `InpnProtectedAreasGeoPackageCatalog`
+  - `InpnProtectedAreasLayerCatalog`
   - `InpnProtectedAreasSourceConfig`
   - `InpnProtectedAreasSourceError`
   - `MissingGeometryColumnError`
@@ -301,6 +324,7 @@ __all__ = [
   - `build_gpu_document_list_url`
   - `build_gpu_partition`
   - `build_gpu_partition_download_url`
+  - `build_inpn_protected_areas_catalog`
   - `build_rte_odre_export_url`
   - `build_rte_odre_metadata_url`
   - `discover_current_gpu_document`
@@ -332,6 +356,8 @@ __all__ = [
   - `revalidate_gpu_spatial_layer_sources`
   - `validate_gpu_archive`
   - `validate_ign_bdtopo_archive`
+  - `validate_inpn_protected_areas_catalog`
+  - `validate_inpn_protected_areas_extraction`
 
 
 ### Executable module-import-time statements
@@ -399,9 +425,14 @@ Exact `__all__` members and local origins:
 | `IgnBdTopoLogicalLayersConfig` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayersConfig` |
 | `IgnBdTopoRoadData` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoRoadData` |
 | `IgnBdTopoSourceConfig` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig` |
+| `InpnProtectedAreasCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasCatalog` |
+| `InpnProtectedAreasCatalogError` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasCatalogError` |
 | `InpnProtectedAreasDownload` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasDownload` |
 | `InpnProtectedAreasExtractedFile` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasExtractedFile` |
 | `InpnProtectedAreasExtraction` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasExtraction` |
+| `InpnProtectedAreasFieldCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasFieldCatalog` |
+| `InpnProtectedAreasGeoPackageCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasGeoPackageCatalog` |
+| `InpnProtectedAreasLayerCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasLayerCatalog` |
 | `InpnProtectedAreasSourceConfig` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasSourceConfig` |
 | `InpnProtectedAreasSourceError` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasSourceError` |
 | `MissingGeometryColumnError` | `landscout.sources.cadastre_loader_fr.MissingGeometryColumnError` |
@@ -416,6 +447,7 @@ Exact `__all__` members and local origins:
 | `build_gpu_document_list_url` | `landscout.sources.gpu_fr.build_gpu_document_list_url` |
 | `build_gpu_partition` | `landscout.sources.gpu_fr.build_gpu_partition` |
 | `build_gpu_partition_download_url` | `landscout.sources.gpu_fr.build_gpu_partition_download_url` |
+| `build_inpn_protected_areas_catalog` | `landscout.sources.inpn_protected_areas_catalog_fr.build_inpn_protected_areas_catalog` |
 | `build_rte_odre_export_url` | `landscout.sources.rte_odre_fr.build_rte_odre_export_url` |
 | `build_rte_odre_metadata_url` | `landscout.sources.rte_odre_fr.build_rte_odre_metadata_url` |
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
@@ -447,6 +479,8 @@ Exact `__all__` members and local origins:
 | `revalidate_gpu_spatial_layer_sources` | `landscout.sources.gpu_fr.revalidate_gpu_spatial_layer_sources` |
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 | `validate_ign_bdtopo_archive` | `landscout.sources.ign_bdtopo_fr.validate_ign_bdtopo_archive` |
+| `validate_inpn_protected_areas_catalog` | `landscout.sources.inpn_protected_areas_catalog_fr.validate_inpn_protected_areas_catalog` |
+| `validate_inpn_protected_areas_extraction` | `landscout.sources.inpn_protected_areas_fr.validate_inpn_protected_areas_extraction` |
 
 ## 9. Trust, provenance, side effects, and business boundary
 
@@ -460,7 +494,7 @@ A source-byte change invalidates the SHA above and requires re-auditing imports/
 
 ## 11. Exact complete current file content
 
-The following UTF-8 snapshot is the complete current repository file, not an excerpt. Its raw-byte SHA256 is the value in **File identity**.
+This byte-bound snapshot is the complete current repository file.
 
 ```python
 from landscout.sources.cadastre_fr import (
@@ -542,6 +576,15 @@ from landscout.sources.ign_bdtopo_fr import (
     load_ign_bdtopo_source_config,
     validate_ign_bdtopo_archive,
 )
+from landscout.sources.inpn_protected_areas_catalog_fr import (
+    InpnProtectedAreasCatalog,
+    InpnProtectedAreasCatalogError,
+    InpnProtectedAreasFieldCatalog,
+    InpnProtectedAreasGeoPackageCatalog,
+    InpnProtectedAreasLayerCatalog,
+    build_inpn_protected_areas_catalog,
+    validate_inpn_protected_areas_catalog,
+)
 from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
@@ -551,6 +594,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     download_inpn_protected_areas_archive,
     extract_inpn_protected_areas_archive,
     load_inpn_protected_areas_source_config,
+    validate_inpn_protected_areas_extraction,
 )
 from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
@@ -609,9 +653,14 @@ __all__ = [
     "IgnBdTopoLogicalLayersConfig",
     "IgnBdTopoRoadData",
     "IgnBdTopoSourceConfig",
+    "InpnProtectedAreasCatalog",
+    "InpnProtectedAreasCatalogError",
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
     "InpnProtectedAreasExtraction",
+    "InpnProtectedAreasFieldCatalog",
+    "InpnProtectedAreasGeoPackageCatalog",
+    "InpnProtectedAreasLayerCatalog",
     "InpnProtectedAreasSourceConfig",
     "InpnProtectedAreasSourceError",
     "MissingGeometryColumnError",
@@ -626,6 +675,7 @@ __all__ = [
     "build_gpu_document_list_url",
     "build_gpu_partition",
     "build_gpu_partition_download_url",
+    "build_inpn_protected_areas_catalog",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
     "discover_current_gpu_document",
@@ -657,5 +707,7 @@ __all__ = [
     "revalidate_gpu_spatial_layer_sources",
     "validate_gpu_archive",
     "validate_ign_bdtopo_archive",
+    "validate_inpn_protected_areas_catalog",
+    "validate_inpn_protected_areas_extraction",
 ]
 ```
