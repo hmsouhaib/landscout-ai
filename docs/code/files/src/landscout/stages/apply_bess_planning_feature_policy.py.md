@@ -488,11 +488,17 @@ class _StrictModel(BaseModel):
 | `row_count` | `StrictInt` | `required` | `row_count: StrictInt` |
 | `size_bytes` | `StrictInt` | `required` | `size_bytes: StrictInt` |
 | `sha256` | `StrictStr` | `required` | `sha256: StrictStr` |
-| `frame_schema_signature` | `dict[StrictStr, object]` | `required` | `frame_schema_signature: dict[StrictStr, object]` |
+| `frame_schema_signature` | `Mapping[StrictStr, object]` | `required` | `frame_schema_signature: Mapping[StrictStr, object]` |
 | `geospatial` | `StrictBool` | `required` | `geospatial: StrictBool` |
-| `crs` | `dict[StrictStr, object] \| None` | `required` | `crs: dict[StrictStr, object] \| None` |
+| `crs` | `Mapping[StrictStr, object] \| None` | `required` | `crs: Mapping[StrictStr, object] \| None` |
 
 Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+
+**Source annotation, retained value, and serialization boundary**
+
+- Source annotations: `frame_schema_signature` is declared as `Mapping[StrictStr, object]`; `crs` is declared as `Mapping[StrictStr, object] | None`. Any Pydantic-compatible mapping satisfying those annotations may reach the model validator, where the stricter canonical-JSON mapping contract requires exact string keys and rejects unsupported leaves and cycles.
+- Retained runtime representation: `freeze_json_mapping` returns `FrozenDict[str, object]`. The retained mapping is deeply immutable and alias-free, and nested ordered collections are tuples.
+- Serialized representation: the field serializer calls `to_plain_json_value`. `model_dump(mode="json")` therefore exposes a fresh plain JSON-compatible structure in which mappings are dictionaries and tuples are lists; those mutable dictionaries/lists are not the retained runtime objects.
 
 **Qualified consumers**
 

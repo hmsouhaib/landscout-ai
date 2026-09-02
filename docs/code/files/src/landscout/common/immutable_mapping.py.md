@@ -56,67 +56,98 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 
 - Exact signature: `def __init__(self, value: Mapping[Key, Value]) -> None:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: create an immutable mapping whose backing dictionary is not aliased to the supplied mapping.
+- Ordered algorithm:
+  1. Iterate through `value.items()` and preserve every key.
+  2. Recursively process every member through the generic `freeze_value` helper.
+  3. Build a new ordinary dictionary, breaking the supplied mapping's backing alias.
+  4. Wrap the copied dictionary in `MappingProxyType`.
+  5. Install that private mapping exactly once through `object.__setattr__`.
+- Return/mutation behavior: initialization returns `None`; it does not mutate the supplied mapping and retains no mutable backing alias to that mapping itself.
+- Contract boundary: the constructor uses generic `freeze_value`; it does not itself enforce strict canonical-JSON leaf semantics. Contracts requiring exact JSON leaves, exact string keys, finite floats, and cycle rejection must enter through `freeze_json_value` or `freeze_json_mapping`.
 
 ### `FrozenDict.__getitem__`
 
 - Exact signature: `def __getitem__(self, key: Key) -> Value:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: provide mapping-key lookup over retained immutable state.
+- Algorithm: delegate the key lookup to the private retained mapping and return its already-frozen value.
+- Return/mutation behavior: returns the retained value without copying it and performs no mutation.
 
 ### `FrozenDict.__iter__`
 
 - Exact signature: `def __iter__(self) -> Iterator[Key]:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: expose standard mapping iteration over retained keys.
+- Algorithm: return the private mapping's key iterator, preserving the copied mapping's iteration order.
+- Return/mutation behavior: returns an iterator and performs no mutation.
 
 ### `FrozenDict.__len__`
 
 - Exact signature: `def __len__(self) -> int:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: report the retained mapping's cardinality.
+- Algorithm: delegate to `len(self._data)`.
+- Return/mutation behavior: returns the number of retained keys and performs no mutation.
 
 ### `FrozenDict.__repr__`
 
 - Exact signature: `def __repr__(self) -> str:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: provide a diagnostic representation of the immutable mapping.
+- Algorithm: create a temporary plain dictionary view of the retained mapping and format it inside `FrozenDict(...)` with `repr` conversion.
+- Return/mutation behavior: returns a string; it neither returns nor exposes the private dictionary created during initialization and does not make the object mutable.
 
 ### `FrozenDict.__eq__`
 
 - Exact signature: `def __eq__(self, other: object) -> bool:`
 - Decorators: none
-- Algorithm: compare the copied items as ordinary dictionaries when `other` is a mapping; otherwise return `False`.
+- Purpose: compare mapping content independently of the concrete mapping implementation.
+- Algorithm: when `other` is a `Mapping`, materialize both item views as temporary ordinary dictionaries and compare them; otherwise return `False`.
+- Return/mutation behavior: returns a boolean and mutates neither operand.
 
 ### `FrozenDict.__copy__`
 
 - Exact signature: `def __copy__(self) -> Self:`
 - Decorators: none
-- Algorithm: return the same instance. This is safe when the owning contract has already established that every retained value is recursively immutable.
+- Purpose: support shallow-copy operations without rebuilding immutable state.
+- Algorithm: return `self` directly.
+- Return/mutation behavior: returns the same instance and performs no mutation.
+- Contract boundary: returning `self` is safe only after the owning contract has established that every retained value is recursively immutable.
 
 ### `FrozenDict.__deepcopy__`
 
 - Exact signature: `def __deepcopy__(self, memo: dict[int, object]) -> Self:`
 - Decorators: none
-- Algorithm: record `self` under its object identity in `memo`, then return the same recursively immutable instance.
+- Purpose: support deep-copy operations without attempting to pickle or rebuild the private mapping proxy.
+- Algorithm: record `self` under its object identity in `memo`, then return `self`.
+- Return/mutation behavior: mutates only the caller-supplied copy memo, returns the same instance, and does not mutate retained mapping state.
+- Contract boundary: returning `self` is safe only after the owning contract has established that every retained value is recursively immutable.
 
 ### `FrozenDict.__setattr__`
 
 - Exact signature: `def __setattr__(self, name: str, value: object) -> None:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: prevent attribute replacement after the one controlled initialization write.
+- Algorithm: discard the attempted attribute name and value, then raise `TypeError("frozen mapping cannot be mutated")`.
+- Return/mutation behavior: never returns normally and prevents replacement of `_data`.
 
 ### `FrozenDict.__delattr__`
 
 - Exact signature: `def __delattr__(self, name: str) -> None:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: prevent deletion of retained attributes.
+- Algorithm: discard the attempted attribute name, then raise `TypeError("frozen mapping cannot be mutated")`.
+- Return/mutation behavior: never returns normally and prevents deletion of `_data`.
 
 ### `FrozenDict._immutable`
 
 - Exact signature: `def _immutable(self, *args: object, **kwargs: object) -> None:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: provide one controlled failure implementation for item and mapping mutation operations.
+- Algorithm: ignore all supplied positional and keyword arguments, then raise `TypeError("frozen mapping cannot be mutated")`.
+- Bound operations: `__setitem__`, `__delitem__`, `__ior__`, `clear`, `pop`, `popitem`, `setdefault`, and `update` are assigned to this implementation.
+- Return/mutation behavior: never returns normally and leaves retained state unchanged.
 
 ### `freeze_value`
 

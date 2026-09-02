@@ -7,12 +7,12 @@
 - Layer: engineering history
 - Domain: repository history
 - Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `a15a6effec3e3ce21fffa1bcc4d63f1ccd5d97579a661076ab65769c8571adae`
+- Source SHA256: `3d72798e3b6307f57d908c6f70e77f2ed6043568b3c58fea57509ee835a565c9`
 
-## 1. STEP 7F.1A.4.2.1 documentation synchronization delta
+## 1. STEP 7F.1A.4.2.2 canonical companion correction delta
 
-- Rebuilds stale canonical companion inventories from the current source and tests after the approved immutable-leaf hardening.
-- Integrates the current imports, symbols, algorithms, helper classes, decorators, and measured test counts into their normal sections; removes parallel 6B overrides without changing production or test behavior.
+- Records the final documentation-only correction after independent review of the approved immutable-leaf implementation and synchronized companions.
+- Restores exact `Mapping` artifact-record declarations, separates source annotations from retained `FrozenDict` values and fresh plain-JSON serialization, and completes every current `FrozenDict` method algorithm without changing production or test behavior.
 
 ## 2. Purpose and authority
 
@@ -26,6 +26,7 @@ Chronological headings present in the exact current history:
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions`
 - `## STEP 7F.1A.4.2.1 — Synchronize canonical living documentation`
 - `## STEP 7F.1A.4.2 — Reject mutable/non-canonical leaves in immutable integrity mappings`
 - `## STEP 7F.1A.4.1 — Make trust-bearing configuration deeply immutable`
@@ -286,11 +287,21 @@ The following UTF-8 snapshot is complete. Its raw-byte SHA256 is the value in **
 ## Current project state
 
 - Current phase: End-to-end source-authority and planning-completeness hardening
-- Latest completed step: STEP 7F.1A.4.2.1
-- Current step: STEP 7F.1A.4.2.1 complete
+- Latest completed step: STEP 7F.1A.4.2.2
+- Current step: STEP 7F.1A.4.2.2 complete
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: none selected
+
+## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions
+
+- Status: Complete. Independent review found two final documentation-only contradiction families after STEP 7F.1A.4.2.1: the application and aggregation artifact-record field tables represented source `Mapping` annotations as `dict` declarations, and eight current `FrozenDict` methods still relied on the complete source snapshot instead of an algorithm description.
+- Artifact-record correction: both field tables now reproduce the exact source annotations `Mapping[StrictStr, object]` and `Mapping[StrictStr, object] | None`. Each companion separately documents the Pydantic-compatible `Mapping` validation input, the deeply immutable and alias-free retained `FrozenDict[str, object]` representation, and the fresh plain dictionary/list representation produced by `to_plain_json_value` for JSON-mode serialization.
+- Immutable-mapping correction: all 11 current `FrozenDict` methods now state their exact signature, purpose, actual algorithm, and mutation/return behavior. The constructor documents its copied dictionary, recursive generic `freeze_value` processing, `MappingProxyType` seal, and one controlled `object.__setattr__` installation; lookup, iteration, length, representation, equality, copy/deep-copy, attribute blocking, and all `_immutable`-bound mapping mutation operations are explicit. Generic freezing remains distinct from strict canonical-JSON validation through `freeze_json_value` and `freeze_json_mapping`.
+- Deterministic documentation audit: a temporary untracked Python/AST audit exact-compared all 142 direct class field/assignment declarations across the two affected artifact companions, the required record annotations, all 11 `FrozenDict` method sections, all three complete source snapshots, and all three unchanged raw source SHA256 bindings. It reported zero mismatches; repository searches found zero current-method source-snapshot placeholders, 6B overrides, contradictory `dict` declarations, or conflict markers. The temporary script was removed.
+- Source SHA256 audit: unchanged production bindings remain `b79ebb5b81d466d262b12adcf7bf54816036f1a922345558cd9da54806b3e727` for `immutable_mapping.py`, `76b4f4d2fa3dbe09442718810c0a113cc8d7b4b1c2ffa3f7f07fcc4f3a250a61` for the application source, and `27bc7dcc9c67fead2c6f0638b033aab6e98282cfd2d865aec37dbf11b681c598` for the aggregation source.
+- Validation: the focused deep-immutability suite passed 62 tests in 0.83 seconds; the complete repository passed 3,123 tests with 4 expected warnings in 1,218.81 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 101 Python files formatted; `uv run mypy src` reported no issues in 48 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: this ticket changes documentation only. Production source, tests, configuration, README, dependencies, lock resolution, schemas, hashes, snapshots, generated outputs, and all functional STEP 7F behavior remain byte-unchanged.
 
 ## STEP 7F.1A.4.2.1 — Synchronize canonical living documentation
 
