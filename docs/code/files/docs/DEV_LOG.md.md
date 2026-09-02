@@ -4,28 +4,26 @@
 
 - Repository path: `docs/DEV_LOG.md`
 - File type: Markdown engineering history
-- Layer: engineering history
-- Domain: repository history
-- Responsibility: Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
-- Source SHA256: `1deafbcff3666607aab24cea11e4a1f58f91802c56fa70d6e39cd99f870313ab`
+- Layer/domain: repository engineering evidence
+- Responsibility: Preserves chronological implementation, real-source, regression, and quality-gate evidence while current source/tests remain authoritative.
+- Source SHA256: `1dd31444a9d9be98a4ef0d42707fe6666da275f356c9fbb56647e5199c4f3272`
 
-## 1. STEP 7F.1B.1 catalog evidence delta
+## 1. STEP 7F.1B.1.1 evidence delta
 
-- Records the source-bound INPN EP metadata catalog implementation, controlled offline real-cache evidence, exact package/layer facts, and complete validation results.
-- Keeps historical entries intact while making the latest factual source state visible.
+- Records the independent-review defects and red-first failures for coordinated extraction forgery, live-path package inspection, unproven driver identity, noncanonical final values, and incomplete companions.
+- Records one verified immutable archive snapshot, archive-derived uncompressed-member inventory, four-way equality, one immutable snapshot per package, exact GPKG driver, catalog schema 2, and canonical runtime types.
+- Binds the controlled existing-cache run: zero DNS/HTTP/download/feature-reader calls; 15 archive/physical files; 15 exact-GPKG packages/layers; 195 fields; 11,381 features; archive SHA unchanged; schema-2 hash `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
+- Preserves `sig_tadl` only as an unresolved raw physical metadata consistency observation and records all semantic non-goals.
 
 ## 2. Purpose and authority
 
-Preserves chronological implementation and validation evidence; current source and tests remain authoritative.
+This file is chronological evidence, not implementation authority. Production source, checked-in configuration, tests, and verified local-source bytes decide current behavior. Previous entries are retained as historical snapshots even when later independent-review corrections supersede their provisional architecture or hashes.
 
-- This is historical evidence. Current production source, checked-in configuration, tests, and verified artifacts remain authoritative.
-
-## 3. Source-specific structure
-
-Chronological headings present in the exact current history:
+## 3. Exact heading inventory
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1B.1.1 — Bind INPN catalog to archive and package byte snapshots`
 - `## STEP 7F.1B.1 — Build exact INPN EP GeoPackage metadata catalog`
 - `## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions`
 - `## STEP 7F.1A.4.2.1 — Synchronize canonical living documentation`
@@ -278,9 +276,13 @@ Chronological headings present in the exact current history:
 - `### Exact representation contract`
 - `### Real Muret/D031 regression and read-back`
 
-## 4. Exact complete current file content
+## 4. Change impact
 
-This byte-bound snapshot is the complete current repository file.
+Append factual entries only after commands have actually run. After the final DEV_LOG edit, compute its raw-file SHA256, update this companion, and do not modify DEV_LOG again. Changes require `git diff --check`; code behavior remains governed by the paired source/tests.
+
+## 5. Exact complete current file content
+
+The raw-byte SHA above binds this complete current history snapshot.
 
 ```markdown
 # LandScout AI development log
@@ -288,11 +290,44 @@ This byte-bound snapshot is the complete current repository file.
 ## Current project state
 
 - Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.1
-- Current step: STEP 7F.1B.1 complete
+- Latest completed step: STEP 7F.1B.1.1
+- Current step: STEP 7F.1B.1.1 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of the physical EP metadata catalog
+- Next step waiting for review: independent review of the archive/package snapshot correction
+
+## STEP 7F.1B.1.1 — Bind INPN catalog to archive and package byte snapshots
+
+- Status: Complete. Independent review found that coordinated extraction-marker + extracted-file changes could override archive authority, live-path OGR inspection allowed a temporary package swap-and-restore window, `.gpkg` suffix plus OGR readability did not prove the GPKG driver, final bounds/optional CRS values admitted comparison-equal noncanonical runtime types, the new catalog companions were incomplete, and the INPN source companion's `__all__` description omitted the public extraction validator.
+- Red-first evidence: the isolated new extraction selection produced 7 intended failures, including absent archive snapshot/inventory helpers, accepted coordinated forgeries, an accepted invalid extraction cache, and unsafe path-based member behavior. The isolated new catalog selection produced 19 intended failures and one passing control, including metadata injected from package B, accepted coordinated physical/marker/caller corruption, absent driver evidence, schema 1, and accepted noncanonical bounds/CRS string subclasses.
+- Archive authority: `_read_verified_archive_bytes(download, config) -> bytes` reconstructs exact config/download authority, reads the safe configured archive path once, and requires exact configured/download byte length and SHA256. `_validated_zip_members(archive)` and `_archive_regular_file_inventory(archive, members)` consume the same `ZipFile(BytesIO(snapshot))`; extraction streams that same validated member set. The authoritative inventory hashes exact uncompressed regular-member bytes and is unique and lexically ordered.
+- Four-way extraction equality: source-complete validation requires archive-derived inventory == schema-v1 marker inventory == freshly hashed physical extraction inventory == caller `extraction.files`, including exact ordered path, size, and SHA. The returned fresh `files` tuple comes from archive authority. A coordinated marker/file mutation fails, while `extract_inpn_protected_areas_archive` rebuilds an invalid extraction from the valid local archive with zero network.
+- Package snapshot: `_read_verified_package_bytes(extraction, item) -> bytes` reads each safe package path exactly once and requires its archive-derived size/SHA. `pyogrio.list_layers` and every `pyogrio.read_info` call receive the same built-in immutable bytes for that package. A transient path swap cannot inject another valid package's metadata; persistent mutation fails final full-extraction revalidation. No live package path is passed to Pyogrio and no feature-row API is called.
+- Driver/schema/canonicality: every layer must expose an exact built-in `driver == "GPKG"`; each package records `driver_name="GPKG"`, and driver identity participates in the portable hash. Catalog hash schema advances only from 1 to 2; supplied schema-1 catalogs fail. Non-null final bounds require an exact four-member tuple of built-in finite ordered floats, and non-null final geometry/CRS values require exact built-in strings. NumPy, integer, list, float-subclass, and string-subclass representations fail before rebuild even if a caller recalculates the hash. Download/extraction metadata schemas remain 1.
+- Controlled real-source verification: one read-only run used the existing approved EP cache with DNS, safe HTTPS transport, `pyogrio.read_dataframe`, and `pyogrio.read_arrow` replaced by immediate failures. Network calls, downloads, and feature-reader calls were zero; download and extraction were cache hits; independent schema-2 validation passed in 8.458 seconds. Archive SHA256 remains `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`; archive-derived and physical inventories each contain 15 files; all 15 packages report exact GPKG; there are 15 layers, 195 ordered fields, and 11,381 features. The schema-2 catalog SHA256 is `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
+
+| Relative package path | File SHA256 | Driver | Layer name | Features | Geometry type raw | CRS authority | Fields | Total bounds |
+|---|---|---|---|---:|---|---|---:|---|
+| `EP/sig_blm.gpkg` | `a183bcdf38f508943a7535b39a4d34c419595adbf9419e49f3d3238cf7dc6699` | `GPKG` | `sig_blm` | 4 | `MultiPolygon` | `EPSG:32620` | 13 | `(494954.0137, 1950470.0043, 583112.9093, 2025155.2335)` |
+| `EP/sig_cli.gpkg` | `c150500dbb5e99060ad507e7950f39fc10084d3c98a4727dd7f144e5616107d6` | `GPKG` | `sig_cli` | 1 | `MultiPolygon` | `EPSG:32612` | 13 | `(671080.0864, 1115373.3362, 719382.0443, 1163548.3188)` |
+| `EP/sig_epa.gpkg` | `a5ab3fa031af445470c4462565acfd55f904284ff1f012471b95b06aea4de125` | `GPKG` | `sig_epa` | 5 | `MultiPolygon` | `EPSG:32738` | 13 | `(-3789.25600000005, 7493062.0841, 880937.7261, 8822044.5043)` |
+| `EP/sig_glp.gpkg` | `802cde41d4f2e27f001ebe5da9742d9d519e51fe1b8a8a77624481c2dd791fc8` | `GPKG` | `sig_glp` | 94 | `MultiPolygon` | `EPSG:32620` | 13 | `(519927.9637, 1665713.2503, 1083293.01, 2055310.133)` |
+| `EP/sig_guf.gpkg` | `f52c3c9561af5b638dd17c1b6f14d755b2d2898e1ef0ba678650fc7fd2eacc33` | `GPKG` | `sig_guf` | 42 | `MultiPolygon` | `EPSG:2972` | 13 | `(99570.4873000002, 233520.0645, 429623.8876, 642298.9683)` |
+| `EP/sig_maf.gpkg` | `17d5062e67ec8fee3cd70454f595f4b6a312fe4634c4176538768084a56edf1d` | `GPKG` | `sig_maf` | 21 | `MultiPolygon` | `EPSG:32620` | 13 | `(434790.4656, 1976185.5268, 524921.2136, 2011241.6704)` |
+| `EP/sig_metrop.gpkg` | `57c18dedcaeb28aa40c74af2d273d0f1f48678a9249ab01a2978c1d6977f7583` | `GPKG` | `sig_metrop` | 10,872 | `MultiPolygon` | `EPSG:2154` | 13 | `(75945.1652000025, 5984426.6673, 1401587.5623, 7135517.6259)` |
+| `EP/sig_mtq.gpkg` | `b585dcad51dc78cc5f273a2c2da2eb3c3e2ff03ece303ec3111ceb7fee97acf5` | `GPKG` | `sig_mtq` | 79 | `MultiPolygon` | `EPSG:32620` | 13 | `(520055.1595, 1556643.2723, 1085571.1993, 1833951.5644)` |
+| `EP/sig_myt.gpkg` | `c99b60758a6472bf900c45ea9158686407d98c5f2bc296733401577b3868e2d4` | `GPKG` | `sig_myt` | 30 | `MultiPolygon` | `EPSG:32738` | 13 | `(350109.8306, 8393412.0014, 681383.3389, 8768462.8917)` |
+| `EP/sig_ncl.gpkg` | `2348f34420b59a930dfd93994ebff3d9c9f9ae6c9e3c98edd5057583e1959d51` | `GPKG` | `sig_ncl` | 88 | `MultiPolygon` | `EPSG:32758` | 13 | `(-421565.3768, 7101762.9457, 1438096.3286, 8360168.8313)` |
+| `EP/sig_pyf.gpkg` | `8db8a10fcf6cf1914a9664f1fcfbfdd24379ad61fd16bd173a6086dc83d9e6de` | `GPKG` | `sig_pyf` | 87 | `MultiPolygon` | `EPSG:32705` | 13 | `(-49643.5285999998, 6502679.0036, 2725834.7579, 9485760.0085)` |
+| `EP/sig_reu.gpkg` | `341ce23f76e10d465fea74df0891bca2dd51a97096f902f1e8d735164ccc2b52` | `GPKG` | `sig_reu` | 44 | `MultiPolygon` | `EPSG:2975` | 13 | `(313642.529999606, 7634489.4428, 379236.6, 7690882.3864)` |
+| `EP/sig_spm.gpkg` | `6db736b64ee13ab2223e45476ec243ccfd549fa81188463c6e453200cecca356` | `GPKG` | `sig_spm` | 2 | `MultiPolygon` | `EPSG:32621` | 13 | `(547977.7866747527, 5184547.6196, 563865.1536, 5209816.029657059)` |
+| `EP/sig_subant.gpkg` | `23e8f1fc2e0ee2a4650da801a2544d2c5a1091d6351adee9f621cd88e02fc61d` | `GPKG` | `sig_subant` | 11 | `MultiPolygon` | `EPSG:32342` | 13 | `(-1337689.9373, 4100873.8107, 1631467.1533, 6155468.5163)` |
+| `EP/sig_tadl.gpkg` | `831aea828fbb02bfd428f82c183ed8217e6dada572f2dc4797ac2e6ccca60fe7` | `GPKG` | `sig_tadl` | 1 | `MultiPolygon` | `EPSG:32753` | 13 | `(140.000388639325, -66.6746135205968, 140.027762750552, -66.660531007899)` |
+
+- Data-quality observation: the raw `EP/sig_tadl.gpkg` authority remains `EPSG:32753` while its raw reported bounds remain `(140.000388639325, -66.6746135205968, 140.027762750552, -66.660531007899)`. This is an unresolved physical source metadata consistency observation; no correction, validity judgment, transformation, category, or environmental meaning is added.
+- Documentation: the four changed Python companions were rebuilt from current source/tests with exact imports, declarations, fields, signatures, algorithms, call/side-effect/hash/Pyogrio relationships, fixtures, parametrizations, tests, exports, boundaries, and complete snapshots. Raw source SHA bindings are `7f545038d3b0369eb435ef61ca45575e0351c61900499d727dbfb0f4a7e27c24`, `1483af5b8353f04053f2ca57b51fc0a7b1aa5653f2673af29876f815187eec57`, `a5b74d0e8db4cd715231fcfa651aa0c2330f43a34c80ac5f0a74e47dcb96f1be`, and `0c3c42a3496e2ab46c419077bf9f0bc2b0072de8e902805fafee47dc14e7f4bf` for source, catalog, source tests, and catalog tests respectively. The exact production `__all__` includes `validate_inpn_protected_areas_extraction`.
+- Validation: the extraction suite passed 147 tests in 1.56 seconds; the catalog suite passed 82 tests in 3.48 seconds; the combined suites passed 229 tests in 4.41 seconds; and the complete repository passed 3,224 tests with 180 warnings in 815.06 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 103 Python files formatted; `uv run mypy src` reported no issues in 49 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: no EP feature rows were materialized; no GeoDataFrame was created from EP; no protected-area category, Natura 2000, or ZNIEFF meaning was assigned; no geometry was repaired/transformed; no parcel was loaded; no intersection, distance, exclusion, score, or ranking was created. Source URLs, declared version, archive size/SHA, metadata schemas, cache layout, and all non-INPN domains remain unchanged.
 
 ## STEP 7F.1B.1 — Build exact INPN EP GeoPackage metadata catalog
 

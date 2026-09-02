@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import math
 import zipfile
 from collections.abc import Callable, Mapping
@@ -32,6 +33,7 @@ from landscout.sources.inpn_protected_areas_catalog_fr import (
     validate_inpn_protected_areas_catalog,
 )
 from landscout.sources.inpn_protected_areas_fr import (
+    InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     download_inpn_protected_areas_archive,
@@ -48,6 +50,14 @@ EXPECTED_EXPORTS = {
     "build_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_catalog",
 }
+
+
+class _StringSubclass(str):
+    pass
+
+
+class _FloatSubclass(float):
+    pass
 
 
 class _Response(io.BytesIO):
@@ -196,7 +206,7 @@ def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(
     result = build_inpn_protected_areas_catalog(extraction, config)
 
     assert type(result) is InpnProtectedAreasCatalog
-    assert result.catalog_schema_version == CATALOG_HASH_SCHEMA_VERSION == 1
+    assert result.catalog_schema_version == CATALOG_HASH_SCHEMA_VERSION == 2
     assert result.package_count == 1
     assert result.layer_count == 1
     assert result.field_count == 2
@@ -781,7 +791,9 @@ def test_catalog_construction_never_materializes_feature_rows(
         raise AssertionError("feature-row reader was called")
 
     monkeypatch.setattr(catalog_module.pyogrio, "read_dataframe", forbidden)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_arrow", forbidden)
     monkeypatch.setattr(gpd, "read_file", forbidden)
+    monkeypatch.setattr(gpd, "read_parquet", forbidden)
 
     result = build_inpn_protected_areas_catalog(extraction, config)
 
@@ -823,6 +835,7 @@ def test_catalog_models_are_exact_factual_metadata_only() -> None:
         "file_size",
         "file_sha256",
         "package_position",
+        "driver_name",
         "layers",
     ]
     forbidden = {
@@ -955,3 +968,359 @@ def test_catalog_hash_excludes_absolute_paths_and_cache_state(
     assert "cache_hit" not in payload
     assert "download_timestamp" not in payload
     assert math.isfinite(cast(float, result.packages[0].layers[0].total_bounds[0]))
+
+
+def test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path,
+        "snapshot",
+        (
+            ("first", _spatial_frame()),
+            ("second", _spatial_frame()),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package},
+    )
+    original_list = catalog_module.pyogrio.list_layers
+    original_info = catalog_module.pyogrio.read_info
+    inputs: list[object] = []
+
+    def listed(source: object, **kwargs: object) -> object:
+        inputs.append(source)
+        return original_list(source, **kwargs)
+
+    def informed(source: object, **kwargs: object) -> object:
+        inputs.append(source)
+        return original_info(source, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", listed)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", informed)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.layer_count == 2
+    assert len(inputs) == 3
+    assert all(type(value) is bytes for value in inputs)
+    assert all(value is inputs[0] for value in inputs)
+    assert cast(bytes, inputs[0]) == package
+
+
+def test_transient_package_path_swap_cannot_inject_other_package_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package_a = _gpkg_bytes(
+        tmp_path,
+        "package-a",
+        (("physical_layer", _spatial_frame(field_names=("from_a",))),),
+    )
+    package_b = _gpkg_bytes(
+        tmp_path,
+        "package-b",
+        (
+            (
+                "physical_layer",
+                _spatial_frame(field_names=("from_b",), feature_count=2),
+            ),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package_a},
+    )
+    package_path = extraction.extraction_path / "EP" / "one.gpkg"
+    original_list = catalog_module.pyogrio.list_layers
+    original_info = catalog_module.pyogrio.read_info
+
+    def list_then_swap(source: object, **kwargs: object) -> object:
+        result = original_list(source, **kwargs)
+        package_path.write_bytes(package_b)
+        return result
+
+    def info_then_restore(source: object, **kwargs: object) -> object:
+        try:
+            return original_info(source, **kwargs)
+        finally:
+            package_path.write_bytes(package_a)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", list_then_swap)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", info_then_restore)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+    layer = result.packages[0].layers[0]
+
+    assert layer.feature_count == 1
+    assert tuple(field.name for field in layer.fields) == ("from_a",)
+    assert result.packages[0].file_sha256 == sha256(package_a).hexdigest()
+    assert package_path.read_bytes() == package_a
+
+
+def test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package_a = _gpkg_bytes(
+        tmp_path,
+        "authority-a",
+        (("physical_layer", _spatial_frame(field_names=("from_a",))),),
+    )
+    package_b = _gpkg_bytes(
+        tmp_path,
+        "authority-b",
+        (
+            (
+                "physical_layer",
+                _spatial_frame(field_names=("from_b",), feature_count=2),
+            ),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package_a},
+    )
+    package_path = extraction.extraction_path / "EP" / "one.gpkg"
+    package_path.write_bytes(package_b)
+    forged_item = InpnProtectedAreasExtractedFile(
+        relative_path="EP/one.gpkg",
+        file_size=len(package_b),
+        sha256=sha256(package_b).hexdigest(),
+    )
+    marker_path = (
+        extraction.extraction_path / source_module.EXTRACTION_METADATA_FILENAME
+    )
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    marker["files"] = [
+        {
+            "relative_path": forged_item.relative_path,
+            "file_size": forged_item.file_size,
+            "sha256": forged_item.sha256,
+        }
+    ]
+    marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
+    forged = replace(extraction, files=(forged_item,))
+    original_list = catalog_module.pyogrio.list_layers
+    calls = 0
+
+    def counted(source: object, **kwargs: object) -> object:
+        nonlocal calls
+        calls += 1
+        return original_list(source, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", counted)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="archive|extraction"):
+        build_inpn_protected_areas_catalog(forged, config)
+
+    assert calls == 0
+
+
+def test_exact_gpkg_driver_is_recorded(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.packages[0].driver_name == "GPKG"
+    assert type(result.packages[0].driver_name) is str
+
+
+@pytest.mark.parametrize(
+    "driver",
+    [
+        pytest.param(None, id="missing"),
+        None,
+        "SQLite",
+        "GeoJSON",
+        "gpkg",
+        " GPKG",
+        "GPKG ",
+    ],
+)
+def test_missing_null_or_wrong_driver_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    driver: object,
+    request: pytest.FixtureRequest,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    def mutate(info: dict[str, object]) -> None:
+        if request.node.callspec.id == "missing":
+            info.pop("driver", None)
+        else:
+            info["driver"] = driver
+
+    _patch_info(monkeypatch, mutate)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_inconsistent_layer_driver_values_are_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path,
+        "two-layers",
+        (("first", _spatial_frame()), ("second", _spatial_frame())),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package},
+    )
+    original = catalog_module.pyogrio.read_info
+
+    def inconsistent(source: object, **kwargs: object) -> dict[str, object]:
+        info = dict(original(source, **kwargs))
+        if kwargs.get("layer") == "second":
+            info["driver"] = "SQLite"
+        return info
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", inconsistent)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_renamed_geojson_content_with_gpkg_suffix_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    path = tmp_path / "source.geojson"
+    pyogrio.write_dataframe(
+        _spatial_frame(), path, layer="physical_layer", driver="GeoJSON"
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/renamed.gpkg": path.read_bytes()},
+    )
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    forged_package = replace(original.packages[0], driver_name="SQLite")
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    assert (
+        forged.complete_catalog_content_sha256
+        != original.complete_catalog_content_sha256
+    )
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG|rebuilt"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+def test_catalog_schema_two_rejects_schema_one_catalog(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    schema_one = _catalog_with_hash(replace(original, catalog_schema_version=1))
+
+    assert CATALOG_HASH_SCHEMA_VERSION == 2
+    with pytest.raises(InpnProtectedAreasCatalogError, match="schema version"):
+        validate_inpn_protected_areas_catalog(extraction, config, schema_one)
+
+
+@pytest.mark.parametrize("kind", ["numpy", "integer", "subclass", "list"])
+def test_noncanonical_supplied_bounds_are_rejected_before_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    kind: str,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    layer = original.packages[0].layers[0]
+    assert layer.total_bounds is not None
+    values: object
+    if kind == "numpy":
+        values = (np.float64(1.0), 2.0, 3.0, 4.0)
+    elif kind == "integer":
+        values = (1, 2.0, 3.0, 4.0)
+    elif kind == "subclass":
+        values = (_FloatSubclass(1.0), 2.0, 3.0, 4.0)
+    else:
+        values = [1.0, 2.0, 3.0, 4.0]
+    forged_layer = replace(layer, total_bounds=values)  # type: ignore[arg-type]
+    forged_package = replace(original.packages[0], layers=(forged_layer,))
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="bounds|canonical"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["crs_authority_name", "crs_authority_code", "crs_wkt"],
+)
+def test_noncanonical_optional_crs_string_subclasses_are_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field_name: str,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    layer = original.packages[0].layers[0]
+    value = getattr(layer, field_name)
+    assert type(value) is str
+    forged_layer = replace(layer, **{field_name: _StringSubclass(value)})
+    forged_package = replace(original.packages[0], layers=(forged_layer,))
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="canonical|CRS|string"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+def test_builder_output_uses_only_exact_canonical_runtime_types(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    result = build_inpn_protected_areas_catalog(extraction, config)
+    package = result.packages[0]
+    layer = package.layers[0]
+
+    assert type(result.catalog_schema_version) is int
+    assert type(result.packages) is tuple
+    assert type(package.driver_name) is str
+    assert package.driver_name == "GPKG"
+    assert type(package.layers) is tuple
+    assert type(layer.geometry_type_raw) is str
+    assert type(layer.crs_raw) is str
+    assert type(layer.crs_authority_name) is str
+    assert type(layer.crs_authority_code) is str
+    assert type(layer.crs_wkt) is str
+    assert type(layer.total_bounds) is tuple
+    assert all(type(value) is float for value in layer.total_bounds)
+    assert type(layer.fields) is tuple
+    assert all(type(field.name) is str for field in layer.fields)
+
+
+def test_correct_exact_float_tuple_and_optional_strings_validate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    validate_inpn_protected_areas_catalog(extraction, config, result)

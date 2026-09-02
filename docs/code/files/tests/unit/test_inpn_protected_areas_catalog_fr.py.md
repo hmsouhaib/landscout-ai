@@ -3,36 +3,892 @@
 ## File identity
 
 - Repository path: `tests/unit/test_inpn_protected_areas_catalog_fr.py`
-- File type: Python source
-- Layer: unit/regression test
-- Domain: isolated physical metadata contract evidence
-- Responsibility: Provides synthetic local GeoPackage coverage for exact INPN EP catalog construction, portable hashing, mutation-window protection, and independent validation.
-- Source SHA256: `8c9617e759c86d9161ceaa897f6c5b18dc80443830d0bbfa11bb98c9a77c2d69`
+- File type: Python unit/regression tests
+- Domain: isolated INPN metadata-only catalog authority evidence
+- Source SHA256: `0c3c42a3496e2ab46c419077bf9f0bc2b0072de8e902805fafee47dc14e7f4bf`
+- Collected cases after STEP 7F.1B.1.1: `82`
 
-## 1. Purpose and architectural position
+## 1. Test architecture and boundary
 
-Provides synthetic local GeoPackage coverage for exact INPN EP catalog construction, portable hashing, mutation-window protection, and independent validation.
+The test file uses local temporary archives/GeoPackages and controlled monkeypatches. It never depends on live INPN transport. It protects factual byte, archive, extraction, package, metadata, canonicality, and rebuild contracts without adding environmental semantics. Feature rows are used only to construct tiny synthetic fixture files; the production catalog path is explicitly prevented from materializing them.
 
-## 2. STEP 7F.1B.1 contract
+## 2. Imports
 
-The 58 collected cases cover spatial/non-spatial/empty/multilayer/multipackage inputs; complete package accounting; exact package/layer/field order; exact, casefold, and NFKC identity collisions; field/dtype parity; strict counts; CRS authority/WKT; bounds domains; canonical hash determinism; caller and physical mutation; independent rebuild comparison; exports; and the absence of feature materialization. Network transport is fake/blocked and only temporary synthetic files are used.
+```python
+from __future__ import annotations
+```
 
-## 3. Trust and semantic boundary
+```python
+import io
+```
 
-The current source file is authoritative. This companion binds its exact bytes and explains its physical-source contract. The implementation does not interpret protected-area categories, Natura 2000, ZNIEFF, parcel relations, exclusions, suitability, or scores.
+```python
+import json
+```
 
-## 4. Change impact
+```python
+import math
+```
 
-Changes require the paired source and catalog suites, deterministic hash/schema review, physical ordering and TOCTOU review, public-export review, companion SHA synchronization, and the repository quality gates.
+```python
+import zipfile
+```
 
-## 5. Exact complete current file content
+```python
+from collections.abc import Callable, Mapping
+```
 
-This byte-bound snapshot is the complete current repository file.
+```python
+from contextlib import contextmanager
+```
+
+```python
+from dataclasses import fields, is_dataclass, replace
+```
+
+```python
+from hashlib import sha256
+```
+
+```python
+from pathlib import Path
+```
+
+```python
+from typing import Any, ClassVar, cast
+```
+
+```python
+import geopandas as gpd
+```
+
+```python
+import numpy as np
+```
+
+```python
+import pandas as pd
+```
+
+```python
+import pyogrio
+```
+
+```python
+import pytest
+```
+
+```python
+import yaml
+```
+
+```python
+from shapely.geometry import Point
+```
+
+```python
+from landscout import sources
+```
+
+```python
+from landscout.sources import inpn_protected_areas_catalog_fr as catalog_module
+```
+
+```python
+from landscout.sources import inpn_protected_areas_fr as source_module
+```
+
+```python
+from landscout.sources.inpn_protected_areas_catalog_fr import (
+    CATALOG_HASH_SCHEMA_VERSION,
+    InpnProtectedAreasCatalog,
+    InpnProtectedAreasCatalogError,
+    InpnProtectedAreasFieldCatalog,
+    InpnProtectedAreasGeoPackageCatalog,
+    InpnProtectedAreasLayerCatalog,
+    build_inpn_protected_areas_catalog,
+    validate_inpn_protected_areas_catalog,
+)
+```
+
+```python
+from landscout.sources.inpn_protected_areas_fr import (
+    InpnProtectedAreasExtractedFile,
+    InpnProtectedAreasExtraction,
+    InpnProtectedAreasSourceConfig,
+    download_inpn_protected_areas_archive,
+    extract_inpn_protected_areas_archive,
+)
+```
+
+## 3. Fixtures, helpers, context managers, and support classes
+
+### `_StringSubclass`
+
+- Kind: support class.
+- Bases: `str`.
+- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Decorators: `none`.
+- Exact fields: `headers: ClassVar[dict[str, str]]`, fixed to the local ZIP response content type.
+- Exact behavior: inherits `io.BytesIO`; no methods are overridden, so the fake response is a deterministic in-memory byte stream used only by synthetic source setup.
+- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+
+### `_FloatSubclass`
+
+- Kind: support class.
+- Bases: `float`.
+- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Decorators: `none`.
+- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+
+### `_Response`
+
+- Kind: support class.
+- Bases: `io.BytesIO`.
+- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Decorators: `none`.
+- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+
+### `_response`
+
+- Exact signature: `def _response(payload: bytes) -> Any`
+- Decorators: `contextmanager`.
+- Kind: context manager.
+- Purpose: Response.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `_Response`, `response.close`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_spatial_frame`
+
+- Exact signature: `def _spatial_frame(*, field_names: tuple[str, ...]=('beta', 'alpha'), feature_count: int=1, crs: str='EPSG:2154') -> gpd.GeoDataFrame`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Spatial frame.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `Point`, `enumerate`, `gpd.GeoDataFrame`, `gpd.GeoSeries`, `pd.Series`, `range`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_non_spatial_frame`
+
+- Exact signature: `def _non_spatial_frame() -> pd.DataFrame`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Non spatial frame.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `pd.DataFrame`, `pd.Series`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_gpkg_bytes`
+
+- Exact signature: `def _gpkg_bytes(tmp_path: Path, name: str, layers: tuple[tuple[str, pd.DataFrame], ...]) -> bytes`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Gpkg bytes.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `enumerate`, `path.read_bytes`, `pyogrio.write_dataframe`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_zip_bytes`
+
+- Exact signature: `def _zip_bytes(files: Mapping[str, bytes]) -> bytes`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Zip bytes.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `archive.writestr`, `files.items`, `io.BytesIO`, `stream.getvalue`, `zipfile.ZipFile`, `zipfile.ZipInfo`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_config`
+
+- Exact signature: `def _config(tmp_path: Path, archive: bytes) -> InpnProtectedAreasSourceConfig`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Config.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `CONFIG_PATH.read_text`, `InpnProtectedAreasSourceConfig.model_validate`, `isinstance`, `len`, `sha256`, `sha256(archive).hexdigest`, `str`, `yaml.safe_load`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_extraction`
+
+- Exact signature: `def _extraction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, files: Mapping[str, bytes]) -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction]`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Extraction.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `_config`, `_response`, `_zip_bytes`, `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive`, `monkeypatch.setattr`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_one_package`
+
+- Exact signature: `def _one_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, frame: pd.DataFrame | None=None, layer_name: str='physical_layer') -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction]`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: One package.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `_extraction`, `_gpkg_bytes`, `_spatial_frame`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_patch_info`
+
+- Exact signature: `def _patch_info(monkeypatch: pytest.MonkeyPatch, mutate: Callable[[dict[str, object]], None]) -> None`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Patch info.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `dict`, `monkeypatch.setattr`, `mutate`, `original`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_catalog_with_hash`
+
+- Exact signature: `def _catalog_with_hash(value: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog`
+- Decorators: `none`.
+- Kind: fixture/helper.
+- Purpose: Catalog with hash.
+- Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
+- Mechanisms/callees: `catalog_module._catalog_content_sha256`, `replace`.
+- Validation behavior: assertions and delegated production validation.
+- Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+## 4. Test-by-test regression inventory
+
+### `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`
+
+- Exact signature: `def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: One valid geopackage with one spatial layer is cataloged.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `len`, `type`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_package_with_multiple_layers_preserves_physical_order`
+
+- Exact signature: `def test_package_with_multiple_layers_preserves_physical_order(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Package with multiple layers preserves physical order.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_non_spatial_frame`, `_spatial_frame`, `build_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_multiple_geopackages_remain_in_extraction_order`
+
+- Exact signature: `def test_multiple_geopackages_remain_in_extraction_order(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Multiple geopackages remain in extraction order.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_non_geopackage_extracted_file_is_not_silently_ignored`
+
+- Exact signature: `def test_non_geopackage_extracted_file_is_not_silently_ignored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Non geopackage extracted file is not silently ignored.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='not a GeoPackage|ignored')`.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_zero_visible_layers_is_rejected`
+
+- Exact signature: `def test_zero_visible_layers_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Zero visible layers is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='no OGR-visible layer')`.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `monkeypatch.setattr`, `np.empty`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_layer_name_with_edge_whitespace_is_rejected`
+
+- Exact signature: `def test_layer_name_with_edge_whitespace_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Layer name with edge whitespace is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='layer name|exact string')`.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `monkeypatch.setattr`, `np.array`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_duplicate_casefold_or_nfkc_layer_identity_is_rejected`
+
+- Exact signature: `def test_duplicate_casefold_or_nfkc_layer_identity_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, names: tuple[str, str]) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('names', [('physical_layer', 'physical_layer'), ('physical_layer', 'PHYSICAL_LAYER'), ('K', 'K')], ids=['duplicate', 'casefold', 'nfkc'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `names`.
+- Protected invariant: Duplicate casefold or nfkc layer identity is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='duplicate|collision')`.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `monkeypatch.setattr`, `np.array`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_file_byte_mutation_during_metadata_inspection_is_rejected`
+
+- Exact signature: `def test_file_byte_mutation_during_metadata_inspection_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: File byte mutation during metadata inspection is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "read_info", mutate_after_read)`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='byte identity|changed')`.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `bytes`, `dict`, `monkeypatch.setattr`, `original`, `package_path.read_bytes`, `package_path.write_bytes`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_exact_field_and_dtype_order_is_preserved`
+
+- Exact signature: `def test_exact_field_and_dtype_order_is_preserved(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Exact field and dtype order is preserved.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `InpnProtectedAreasFieldCatalog`, `_one_package`, `build_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_field_and_dtype_length_mismatch_is_rejected`
+
+- Exact signature: `def test_field_and_dtype_length_mismatch_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Field and dtype length mismatch is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='lengths differ')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_empty_or_edge_whitespace_field_name_is_rejected`
+
+- Exact signature: `def test_empty_or_edge_whitespace_field_name_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('name', ['', ' beta', 'beta '])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `name`.
+- Protected invariant: Empty or edge whitespace field name is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='field name|exact string')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_duplicate_casefold_or_nfkc_field_identity_is_rejected`
+
+- Exact signature: `def test_duplicate_casefold_or_nfkc_field_identity_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, names: tuple[str, str]) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('names', [('beta', 'beta'), ('beta', 'BETA'), ('K', 'K')], ids=['duplicate', 'casefold', 'nfkc'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `names`.
+- Protected invariant: Duplicate casefold or nfkc field identity is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='duplicate|collision')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `list`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_malformed_source_dtype_is_rejected`
+
+- Exact signature: `def test_malformed_source_dtype_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, dtype: object) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('dtype', [None, '', ' object'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `dtype`.
+- Protected invariant: Malformed source dtype is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='dtype|exact string')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_exact_non_negative_feature_count_is_accepted`
+
+- Exact signature: `def test_exact_non_negative_feature_count_is_accepted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, feature_count: int) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('feature_count', [0, 1])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `feature_count`.
+- Protected invariant: Exact non negative feature count is accepted.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `pytest.mark.parametrize`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_boolean_or_negative_feature_count_is_rejected`
+
+- Exact signature: `def test_boolean_or_negative_feature_count_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, feature_count: object) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('feature_count', [True, -1])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `feature_count`.
+- Protected invariant: Boolean or negative feature count is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='feature count')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_populated_spatial_layer_without_crs_is_rejected`
+
+- Exact signature: `def test_populated_spatial_layer_without_crs_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Populated spatial layer without crs is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='CRS')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_unparseable_crs_is_rejected`
+
+- Exact signature: `def test_unparseable_crs_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Unparseable crs is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='CRS.*parseable')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_valid_crs_authority_and_canonical_wkt_are_recorded`
+
+- Exact signature: `def test_valid_crs_authority_and_canonical_wkt_are_recorded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Valid crs authority and canonical wkt are recorded.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `layer.crs_wkt.startswith`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_finite_ordered_bounds_are_accepted`
+
+- Exact signature: `def test_finite_ordered_bounds_are_accepted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Finite ordered bounds are accepted.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_non_finite_populated_bounds_are_rejected`
+
+- Exact signature: `def test_non_finite_populated_bounds_are_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, value: float) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('value', [float('nan'), float('inf'), float('-inf')])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `value`.
+- Protected invariant: Non finite populated bounds are rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='bounds')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `float`, `info.__setitem__`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_reversed_bounds_are_rejected`
+
+- Exact signature: `def test_reversed_bounds_are_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, bounds: tuple[float, float, float, float]) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('bounds', [(2.0, 0.0, 1.0, 1.0), (0.0, 2.0, 1.0, 1.0)], ids=['x', 'y'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `bounds`.
+- Protected invariant: Reversed bounds are rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='reversed')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_empty_spatial_layer_normalizes_all_nan_bounds_to_null`
+
+- Exact signature: `def test_empty_spatial_layer_normalizes_all_nan_bounds_to_null(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Empty spatial layer normalizes all nan bounds to null.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `_patch_info`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `float`, `info.__setitem__`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_non_spatial_layer_with_crs_or_bounds_is_rejected`
+
+- Exact signature: `def test_non_spatial_layer_with_crs_or_bounds_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, violation: str) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('violation', ['crs', 'bounds'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `violation`.
+- Protected invariant: Non spatial layer with crs or bounds is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='non-spatial')`.
+- Calls exercised: `_non_spatial_frame`, `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_package_layer_field_ordering_produces_deterministic_hash`
+
+- Exact signature: `def test_package_layer_field_ordering_produces_deterministic_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Package layer field ordering produces deterministic hash.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_caller_package_reordering_is_rejected`
+
+- Exact signature: `def test_caller_package_reordering_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Caller package reordering is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='order|rebuilt')`.
+- Calls exercised: `_catalog_with_hash`, `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `enumerate`, `pytest.raises`, `replace`, `reversed`, `tuple`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild`
+
+- Exact signature: `def test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Coordinated metadata and hash mutation is rejected by rebuild.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='rebuilt')`.
+- Calls exercised: `_catalog_with_hash`, `_one_package`, `build_inpn_protected_areas_catalog`, `pytest.raises`, `replace`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_absolute_extraction_path_does_not_affect_portable_catalog_hash`
+
+- Exact signature: `def test_absolute_extraction_path_does_not_affect_portable_catalog_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Absolute extraction path does not affect portable catalog hash.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_cache_hit_values_do_not_affect_portable_catalog_hash`
+
+- Exact signature: `def test_cache_hit_values_do_not_affect_portable_catalog_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Cache hit values do not affect portable catalog hash.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `replace`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_validation_detects_changed_physical_metadata`
+
+- Exact signature: `def test_catalog_validation_detects_changed_physical_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('mutation', ['schema', 'feature_count', 'crs', 'bounds'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `mutation`.
+- Protected invariant: Catalog validation detects changed physical metadata.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='rebuilt')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `pytest.mark.parametrize`, `pytest.raises`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_validator_rejects_wrong_runtime_type`
+
+- Exact signature: `def test_catalog_validator_rejects_wrong_runtime_type(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Catalog validator rejects wrong runtime type.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='exact')`.
+- Calls exercised: `_one_package`, `object`, `pytest.raises`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_construction_never_materializes_feature_rows`
+
+- Exact signature: `def test_catalog_construction_never_materializes_feature_rows(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Catalog construction never materializes feature rows.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "read_arrow", forbidden)`; `monkeypatch.setattr(catalog_module.pyogrio, "read_dataframe", forbidden)`; `monkeypatch.setattr(gpd, "read_file", forbidden)`; `monkeypatch.setattr(gpd, "read_parquet", forbidden)`.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `AssertionError`, `_one_package`, `assert_no_feature_rows`, `build_inpn_protected_areas_catalog`, `fields`, `getattr`, `is_dataclass`, `isinstance`, `monkeypatch.setattr`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_models_are_exact_factual_metadata_only`
+
+- Exact signature: `def test_catalog_models_are_exact_factual_metadata_only() -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: none.
+- Protected invariant: Catalog models are exact factual metadata only.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `fields`, `names.intersection`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_public_api_exports_only_trusted_catalog_symbols`
+
+- Exact signature: `def test_public_api_exports_only_trusted_catalog_symbols() -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: none.
+- Protected invariant: Public api exports only trusted catalog symbols.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `all`, `getattr`, `hasattr`, `set`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_metadata_calls_use_exact_forced_metadata_only_api`
+
+- Exact signature: `def test_metadata_calls_use_exact_forced_metadata_only_api(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Metadata calls use exact forced metadata only api.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "list_layers", listed)`; `monkeypatch.setattr(catalog_module.pyogrio, "read_info", informed)`.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `calls.append`, `dict`, `monkeypatch.setattr`, `original_info`, `original_list`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_empty_spatial_layer_with_partially_missing_bounds_is_rejected`
+
+- Exact signature: `def test_empty_spatial_layer_with_partially_missing_bounds_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Empty spatial layer with partially missing bounds is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='partially missing')`.
+- Calls exercised: `_one_package`, `_patch_info`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `float`, `info.__setitem__`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_layer_enumeration_and_read_info_geometry_must_agree`
+
+- Exact signature: `def test_layer_enumeration_and_read_info_geometry_must_agree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Layer enumeration and read info geometry must agree.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='geometry types differ')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_feature_count_rejects_non_exact_integers`
+
+- Exact signature: `def test_feature_count_rejects_non_exact_integers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, value: object) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('value', [True, 1.5, '1', None])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `value`.
+- Protected invariant: Feature count rejects non exact integers.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='feature count')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.__setitem__`, `pytest.mark.parametrize`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_hash_excludes_absolute_paths_and_cache_state`
+
+- Exact signature: `def test_catalog_hash_excludes_absolute_paths_and_cache_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Catalog hash excludes absolute paths and cache state.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `cast`, `catalog_module._catalog_payload`, `math.isfinite`, `repr`, `repr(payload).casefold`, `str`, `str(extraction.download.path).casefold`, `str(extraction.extraction_path).casefold`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot`
+
+- Exact signature: `def test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Pyogrio metadata apis receive one identical package byte snapshot.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "list_layers", listed)`; `monkeypatch.setattr(catalog_module.pyogrio, "read_info", informed)`.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `all`, `build_inpn_protected_areas_catalog`, `cast`, `inputs.append`, `len`, `monkeypatch.setattr`, `original_info`, `original_list`, `type`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_transient_package_path_swap_cannot_inject_other_package_metadata`
+
+- Exact signature: `def test_transient_package_path_swap_cannot_inject_other_package_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Transient package path swap cannot inject other package metadata.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "list_layers", list_then_swap)`; `monkeypatch.setattr(catalog_module.pyogrio, "read_info", info_then_restore)`.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `monkeypatch.setattr`, `original_info`, `original_list`, `package_path.read_bytes`, `package_path.write_bytes`, `sha256`, `sha256(package_a).hexdigest`, `tuple`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio`
+
+- Exact signature: `def test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Catalog rejects coordinated valid package marker and caller forgery before pyogrio.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "list_layers", counted)`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='archive|extraction')`.
+- Calls exercised: `InpnProtectedAreasExtractedFile`, `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `json.dumps`, `json.loads`, `len`, `marker_path.read_text`, `marker_path.write_text`, `monkeypatch.setattr`, `original_list`, `package_path.write_bytes`, `pytest.raises`, `replace`, `sha256`, `sha256(package_b).hexdigest`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_exact_gpkg_driver_is_recorded`
+
+- Exact signature: `def test_exact_gpkg_driver_is_recorded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Exact gpkg driver is recorded.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `type`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_missing_null_or_wrong_driver_is_rejected`
+
+- Exact signature: `def test_missing_null_or_wrong_driver_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, driver: object, request: pytest.FixtureRequest) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('driver', [pytest.param(None, id='missing'), None, 'SQLite', 'GeoJSON', 'gpkg', ' GPKG', 'GPKG '])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `driver`, `request`.
+- Protected invariant: Missing null or wrong driver is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='driver|GPKG')`.
+- Calls exercised: `_one_package`, `_patch_info`, `build_inpn_protected_areas_catalog`, `info.pop`, `pytest.mark.parametrize`, `pytest.param`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_inconsistent_layer_driver_values_are_rejected`
+
+- Exact signature: `def test_inconsistent_layer_driver_values_are_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Inconsistent layer driver values are rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: `monkeypatch.setattr(catalog_module.pyogrio, "read_info", inconsistent)`.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='driver|GPKG')`.
+- Calls exercised: `_extraction`, `_gpkg_bytes`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `dict`, `kwargs.get`, `monkeypatch.setattr`, `original`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_renamed_geojson_content_with_gpkg_suffix_is_rejected`
+
+- Exact signature: `def test_renamed_geojson_content_with_gpkg_suffix_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Renamed geojson content with gpkg suffix is rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='driver|GPKG')`.
+- Calls exercised: `_extraction`, `_spatial_frame`, `build_inpn_protected_areas_catalog`, `path.read_bytes`, `pyogrio.write_dataframe`, `pytest.raises`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`
+
+- Exact signature: `def test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Driver is hash bound and coordinated forgery fails rebuild.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='driver|GPKG|rebuilt')`.
+- Calls exercised: `_catalog_with_hash`, `_one_package`, `build_inpn_protected_areas_catalog`, `pytest.raises`, `replace`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_catalog_schema_two_rejects_schema_one_catalog`
+
+- Exact signature: `def test_catalog_schema_two_rejects_schema_one_catalog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Catalog schema two rejects schema one catalog.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='schema version')`.
+- Calls exercised: `_catalog_with_hash`, `_one_package`, `build_inpn_protected_areas_catalog`, `pytest.raises`, `replace`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_noncanonical_supplied_bounds_are_rejected_before_rebuild`
+
+- Exact signature: `def test_noncanonical_supplied_bounds_are_rejected_before_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, kind: str) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('kind', ['numpy', 'integer', 'subclass', 'list'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `kind`.
+- Protected invariant: Noncanonical supplied bounds are rejected before rebuild.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='bounds|canonical')`.
+- Calls exercised: `_FloatSubclass`, `_catalog_with_hash`, `_one_package`, `build_inpn_protected_areas_catalog`, `np.float64`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_noncanonical_optional_crs_string_subclasses_are_rejected`
+
+- Exact signature: `def test_noncanonical_optional_crs_string_subclasses_are_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, field_name: str) -> None`
+- Parametrization/decorators: `pytest.mark.parametrize('field_name', ['crs_authority_name', 'crs_authority_code', 'crs_wkt'])`.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`, `field_name`.
+- Protected invariant: Noncanonical optional crs string subclasses are rejected.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='canonical|CRS|string')`.
+- Calls exercised: `_StringSubclass`, `_catalog_with_hash`, `_one_package`, `build_inpn_protected_areas_catalog`, `getattr`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `type`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_builder_output_uses_only_exact_canonical_runtime_types`
+
+- Exact signature: `def test_builder_output_uses_only_exact_canonical_runtime_types(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Builder output uses only exact canonical runtime types.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `all`, `build_inpn_protected_areas_catalog`, `type`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+### `test_correct_exact_float_tuple_and_optional_strings_validate`
+
+- Exact signature: `def test_correct_exact_float_tuple_and_optional_strings_validate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
+- Parametrization/decorators: none; one collected case.
+- Fixtures/inputs: `tmp_path`, `monkeypatch`.
+- Protected invariant: Correct exact float tuple and optional strings validate.
+- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
+- Monkeypatch mechanism: none directly.
+- Expected controlled failures: none; this is an acceptance/output invariant.
+- Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `validate_inpn_protected_areas_catalog`.
+- Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
+
+## 5. STEP 7F.1B.1.1 coverage map
+
+- Archive suite: immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; transient archive-path swap isolation.
+- Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
+- Zero materialization: production attempts to call `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, or `geopandas.read_parquet` fail immediately in the regression.
+- Semantic non-goals: no protected-area categories, Natura 2000, ZNIEFF, geometry normalization, parcel relation, exclusion, scoring, or ranking.
+
+## 6. Exact complete current file content
+
+This snapshot reproduces every current test line; the raw-byte SHA above is the binding authority.
 
 ```python
 from __future__ import annotations
 
 import io
+import json
 import math
 import zipfile
 from collections.abc import Callable, Mapping
@@ -64,6 +920,7 @@ from landscout.sources.inpn_protected_areas_catalog_fr import (
     validate_inpn_protected_areas_catalog,
 )
 from landscout.sources.inpn_protected_areas_fr import (
+    InpnProtectedAreasExtractedFile,
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     download_inpn_protected_areas_archive,
@@ -80,6 +937,14 @@ EXPECTED_EXPORTS = {
     "build_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_catalog",
 }
+
+
+class _StringSubclass(str):
+    pass
+
+
+class _FloatSubclass(float):
+    pass
 
 
 class _Response(io.BytesIO):
@@ -228,7 +1093,7 @@ def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(
     result = build_inpn_protected_areas_catalog(extraction, config)
 
     assert type(result) is InpnProtectedAreasCatalog
-    assert result.catalog_schema_version == CATALOG_HASH_SCHEMA_VERSION == 1
+    assert result.catalog_schema_version == CATALOG_HASH_SCHEMA_VERSION == 2
     assert result.package_count == 1
     assert result.layer_count == 1
     assert result.field_count == 2
@@ -813,7 +1678,9 @@ def test_catalog_construction_never_materializes_feature_rows(
         raise AssertionError("feature-row reader was called")
 
     monkeypatch.setattr(catalog_module.pyogrio, "read_dataframe", forbidden)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_arrow", forbidden)
     monkeypatch.setattr(gpd, "read_file", forbidden)
+    monkeypatch.setattr(gpd, "read_parquet", forbidden)
 
     result = build_inpn_protected_areas_catalog(extraction, config)
 
@@ -855,6 +1722,7 @@ def test_catalog_models_are_exact_factual_metadata_only() -> None:
         "file_size",
         "file_sha256",
         "package_position",
+        "driver_name",
         "layers",
     ]
     forbidden = {
@@ -987,4 +1855,360 @@ def test_catalog_hash_excludes_absolute_paths_and_cache_state(
     assert "cache_hit" not in payload
     assert "download_timestamp" not in payload
     assert math.isfinite(cast(float, result.packages[0].layers[0].total_bounds[0]))
+
+
+def test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path,
+        "snapshot",
+        (
+            ("first", _spatial_frame()),
+            ("second", _spatial_frame()),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package},
+    )
+    original_list = catalog_module.pyogrio.list_layers
+    original_info = catalog_module.pyogrio.read_info
+    inputs: list[object] = []
+
+    def listed(source: object, **kwargs: object) -> object:
+        inputs.append(source)
+        return original_list(source, **kwargs)
+
+    def informed(source: object, **kwargs: object) -> object:
+        inputs.append(source)
+        return original_info(source, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", listed)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", informed)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.layer_count == 2
+    assert len(inputs) == 3
+    assert all(type(value) is bytes for value in inputs)
+    assert all(value is inputs[0] for value in inputs)
+    assert cast(bytes, inputs[0]) == package
+
+
+def test_transient_package_path_swap_cannot_inject_other_package_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package_a = _gpkg_bytes(
+        tmp_path,
+        "package-a",
+        (("physical_layer", _spatial_frame(field_names=("from_a",))),),
+    )
+    package_b = _gpkg_bytes(
+        tmp_path,
+        "package-b",
+        (
+            (
+                "physical_layer",
+                _spatial_frame(field_names=("from_b",), feature_count=2),
+            ),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package_a},
+    )
+    package_path = extraction.extraction_path / "EP" / "one.gpkg"
+    original_list = catalog_module.pyogrio.list_layers
+    original_info = catalog_module.pyogrio.read_info
+
+    def list_then_swap(source: object, **kwargs: object) -> object:
+        result = original_list(source, **kwargs)
+        package_path.write_bytes(package_b)
+        return result
+
+    def info_then_restore(source: object, **kwargs: object) -> object:
+        try:
+            return original_info(source, **kwargs)
+        finally:
+            package_path.write_bytes(package_a)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", list_then_swap)
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", info_then_restore)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+    layer = result.packages[0].layers[0]
+
+    assert layer.feature_count == 1
+    assert tuple(field.name for field in layer.fields) == ("from_a",)
+    assert result.packages[0].file_sha256 == sha256(package_a).hexdigest()
+    assert package_path.read_bytes() == package_a
+
+
+def test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package_a = _gpkg_bytes(
+        tmp_path,
+        "authority-a",
+        (("physical_layer", _spatial_frame(field_names=("from_a",))),),
+    )
+    package_b = _gpkg_bytes(
+        tmp_path,
+        "authority-b",
+        (
+            (
+                "physical_layer",
+                _spatial_frame(field_names=("from_b",), feature_count=2),
+            ),
+        ),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package_a},
+    )
+    package_path = extraction.extraction_path / "EP" / "one.gpkg"
+    package_path.write_bytes(package_b)
+    forged_item = InpnProtectedAreasExtractedFile(
+        relative_path="EP/one.gpkg",
+        file_size=len(package_b),
+        sha256=sha256(package_b).hexdigest(),
+    )
+    marker_path = (
+        extraction.extraction_path / source_module.EXTRACTION_METADATA_FILENAME
+    )
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    marker["files"] = [
+        {
+            "relative_path": forged_item.relative_path,
+            "file_size": forged_item.file_size,
+            "sha256": forged_item.sha256,
+        }
+    ]
+    marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
+    forged = replace(extraction, files=(forged_item,))
+    original_list = catalog_module.pyogrio.list_layers
+    calls = 0
+
+    def counted(source: object, **kwargs: object) -> object:
+        nonlocal calls
+        calls += 1
+        return original_list(source, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "list_layers", counted)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="archive|extraction"):
+        build_inpn_protected_areas_catalog(forged, config)
+
+    assert calls == 0
+
+
+def test_exact_gpkg_driver_is_recorded(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.packages[0].driver_name == "GPKG"
+    assert type(result.packages[0].driver_name) is str
+
+
+@pytest.mark.parametrize(
+    "driver",
+    [
+        pytest.param(None, id="missing"),
+        None,
+        "SQLite",
+        "GeoJSON",
+        "gpkg",
+        " GPKG",
+        "GPKG ",
+    ],
+)
+def test_missing_null_or_wrong_driver_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    driver: object,
+    request: pytest.FixtureRequest,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    def mutate(info: dict[str, object]) -> None:
+        if request.node.callspec.id == "missing":
+            info.pop("driver", None)
+        else:
+            info["driver"] = driver
+
+    _patch_info(monkeypatch, mutate)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_inconsistent_layer_driver_values_are_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path,
+        "two-layers",
+        (("first", _spatial_frame()), ("second", _spatial_frame())),
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/one.gpkg": package},
+    )
+    original = catalog_module.pyogrio.read_info
+
+    def inconsistent(source: object, **kwargs: object) -> dict[str, object]:
+        info = dict(original(source, **kwargs))
+        if kwargs.get("layer") == "second":
+            info["driver"] = "SQLite"
+        return info
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", inconsistent)
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_renamed_geojson_content_with_gpkg_suffix_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    path = tmp_path / "source.geojson"
+    pyogrio.write_dataframe(
+        _spatial_frame(), path, layer="physical_layer", driver="GeoJSON"
+    )
+    config, extraction = _extraction(
+        tmp_path,
+        monkeypatch,
+        {"EP/renamed.gpkg": path.read_bytes()},
+    )
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+        build_inpn_protected_areas_catalog(extraction, config)
+
+
+def test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    forged_package = replace(original.packages[0], driver_name="SQLite")
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    assert (
+        forged.complete_catalog_content_sha256
+        != original.complete_catalog_content_sha256
+    )
+    with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG|rebuilt"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+def test_catalog_schema_two_rejects_schema_one_catalog(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    schema_one = _catalog_with_hash(replace(original, catalog_schema_version=1))
+
+    assert CATALOG_HASH_SCHEMA_VERSION == 2
+    with pytest.raises(InpnProtectedAreasCatalogError, match="schema version"):
+        validate_inpn_protected_areas_catalog(extraction, config, schema_one)
+
+
+@pytest.mark.parametrize("kind", ["numpy", "integer", "subclass", "list"])
+def test_noncanonical_supplied_bounds_are_rejected_before_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    kind: str,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    layer = original.packages[0].layers[0]
+    assert layer.total_bounds is not None
+    values: object
+    if kind == "numpy":
+        values = (np.float64(1.0), 2.0, 3.0, 4.0)
+    elif kind == "integer":
+        values = (1, 2.0, 3.0, 4.0)
+    elif kind == "subclass":
+        values = (_FloatSubclass(1.0), 2.0, 3.0, 4.0)
+    else:
+        values = [1.0, 2.0, 3.0, 4.0]
+    forged_layer = replace(layer, total_bounds=values)  # type: ignore[arg-type]
+    forged_package = replace(original.packages[0], layers=(forged_layer,))
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="bounds|canonical"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["crs_authority_name", "crs_authority_code", "crs_wkt"],
+)
+def test_noncanonical_optional_crs_string_subclasses_are_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field_name: str,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = build_inpn_protected_areas_catalog(extraction, config)
+    layer = original.packages[0].layers[0]
+    value = getattr(layer, field_name)
+    assert type(value) is str
+    forged_layer = replace(layer, **{field_name: _StringSubclass(value)})
+    forged_package = replace(original.packages[0], layers=(forged_layer,))
+    forged = _catalog_with_hash(replace(original, packages=(forged_package,)))
+
+    with pytest.raises(InpnProtectedAreasCatalogError, match="canonical|CRS|string"):
+        validate_inpn_protected_areas_catalog(extraction, config, forged)
+
+
+def test_builder_output_uses_only_exact_canonical_runtime_types(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    result = build_inpn_protected_areas_catalog(extraction, config)
+    package = result.packages[0]
+    layer = package.layers[0]
+
+    assert type(result.catalog_schema_version) is int
+    assert type(result.packages) is tuple
+    assert type(package.driver_name) is str
+    assert package.driver_name == "GPKG"
+    assert type(package.layers) is tuple
+    assert type(layer.geometry_type_raw) is str
+    assert type(layer.crs_raw) is str
+    assert type(layer.crs_authority_name) is str
+    assert type(layer.crs_authority_code) is str
+    assert type(layer.crs_wkt) is str
+    assert type(layer.total_bounds) is tuple
+    assert all(type(value) is float for value in layer.total_bounds)
+    assert type(layer.fields) is tuple
+    assert all(type(field.name) is str for field in layer.fields)
+
+
+def test_correct_exact_float_tuple_and_optional_strings_validate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    result = build_inpn_protected_areas_catalog(extraction, config)
+
+    validate_inpn_protected_areas_catalog(extraction, config, result)
 ```

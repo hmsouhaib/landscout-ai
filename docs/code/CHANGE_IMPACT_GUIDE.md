@@ -8,7 +8,7 @@ Review the adapter config YAML/model, package exports, shared safe HTTPS boundar
 
 ## Changing the INPN metadata catalog
 
-Review fresh extraction reconstruction, complete extracted-file accounting, safe package containment, package/layer/field physical ordering, exact metadata keys, feature-count forcing, geometry-type agreement, raw/canonical CRS, empty/populated/non-spatial bounds rules, portable catalog hash schema, aggregate counts, per-package and global pre/post byte validation, and independent rebuild comparison. Use only metadata APIs; feature readers and environmental category/parcel-policy semantics remain outside this layer. A catalog hash payload change requires an explicit schema decision and real-cache evidence must remain zero-network.
+Review immutable archive reads, same-snapshot ZIP validation/member inventory/extraction, archive-marker-physical-caller equality, safe package containment, one verified built-in byte snapshot per package, byte-only Pyogrio metadata calls, package/layer/field physical ordering, exact `GPKG` driver, exact metadata keys, feature-count forcing, geometry-type agreement, raw/canonical CRS, exact final optional-string and bounds types, empty/populated/non-spatial bounds rules, portable catalog hash schema, aggregate counts, final full-extraction validation, and independent rebuild comparison. Use only metadata APIs; feature readers and environmental category/parcel-policy semantics remain outside this layer. A catalog hash payload change requires an explicit schema decision and real-cache evidence must remain zero-network.
 
 ## Changing source configuration
 

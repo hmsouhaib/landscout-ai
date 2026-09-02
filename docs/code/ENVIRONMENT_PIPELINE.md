@@ -8,11 +8,14 @@ The environment domain currently implements acquisition, exact snapshot verifica
 flowchart TD
     Yaml[INPN source YAML] --> Config[InpnProtectedAreasSourceConfig]
     Config --> Download[download_inpn_protected_areas_archive]
-    Download --> Bytes[InpnProtectedAreasDownload]
-    Bytes --> Extract[extract_inpn_protected_areas_archive]
-    Extract --> Inventory[InpnProtectedAreasExtraction and exact file inventory]
+    Download --> Bytes[Verified immutable EP.zip bytes]
+    Bytes --> Members[Archive-derived regular-member inventory]
+    Members --> Extract[Marker and physical extraction equality]
+    Extract --> Inventory[Archive-bound InpnProtectedAreasExtraction]
     Inventory --> Revalidate[validate_inpn_protected_areas_extraction]
-    Revalidate --> Catalog[metadata-only InpnProtectedAreasCatalog]
+    Revalidate --> PackageBytes[One verified immutable byte snapshot per package]
+    PackageBytes --> Driver[Exact GPKG driver evidence]
+    Driver --> Catalog[metadata-only schema-2 InpnProtectedAreasCatalog]
     Catalog -. not implemented .-> Semantics[Category interpretation]
     Semantics -. not implemented .-> Overlay[Parcel intersection]
     Overlay -. not implemented .-> Decision[Environmental score or exclusion]
@@ -62,19 +65,19 @@ Extraction never calls `extractall`; validated regular members are streamed to e
 
 ## Inventory and extraction cache
 
-`InpnProtectedAreasExtractedFile` carries canonical POSIX relative path, exact byte size, and SHA256. The schema-v1 extraction marker binds archive SHA/size and the exact lexically ordered tuple of all regular files. Validation rescans the entire tree, rejects links/junctions/special files, hashes every regular file except the marker, and exact-compares the inventory so that same-size content changes, size changes, missing/renamed/extra files, and forged marker values invalidate reuse.
+`InpnProtectedAreasExtractedFile` carries canonical POSIX relative path, exact byte size, and SHA256. One verified built-in `bytes` snapshot of `EP.zip` supplies both the validated ZIP member set and the uncompressed member streams. Hashing those streams produces the authoritative lexically ordered regular-file inventory. The schema-v1 extraction marker remains cache evidence: validation requires exact archive-derived inventory == marker inventory == freshly hashed physical inventory == caller `files`. Coordinated marker/file changes, same-size content changes, size changes, missing/renamed/extra files, links, and special entries fail closed.
 
 Directory rebuild completes and validates under `.part` while the old cache remains intact, then publishes transactionally with `.bak` rollback. Recovery material is preserved on rollback failure.
 
 ## Metadata-only physical catalog
 
-`validate_inpn_protected_areas_extraction` reconstructs configuration and download authority, rescans and hashes the complete extraction, validates the marker, exact-compares the supplied inventory, and returns a newly constructed extraction from fresh physical facts. `build_inpn_protected_areas_catalog` uses only `pyogrio.list_layers` and `pyogrio.read_info(..., force_feature_count=True, force_total_bounds=True)`. It preserves deterministic package, layer, and field order; exact feature counts and geometry-type text; raw and canonical CRS evidence; bounds; archive/package hashes; and aggregate counts. It revalidates the full extraction before and after inspection. `validate_inpn_protected_areas_catalog` checks every intrinsic field and independently rebuilds and exact-compares the catalog.
+`validate_inpn_protected_areas_extraction` reconstructs configuration/download authority and returns a new object whose inventory comes from the immutable archive-authority chain after four-way equality. `build_inpn_protected_areas_catalog` reads each package path once, validates that built-in `bytes` snapshot against the archive-derived size/SHA, and supplies the same bytes to `pyogrio.list_layers` and every `pyogrio.read_info(..., force_feature_count=True, force_total_bounds=True)` call. Each layer must report exact driver `GPKG`. Deterministic package/layer/field order, exact feature counts and geometry-type text, raw/canonical CRS evidence, exact canonical bounds, archive/package hashes, driver identity, and aggregate counts are preserved. The full extraction is revalidated after inspection, and `validate_inpn_protected_areas_catalog` independently rebuilds and exact-compares every value.
 
-Catalog hash schema 1 uses canonical JSON over portable factual content. Absolute cache/extraction paths, cache-hit state, timestamps, Python representations, and object identity are excluded.
+Catalog hash schema 2 uses canonical JSON over portable factual content and includes exact package driver identity. Absolute cache/extraction paths, cache-hit state, timestamps, Python representations, and object identity are excluded. Supplied non-null bounds must be an exact four-member tuple of built-in floats; every non-null derived CRS string must be an exact built-in string.
 
 ## Current factual result
 
-The approved snapshot contains 15 regular extracted files recorded by path/size/SHA; all 15 are GeoPackages. Controlled offline metadata inspection found 15 OGR layers, 195 ordered fields, and 11,381 total features. Its catalog content SHA256 is `557e17bda046624a4f3507aa883993d16133a921a4616949ba732ab4ee70bb9c`. These are physical metadata facts only; the source and catalog adapters do not classify protected-area categories.
+The approved snapshot contains 15 archive-derived and physical regular files; all 15 report exact driver `GPKG`. Controlled offline schema-2 inspection found 15 OGR layers, 195 ordered fields, and 11,381 total features. Its catalog content SHA256 is `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`. DNS, HTTP, downloads, and feature-row materialization were all zero. The `EP/sig_tadl.gpkg` combination of raw EPSG:32753 authority and bounds near 140/-66 remains an unresolved physical source metadata consistency observation; no repair or environmental meaning is applied.
 
 ## Explicitly not implemented
 

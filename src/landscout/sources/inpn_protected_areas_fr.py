@@ -7,6 +7,7 @@ open spatial files, intersect parcels, or produce environmental decisions.
 
 from __future__ import annotations
 
+import io
 import json
 import re
 import shutil
@@ -362,81 +363,76 @@ def _canonical_member_destination(name: str) -> tuple[PurePosixPath, tuple[str, 
     return PurePosixPath(*parts), canonical
 
 
-def _validated_zip_members(path: Path) -> tuple[_ValidatedZipMember, ...]:
-    if not _is_regular_file(path):
-        raise InpnProtectedAreasSourceError(f"Archive is missing or unsafe: {path}")
+def _validated_zip_members(
+    archive: zipfile.ZipFile,
+) -> tuple[_ValidatedZipMember, ...]:
     try:
-        if path.stat().st_size <= 0 or not zipfile.is_zipfile(path):
-            raise InpnProtectedAreasSourceError("Archive is empty or is not a ZIP")
-        with zipfile.ZipFile(path) as archive:
-            infos = archive.infolist()
-            if not infos:
-                raise InpnProtectedAreasSourceError("ZIP archive contains no members")
-            raw_names: set[str] = set()
-            explicit: dict[tuple[str, ...], str] = {}
-            files: set[tuple[str, ...]] = set()
-            directories: set[tuple[str, ...]] = set()
-            validated: list[_ValidatedZipMember] = []
-            regular_count = 0
-            for info in infos:
-                name = info.filename
-                if name in raw_names:
-                    raise InpnProtectedAreasSourceError(
-                        f"duplicate ZIP member name: {name}"
-                    )
-                raw_names.add(name)
-                if info.flag_bits & 0x1:
-                    raise InpnProtectedAreasSourceError(
-                        f"Encrypted ZIP members are unsupported: {name}"
-                    )
-                destination, canonical = _canonical_member_destination(name)
-                mode = info.external_attr >> 16
-                if stat.S_ISLNK(mode):
-                    raise InpnProtectedAreasSourceError(
-                        f"ZIP symbolic links are forbidden: {name}"
-                    )
-                file_type = stat.S_IFMT(mode)
-                if file_type not in {0, stat.S_IFREG, stat.S_IFDIR}:
-                    raise InpnProtectedAreasSourceError(
-                        f"ZIP special files are forbidden: {name}"
-                    )
-                is_directory = (
-                    info.is_dir() or name.endswith(("/", "\\")) or stat.S_ISDIR(mode)
+        infos = archive.infolist()
+        if not infos:
+            raise InpnProtectedAreasSourceError("ZIP archive contains no members")
+        raw_names: set[str] = set()
+        explicit: dict[tuple[str, ...], str] = {}
+        files: set[tuple[str, ...]] = set()
+        directories: set[tuple[str, ...]] = set()
+        validated: list[_ValidatedZipMember] = []
+        regular_count = 0
+        for info in infos:
+            name = info.filename
+            if name in raw_names:
+                raise InpnProtectedAreasSourceError(
+                    f"duplicate ZIP member name: {name}"
                 )
-                if canonical in explicit:
-                    raise InpnProtectedAreasSourceError(
-                        "ZIP members collide at one normalized destination: "
-                        f"{explicit[canonical]} / {name}"
-                    )
-                explicit[canonical] = name
-                parents = tuple(canonical[:index] for index in range(1, len(canonical)))
-                if any(parent in files for parent in parents):
+            raw_names.add(name)
+            if info.flag_bits & 0x1:
+                raise InpnProtectedAreasSourceError(
+                    f"Encrypted ZIP members are unsupported: {name}"
+                )
+            destination, canonical = _canonical_member_destination(name)
+            mode = info.external_attr >> 16
+            if stat.S_ISLNK(mode):
+                raise InpnProtectedAreasSourceError(
+                    f"ZIP symbolic links are forbidden: {name}"
+                )
+            file_type = stat.S_IFMT(mode)
+            if file_type not in {0, stat.S_IFREG, stat.S_IFDIR}:
+                raise InpnProtectedAreasSourceError(
+                    f"ZIP special files are forbidden: {name}"
+                )
+            is_directory = (
+                info.is_dir() or name.endswith(("/", "\\")) or stat.S_ISDIR(mode)
+            )
+            if canonical in explicit:
+                raise InpnProtectedAreasSourceError(
+                    "ZIP members collide at one normalized destination: "
+                    f"{explicit[canonical]} / {name}"
+                )
+            explicit[canonical] = name
+            parents = tuple(canonical[:index] for index in range(1, len(canonical)))
+            if any(parent in files for parent in parents):
+                raise InpnProtectedAreasSourceError(
+                    f"colliding ZIP file/directory destination: {name}"
+                )
+            if is_directory:
+                if canonical in files:
                     raise InpnProtectedAreasSourceError(
                         f"colliding ZIP file/directory destination: {name}"
                     )
-                if is_directory:
-                    if canonical in files:
-                        raise InpnProtectedAreasSourceError(
-                            f"colliding ZIP file/directory destination: {name}"
-                        )
-                    directories.add(canonical)
-                else:
-                    if canonical in directories:
-                        raise InpnProtectedAreasSourceError(
-                            f"colliding ZIP file/directory destination: {name}"
-                        )
-                    files.add(canonical)
-                    regular_count += 1
-                directories.update(parents)
-                validated.append(_ValidatedZipMember(info, destination, is_directory))
-            if regular_count == 0:
-                raise InpnProtectedAreasSourceError(
-                    "ZIP archive contains no regular files"
-                )
-            bad_member = archive.testzip()
-            if bad_member is not None:
-                raise InpnProtectedAreasSourceError(f"Corrupt ZIP member: {bad_member}")
-            return tuple(validated)
+                directories.add(canonical)
+            else:
+                if canonical in directories:
+                    raise InpnProtectedAreasSourceError(
+                        f"colliding ZIP file/directory destination: {name}"
+                    )
+                files.add(canonical)
+                regular_count += 1
+            directories.update(parents)
+            validated.append(_ValidatedZipMember(info, destination, is_directory))
+        if regular_count == 0:
+            raise InpnProtectedAreasSourceError("ZIP archive contains no regular files")
+        bad_member = archive.testzip()
+        if bad_member is not None:
+            raise InpnProtectedAreasSourceError(f"Corrupt ZIP member: {bad_member}")
+        return tuple(validated)
     except InpnProtectedAreasSourceError:
         raise
     except (
@@ -448,6 +444,54 @@ def _validated_zip_members(path: Path) -> tuple[_ValidatedZipMember, ...]:
         zlib.error,
     ) as error:
         raise InpnProtectedAreasSourceError("Cannot validate ZIP archive") from error
+
+
+def _archive_regular_file_inventory(
+    archive: zipfile.ZipFile,
+    members: tuple[_ValidatedZipMember, ...],
+) -> tuple[InpnProtectedAreasExtractedFile, ...]:
+    files: list[InpnProtectedAreasExtractedFile] = []
+    try:
+        for member in members:
+            if member.is_directory:
+                continue
+            digest = sha256()
+            file_size = 0
+            with archive.open(member.info) as source:
+                for chunk in iter(lambda: source.read(DOWNLOAD_CHUNK_SIZE), b""):
+                    file_size += len(chunk)
+                    digest.update(chunk)
+            if file_size != member.info.file_size:
+                raise InpnProtectedAreasSourceError(
+                    f"ZIP member size changed while reading: {member.info.filename}"
+                )
+            files.append(
+                InpnProtectedAreasExtractedFile(
+                    relative_path=member.destination.as_posix(),
+                    file_size=file_size,
+                    sha256=digest.hexdigest(),
+                )
+            )
+    except InpnProtectedAreasSourceError:
+        raise
+    except (
+        NotImplementedError,
+        OSError,
+        RuntimeError,
+        ValueError,
+        zipfile.BadZipFile,
+        zlib.error,
+    ) as error:
+        raise InpnProtectedAreasSourceError(
+            "Cannot inventory regular files from the verified archive snapshot"
+        ) from error
+    files.sort(key=lambda item: item.relative_path)
+    paths = tuple(item.relative_path for item in files)
+    if not files or len(paths) != len(set(paths)):
+        raise InpnProtectedAreasSourceError(
+            "Archive-derived regular-file inventory is empty or ambiguous"
+        )
+    return tuple(files)
 
 
 def _download_metadata(
@@ -493,17 +537,7 @@ def _load_cached_download(
         }
         if any(getattr(metadata, key) != value for key, value in expected.items()):
             return None
-        size = archive_path.stat().st_size
-        checksum = _sha256_file(archive_path)
-        if (
-            size != metadata.file_size
-            or size != config.expected_archive_size_bytes
-            or checksum != metadata.sha256
-            or checksum != config.expected_archive_sha256
-        ):
-            return None
-        _validated_zip_members(archive_path)
-        return InpnProtectedAreasDownload(
+        candidate = InpnProtectedAreasDownload(
             provider=metadata.provider,
             authority=metadata.authority,
             program=metadata.program,
@@ -519,6 +553,7 @@ def _load_cached_download(
             path=archive_path,
             cache_hit=True,
         )
+        return _validate_download(candidate, config)
     except (
         InpnProtectedAreasSourceError,
         OSError,
@@ -657,8 +692,9 @@ def download_inpn_protected_areas_archive(
             validated_timeout,
             temporary_archive,
         )
-        file_size = temporary_archive.stat().st_size
-        checksum = _sha256_file(temporary_archive)
+        archive_bytes = temporary_archive.read_bytes()
+        file_size = len(archive_bytes)
+        checksum = sha256(archive_bytes).hexdigest()
         if (
             file_size != validated_config.expected_archive_size_bytes
             or checksum != validated_config.expected_archive_sha256
@@ -666,7 +702,8 @@ def download_inpn_protected_areas_archive(
             raise InpnProtectedAreasSourceError(
                 "Downloaded INPN archive differs from the configured snapshot"
             )
-        _validated_zip_members(temporary_archive)
+        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+            _validated_zip_members(archive)
         result = InpnProtectedAreasDownload(
             provider=validated_config.provider,
             authority=validated_config.authority,
@@ -708,7 +745,7 @@ def download_inpn_protected_areas_archive(
                 pass
 
 
-def _validate_download(
+def _validate_download_envelope(
     download: object,
     config: InpnProtectedAreasSourceConfig,
 ) -> InpnProtectedAreasDownload:
@@ -748,15 +785,63 @@ def _validate_download(
         _validate_utc_timestamp(download.download_timestamp)
         if not _is_regular_file(download.path):
             raise ValueError("Downloaded archive path is missing or unsafe")
-        if download.path.stat().st_size != download.file_size:
-            raise ValueError("Downloaded archive size changed")
-        if _sha256_file(download.path) != download.sha256:
-            raise ValueError("Downloaded archive SHA256 changed")
-        _validated_zip_members(download.path)
         return download
     except InpnProtectedAreasSourceError:
         raise
     except (AttributeError, OSError, TypeError, ValueError) as error:
+        raise InpnProtectedAreasSourceError(
+            "INPN protected-areas download is stale or invalid"
+        ) from error
+
+
+def _read_verified_archive_bytes(
+    download: object,
+    config: InpnProtectedAreasSourceConfig,
+) -> bytes:
+    validated_config = _validated_config(config)
+    validated_download = _validate_download_envelope(download, validated_config)
+    try:
+        archive_bytes = validated_download.path.read_bytes()
+        if type(archive_bytes) is not bytes or not archive_bytes:
+            raise ValueError("Downloaded archive snapshot is empty or non-canonical")
+        if (
+            len(archive_bytes) != validated_download.file_size
+            or len(archive_bytes) != validated_config.expected_archive_size_bytes
+        ):
+            raise ValueError("Downloaded archive size changed")
+        checksum = sha256(archive_bytes).hexdigest()
+        if (
+            checksum != validated_download.sha256
+            or checksum != validated_config.expected_archive_sha256
+        ):
+            raise ValueError("Downloaded archive SHA256 changed")
+        return archive_bytes
+    except (AttributeError, OSError, TypeError, ValueError) as error:
+        raise InpnProtectedAreasSourceError(
+            "INPN protected-areas archive byte snapshot is stale or invalid"
+        ) from error
+
+
+def _validate_download(
+    download: object,
+    config: InpnProtectedAreasSourceConfig,
+) -> InpnProtectedAreasDownload:
+    validated_download = _validate_download_envelope(download, config)
+    archive_bytes = _read_verified_archive_bytes(validated_download, config)
+    try:
+        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+            _validated_zip_members(archive)
+        return validated_download
+    except InpnProtectedAreasSourceError:
+        raise
+    except (
+        NotImplementedError,
+        OSError,
+        RuntimeError,
+        ValueError,
+        zipfile.BadZipFile,
+        zlib.error,
+    ) as error:
         raise InpnProtectedAreasSourceError(
             "INPN protected-areas download is stale or invalid"
         ) from error
@@ -835,6 +920,7 @@ def _extraction_metadata(
 def _validate_extraction_cache(
     root: Path,
     download: InpnProtectedAreasDownload,
+    archive_files: tuple[InpnProtectedAreasExtractedFile, ...],
 ) -> tuple[InpnProtectedAreasExtractedFile, ...]:
     marker = root / EXTRACTION_METADATA_FILENAME
     if not _is_regular_file(marker):
@@ -857,8 +943,8 @@ def _validate_extraction_cache(
             for item in metadata.files
         )
         actual = _inventory(root)
-        if actual != expected:
-            raise ValueError("Extraction files differ from integrity metadata")
+        if expected != archive_files or actual != archive_files:
+            raise ValueError("Archive, extraction metadata, and physical files differ")
         return actual
     except InpnProtectedAreasSourceError:
         raise
@@ -870,7 +956,7 @@ def _validate_extraction_cache(
         json.JSONDecodeError,
     ) as error:
         raise InpnProtectedAreasSourceError(
-            "Extraction cache failed physical integrity validation"
+            "Extraction cache archive and physical inventory validation failed"
         ) from error
 
 
@@ -931,27 +1017,33 @@ def extract_inpn_protected_areas_archive(
     """Safely extract all regular files and bind an exact factual inventory."""
 
     validated_config = _validated_config(config)
-    validated_download = _validate_download(download, validated_config)
+    validated_download = _validate_download_envelope(download, validated_config)
+    archive_bytes = _read_verified_archive_bytes(validated_download, validated_config)
     root = validated_download.path.parent / "x" / validated_download.sha256
-    if root.is_dir() and not _is_link_or_junction(root):
-        try:
-            files = _validate_extraction_cache(root, validated_download)
-            return InpnProtectedAreasExtraction(
-                download=validated_download,
-                extraction_path=root,
-                files=files,
-                cache_hit=True,
-            )
-        except (InpnProtectedAreasSourceError, OSError):
-            pass
-
     temporary_root = root.with_name(f"{root.name}.part")
     try:
-        root.parent.mkdir(parents=True, exist_ok=True)
-        _remove_path(temporary_root)
-        temporary_root.mkdir(parents=True)
-        with zipfile.ZipFile(validated_download.path) as archive:
-            members = _validated_zip_members(validated_download.path)
+        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+            members = _validated_zip_members(archive)
+            archive_files = _archive_regular_file_inventory(archive, members)
+            if root.is_dir() and not _is_link_or_junction(root):
+                try:
+                    files = _validate_extraction_cache(
+                        root,
+                        validated_download,
+                        archive_files,
+                    )
+                    return InpnProtectedAreasExtraction(
+                        download=validated_download,
+                        extraction_path=root,
+                        files=files,
+                        cache_hit=True,
+                    )
+                except (InpnProtectedAreasSourceError, OSError):
+                    pass
+
+            root.parent.mkdir(parents=True, exist_ok=True)
+            _remove_path(temporary_root)
+            temporary_root.mkdir(parents=True)
             for member in members:
                 target = temporary_root.joinpath(*member.destination.parts)
                 if member.is_directory:
@@ -961,12 +1053,19 @@ def extract_inpn_protected_areas_archive(
                 with archive.open(member.info) as source, target.open("xb") as output:
                     copyfileobj(source, output, length=DOWNLOAD_CHUNK_SIZE)
         files = _inventory(temporary_root)
-        _validate_download(validated_download, validated_config)
-        metadata = _extraction_metadata(validated_download, files)
+        if files != archive_files:
+            raise InpnProtectedAreasSourceError(
+                "Extracted files differ from the verified archive inventory"
+            )
+        metadata = _extraction_metadata(validated_download, archive_files)
         (temporary_root / EXTRACTION_METADATA_FILENAME).write_text(
             metadata.model_dump_json(indent=2) + "\n", encoding="utf-8"
         )
-        files = _validate_extraction_cache(temporary_root, validated_download)
+        files = _validate_extraction_cache(
+            temporary_root,
+            validated_download,
+            archive_files,
+        )
         _publish_extraction_directory(temporary_root, root)
         return InpnProtectedAreasExtraction(
             download=validated_download,
@@ -982,6 +1081,7 @@ def extract_inpn_protected_areas_archive(
         RuntimeError,
         ValueError,
         zipfile.BadZipFile,
+        zipfile.LargeZipFile,
         zlib.error,
     ) as error:
         raise InpnProtectedAreasSourceError(
@@ -1037,19 +1137,30 @@ def validate_inpn_protected_areas_extraction(
                     "extraction inventory file SHA256 is invalid"
                 )
 
-        validated_download = _validate_download(
+        validated_download = _validate_download_envelope(
             extraction.download,
             validated_config,
         )
+        archive_bytes = _read_verified_archive_bytes(
+            validated_download,
+            validated_config,
+        )
+        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+            members = _validated_zip_members(archive)
+            archive_files = _archive_regular_file_inventory(archive, members)
         expected_root = validated_download.path.parent / "x" / validated_download.sha256
         if extraction.extraction_path != expected_root:
             raise InpnProtectedAreasSourceError(
                 "extraction path differs from the configured source identity"
             )
-        fresh_files = _validate_extraction_cache(expected_root, validated_download)
-        if extraction.files != fresh_files:
+        fresh_files = _validate_extraction_cache(
+            expected_root,
+            validated_download,
+            archive_files,
+        )
+        if extraction.files != archive_files or fresh_files != archive_files:
             raise InpnProtectedAreasSourceError(
-                "extraction inventory differs from the fresh physical inventory"
+                "archive, marker, physical, and caller extraction inventory differs"
             )
         fresh_download = InpnProtectedAreasDownload(
             provider=validated_download.provider,
@@ -1070,7 +1181,7 @@ def validate_inpn_protected_areas_extraction(
         return InpnProtectedAreasExtraction(
             download=fresh_download,
             extraction_path=expected_root,
-            files=fresh_files,
+            files=archive_files,
             cache_hit=extraction.cache_hit,
         )
     except InpnProtectedAreasSourceError:

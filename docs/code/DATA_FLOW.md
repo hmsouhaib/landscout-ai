@@ -124,15 +124,20 @@ The coded result preserves factual prefixes and appends official CNIG meaning/st
 InpnProtectedAreasSourceConfig
   -> download_inpn_protected_areas_archive
   -> InpnProtectedAreasDownload
+  -> immutable verified archive bytes
+  -> archive-derived regular-member inventory
   -> extract_inpn_protected_areas_archive
-  -> InpnProtectedAreasExtraction(files inventory)
+  -> marker + physical + caller inventory equality
+  -> archive-bound InpnProtectedAreasExtraction
   -> validate_inpn_protected_areas_extraction
+  -> immutable verified package bytes
+  -> exact GPKG driver evidence
   -> build_inpn_protected_areas_catalog
-  -> InpnProtectedAreasCatalog(package/layer/field metadata)
+  -> schema-2 InpnProtectedAreasCatalog(package/layer/field metadata)
   -> validate_inpn_protected_areas_catalog
 ```
 
-The flow currently stops at a portable, source-bound metadata catalog. The extraction validator rebuilds the complete current physical inventory; the builder uses metadata-only OGR calls between pre/post extraction validation; and the independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
+The flow currently stops at a portable, source-bound schema-2 metadata catalog. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match. Each package is read once and all metadata-only OGR calls use those exact verified bytes; exact `GPKG` driver identity is hash-bound. The independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
 
 ## Result preservation pattern
 

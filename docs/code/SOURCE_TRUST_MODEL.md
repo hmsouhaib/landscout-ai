@@ -87,10 +87,11 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 
 - The checked-in config fixes PatriNat, MNHN, INPN, dataset `EP`, declared version `07/2026`, official reference/archive URLs, filename, expected size 99,835,011, and SHA256 `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`.
 - Cold download and cache reuse require exact configured size/SHA plus strict schema-v1 sidecar equality.
-- ZIP validation examines the complete inventory before manual extraction and rejects traversal, platform collisions, links/special files, encryption, and unsafe destinations.
-- The schema-v1 extraction marker binds archive SHA/size and a lexically ordered full regular-file inventory. Cache reuse rescans and rehashes every file and rejects missing, modified, renamed, extra, linked, or special entries.
-- `validate_inpn_protected_areas_extraction` reconstructs exact config/download authority, physically rescans and rehashes the complete extraction, validates the marker, exact-compares the caller tuple, and returns a fresh source-bound object.
-- The metadata-only catalog validates every GeoPackage's bytes and safe contained path, catalogs every OGR-visible layer and ordered field, and records exact counts, uninterpreted geometry metadata, canonical CRS evidence, bounds, and portable canonical-JSON identity. Full extraction validation before and after inspection closes the catalog-build mutation window.
+- One exact-size/SHA built-in archive `bytes` snapshot supplies ZIP validation, authoritative uncompressed regular-member hashes, and extraction streams. Member handling rejects traversal, platform collisions, links/special files, encryption, and unsafe destinations without reopening a live archive path.
+- The schema-v1 extraction marker is cache evidence only. Cache/public validation requires archive-derived inventory, marker, freshly hashed physical extraction, and caller tuple to agree exactly, rejecting coordinated marker/file forgery as well as missing, modified, renamed, extra, linked, or special entries.
+- `validate_inpn_protected_areas_extraction` reconstructs exact config/download authority and returns a fresh source-bound object whose `files` tuple comes from the archive-authority chain after four-way equality.
+- The metadata-only catalog reads every package path once into verified immutable bytes. `pyogrio.list_layers` and every `read_info` receive that same package snapshot, preventing live-path swap-and-restore metadata injection. Every layer must report exact driver `GPKG`.
+- Catalog schema 2 records driver identity in the portable canonical hash and requires exact final tuple/float bounds and exact built-in optional CRS strings.
 - `validate_inpn_protected_areas_catalog` validates every intrinsic domain and source lock, independently rebuilds from fresh physical files, and exact-compares the complete result rather than trusting its hash alone.
 - The current chain stops at factual physical metadata. It does not materialize protected-area feature rows, interpret categories, or perform parcel analysis.
 

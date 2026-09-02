@@ -290,6 +290,32 @@ def _write_json(path: Path, payload: dict[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def _rewrite_extraction_marker_and_caller(
+    extraction: InpnProtectedAreasExtraction,
+) -> InpnProtectedAreasExtraction:
+    marker_path = _extraction_metadata_path(extraction)
+    marker = _read_json(marker_path)
+    files = tuple(
+        InpnProtectedAreasExtractedFile(
+            relative_path=path.relative_to(extraction.extraction_path).as_posix(),
+            file_size=path.stat().st_size,
+            sha256=sha256(path.read_bytes()).hexdigest(),
+        )
+        for path in sorted(extraction.extraction_path.rglob("*"))
+        if path.is_file() and path != marker_path
+    )
+    marker["files"] = [
+        {
+            "relative_path": item.relative_path,
+            "file_size": item.file_size,
+            "sha256": item.sha256,
+        }
+        for item in files
+    ]
+    _write_json(marker_path, marker)
+    return replace(extraction, files=files)
+
+
 def test_checked_in_config_loads_with_exact_source_identity() -> None:
     config = load_inpn_protected_areas_source_config()
 
@@ -1552,3 +1578,131 @@ def test_extraction_revalidation_rejects_link_or_junction_file(
 
     with pytest.raises(InpnProtectedAreasSourceError, match="link|junction|physical"):
         validate_inpn_protected_areas_extraction(extraction, config)
+
+
+def test_archive_derived_inventory_equals_marker_physical_and_caller(
+    tmp_path: Path,
+) -> None:
+    archive = _zip_bytes(
+        {
+            "EP/a.gpkg": b"first-package",
+            "EP/nested/b.gpkg": b"second-package",
+        }
+    )
+    config, download, _ = _download(tmp_path, payload=archive)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+
+    archive_bytes = inpn._read_verified_archive_bytes(download, config)
+    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as opened:
+        members = inpn._validated_zip_members(opened)
+        archive_files = inpn._archive_regular_file_inventory(opened, members)
+    fresh = validate_inpn_protected_areas_extraction(extraction, config)
+    marker = _read_json(_extraction_metadata_path(extraction))
+
+    assert type(archive_bytes) is bytes
+    assert archive_files == fresh.files == extraction.files
+    assert marker["files"] == [
+        {
+            "relative_path": item.relative_path,
+            "file_size": item.file_size,
+            "sha256": item.sha256,
+        }
+        for item in archive_files
+    ]
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["same-size-content", "size-and-content", "member-removal", "member-path"],
+)
+def test_coordinated_marker_physical_and_caller_forgery_cannot_override_archive(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    archive = _zip_bytes(
+        {
+            "EP/a.gpkg": b"archive-authority-a",
+            "EP/b.gpkg": b"archive-authority-b",
+        }
+    )
+    config, download, _ = _download(tmp_path, payload=archive)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    target = extraction.extraction_path / "EP" / "a.gpkg"
+    if mutation == "same-size-content":
+        target.write_bytes(b"x" * target.stat().st_size)
+    elif mutation == "size-and-content":
+        target.write_bytes(b"different-size")
+    elif mutation == "member-removal":
+        target.unlink()
+    else:
+        target.replace(target.with_name("renamed.gpkg"))
+    forged = _rewrite_extraction_marker_and_caller(extraction)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|inventory"):
+        validate_inpn_protected_areas_extraction(forged, config)
+
+
+def test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected = b"archive-member-bytes"
+    archive = _zip_bytes({"EP/a.gpkg": expected})
+    config, download, _ = _download(tmp_path, payload=archive)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    target = extraction.extraction_path / "EP" / "a.gpkg"
+    target.write_bytes(b"forged-member-bytes")
+    _rewrite_extraction_marker_and_caller(extraction)
+
+    def forbidden_network(*args: object, **kwargs: object) -> Any:
+        raise AssertionError("network called while rebuilding from local archive")
+
+    monkeypatch.setattr(inpn, "open_safe_https", forbidden_network)
+    rebuilt = extract_inpn_protected_areas_archive(download, config)
+    fresh = validate_inpn_protected_areas_extraction(rebuilt, config)
+
+    assert rebuilt.cache_hit is False
+    assert target.read_bytes() == expected
+    assert fresh.files == rebuilt.files
+    marker = _read_json(_extraction_metadata_path(rebuilt))
+    assert marker["files"] == [
+        {
+            "relative_path": item.relative_path,
+            "file_size": item.file_size,
+            "sha256": item.sha256,
+        }
+        for item in fresh.files
+    ]
+
+
+def test_transient_archive_path_swap_cannot_change_extracted_member_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected_member = b"package-a"
+    archive_a = _zip_bytes({"EP/a.gpkg": expected_member})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    original = inpn._validated_zip_members
+    path_calls = 0
+
+    def swap_around_path_validation(
+        source: Path | zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal path_calls
+        result = original(source)
+        if isinstance(source, Path):
+            path_calls += 1
+            if path_calls == 1:
+                source.write_bytes(archive_b)
+            elif path_calls == 2:
+                source.write_bytes(archive_a)
+        return result
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", swap_around_path_validation)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+
+    assert (
+        extraction.extraction_path / "EP" / "a.gpkg"
+    ).read_bytes() == expected_member
+    assert download.path.read_bytes() == archive_a

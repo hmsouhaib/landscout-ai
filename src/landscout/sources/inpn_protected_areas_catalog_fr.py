@@ -24,8 +24,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     validate_inpn_protected_areas_extraction,
 )
 
-CATALOG_HASH_SCHEMA_VERSION = 1
-_READ_CHUNK_SIZE = 1024 * 1024
+CATALOG_HASH_SCHEMA_VERSION = 2
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
@@ -67,6 +66,7 @@ class InpnProtectedAreasGeoPackageCatalog:
     file_size: int
     file_sha256: str
     package_position: int
+    driver_name: str
     layers: tuple[InpnProtectedAreasLayerCatalog, ...]
 
 
@@ -112,14 +112,6 @@ def _require_unique_identities(values: tuple[str, ...], label: str) -> None:
         raise InpnProtectedAreasCatalogError(
             f"{label} contains Unicode-NFKC/casefold collisions"
         )
-
-
-def _sha256_file(path: Path) -> str:
-    digest = sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(_READ_CHUNK_SIZE), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _is_link_or_junction(path: Path) -> bool:
@@ -171,14 +163,26 @@ def _safe_package_path(
     return path
 
 
-def _verify_package_bytes(
-    path: Path,
+def _read_verified_package_bytes(
+    extraction: InpnProtectedAreasExtraction,
     item: InpnProtectedAreasExtractedFile,
-) -> None:
-    if path.stat().st_size != item.file_size or _sha256_file(path) != item.sha256:
+) -> bytes:
+    path = _safe_package_path(extraction, item)
+    try:
+        package_bytes = path.read_bytes()
+    except OSError as error:
+        raise InpnProtectedAreasCatalogError(
+            f"package {item.relative_path}: cannot read physical byte snapshot"
+        ) from error
+    if (
+        type(package_bytes) is not bytes
+        or len(package_bytes) != item.file_size
+        or sha256(package_bytes).hexdigest() != item.sha256
+    ):
         raise InpnProtectedAreasCatalogError(
             f"package {item.relative_path}: physical byte identity changed"
         )
+    return package_bytes
 
 
 def _metadata_sequence(value: object, label: str) -> tuple[object, ...]:
@@ -414,20 +418,28 @@ def _canonical_crs(
 
 
 def _inspect_layer(
-    path: Path,
+    package_bytes: bytes,
     relative_path: str,
     layer_name: str,
     layer_position: int,
     listed_geometry_type: str | None,
-) -> InpnProtectedAreasLayerCatalog:
+) -> tuple[InpnProtectedAreasLayerCatalog, str]:
     try:
         raw_metadata = pyogrio.read_info(
-            path,
+            package_bytes,
             layer=layer_name,
             force_feature_count=True,
             force_total_bounds=True,
         )
         metadata = _metadata_mapping(raw_metadata, relative_path, layer_name)
+        driver_name = _exact_text(
+            _required_metadata(metadata, "driver", relative_path, layer_name),
+            f"package {relative_path} layer {layer_name} driver",
+        )
+        if driver_name != "GPKG":
+            raise InpnProtectedAreasCatalogError(
+                f"package {relative_path} layer {layer_name}: driver must be exact GPKG"
+            )
         reported_name = _exact_text(
             _required_metadata(metadata, "layer_name", relative_path, layer_name),
             f"package {relative_path} layer {layer_name} reported name",
@@ -485,18 +497,21 @@ def _inspect_layer(
             relative_path=relative_path,
             layer_name=layer_name,
         )
-        return InpnProtectedAreasLayerCatalog(
-            layer_name=layer_name,
-            layer_position=layer_position,
-            feature_count=count,
-            geometry_type_raw=geometry_type,
-            is_spatial=is_spatial,
-            crs_raw=crs_raw,
-            crs_authority_name=authority_name,
-            crs_authority_code=authority_code,
-            crs_wkt=crs_wkt,
-            total_bounds=bounds,
-            fields=_field_catalogs(metadata, relative_path, layer_name),
+        return (
+            InpnProtectedAreasLayerCatalog(
+                layer_name=layer_name,
+                layer_position=layer_position,
+                feature_count=count,
+                geometry_type_raw=geometry_type,
+                is_spatial=is_spatial,
+                crs_raw=crs_raw,
+                crs_authority_name=authority_name,
+                crs_authority_code=authority_code,
+                crs_wkt=crs_wkt,
+                total_bounds=bounds,
+                fields=_field_catalogs(metadata, relative_path, layer_name),
+            ),
+            driver_name,
         )
     except InpnProtectedAreasCatalogError:
         raise
@@ -516,11 +531,10 @@ def _inspect_package(
             f"extracted file {item.relative_path} is not a GeoPackage and cannot be ignored"
         )
     try:
-        path = _safe_package_path(extraction, item)
-        _verify_package_bytes(path, item)
+        package_bytes = _read_verified_package_bytes(extraction, item)
         try:
             enumeration = _layer_enumeration(
-                pyogrio.list_layers(path),
+                pyogrio.list_layers(package_bytes),
                 item.relative_path,
             )
         except InpnProtectedAreasCatalogError:
@@ -529,9 +543,9 @@ def _inspect_package(
             raise InpnProtectedAreasCatalogError(
                 f"package {item.relative_path}: OGR layer enumeration failed"
             ) from error
-        layers = tuple(
+        inspected = tuple(
             _inspect_layer(
-                path,
+                package_bytes,
                 item.relative_path,
                 layer_name,
                 layer_position,
@@ -539,12 +553,18 @@ def _inspect_package(
             )
             for layer_position, (layer_name, geometry_type) in enumerate(enumeration)
         )
-        _verify_package_bytes(path, item)
+        layers = tuple(layer for layer, _ in inspected)
+        drivers = tuple(driver for _, driver in inspected)
+        if len(set(drivers)) != 1 or drivers[0] != "GPKG":
+            raise InpnProtectedAreasCatalogError(
+                f"package {item.relative_path}: layer driver metadata is inconsistent"
+            )
         return InpnProtectedAreasGeoPackageCatalog(
             relative_path=item.relative_path,
             file_size=item.file_size,
             file_sha256=item.sha256,
             package_position=package_position,
+            driver_name=drivers[0],
             layers=layers,
         )
     except InpnProtectedAreasCatalogError:
@@ -585,6 +605,7 @@ def _package_payload(package: InpnProtectedAreasGeoPackageCatalog) -> dict[str, 
         "file_size": package.file_size,
         "file_sha256": package.file_sha256,
         "package_position": package.package_position,
+        "driver_name": package.driver_name,
         "layers": [_layer_payload(layer) for layer in package.layers],
     }
 
@@ -729,6 +750,11 @@ def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog:
             or _SHA_PATTERN.fullmatch(package.file_sha256) is None
         ):
             raise InpnProtectedAreasCatalogError("catalog package SHA256 is invalid")
+        driver_name = _exact_text(package.driver_name, "catalog package driver")
+        if driver_name != "GPKG":
+            raise InpnProtectedAreasCatalogError(
+                "catalog package driver must be exact GPKG"
+            )
         if type(package.layers) is not tuple or not package.layers:
             raise InpnProtectedAreasCatalogError("catalog package layers are invalid")
         layer_names: list[str] = []
@@ -753,6 +779,18 @@ def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog:
                     raise InpnProtectedAreasCatalogError(
                         "catalog spatial geometry type is invalid"
                     )
+                _exact_text(layer.crs_raw, f"catalog layer {layer_name} CRS")
+                if layer.crs_authority_name is not None:
+                    _exact_text(
+                        layer.crs_authority_name,
+                        f"catalog layer {layer_name} CRS authority name",
+                    )
+                if layer.crs_authority_code is not None:
+                    _exact_text(
+                        layer.crs_authority_code,
+                        f"catalog layer {layer_name} CRS authority code",
+                    )
+                _exact_text(layer.crs_wkt, f"catalog layer {layer_name} CRS WKT")
                 expected_crs = _canonical_crs(
                     layer.crs_raw,
                     relative_path,
@@ -779,6 +817,14 @@ def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog:
             ):
                 raise InpnProtectedAreasCatalogError(
                     "catalog non-spatial metadata is inconsistent"
+                )
+            if layer.total_bounds is not None and (
+                type(layer.total_bounds) is not tuple
+                or len(layer.total_bounds) != 4
+                or any(type(member) is not float for member in layer.total_bounds)
+            ):
+                raise InpnProtectedAreasCatalogError(
+                    "catalog bounds representation is not canonical"
                 )
             bounds = _validated_bounds(
                 layer.total_bounds,
@@ -897,7 +943,8 @@ def build_inpn_protected_areas_catalog(
         raise
     except InpnProtectedAreasSourceError as error:
         raise InpnProtectedAreasCatalogError(
-            "INPN extraction failed source-complete catalog validation"
+            "INPN extraction byte identity changed or failed source-complete "
+            "catalog validation"
         ) from error
     except Exception as error:
         raise InpnProtectedAreasCatalogError(
