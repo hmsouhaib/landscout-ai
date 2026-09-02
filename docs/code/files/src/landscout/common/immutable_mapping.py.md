@@ -22,10 +22,10 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 ## 3. Exact imports and dependencies
 
 - `from __future__ import annotations`
-- `import json`
+- `import math`
 - `from collections.abc import Iterator, Mapping`
 - `from types import MappingProxyType`
-- `from typing import cast`
+- `from typing import Self, cast`
 
 ## 4. Module declarations
 
@@ -86,7 +86,19 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 
 - Exact signature: `def __eq__(self, other: object) -> bool:`
 - Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Algorithm: compare the copied items as ordinary dictionaries when `other` is a mapping; otherwise return `False`.
+
+### `FrozenDict.__copy__`
+
+- Exact signature: `def __copy__(self) -> Self:`
+- Decorators: none
+- Algorithm: return the same instance. This is safe when the owning contract has already established that every retained value is recursively immutable.
+
+### `FrozenDict.__deepcopy__`
+
+- Exact signature: `def __deepcopy__(self, memo: dict[int, object]) -> Self:`
+- Decorators: none
+- Algorithm: record `self` under its object identity in `memo`, then return the same recursively immutable instance.
 
 ### `FrozenDict.__setattr__`
 
@@ -111,135 +123,50 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 - Exact signature: `def freeze_value(value: object) -> object:`
 - Decorators: none
 - Source purpose: Recursively copy JSON-like collections into immutable equivalents.
+- Ordered algorithm: mappings delegate to `freeze_mapping`; lists and tuples recursively become tuples; sets and frozensets recursively become frozensets; every other leaf is returned unchanged.
+- Contract boundary: this generic helper relies on the owning Pydantic/domain model to validate leaf semantics before freezing. It is not the strict canonical-JSON validator.
 
 ### `freeze_mapping`
 
 - Exact signature: `def freeze_mapping[Key, Value]( value: Mapping[Key, Value], ) -> FrozenDict[Key, Value]:`
 - Decorators: none
 - Source purpose: Recursively copy a mapping into an immutable mapping value.
+- Algorithm: construct `FrozenDict`, whose constructor copies every key/value pair and recursively freezes each value through `freeze_value` before sealing the new dictionary behind `MappingProxyType`.
+
+### `freeze_json_value`
+
+- Exact signature: `def freeze_json_value(value: object) -> object:`
+- Decorators: none
+- Source purpose: Recursively validate and freeze one canonical JSON value.
+- Algorithm: start a new active-collection identity set and delegate to `_freeze_json_value`.
+
+### `_freeze_json_value`
+
+- Exact signature: `def _freeze_json_value(value: object, *, active: set[int]) -> object:`
+- Decorators: none
+- Source purpose: Validate one canonical JSON value while rejecting collection cycles.
+- Ordered algorithm: accept `None` and exact `str`, `bool`, or `int`; accept an exact `float` only when finite; recursively freeze mappings through `_freeze_json_mapping`; convert lists/tuples to tuples while adding and removing their identity from `active`; reject a repeated active identity as a cycle; reject every unsupported leaf without stringification.
+
+### `freeze_json_mapping`
+
+- Exact signature: `def freeze_json_mapping[Key]( value: Mapping[Key, object], ) -> FrozenDict[str, object]:`
+- Decorators: none
+- Source purpose: Copy a string-keyed canonical JSON mapping into an immutable value.
+- Algorithm: start a new active-collection identity set and delegate to `_freeze_json_mapping`.
+
+### `_freeze_json_mapping`
+
+- Exact signature: `def _freeze_json_mapping[Key]( value: Mapping[Key, object], *, active: set[int], ) -> FrozenDict[str, object]:`
+- Decorators: none
+- Source purpose: Validate one canonical JSON mapping while rejecting collection cycles.
+- Ordered algorithm: reject an identity already active; mark the mapping active; require every key to have exact built-in `str` type; recursively validate/freeze every value; seal the copied dictionary as `FrozenDict`; always remove the identity from `active` on exit.
 
 ### `to_plain_json_value`
 
 - Exact signature: `def to_plain_json_value(value: object) -> object:`
 - Decorators: none
 - Source purpose: Return a fresh canonical JSON-compatible copy of an immutable value.
-
-## 6B. STEP 7F.1A.4.2 authoritative changed contracts
-
-This section supersedes older source excerpts for the named callables. The exact complete current file snapshot in section 11 remains authoritative for every declaration.
-
-### `FrozenDict.__copy__`
-
-```python
-def __copy__(self) -> Self:
-        return self
-```
-
-### `FrozenDict.__deepcopy__`
-
-```python
-def __deepcopy__(self, memo: dict[int, object]) -> Self:
-        memo[id(self)] = self
-        return self
-```
-
-### `freeze_json_value`
-
-```python
-def freeze_json_value(value: object) -> object:
-    """Recursively validate and freeze one canonical JSON value."""
-
-    return _freeze_json_value(value, active=set())
-```
-
-### `_freeze_json_value`
-
-```python
-def _freeze_json_value(value: object, *, active: set[int]) -> object:
-    """Validate one canonical JSON value while rejecting collection cycles."""
-
-    if value is None or type(value) in (str, bool, int):
-        return value
-    if type(value) is float:
-        if not math.isfinite(value):
-            raise ValueError("canonical JSON numbers must be finite")
-        return value
-    if isinstance(value, Mapping):
-        return _freeze_json_mapping(value, active=active)
-    if isinstance(value, (list, tuple)):
-        identity = id(value)
-        if identity in active:
-            raise ValueError("canonical JSON collections must not contain cycles")
-        active.add(identity)
-        try:
-            return tuple(_freeze_json_value(member, active=active) for member in value)
-        finally:
-            active.remove(identity)
-    raise ValueError(
-        "canonical JSON values must be null, exact strings, booleans, integers, "
-        "finite floats, string-keyed mappings, lists, or tuples"
-    )
-```
-
-### `freeze_json_mapping`
-
-```python
-def freeze_json_mapping[Key](
-    value: Mapping[Key, object],
-) -> FrozenDict[str, object]:
-    """Copy a string-keyed canonical JSON mapping into an immutable value."""
-
-    return _freeze_json_mapping(value, active=set())
-```
-
-### `_freeze_json_mapping`
-
-```python
-def _freeze_json_mapping[Key](
-    value: Mapping[Key, object],
-    *,
-    active: set[int],
-) -> FrozenDict[str, object]:
-    """Validate one canonical JSON mapping while rejecting collection cycles."""
-
-    identity = id(value)
-    if identity in active:
-        raise ValueError("canonical JSON collections must not contain cycles")
-    active.add(identity)
-    frozen: dict[str, object] = {}
-    try:
-        for key, member in value.items():
-            if type(key) is not str:
-                raise ValueError("canonical JSON mapping keys must be exact strings")
-            frozen[cast(str, key)] = _freeze_json_value(member, active=active)
-        return FrozenDict(frozen)
-    finally:
-        active.remove(identity)
-```
-
-### `to_plain_json_value`
-
-```python
-def to_plain_json_value(value: object) -> object:
-    """Return a fresh canonical JSON-compatible copy of an immutable value."""
-
-    if isinstance(value, Mapping):
-        result: dict[str, object] = {}
-        for key, member in value.items():
-            if type(key) is not str:
-                raise ValueError("canonical JSON mapping keys must be exact strings")
-            result[key] = to_plain_json_value(member)
-        return result
-    if isinstance(value, (list, tuple)):
-        return [to_plain_json_value(member) for member in value]
-    if value is None or type(value) in (str, bool, int):
-        return value
-    if type(value) is float:
-        if not math.isfinite(value):
-            raise ValueError("canonical JSON numbers must be finite")
-        return value
-    raise ValueError("unsupported canonical JSON value")
-```
+- Ordered algorithm: recursively copy exact-string-keyed mappings to fresh dictionaries; recursively copy lists/tuples to fresh lists; pass through `None` and exact `str`, `bool`, or `int`; pass through exact finite floats; reject non-string keys, non-finite floats, and unsupported values. It never stringifies a value.
 ## 7. Test inventory
 
 - Exact `test_*` count: 0

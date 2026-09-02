@@ -28,6 +28,7 @@ The file belongs to the **pipeline stage** layer and **factual transformation, e
 - `import json`
 - `import math`
 - `import re`
+- `from collections.abc import Mapping`
 - `from dataclasses import dataclass, replace`
 - `from datetime import date, datetime`
 - `from hashlib import sha256`
@@ -47,6 +48,7 @@ The file belongs to the **pipeline stage** layer and **factual transformation, e
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )`
 - `from pyproj import CRS`
@@ -64,6 +66,10 @@ The file belongs to the **pipeline stage** layer and **factual transformation, e
     validate_bess_application_relation_frame,
 )`
 - `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
+- `from landscout.common.immutable_mapping import (
+    freeze_json_mapping,
+    to_plain_json_value,
+)`
 - `from landscout.common.planning_overlay import technical_overlay_tolerance`
 - `from landscout.common.strict_json import loads_strict_json, loads_strict_json_object`
 - `from landscout.sources.gpu_fr import GpuPlanningDocument`
@@ -1218,91 +1224,32 @@ def _sha256_string(value: object, label: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+### `BessPlanningFeatureParcelAggregationArtifactRecord._serialize_immutable_json_mapping`
+
+**Purpose:** Pydantic field serializer for `frame_schema_signature` and `crs`.
+
+- Exact signature: `def _serialize_immutable_json_mapping( self, value: Mapping[str, object] | None ) -> object:`
+- Exact decorator: `@field_serializer("frame_schema_signature", "crs")`.
+- Algorithm: pass the retained immutable mapping (or `None`) to `to_plain_json_value`, returning a fresh plain JSON-compatible dictionary/list/scalar structure without exposing mutable retained state.
+
 ### `BessPlanningFeatureParcelAggregationArtifactRecord._validate_record`
 
-**Purpose:** Implements `validate record` within the file role: Aggregates source-bound planning feature-policy relation evidence into parcel-level precheck summaries.
+**Purpose:** Validate one parcel-aggregation artifact record and retain only strict canonical immutable schema/CRS evidence.
 
-**Exact signature**
-
-```python
-def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
-```
-
-- Exact decorators: `model_validator(mode="after")`.
-- Declared return annotation: `BessPlanningFeatureParcelAggregationArtifactRecord`.
-
-**Inputs**
-
-| Name | Kind | Annotation | Default |
-|---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
-
-**Return and exception contract**
-
-- Exact observed return expressions:
-  - `self`
-- Explicit raise paths:
-  - `ValueError("artifact row_count must be non-negative")` under lexical guard `type(self.row_count) is not int or self.row_count < 0`.
-  - `ValueError("artifact size_bytes must be positive")` under lexical guard `type(self.size_bytes) is not int or self.size_bytes < 1`.
-  - `ValueError("artifact geospatial flag differs from its role")` under lexical guard `self.geospatial is not expected_geo`.
-  - `ValueError("parcel artifact CRS is missing or inconsistent")` under lexical guard `expected_geo`.
-  - `ValueError("relation artifact must not declare CRS")` under lexical guard `expected_geo`.
-
-**Qualified relationships**
-
-Inbound conservative repository consumers:
-- None found by exact import/direct-call/value-reference resolution.
-
-Outbound call expressions and conservative ownership:
-| Exact call expression | Resolved owner |
-|---|---|
-| `validate_portable_parquet_filename` | `landscout.common.artifact_paths.validate_portable_parquet_filename` |
-| `type` | `unresolved local/third-party receiver; no ownership inferred` |
-| `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_sha256_string` | `landscout.stages.aggregate_bess_planning_feature_policy._sha256_string` |
-| `self.frame_schema_signature.get` | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationArtifactRecord.frame_schema_signature.get` |
-| `model_validator` | `pydantic.model_validator` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_sha256_string` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
-**Complete source-ordered implementation**
-
-```python
-def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
-        validate_portable_parquet_filename(self.filename, "artifact filename")
-        if type(self.row_count) is not int or self.row_count < 0:
-            raise ValueError("artifact row_count must be non-negative")
-        if type(self.size_bytes) is not int or self.size_bytes < 1:
-            raise ValueError("artifact size_bytes must be positive")
-        _sha256_string(self.sha256, "artifact SHA256")
-        expected_geo = self.artifact_role == "PARCELS"
-        if self.geospatial is not expected_geo:
-            raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = self.frame_schema_signature.get("crs")
-        if expected_geo:
-            if self.crs is None or signature_crs != self.crs:
-                raise ValueError("parcel artifact CRS is missing or inconsistent")
-        elif self.crs is not None or signature_crs is not None:
-            raise ValueError("relation artifact must not declare CRS")
-        return self
-```
-
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Exact signature: `def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:`
+- Exact decorator: `@model_validator(mode="after")`.
+- Ordered algorithm:
+  1. Validate and freeze `frame_schema_signature` through `freeze_json_mapping`.
+  2. Validate and freeze `crs` through `freeze_json_mapping` when present.
+  3. Validate the portable filename.
+  4. Require a non-negative exact-integer row count.
+  5. Require a positive exact-integer byte size.
+  6. Validate the lowercase SHA256.
+  7. Derive the expected geospatial flag from the `PARCELS` role.
+  8. Compare the canonical signature CRS with the canonical record CRS for parcel artifacts.
+  9. Reject CRS evidence for non-geospatial relation assessments.
+  10. Retain only the frozen canonical signature and CRS mappings, then return `self`.
+- Direct in-memory effect: `object.__setattr__` replaces the two validated Pydantic fields with their immutable canonical values; no caller-owned collection is retained.
 
 ### `BessPlanningFeatureParcelAggregationArtifactManifest._validate_manifest`
 
@@ -4336,126 +4283,18 @@ def validate_bess_planning_feature_parcel_aggregation_result(
 
 ### `_read_verified_artifact`
 
-**Purpose:** Implements `read verified artifact` within the file role: Aggregates source-bound planning feature-policy relation evidence into parcel-level precheck summaries.
+**Purpose:** Read one byte-sealed aggregation artifact and prove its physical content against the immutable manifest record.
 
-**Exact signature**
-
-```python
-def _read_verified_artifact(
-    path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord
-) -> pd.DataFrame:
-```
-
-- Exact decorators: none.
-- Declared return annotation: `pd.DataFrame`.
-
-**Inputs**
-
-| Name | Kind | Annotation | Default |
-|---|---|---|---|
-| `path` | positional-or-keyword | `Path` | `required` |
-| `record` | positional-or-keyword | `BessPlanningFeatureParcelAggregationArtifactRecord` | `required` |
-
-**Return and exception contract**
-
-- Exact observed return expressions:
-  - `frame`
-- Explicit raise paths:
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Aggregation artifact filename differs"<br>        )` under lexical guard `path.name != record.filename`.
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Aggregation artifact byte size differs"<br>        )` under lexical guard `len(payload) != record.size_bytes`.
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Aggregation artifact SHA256 differs"<br>        )` under lexical guard `sha256(payload).hexdigest() != record.sha256`.
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Aggregation artifact row count differs"<br>        )` under lexical guard `len(frame) != record.row_count`.
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Aggregation artifact frame schema differs"<br>        )` under lexical guard `deterministic_frame_schema_signature(frame) != record.frame_schema_signature`.
-  - `BessPlanningFeatureParcelAggregationError(<br>                "Aggregation parcel artifact CRS differs"<br>            )` under lexical guard `record.geospatial`.
-  - `BessPlanningFeatureParcelAggregationError(<br>            "Relation assessment artifact is unexpectedly geospatial"<br>        )` under lexical guard `record.geospatial`.
-
-**Qualified relationships**
-
-Inbound conservative repository consumers:
-- direct call: `landscout.stages.aggregate_bess_planning_feature_policy::load_bess_planning_feature_parcel_aggregation_artifacts` via `_read_verified_artifact`
-- value/type reference: `landscout.stages.aggregate_bess_planning_feature_policy::load_bess_planning_feature_parcel_aggregation_artifacts` via `_read_verified_artifact`
-
-Outbound call expressions and conservative ownership:
-| Exact call expression | Resolved owner |
-|---|---|
-| `BessPlanningFeatureParcelAggregationError` | `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationError` |
-| `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-| `len` | `unresolved local/third-party receiver; no ownership inferred` |
-| `sha256(payload).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
-| `sha256` | `hashlib.sha256` |
-| `BytesIO` | `io.BytesIO` |
-| `gpd.read_parquet` | `geopandas.read_parquet` |
-| `pd.read_parquet` | `pandas.read_parquet` |
-| `deterministic_frame_schema_signature` | `landscout.common.frame_integrity.deterministic_frame_schema_signature` |
-| `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
-| `CRS.from_user_input(frame.crs).to_json_dict` | `unresolved local/third-party receiver; no ownership inferred` |
-| `CRS.from_user_input` | `pyproj.CRS.from_user_input` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.read_bytes`<br>`gpd.read_parquet`<br>`pd.read_parquet` |
-| Filesystem/archive write or publication | `CRS.from_user_input(frame.crs).to_json_dict` |
-| Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
-**Complete source-ordered implementation**
-
-```python
-def _read_verified_artifact(
-    path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord
-) -> pd.DataFrame:
-    if path.name != record.filename:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact filename differs"
-        )
-    payload = path.read_bytes()
-    if len(payload) != record.size_bytes:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact byte size differs"
-        )
-    if sha256(payload).hexdigest() != record.sha256:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact SHA256 differs"
-        )
-    buffer = BytesIO(payload)
-    frame: pd.DataFrame = (
-        gpd.read_parquet(buffer) if record.geospatial else pd.read_parquet(buffer)
-    )
-    if len(frame) != record.row_count:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact row count differs"
-        )
-    if deterministic_frame_schema_signature(frame) != record.frame_schema_signature:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact frame schema differs"
-        )
-    if record.geospatial:
-        if (
-            not isinstance(frame, gpd.GeoDataFrame)
-            or frame.crs is None
-            or CRS.from_user_input(frame.crs).to_json_dict() != record.crs
-        ):
-            raise BessPlanningFeatureParcelAggregationError(
-                "Aggregation parcel artifact CRS differs"
-            )
-    elif isinstance(frame, gpd.GeoDataFrame):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Relation assessment artifact is unexpectedly geospatial"
-        )
-    return frame
-```
-
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
+- Exact signature: `def _read_verified_artifact( path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord ) -> pd.DataFrame:`
+- Ordered algorithm:
+  1. Require the physical basename to equal the manifest filename.
+  2. Read exact bytes and verify byte size and SHA256.
+  3. Load geospatial or plain Parquet according to the record flag.
+  4. Verify row count.
+  5. Rebuild the deterministic frame schema, convert it with `freeze_json_mapping`, and compare it with the immutable manifest signature.
+  6. For parcel artifacts, require a GeoDataFrame and CRS, canonicalize the physical CRS through `CRS.to_json_dict()` and `freeze_json_mapping`, and compare it with the immutable record CRS.
+  7. Reject a non-geospatial relation-assessment artifact that loads as a GeoDataFrame; otherwise return the frame.
+- Side effects: reads artifact bytes and parses Parquet in memory; performs SHA256 and CRS/schema validation; writes nothing and does not mutate the record.
 
 ### `load_bess_planning_feature_parcel_aggregation_artifacts`
 
@@ -4609,167 +4448,8 @@ def load_bess_planning_feature_parcel_aggregation_artifacts(
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
-## 6A. STEP 7F.1A.4.1 changed callable contracts
 
-### `BessPlanningFeatureParcelAggregationArtifactRecord._serialize_immutable_json_mapping` — STEP 7F.1A.4.1 current contract
 
-- Exact signature: `def _serialize_immutable_json_mapping( self, value: Mapping[str, object] | None ) -> object:`
-- Exact decorators: `@field_serializer("frame_schema_signature", "crs")`
-- Purpose: The exact implementation below defines the callable contract.
-- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
-
-**Complete source-ordered implementation**
-
-```python
-def _serialize_immutable_json_mapping(
-        self, value: Mapping[str, object] | None
-    ) -> object:
-        return to_plain_json_value(value)
-```
-
-### `_read_verified_artifact` — STEP 7F.1A.4.1 current contract
-
-- Exact signature: `def _read_verified_artifact( path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord ) -> pd.DataFrame:`
-- Exact decorators: none
-- Purpose: The exact implementation below defines the callable contract.
-- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
-
-**Complete source-ordered implementation**
-
-```python
-def _read_verified_artifact(
-    path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord
-) -> pd.DataFrame:
-    if path.name != record.filename:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact filename differs"
-        )
-    payload = path.read_bytes()
-    if len(payload) != record.size_bytes:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact byte size differs"
-        )
-    if sha256(payload).hexdigest() != record.sha256:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact SHA256 differs"
-        )
-    buffer = BytesIO(payload)
-    frame: pd.DataFrame = (
-        gpd.read_parquet(buffer) if record.geospatial else pd.read_parquet(buffer)
-    )
-    if len(frame) != record.row_count:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact row count differs"
-        )
-    if (
-        freeze_mapping(deterministic_frame_schema_signature(frame))
-        != record.frame_schema_signature
-    ):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact frame schema differs"
-        )
-    if record.geospatial:
-        if (
-            not isinstance(frame, gpd.GeoDataFrame)
-            or frame.crs is None
-            or freeze_mapping(CRS.from_user_input(frame.crs).to_json_dict())
-            != record.crs
-        ):
-            raise BessPlanningFeatureParcelAggregationError(
-                "Aggregation parcel artifact CRS differs"
-            )
-    elif isinstance(frame, gpd.GeoDataFrame):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Relation assessment artifact is unexpectedly geospatial"
-        )
-    return frame
-```
-
-## 6B. STEP 7F.1A.4.2 authoritative changed contracts
-
-This section supersedes older source excerpts for the named callables. The exact complete current file snapshot in section 11 remains authoritative for every declaration.
-
-### `BessPlanningFeatureParcelAggregationArtifactRecord._validate_record`
-
-```python
-def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
-        frozen_signature = freeze_json_mapping(self.frame_schema_signature)
-        frozen_crs = freeze_json_mapping(self.crs) if self.crs is not None else None
-        validate_portable_parquet_filename(self.filename, "artifact filename")
-        if type(self.row_count) is not int or self.row_count < 0:
-            raise ValueError("artifact row_count must be non-negative")
-        if type(self.size_bytes) is not int or self.size_bytes < 1:
-            raise ValueError("artifact size_bytes must be positive")
-        _sha256_string(self.sha256, "artifact SHA256")
-        expected_geo = self.artifact_role == "PARCELS"
-        if self.geospatial is not expected_geo:
-            raise ValueError("artifact geospatial flag differs from its role")
-        signature_crs = frozen_signature.get("crs")
-        if expected_geo:
-            if frozen_crs is None or signature_crs != frozen_crs:
-                raise ValueError("parcel artifact CRS is missing or inconsistent")
-        elif self.crs is not None or signature_crs is not None:
-            raise ValueError("relation artifact must not declare CRS")
-        object.__setattr__(
-            self,
-            "frame_schema_signature",
-            frozen_signature,
-        )
-        if frozen_crs is not None:
-            object.__setattr__(self, "crs", frozen_crs)
-        return self
-```
-
-### `_read_verified_artifact`
-
-```python
-def _read_verified_artifact(
-    path: Path, record: BessPlanningFeatureParcelAggregationArtifactRecord
-) -> pd.DataFrame:
-    if path.name != record.filename:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact filename differs"
-        )
-    payload = path.read_bytes()
-    if len(payload) != record.size_bytes:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact byte size differs"
-        )
-    if sha256(payload).hexdigest() != record.sha256:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact SHA256 differs"
-        )
-    buffer = BytesIO(payload)
-    frame: pd.DataFrame = (
-        gpd.read_parquet(buffer) if record.geospatial else pd.read_parquet(buffer)
-    )
-    if len(frame) != record.row_count:
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact row count differs"
-        )
-    if (
-        freeze_json_mapping(deterministic_frame_schema_signature(frame))
-        != record.frame_schema_signature
-    ):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation artifact frame schema differs"
-        )
-    if record.geospatial:
-        if (
-            not isinstance(frame, gpd.GeoDataFrame)
-            or frame.crs is None
-            or freeze_json_mapping(CRS.from_user_input(frame.crs).to_json_dict())
-            != record.crs
-        ):
-            raise BessPlanningFeatureParcelAggregationError(
-                "Aggregation parcel artifact CRS differs"
-            )
-    elif isinstance(frame, gpd.GeoDataFrame):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Relation assessment artifact is unexpectedly geospatial"
-        )
-    return frame
-```
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `RESULT_HASH_SCHEMA_VERSION`, `ARTIFACT_MANIFEST_SCHEMA_VERSION`, `APPLICATION_RESULT_HASH_SCHEMA_VERSION`, `PARCEL_COLUMNS`, `RELATION_COLUMNS`, `PARCEL_STRING_COLUMNS`, `PARCEL_INTEGER_COLUMNS`, `PARCEL_BOOL_COLUMNS`, `RELATION_STRING_COLUMNS`, `RESULT_FRAME_FIELDS`, `RESULT_SCALAR_FIELDS`.

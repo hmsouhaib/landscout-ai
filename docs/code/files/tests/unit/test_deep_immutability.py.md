@@ -22,12 +22,14 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 ## 3. Exact imports and dependencies
 
 - `from __future__ import annotations`
+- `import copy`
 - `import operator`
-- `from collections.abc import Mapping`
+- `from collections.abc import Callable, Mapping`
 - `from dataclasses import fields, is_dataclass`
 - `from pathlib import Path`
+- `import numpy as np`
 - `import pytest`
-- `from pydantic import BaseModel`
+- `from pydantic import BaseModel, ValidationError`
 - `from landscout.common.immutable_mapping import FrozenDict`
 - `from landscout.config import AoiConfig, load_scan_config`
 - `from landscout.sources.gpu_fr import ( _source_config_sha256, load_gpu_source_config, )`
@@ -58,254 +60,261 @@ This companion is source-bound. The SHA and complete snapshot below are authorit
 - `WRITTEN_ZONING_PATH = ROOT / "configs/planning/muret_bess_zoning_policy.yaml"`
 - `CNIG_PATH = ROOT / "configs/planning/cnig_plu_2017_feature_codes.yaml"`
 - `BESS_POLICY_PATH = ROOT / "configs/planning/muret_bess_cnig_feature_policy.yaml"`
+- `ARTIFACT_RECORD_CASES` is the ordered pair of application and aggregation artifact-record model/role/filename cases shared by the parametrized integrity tests:
+
+```python
+ARTIFACT_RECORD_CASES = (
+    (
+        BessPlanningFeatureApplicationArtifactRecord,
+        "RELATIONS",
+        "relations.parquet",
+    ),
+    (
+        BessPlanningFeatureParcelAggregationArtifactRecord,
+        "RELATION_ASSESSMENTS",
+        "relation_assessments.parquet",
+    ),
+)
+```
 
 ## 5. Classes and lexical ownership
 
-No classes are declared.
+### `_MutableLeaf`
 
-## 6. Functions, methods, validators, callbacks, fixtures, and tests
+- Test-only mutable custom object whose caller-owned `values` list represents an unsupported integrity leaf.
+
+### `_StringSubclass`
+
+- Test-only `str` subclass proving the strict canonical JSON contract accepts exact built-in scalar types only.
+
+### `_IntegerSubclass`
+
+- Test-only `int` subclass proving the strict canonical JSON contract accepts exact built-in scalar types only.
+
+## 6. Helpers and test definitions
+
+### `_MutableLeaf.__init__`
+
+- Exact signature: `def __init__(self) -> None:`
+- Purpose: allocate the caller-owned mutable `values` list used to prove that custom-object leaves are rejected before retention.
 
 ### `_artifact_record_payload`
 
 - Exact signature: `def _artifact_record_payload(role: str, filename: str) -> dict[str, object]:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: build the shared valid non-geospatial artifact-record payload used by both application and aggregation regressions.
+
+### `_mapping_values_view`
+
+- Exact signature: `def _mapping_values_view() -> object:`
+- Purpose: return a live dictionary values view so dynamic collection views cannot be retained as JSON evidence.
+
+### `_cyclic_list`
+
+- Exact signature: `def _cyclic_list() -> object:`
+- Purpose: create a self-referential list for recursive cycle rejection.
+
+### `_non_string_key_mapping`
+
+- Exact signature: `def _non_string_key_mapping() -> object:`
+- Purpose: create a nested mapping with a non-string key for the exact JSON-key contract.
+
+### `_geospatial_artifact_record_payload`
+
+- Exact signature: `def _geospatial_artifact_record_payload( record_type: type[BaseModel], ) -> dict[str, object]:`
+- Purpose: build a valid geospatial application `SURFACE_FEATURES` or aggregation `PARCELS` record with one shared canonical CRS value in the record and frame signature.
 
 ### `_loaded_trust_values`
 
 - Exact signature: `def _loaded_trust_values() -> tuple[object, ...]:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: load every trust-bearing configuration/policy family plus both artifact-record families for recursive reachability inspection.
 
 ### `_assert_no_reachable_mutable_collection`
 
 - Exact signature: `def _assert_no_reachable_mutable_collection(value: object, *, seen: set[int]) -> None:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Purpose: recursively traverse Pydantic models, dataclasses, mappings, tuples, and frozensets while rejecting any reachable list, dict, set, or bytearray.
+
+### `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
+
+- Exact signature: `def test_artifact_integrity_record_rejects_mutable_bytearray_alias( record_type: type[BaseModel], role: str, filename: str, ) -> None:`
+- Decorator: `@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)`.
+- Contract: a caller-owned binary mutable object must not survive model validation; both application and aggregation records are covered.
+
+### `test_artifact_integrity_record_rejects_noncanonical_nested_leaf`
+
+- Exact signature: `def test_artifact_integrity_record_rejects_noncanonical_nested_leaf( record_type: type[BaseModel], role: str, filename: str, value_factory: Callable[[], object], ) -> None:`
+- Decorators: `@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)` plus the exact 15-case `value_factory` parametrization reproduced in the decorator inventory below.
+- Contract: bytes, custom mutable objects, dynamic views, sets/frozensets, NumPy objects, scalar subclasses, non-string keys, cycles, and non-finite floats fail validation rather than being retained or stringified.
+
+### `test_artifact_integrity_record_rejects_mutable_crs_leaf`
+
+- Exact signature: `def test_artifact_integrity_record_rejects_mutable_crs_leaf( record_type: type[BaseModel], ) -> None:`
+- Decorator: `@pytest.mark.parametrize("record_type", [case[0] for case in ARTIFACT_RECORD_CASES])`.
+- Contract: the strict rejection applies specifically to each geospatial record's retained CRS evidence.
+
+### `test_artifact_integrity_record_accepts_only_canonical_json_values`
+
+- Exact signature: `def test_artifact_integrity_record_accepts_only_canonical_json_values( record_type: type[BaseModel], role: str, filename: str, ) -> None:`
+- Decorator: `@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)`.
+- Contract: valid JSON values remain accepted, ordered collections become tuples internally, and JSON serialization returns fresh lists/dictionaries with the established shape.
+
+### `test_frozen_mapping_copy_and_deepcopy_preserve_identity`
+
+- Exact signature: `def test_frozen_mapping_copy_and_deepcopy_preserve_identity() -> None:`
+- Contract: shallow and deep copy both safely return the same already-immutable `FrozenDict` instance.
+
+### `test_artifact_integrity_record_deep_model_copy_remains_immutable`
+
+- Exact signature: `def test_artifact_integrity_record_deep_model_copy_remains_immutable( record_type: type[BaseModel], role: str, filename: str, ) -> None:`
+- Decorator: `@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)`.
+- Contract: Pydantic returns a distinct outer model, immutable schema/CRS mappings safely retain identity, and no mutable collection becomes reachable.
 
 ### `test_all_loaded_trust_families_have_no_reachable_mutable_collection`
 
 - Exact signature: `def test_all_loaded_trust_families_have_no_reachable_mutable_collection() -> None:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Contract: every loaded trust family passes the recursive mutable-collection reachability audit.
 
 ### `test_loaded_ordered_sequence_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_ordered_sequence_mutation_fails_immediately(operation: str) -> None:`
-- Decorators: `@pytest.mark.parametrize( "operation", [ "append", "extend", "insert", "pop", "remove", "item_assignment", "slice_assignment", ], )`
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Decorator: the exact seven-case `operation` parametrization reproduced below.
+- Contract: every relevant list-style mutation fails immediately on a loaded ordered tuple.
 
 ### `test_loaded_mapping_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_mapping_mutation_fails_immediately(operation: str) -> None:`
-- Decorators: `@pytest.mark.parametrize( "operation", [ "item_assignment", "update", "setdefault", "pop", "deletion", "clear", "in_place_union", "backing_attribute", ], )`
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Decorator: the exact eight-case `operation` parametrization reproduced below.
+- Contract: item, method, in-place union, deletion, and backing-attribute mutation all fail immediately.
 
 ### `test_loaded_set_semantics_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_set_semantics_mutation_fails_immediately(operation: str) -> None:`
-- Decorators: `@pytest.mark.parametrize("operation", ["add", "update", "remove", "discard", "pop"])`
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Decorator: `@pytest.mark.parametrize("operation", ["add", "update", "remove", "discard", "pop"])`.
+- Contract: loaded set-semantics policy domains expose only immutable frozenset behavior.
 
 ### `test_nested_input_aliases_cannot_mutate_validated_models`
 
 - Exact signature: `def test_nested_input_aliases_cannot_mutate_validated_models() -> None:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Contract: later mutations of caller-owned nested list/mapping payloads cannot alter validated AOI or planning-structure models.
 
 ### `test_canonical_config_and_policy_hashes_match_starting_commit`
 
 - Exact signature: `def test_canonical_config_and_policy_hashes_match_starting_commit() -> None:`
-- Decorators: none
-- Source purpose: No callable docstring; exact source below is authoritative.
+- Contract: the structure, written-zoning, CNIG, BESS-policy, and GPU configuration SHA256 locks remain byte-for-byte stable.
 
-## 6B. STEP 7F.1A.4.2 authoritative changed contracts
-
-This section supersedes older source excerpts for the named callables. The exact complete current file snapshot in section 11 remains authoritative for every declaration.
-
-### `_mapping_values_view`
-
-```python
-def _mapping_values_view() -> object:
-    source = {"dynamic": "value"}
-    return source.values()
-```
-
-### `_cyclic_list`
-
-```python
-def _cyclic_list() -> object:
-    value: list[object] = []
-    value.append(value)
-    return value
-```
-
-### `_non_string_key_mapping`
-
-```python
-def _non_string_key_mapping() -> object:
-    return {1: "not canonical JSON"}
-```
-
-### `_geospatial_artifact_record_payload`
-
-```python
-def _geospatial_artifact_record_payload(
-    record_type: type[BaseModel],
-) -> dict[str, object]:
-    crs = {
-        "type": "ProjectedCRS",
-        "name": "RGF93 v1 / Lambert-93",
-        "coordinate_system": {"axis": [{"name": "Easting"}]},
-    }
-    if record_type is BessPlanningFeatureApplicationArtifactRecord:
-        role, filename = "SURFACE_FEATURES", "surface.parquet"
-    else:
-        role, filename = "PARCELS", "parcels.parquet"
-    payload = _artifact_record_payload(role, filename)
-    payload["geospatial"] = True
-    payload["crs"] = crs
-    signature = payload["frame_schema_signature"]
-    assert isinstance(signature, dict)
-    signature["geometry_column"] = "geometry"
-    signature["crs"] = crs
-    return payload
-```
-
-### `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
-
-```python
-def test_artifact_integrity_record_rejects_mutable_bytearray_alias(
-    record_type: type[BaseModel],
-    role: str,
-    filename: str,
-) -> None:
-    mutable = bytearray(b"abc")
-    payload = _artifact_record_payload(role, filename)
-    signature = payload["frame_schema_signature"]
-    assert isinstance(signature, dict)
-    signature["mutable_leaf"] = mutable
-
-    with pytest.raises(ValidationError, match="canonical JSON"):
-        record_type.model_validate(payload)
-```
-
-### `test_artifact_integrity_record_rejects_noncanonical_nested_leaf`
-
-```python
-def test_artifact_integrity_record_rejects_noncanonical_nested_leaf(
-    record_type: type[BaseModel],
-    role: str,
-    filename: str,
-    value_factory: Callable[[], object],
-) -> None:
-    payload = _artifact_record_payload(role, filename)
-    signature = payload["frame_schema_signature"]
-    assert isinstance(signature, dict)
-    signature["nested"] = {"leaf": value_factory()}
-
-    with pytest.raises(ValidationError, match="canonical JSON"):
-        record_type.model_validate(payload)
-```
-
-### `test_artifact_integrity_record_rejects_mutable_crs_leaf`
-
-```python
-def test_artifact_integrity_record_rejects_mutable_crs_leaf(
-    record_type: type[BaseModel],
-) -> None:
-    payload = _geospatial_artifact_record_payload(record_type)
-    crs = payload["crs"]
-    assert isinstance(crs, dict)
-    crs["mutable_leaf"] = bytearray(b"abc")
-
-    with pytest.raises(ValidationError, match="canonical JSON"):
-        record_type.model_validate(payload)
-```
-
-### `test_artifact_integrity_record_accepts_only_canonical_json_values`
-
-```python
-def test_artifact_integrity_record_accepts_only_canonical_json_values(
-    record_type: type[BaseModel],
-    role: str,
-    filename: str,
-) -> None:
-    payload = _artifact_record_payload(role, filename)
-    signature = payload["frame_schema_signature"]
-    assert isinstance(signature, dict)
-    signature["canonical_values"] = {
-        "none": None,
-        "string": "value",
-        "boolean": True,
-        "integer": 3,
-        "float": 1.25,
-        "ordered": ["list", {"nested": (1, 2)}],
-    }
-
-    record = record_type.model_validate(payload)
-    retained = record.__dict__["frame_schema_signature"]
-    assert retained["canonical_values"]["ordered"] == (
-        "list",
-        {"nested": (1, 2)},
-    )
-    expected = _artifact_record_payload(role, filename)
-    expected_signature = expected["frame_schema_signature"]
-    assert isinstance(expected_signature, dict)
-    expected_signature["canonical_values"] = {
-        "none": None,
-        "string": "value",
-        "boolean": True,
-        "integer": 3,
-        "float": 1.25,
-        "ordered": ["list", {"nested": [1, 2]}],
-    }
-    assert record.model_dump(mode="json", warnings="error") == expected
-```
-
-### `test_frozen_mapping_copy_and_deepcopy_preserve_identity`
-
-```python
-def test_frozen_mapping_copy_and_deepcopy_preserve_identity() -> None:
-    value = load_planning_regulation_structure_config(STRUCTURE_PATH).zone_aliases
-
-    assert copy.copy(value) is value
-    assert copy.deepcopy(value) is value
-```
-
-### `test_artifact_integrity_record_deep_model_copy_remains_immutable`
-
-```python
-def test_artifact_integrity_record_deep_model_copy_remains_immutable(
-    record_type: type[BaseModel],
-    role: str,
-    filename: str,
-) -> None:
-    del role, filename
-    record = record_type.model_validate(
-        _geospatial_artifact_record_payload(record_type)
-    )
-
-    copied = record.model_copy(deep=True)
-
-    assert copied is not record
-    assert (
-        copied.__dict__["frame_schema_signature"]
-        is record.__dict__["frame_schema_signature"]
-    )
-    assert copied.__dict__["crs"] is record.__dict__["crs"]
-    _assert_no_reachable_mutable_collection(copied, seen=set())
-```
 ## 7. Test inventory
 
-- Exact `test_*` count: 6
-- Exact pytest fixture count: 0
-- `test_all_loaded_trust_families_have_no_reachable_mutable_collection` — `def test_all_loaded_trust_families_have_no_reachable_mutable_collection() -> None:`
-- `test_loaded_ordered_sequence_mutation_fails_immediately` — `def test_loaded_ordered_sequence_mutation_fails_immediately(operation: str) -> None:`
-- `test_loaded_mapping_mutation_fails_immediately` — `def test_loaded_mapping_mutation_fails_immediately(operation: str) -> None:`
-- `test_loaded_set_semantics_mutation_fails_immediately` — `def test_loaded_set_semantics_mutation_fails_immediately(operation: str) -> None:`
-- `test_nested_input_aliases_cannot_mutate_validated_models` — `def test_nested_input_aliases_cannot_mutate_validated_models() -> None:`
-- `test_canonical_config_and_policy_hashes_match_starting_commit` — `def test_canonical_config_and_policy_hashes_match_starting_commit() -> None:`
+- Exact Python `test_*` function-definition count: 12.
+- Measured pytest collected-case count: 62 (`uv run pytest --collect-only -q tests/unit/test_deep_immutability.py`).
+- Exact pytest fixture count: 0.
+- Definitions, in source order:
+  1. `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
+  2. `test_artifact_integrity_record_rejects_noncanonical_nested_leaf`
+  3. `test_artifact_integrity_record_rejects_mutable_crs_leaf`
+  4. `test_artifact_integrity_record_accepts_only_canonical_json_values`
+  5. `test_frozen_mapping_copy_and_deepcopy_preserve_identity`
+  6. `test_artifact_integrity_record_deep_model_copy_remains_immutable`
+  7. `test_all_loaded_trust_families_have_no_reachable_mutable_collection`
+  8. `test_loaded_ordered_sequence_mutation_fails_immediately`
+  9. `test_loaded_mapping_mutation_fails_immediately`
+  10. `test_loaded_set_semantics_mutation_fails_immediately`
+  11. `test_nested_input_aliases_cannot_mutate_validated_models`
+  12. `test_canonical_config_and_policy_hashes_match_starting_commit`
+
+### Exact pytest decorator inventory
+
+The following nine decorators are the complete source-ordered decorator inventory for the 12 test definitions:
+
+```python
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+```
+
+```python
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+@pytest.mark.parametrize(
+    "value_factory",
+    [
+        lambda: b"bytes",
+        lambda: _MutableLeaf(),
+        _mapping_values_view,
+        lambda: {"not", "json"},
+        lambda: frozenset({"not", "json"}),
+        lambda: np.array([1, 2]),
+        lambda: np.int64(1),
+        lambda: np.float64(1.5),
+        lambda: _StringSubclass("value"),
+        lambda: _IntegerSubclass(1),
+        _non_string_key_mapping,
+        _cyclic_list,
+        lambda: float("nan"),
+        lambda: float("inf"),
+        lambda: float("-inf"),
+    ],
+    ids=(
+        "bytes",
+        "mutable-custom-object",
+        "dynamic-values-view",
+        "set",
+        "frozenset",
+        "numpy-array",
+        "numpy-integer",
+        "numpy-float",
+        "string-subclass",
+        "integer-subclass",
+        "non-string-mapping-key",
+        "cyclic-list",
+        "nan",
+        "positive-infinity",
+        "negative-infinity",
+    ),
+)
+```
+
+```python
+@pytest.mark.parametrize("record_type", [case[0] for case in ARTIFACT_RECORD_CASES])
+```
+
+```python
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+```
+
+```python
+@pytest.mark.parametrize("record_type,role,filename", ARTIFACT_RECORD_CASES)
+```
+
+```python
+@pytest.mark.parametrize(
+    "operation",
+    [
+        "append",
+        "extend",
+        "insert",
+        "pop",
+        "remove",
+        "item_assignment",
+        "slice_assignment",
+    ],
+)
+```
+
+```python
+@pytest.mark.parametrize(
+    "operation",
+    [
+        "item_assignment",
+        "update",
+        "setdefault",
+        "pop",
+        "deletion",
+        "clear",
+        "in_place_union",
+        "backing_attribute",
+    ],
+)
+```
+
+```python
+@pytest.mark.parametrize("operation", ["add", "update", "remove", "discard", "pop"])
+```
 
 ## 8. Deep-immutability and canonical-data contract
 

@@ -3,11 +3,22 @@
 ## Current project state
 
 - Current phase: End-to-end source-authority and planning-completeness hardening
-- Latest completed step: STEP 7F.1A.4.2
-- Current step: STEP 7F.1A.4.2 complete
+- Latest completed step: STEP 7F.1A.4.2.1
+- Current step: STEP 7F.1A.4.2.1 complete
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: none selected
+
+## STEP 7F.1A.4.2.1 — Synchronize canonical living documentation
+
+- Status: Complete. Independent review approved the production immutable-leaf correction from STEP 7F.1A.4.2 but found that four living companions retained stale pre-correction imports, symbols, algorithms, classes, and test counts in their canonical sections while a separate 6B addendum described the current code.
+- Canonical companion correction: the immutable-mapping, BESS application, BESS parcel-aggregation, and deep-immutability-test companions now contain one current-state description. Their main import, class, method, function, helper, module-declaration, decorator, algorithm, physical-reader, and test inventories were rebuilt from the current source and tests; all STEP 7F.1A.4.2 current-contract 6B overrides were removed.
+- Immutable mapping reference: the canonical inventory now records `math`, `Self`, `FrozenDict.__copy__`, `FrozenDict.__deepcopy__`, `freeze_json_value`, `_freeze_json_value`, `freeze_json_mapping`, and `_freeze_json_mapping`. It distinguishes generic `freeze_value`/`freeze_mapping`, which rely on an owning typed model for leaf semantics, from strict canonical-JSON freezing, which enforces exact scalars, finite floats, exact string keys, cycle rejection, and unsupported-leaf rejection without stringification.
+- Artifact references: both artifact-record validators now document their actual source order—canonical schema/CRS freezing first, structural and byte-lineage checks next, then immutable retention. Their field serializers document fresh plain-JSON output through `to_plain_json_value`, and their physical readers document `freeze_json_mapping` comparison of rebuilt frame schemas and CRS values.
+- Test reference: the deep-immutability companion now documents all three helper classes, all seven helper functions, all 12 source `test_*` function definitions, and all nine pytest decorators. It separately records the measured 62 parametrized cases rather than mislabeling collected cases as function definitions.
+- Deterministic audit: a temporary untracked Python/AST audit compared exact imports, classes, methods, top-level functions, module declarations, test definitions, decorators, source snapshots, and raw source SHA256 bindings for all four Python source/companion pairs. It reported 118 class/function/method symbols, 18 decorators, and zero mismatches. A repository search found zero remaining STEP 7F.1A.4.2 6B overrides, stale `No classes are declared` claims, or stale six-test claims. The temporary scripts were removed.
+- Validation: `uv run pytest --collect-only -q tests/unit/test_deep_immutability.py` collected 62 cases; the focused deep-immutability suite passed 62 tests with one environment-only pytest-cache warning in 0.85 seconds; and the complete repository passed 3,123 tests with 5 expected warnings in 812.99 seconds. `uv run ruff check .` passed; `uv run ruff format --check .` reported all 101 Python files formatted; `uv run mypy src` reported no issues in 48 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible packages; and `git diff --check` passed.
+- Boundary: this ticket changes documentation only. Production source, tests, checked-in configuration, README, project/dependency metadata, lock resolution, business/source behavior, hash algorithms, schema versions, artifact formats, and functional STEP 7F behavior remain byte-unchanged.
 
 ## STEP 7F.1A.4.2 — Reject mutable/non-canonical leaves in immutable integrity mappings
 
