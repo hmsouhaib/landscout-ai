@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN archive/extraction source authority evidence
-- Source SHA256: `a5b74d0e8db4cd715231fcfa651aa0c2330f43a34c80ac5f0a74e47dcb96f1be`
-- Collected cases after STEP 7F.1B.1.1: `147`
+- Source SHA256: `72e6c314a8350490e1617089e2bd341bc5a87f3f722f743f82d8fc69451551e8`
+- Collected cases after STEP 7F.1B.1.2: `169`
 
 ## 1. Test architecture and boundary
 
@@ -40,6 +40,10 @@ import warnings
 
 ```python
 import zipfile
+```
+
+```python
+import zlib
 ```
 
 ```python
@@ -114,18 +118,33 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 - Kind: support class.
 - Bases: `object`.
-- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Purpose: models one local HTTP response for the adapter's fake `open_safe_https` context.
 - Decorators: `none`.
 - Exact methods:
 
-  - `def __init__(self, payload: bytes, *, url: str, status_code: int=200, location: str | None=None) -> None` stores deterministic payload, URL, status, headers, read/close counters, and offset.
+  - `def __init__(self, payload: bytes, *, url: str, status_code: int=200, location: str | None=None) -> None` stores an `io.BytesIO` payload as `raw`, exact URL/status, optional `Location` headers, and a `closed` flag.
   - `@property def is_redirect(self) -> bool` derives redirect status from the exact status code.
   - `def raise_for_status(self) -> None` raises the configured HTTP error domain for non-success status.
   - `def iter_content(self, chunk_size: int=8192) -> Any` yields deterministic byte chunks.
   - `def close(self) -> None` records closure.
-  - `def read(self, size: int=-1) -> bytes` implements bounded sequential fake response reads.
+  - `def read(self, size: int=-1) -> bytes` delegates the sequential read to `self.raw`.
   - `def __enter__(self) -> Self` and `def __exit__(self, *args: object) -> None` provide deterministic context-manager lifetime.
 - Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+
+### `_StringSubclass`
+
+- Kind: support class.
+- Exact base: `str`.
+- Fields/methods: none.
+- Purpose: constructs comparison-equal but noncanonical download-lineage text for exact-type rejection tests.
+
+### `_EqualitySpoof`
+
+- Kind: support class.
+- Exact base: `object`.
+- Fields: none.
+- Exact methods: `__eq__` always returns true and `__ne__` always returns false.
+- Purpose: proves download lineage validation does not authorize arbitrary objects through equality behavior.
 
 ### `_Session`
 
@@ -249,6 +268,14 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Mechanisms/callees: `download.path.with_name`.
 - Validation behavior: assertions and delegated production validation.
 - Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
+
+### `_local_download_for_bytes`
+
+- Exact signature: `def _local_download_for_bytes(tmp_path: Path, payload: bytes) -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasDownload]`
+- Kind: fixture/helper.
+- Purpose: writes one exact local archive payload at the configured cache path and constructs a matching canonical download envelope without transport or metadata publication.
+- Use: invalid-ZIP public/internal validation regressions where configured size/SHA must intentionally match malformed bytes.
+- Filesystem/network boundary: writes only below `tmp_path`; performs no DNS or HTTP.
 
 ### `_extraction_metadata_path`
 
@@ -1031,17 +1058,33 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def test_transient_archive_path_swap_cannot_change_extracted_member_bytes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
 - Parametrization/decorators: none; one collected case.
 - Fixtures/inputs: `tmp_path`, `monkeypatch`.
-- Protected invariant: Transient archive path swap cannot change extracted member bytes.
-- Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
-- Monkeypatch mechanism: `monkeypatch.setattr(inpn, "_validated_zip_members", swap_around_path_validation)`.
+- Protected invariant: a definitely executed A-to-B archive-path swap cannot change member bytes already sourced from immutable snapshot A when a definitely executed hook restores A before the final postcondition.
+- Ordered mechanism: the archive-inventory hook writes B and marks the swap; the copy hook asserts B is physically present while extraction continues from the open A snapshot; the `.part` inventory hook asserts B, restores A, and marks restoration; final assertions require all three observations, A member bytes, and final A path bytes.
+- Monkeypatch mechanism: replaces `_archive_regular_file_inventory`, module-local `copyfileobj`, and `_inventory` with explicit swap/observe/restore hooks that all must execute.
 - Expected controlled failures: none; this is an acceptance/output invariant.
-- Calls exercised: `(extraction.extraction_path / 'EP' / 'a.gpkg').read_bytes`, `_download`, `_zip_bytes`, `download.path.read_bytes`, `extract_inpn_protected_areas_archive`, `isinstance`, `monkeypatch.setattr`, `original`, `source.write_bytes`.
+- Calls exercised: `(extraction.extraction_path / 'EP' / 'a.gpkg').read_bytes`, `_archive_regular_file_inventory`, `_download`, `_inventory`, `_zip_bytes`, `copyfileobj`, `download.path.read_bytes`, `download.path.write_bytes`, `extract_inpn_protected_areas_archive`, `monkeypatch.setattr`.
 - Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
 
-## 5. STEP 7F.1B.1.1 coverage map
+### STEP 7F.1B.1.2 regression additions
 
-- Archive suite: immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; transient archive-path swap isolation.
-- Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
+- `test_download_envelope_rejects_comparison_equal_string_subclasses` (five cases) rejects `str` subclasses in provider, dataset ID, archive URL, filename, and SHA lineage.
+- `test_download_envelope_rejects_equality_spoofing_object` proves arbitrary comparison behavior cannot authorize a lineage field.
+- `test_validated_download_is_fresh_and_uses_exact_builtin_strings` proves accepted ordinary strings are returned in a distinct canonical envelope and all eleven text fields are exact built-ins.
+- `test_cold_download_matching_invalid_zip_has_controlled_error` proves exact matching malformed bytes raise `InpnProtectedAreasSourceError` caused by `BadZipFile` before any final cache pair.
+- `test_internal_download_validation_zip_failures_are_controlled` covers a broken central-directory signature, unsupported compression, and truncation.
+- `test_archive_snapshot_opener_converts_constructor_failures` (five cases) injects `BadZipFile`, `LargeZipFile`, `RuntimeError`, `zlib.error`, and `EOFError`, asserting the original exception is retained as the controlled error cause.
+- `test_cold_download_revalidates_archive_after_publication` mutates the published archive and proves no download result returns.
+- `test_public_extraction_validator_matching_invalid_zip_is_controlled` proves the public validator cannot leak raw `BadZipFile` even when config and download size/SHA match malformed bytes.
+- `test_transient_archive_path_swap_cannot_change_extracted_member_bytes` now uses unconditional swap/copy/restore hooks, asserts all hooks executed and B was present during extraction, then proves output bytes came from immutable snapshot A.
+- `test_persistent_archive_swap_during_extraction_fails_before_publication` leaves B in place and proves the pre-publication postcondition fails with no published root.
+- `test_archive_mutation_during_extraction_publication_fails_postcondition` proves the post-publication check catches a publication-time mutation.
+- `test_archive_mutation_during_extraction_cache_validation_is_not_hidden` proves cache validation cannot swallow a successful-check-then-mutate attack.
+- `test_archive_mutation_during_public_extraction_validation_fails` proves the public validator's final postcondition rejects a persistent mutation.
+
+## 5. STEP 7F.1B.1.2 coverage map
+
+- Archive suite: controlled ZIP opening; exact lineage reconstruction; immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; cold/cache-hit/public-validator and pre/post-publication archive checks; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; effective transient and persistent archive-path swaps.
+- Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; narrow known-warning suppression and visible unrelated warnings; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
 - Zero materialization: production attempts to call `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, or `geopandas.read_parquet` fail immediately in the regression.
 - Semantic non-goals: no protected-area categories, Natura 2000, ZNIEFF, geometry normalization, parcel relation, exclusion, scoring, or ranking.
 
@@ -1058,6 +1101,7 @@ import json
 import stat
 import warnings
 import zipfile
+import zlib
 from contextlib import contextmanager
 from dataclasses import FrozenInstanceError, fields, replace
 from datetime import datetime
@@ -1184,6 +1228,18 @@ class _Session:
             yield response
         finally:
             response.close()
+
+
+class _StringSubclass(str):
+    pass
+
+
+class _EqualitySpoof:
+    def __eq__(self, other: object) -> bool:
+        return True
+
+    def __ne__(self, other: object) -> bool:
+        return False
 
 
 def _zip_bytes(
@@ -1318,6 +1374,32 @@ def _download_with_session(
 
 def _download_metadata_path(download: InpnProtectedAreasDownload) -> Path:
     return download.path.with_name(f"{download.filename}.metadata.json")
+
+
+def _local_download_for_bytes(
+    tmp_path: Path,
+    payload: bytes,
+) -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasDownload]:
+    config = _config(tmp_path, payload)
+    archive_path = inpn._archive_path(config)
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    archive_path.write_bytes(payload)
+    return config, InpnProtectedAreasDownload(
+        provider=str(config.provider),
+        authority=str(config.authority),
+        program=str(config.program),
+        dataset_id=str(config.dataset_id),
+        dataset_name=str(config.dataset_name),
+        declared_version=str(config.declared_version),
+        reference_page_url=str(config.reference_page_url),
+        archive_url=str(config.archive_url),
+        download_timestamp="2026-09-02T12:00:00+00:00",
+        filename=str(config.archive_filename),
+        file_size=len(payload),
+        sha256=sha256(payload).hexdigest(),
+        path=archive_path,
+        cache_hit=False,
+    )
 
 
 def _extraction_metadata_path(extraction: InpnProtectedAreasExtraction) -> Path:
@@ -1560,6 +1642,57 @@ def test_valid_zip_download_binds_exact_bytes_and_lineage(tmp_path: Path) -> Non
     assert metadata["sha256"] == result.sha256
 
 
+@pytest.mark.parametrize(
+    "field_name",
+    ["provider", "dataset_id", "archive_url", "filename", "sha256"],
+)
+def test_download_envelope_rejects_comparison_equal_string_subclasses(
+    tmp_path: Path,
+    field_name: str,
+) -> None:
+    config, download, _ = _download(tmp_path)
+    forged = replace(
+        download,
+        **{field_name: _StringSubclass(getattr(download, field_name))},
+    )
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="download|lineage|scalar"):
+        inpn._validate_download_envelope(forged, config)
+
+
+def test_download_envelope_rejects_equality_spoofing_object(tmp_path: Path) -> None:
+    config, download, _ = _download(tmp_path)
+    forged = replace(download, provider=_EqualitySpoof())  # type: ignore[arg-type]
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="download|lineage|scalar"):
+        inpn._validate_download_envelope(forged, config)
+
+
+def test_validated_download_is_fresh_and_uses_exact_builtin_strings(
+    tmp_path: Path,
+) -> None:
+    config, download, _ = _download(tmp_path)
+
+    fresh = inpn._validate_download(download, config)
+
+    assert fresh == download
+    assert fresh is not download
+    for field_name in (
+        "provider",
+        "authority",
+        "program",
+        "dataset_id",
+        "dataset_name",
+        "declared_version",
+        "reference_page_url",
+        "archive_url",
+        "download_timestamp",
+        "filename",
+        "sha256",
+    ):
+        assert type(getattr(fresh, field_name)) is str
+
+
 @pytest.mark.parametrize("mismatch", ["size", "sha256"])
 def test_cold_download_must_match_configured_snapshot_before_publication(
     tmp_path: Path,
@@ -1582,6 +1715,69 @@ def test_cold_download_must_match_configured_snapshot_before_publication(
 
     assert not list(Path(config.cache_root).rglob("EP.zip"))
     assert not list(Path(config.cache_root).rglob("*.metadata.json"))
+
+
+def test_cold_download_matching_invalid_zip_has_controlled_error(
+    tmp_path: Path,
+) -> None:
+    payload = b"not a zip"
+    config = _config(tmp_path, payload)
+
+    with pytest.raises(InpnProtectedAreasSourceError) as captured:
+        _download_with_session(config, _session(config, payload))
+
+    assert isinstance(captured.value.__cause__, zipfile.BadZipFile)
+    assert not list(Path(config.cache_root).rglob("EP.zip"))
+    assert not list(Path(config.cache_root).rglob("*.metadata.json"))
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        pytest.param(
+            bytes(bytearray(_zip_bytes()).replace(b"PK\x01\x02", b"XX\x01\x02", 1)),
+            id="bad-central-directory",
+        ),
+        pytest.param(_unsupported_compression_zip(), id="unsupported-compression"),
+        pytest.param(_zip_bytes()[:-12], id="truncated"),
+    ],
+)
+def test_internal_download_validation_zip_failures_are_controlled(
+    tmp_path: Path,
+    payload: bytes,
+) -> None:
+    config, download = _local_download_for_bytes(tmp_path, payload)
+
+    with pytest.raises(InpnProtectedAreasSourceError):
+        inpn._validate_download(download, config)
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        zipfile.BadZipFile("bad zip"),
+        zipfile.LargeZipFile("large zip"),
+        RuntimeError("runtime failure"),
+        zlib.error("compression failure"),
+        EOFError("truncated stream"),
+    ],
+)
+def test_archive_snapshot_opener_converts_constructor_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+) -> None:
+    def fail_open(*args: object, **kwargs: object) -> Any:
+        raise error
+
+    monkeypatch.setattr(zipfile, "ZipFile", fail_open)
+
+    with (
+        pytest.raises(InpnProtectedAreasSourceError) as captured,
+        inpn._open_archive_snapshot(b"non-empty"),
+    ):
+        pass
+
+    assert captured.value.__cause__ is error
 
 
 def test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit(
@@ -1808,6 +2004,42 @@ def test_successful_first_and_replacement_publication(tmp_path: Path) -> None:
     assert second.path.read_bytes() == replacement
     assert _read_json(_download_metadata_path(second))["sha256"] == second.sha256
     assert not list(Path(config.cache_root).rglob("*.part"))
+
+
+def test_cold_download_revalidates_archive_after_publication(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/a.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config = _config(tmp_path, archive_a)
+    original = inpn._publish_cache_pair
+    mutation_executed = False
+
+    def publish_then_mutate(
+        temporary_archive: Path,
+        temporary_metadata: Path,
+        archive_path: Path,
+        metadata_path: Path,
+    ) -> None:
+        nonlocal mutation_executed
+        original(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+        archive_path.write_bytes(archive_b)
+        mutation_executed = True
+
+    monkeypatch.setattr(inpn, "_publish_cache_pair", publish_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|snapshot|stale"):
+        _download_with_session(config, _session(config, archive_a))
+
+    assert mutation_executed is True
+    assert inpn._archive_path(config).read_bytes() == archive_b
 
 
 @pytest.mark.parametrize("failure_target", ["archive", "metadata"])
@@ -2567,6 +2799,30 @@ def test_extraction_revalidation_rejects_wrong_path(tmp_path: Path) -> None:
         validate_inpn_protected_areas_extraction(forged, config)
 
 
+def test_public_extraction_validator_matching_invalid_zip_is_controlled(
+    tmp_path: Path,
+) -> None:
+    payload = b"not a zip"
+    config, download = _local_download_for_bytes(tmp_path, payload)
+    extraction = InpnProtectedAreasExtraction(
+        download=download,
+        extraction_path=download.path.parent / "x" / download.sha256,
+        files=(
+            InpnProtectedAreasExtractedFile(
+                relative_path="EP/a.gpkg",
+                file_size=1,
+                sha256=sha256(b"x").hexdigest(),
+            ),
+        ),
+        cache_hit=False,
+    )
+
+    with pytest.raises(InpnProtectedAreasSourceError) as captured:
+        validate_inpn_protected_areas_extraction(extraction, config)
+
+    assert isinstance(captured.value.__cause__, zipfile.BadZipFile)
+
+
 @pytest.mark.parametrize("mutation", ["path", "size", "sha256"])
 def test_extraction_revalidation_rejects_forged_file_inventory(
     tmp_path: Path,
@@ -2735,27 +2991,159 @@ def test_transient_archive_path_swap_cannot_change_extracted_member_bytes(
     archive_a = _zip_bytes({"EP/a.gpkg": expected_member})
     archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
     config, download, _ = _download(tmp_path, payload=archive_a)
-    original = inpn._validated_zip_members
-    path_calls = 0
+    original_archive_inventory = inpn._archive_regular_file_inventory
+    original_copy = inpn.copyfileobj
+    original_inventory = inpn._inventory
+    swap_executed = False
+    restore_executed = False
+    archive_b_observed_during_extraction = False
 
-    def swap_around_path_validation(
-        source: Path | zipfile.ZipFile,
-    ) -> tuple[inpn._ValidatedZipMember, ...]:
-        nonlocal path_calls
-        result = original(source)
-        if isinstance(source, Path):
-            path_calls += 1
-            if path_calls == 1:
-                source.write_bytes(archive_b)
-            elif path_calls == 2:
-                source.write_bytes(archive_a)
+    def inventory_then_swap(
+        archive: zipfile.ZipFile,
+        members: tuple[inpn._ValidatedZipMember, ...],
+    ) -> tuple[InpnProtectedAreasExtractedFile, ...]:
+        nonlocal swap_executed
+        result = original_archive_inventory(archive, members)
+        download.path.write_bytes(archive_b)
+        swap_executed = True
         return result
 
-    monkeypatch.setattr(inpn, "_validated_zip_members", swap_around_path_validation)
+    def copy_while_swapped(*args: object, **kwargs: object) -> None:
+        nonlocal archive_b_observed_during_extraction
+        assert download.path.read_bytes() == archive_b
+        archive_b_observed_during_extraction = True
+        original_copy(*args, **kwargs)
+
+    def restore_before_postcondition(
+        root: Path,
+    ) -> tuple[InpnProtectedAreasExtractedFile, ...]:
+        nonlocal restore_executed
+        if root.name.endswith(".part") and not restore_executed:
+            assert download.path.read_bytes() == archive_b
+            download.path.write_bytes(archive_a)
+            restore_executed = True
+        return original_inventory(root)
+
+    monkeypatch.setattr(inpn, "_archive_regular_file_inventory", inventory_then_swap)
+    monkeypatch.setattr(inpn, "copyfileobj", copy_while_swapped)
+    monkeypatch.setattr(inpn, "_inventory", restore_before_postcondition)
     extraction = extract_inpn_protected_areas_archive(download, config)
 
+    assert swap_executed is True
+    assert restore_executed is True
+    assert archive_b_observed_during_extraction is True
     assert (
         extraction.extraction_path / "EP" / "a.gpkg"
     ).read_bytes() == expected_member
     assert download.path.read_bytes() == archive_a
+
+
+def test_persistent_archive_swap_during_extraction_fails_before_publication(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/a.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    original = inpn._archive_regular_file_inventory
+    swap_executed = False
+
+    def inventory_then_swap(
+        archive: zipfile.ZipFile,
+        members: tuple[inpn._ValidatedZipMember, ...],
+    ) -> tuple[InpnProtectedAreasExtractedFile, ...]:
+        nonlocal swap_executed
+        result = original(archive, members)
+        download.path.write_bytes(archive_b)
+        swap_executed = True
+        return result
+
+    monkeypatch.setattr(inpn, "_archive_regular_file_inventory", inventory_then_swap)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|snapshot|stale"):
+        extract_inpn_protected_areas_archive(download, config)
+
+    root = download.path.parent / "x" / download.sha256
+    assert swap_executed is True
+    assert download.path.read_bytes() == archive_b
+    assert not root.exists()
+
+
+def test_archive_mutation_during_extraction_publication_fails_postcondition(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/a.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    original = inpn._publish_extraction_directory
+    mutation_executed = False
+
+    def publish_then_mutate(temporary_root: Path, root: Path) -> None:
+        nonlocal mutation_executed
+        original(temporary_root, root)
+        download.path.write_bytes(archive_b)
+        mutation_executed = True
+
+    monkeypatch.setattr(inpn, "_publish_extraction_directory", publish_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|snapshot|stale"):
+        extract_inpn_protected_areas_archive(download, config)
+
+    assert mutation_executed is True
+    assert download.path.read_bytes() == archive_b
+
+
+def test_archive_mutation_during_extraction_cache_validation_is_not_hidden(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/a.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    extract_inpn_protected_areas_archive(download, config)
+    original = inpn._validate_extraction_cache
+    mutation_executed = False
+
+    def validate_then_mutate(*args: object, **kwargs: object) -> Any:
+        nonlocal mutation_executed
+        result = original(*args, **kwargs)
+        download.path.write_bytes(archive_b)
+        mutation_executed = True
+        return result
+
+    monkeypatch.setattr(inpn, "_validate_extraction_cache", validate_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|snapshot|stale"):
+        extract_inpn_protected_areas_archive(download, config)
+
+    assert mutation_executed is True
+    assert download.path.read_bytes() == archive_b
+
+
+def test_archive_mutation_during_public_extraction_validation_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/a.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/a.gpkg": b"package-b"})
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    extraction = extract_inpn_protected_areas_archive(download, config)
+    original = inpn._validate_extraction_cache
+    mutation_executed = False
+
+    def validate_then_mutate(*args: object, **kwargs: object) -> Any:
+        nonlocal mutation_executed
+        result = original(*args, **kwargs)
+        download.path.write_bytes(archive_b)
+        mutation_executed = True
+        return result
+
+    monkeypatch.setattr(inpn, "_validate_extraction_cache", validate_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="archive|snapshot|stale"):
+        validate_inpn_protected_areas_extraction(extraction, config)
+
+    assert mutation_executed is True
+    assert download.path.read_bytes() == archive_b
 ```

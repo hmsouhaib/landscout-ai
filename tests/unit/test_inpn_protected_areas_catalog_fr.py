@@ -3,6 +3,8 @@ from __future__ import annotations
 import io
 import json
 import math
+import re
+import warnings
 import zipfile
 from collections.abc import Callable, Mapping
 from contextlib import contextmanager
@@ -50,6 +52,10 @@ EXPECTED_EXPORTS = {
     "build_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_catalog",
 }
+KNOWN_BYTES_GPKG_WARNING = re.compile(
+    r"^File /vsimem/pyogrio_[^ ]+ has GPKG application_id, "
+    r"but non conformant file extension$"
+)
 
 
 class _StringSubclass(str):
@@ -223,6 +229,89 @@ def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(
     assert layer.total_bounds == (1000.0, 2000.0, 1000.0, 2000.0)
     assert len(result.complete_catalog_content_sha256) == 64
     validate_inpn_protected_areas_catalog(extraction, config, result)
+
+
+def test_valid_bytes_backed_catalog_suppresses_only_known_extension_warning(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.package_count == 1
+    assert not [
+        warning
+        for warning in captured
+        if warning.category is RuntimeWarning
+        and KNOWN_BYTES_GPKG_WARNING.fullmatch(str(warning.message))
+    ]
+
+
+def test_unrelated_read_info_runtime_warning_remains_observable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = catalog_module.pyogrio.read_info
+
+    def warn_then_read(*args: object, **kwargs: object) -> object:
+        warnings.warn("unrelated metadata warning", RuntimeWarning, stacklevel=1)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", warn_then_read)
+
+    with pytest.warns(RuntimeWarning, match="unrelated metadata warning") as captured:
+        result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.package_count == 1
+    assert len(captured) == 1
+
+
+def test_known_extension_warning_suppression_does_not_bypass_driver_validation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = catalog_module.pyogrio.read_info
+
+    def warn_with_wrong_driver(*args: object, **kwargs: object) -> object:
+        warnings.warn(
+            "File /vsimem/pyogrio_deadbeef has GPKG application_id, "
+            "but non conformant file extension",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+        result = dict(original(*args, **kwargs))
+        result["driver"] = "SQLite"
+        return result
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", warn_with_wrong_driver)
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+            build_inpn_protected_areas_catalog(extraction, config)
+
+    assert not [
+        warning
+        for warning in captured
+        if KNOWN_BYTES_GPKG_WARNING.fullmatch(str(warning.message))
+    ]
+
+
+def test_catalog_warning_suppression_installs_no_global_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    filters_before = list(warnings.filters)
+
+    build_inpn_protected_areas_catalog(extraction, config)
+
+    assert warnings.filters == filters_before
 
 
 def test_package_with_multiple_layers_preserves_physical_order(

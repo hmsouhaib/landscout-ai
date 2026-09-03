@@ -15,6 +15,8 @@ import stat
 import unicodedata
 import zipfile
 import zlib
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -236,6 +238,31 @@ class _ValidatedZipMember:
     is_directory: bool
 
 
+@contextmanager
+def _open_archive_snapshot(archive_bytes: bytes) -> Iterator[zipfile.ZipFile]:
+    if type(archive_bytes) is not bytes or not archive_bytes:
+        raise InpnProtectedAreasSourceError(
+            "ZIP archive snapshot must be exact non-empty bytes"
+        )
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(archive_bytes))
+    except (
+        EOFError,
+        OSError,
+        RuntimeError,
+        zipfile.BadZipFile,
+        zipfile.LargeZipFile,
+        zlib.error,
+    ) as error:
+        raise InpnProtectedAreasSourceError(
+            "Cannot open INPN ZIP archive snapshot"
+        ) from error
+    try:
+        yield archive
+    finally:
+        archive.close()
+
+
 def _validate_utc_timestamp(value: object) -> None:
     if type(value) is not str or not value or value != value.strip():
         raise ValueError("download_timestamp must be an exact non-empty string")
@@ -436,6 +463,7 @@ def _validated_zip_members(
     except InpnProtectedAreasSourceError:
         raise
     except (
+        EOFError,
         NotImplementedError,
         OSError,
         RuntimeError,
@@ -475,11 +503,13 @@ def _archive_regular_file_inventory(
     except InpnProtectedAreasSourceError:
         raise
     except (
+        EOFError,
         NotImplementedError,
         OSError,
         RuntimeError,
         ValueError,
         zipfile.BadZipFile,
+        zipfile.LargeZipFile,
         zlib.error,
     ) as error:
         raise InpnProtectedAreasSourceError(
@@ -702,7 +732,7 @@ def download_inpn_protected_areas_archive(
             raise InpnProtectedAreasSourceError(
                 "Downloaded INPN archive differs from the configured snapshot"
             )
-        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        with _open_archive_snapshot(archive_bytes) as archive:
             _validated_zip_members(archive)
         result = InpnProtectedAreasDownload(
             provider=validated_config.provider,
@@ -730,7 +760,13 @@ def download_inpn_protected_areas_archive(
             archive_path,
             metadata_path,
         )
-        return result
+        validated_result = _validate_download_envelope(result, validated_config)
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_result,
+            validated_config,
+        )
+        return validated_result
     except InpnProtectedAreasSourceError:
         raise
     except (OSError, TypeError, ValueError, ValidationError) as error:
@@ -753,19 +789,22 @@ def _validate_download_envelope(
         raise InpnProtectedAreasSourceError(
             "download must be an exact InpnProtectedAreasDownload"
         )
-    expected = {
-        "provider": config.provider,
-        "authority": config.authority,
-        "program": config.program,
-        "dataset_id": config.dataset_id,
-        "dataset_name": config.dataset_name,
-        "declared_version": config.declared_version,
+    expected_strings = {
+        "provider": str(config.provider),
+        "authority": str(config.authority),
+        "program": str(config.program),
+        "dataset_id": str(config.dataset_id),
+        "dataset_name": str(config.dataset_name),
+        "declared_version": str(config.declared_version),
         "reference_page_url": str(config.reference_page_url),
         "archive_url": str(config.archive_url),
-        "filename": config.archive_filename,
+        "filename": str(config.archive_filename),
     }
     try:
-        if any(getattr(download, key) != value for key, value in expected.items()):
+        if any(
+            type(getattr(download, key)) is not str or getattr(download, key) != value
+            for key, value in expected_strings.items()
+        ):
             raise ValueError("Download lineage differs from config")
         if not isinstance(download.path, Path) or download.path != _archive_path(
             config
@@ -785,7 +824,22 @@ def _validate_download_envelope(
         _validate_utc_timestamp(download.download_timestamp)
         if not _is_regular_file(download.path):
             raise ValueError("Downloaded archive path is missing or unsafe")
-        return download
+        return InpnProtectedAreasDownload(
+            provider=expected_strings["provider"],
+            authority=expected_strings["authority"],
+            program=expected_strings["program"],
+            dataset_id=expected_strings["dataset_id"],
+            dataset_name=expected_strings["dataset_name"],
+            declared_version=expected_strings["declared_version"],
+            reference_page_url=expected_strings["reference_page_url"],
+            archive_url=expected_strings["archive_url"],
+            download_timestamp=download.download_timestamp,
+            filename=expected_strings["filename"],
+            file_size=config.expected_archive_size_bytes,
+            sha256=str(config.expected_archive_sha256),
+            path=_archive_path(config),
+            cache_hit=download.cache_hit,
+        )
     except InpnProtectedAreasSourceError:
         raise
     except (AttributeError, OSError, TypeError, ValueError) as error:
@@ -826,25 +880,49 @@ def _validate_download(
     download: object,
     config: InpnProtectedAreasSourceConfig,
 ) -> InpnProtectedAreasDownload:
-    validated_download = _validate_download_envelope(download, config)
-    archive_bytes = _read_verified_archive_bytes(validated_download, config)
+    validated_config = _validated_config(config)
+    validated_download = _validate_download_envelope(download, validated_config)
+    archive_bytes = _read_verified_archive_bytes(validated_download, validated_config)
     try:
-        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        with _open_archive_snapshot(archive_bytes) as archive:
             _validated_zip_members(archive)
         return validated_download
     except InpnProtectedAreasSourceError:
         raise
     except (
+        EOFError,
         NotImplementedError,
         OSError,
         RuntimeError,
         ValueError,
         zipfile.BadZipFile,
+        zipfile.LargeZipFile,
         zlib.error,
     ) as error:
         raise InpnProtectedAreasSourceError(
             "INPN protected-areas download is stale or invalid"
         ) from error
+
+
+def _require_archive_snapshot_unchanged(
+    initial_archive_bytes: bytes,
+    download: object,
+    config: InpnProtectedAreasSourceConfig,
+) -> None:
+    if type(initial_archive_bytes) is not bytes or not initial_archive_bytes:
+        raise InpnProtectedAreasSourceError(
+            "Initial INPN archive snapshot must be exact non-empty bytes"
+        )
+    validated_config = _validated_config(config)
+    validated_download = _validate_download_envelope(download, validated_config)
+    current_archive_bytes = _read_verified_archive_bytes(
+        validated_download,
+        validated_config,
+    )
+    if current_archive_bytes != initial_archive_bytes:
+        raise InpnProtectedAreasSourceError(
+            "INPN protected-areas archive snapshot changed during the operation"
+        )
 
 
 def _validate_inventory_relative_path(value: object) -> None:
@@ -1022,24 +1100,31 @@ def extract_inpn_protected_areas_archive(
     root = validated_download.path.parent / "x" / validated_download.sha256
     temporary_root = root.with_name(f"{root.name}.part")
     try:
-        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        with _open_archive_snapshot(archive_bytes) as archive:
             members = _validated_zip_members(archive)
             archive_files = _archive_regular_file_inventory(archive, members)
+            cached_files: tuple[InpnProtectedAreasExtractedFile, ...] | None = None
             if root.is_dir() and not _is_link_or_junction(root):
                 try:
-                    files = _validate_extraction_cache(
+                    cached_files = _validate_extraction_cache(
                         root,
                         validated_download,
                         archive_files,
                     )
+                except (InpnProtectedAreasSourceError, OSError):
+                    pass
+                if cached_files is not None:
+                    _require_archive_snapshot_unchanged(
+                        archive_bytes,
+                        validated_download,
+                        validated_config,
+                    )
                     return InpnProtectedAreasExtraction(
                         download=validated_download,
                         extraction_path=root,
-                        files=files,
+                        files=cached_files,
                         cache_hit=True,
                     )
-                except (InpnProtectedAreasSourceError, OSError):
-                    pass
 
             root.parent.mkdir(parents=True, exist_ok=True)
             _remove_path(temporary_root)
@@ -1066,7 +1151,17 @@ def extract_inpn_protected_areas_archive(
             validated_download,
             archive_files,
         )
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_download,
+            validated_config,
+        )
         _publish_extraction_directory(temporary_root, root)
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_download,
+            validated_config,
+        )
         return InpnProtectedAreasExtraction(
             download=validated_download,
             extraction_path=root,
@@ -1076,6 +1171,7 @@ def extract_inpn_protected_areas_archive(
     except InpnProtectedAreasSourceError:
         raise
     except (
+        EOFError,
         NotImplementedError,
         OSError,
         RuntimeError,
@@ -1145,7 +1241,7 @@ def validate_inpn_protected_areas_extraction(
             validated_download,
             validated_config,
         )
-        with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        with _open_archive_snapshot(archive_bytes) as archive:
             members = _validated_zip_members(archive)
             archive_files = _archive_regular_file_inventory(archive, members)
         expected_root = validated_download.path.parent / "x" / validated_download.sha256
@@ -1162,20 +1258,25 @@ def validate_inpn_protected_areas_extraction(
             raise InpnProtectedAreasSourceError(
                 "archive, marker, physical, and caller extraction inventory differs"
             )
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_download,
+            validated_config,
+        )
         fresh_download = InpnProtectedAreasDownload(
-            provider=validated_download.provider,
-            authority=validated_download.authority,
-            program=validated_download.program,
-            dataset_id=validated_download.dataset_id,
-            dataset_name=validated_download.dataset_name,
-            declared_version=validated_download.declared_version,
-            reference_page_url=validated_download.reference_page_url,
-            archive_url=validated_download.archive_url,
+            provider=str(validated_config.provider),
+            authority=str(validated_config.authority),
+            program=str(validated_config.program),
+            dataset_id=str(validated_config.dataset_id),
+            dataset_name=str(validated_config.dataset_name),
+            declared_version=str(validated_config.declared_version),
+            reference_page_url=str(validated_config.reference_page_url),
+            archive_url=str(validated_config.archive_url),
             download_timestamp=validated_download.download_timestamp,
-            filename=validated_download.filename,
-            file_size=validated_download.file_size,
-            sha256=validated_download.sha256,
-            path=validated_download.path,
+            filename=str(validated_config.archive_filename),
+            file_size=len(archive_bytes),
+            sha256=sha256(archive_bytes).hexdigest(),
+            path=_archive_path(validated_config),
             cache_hit=validated_download.cache_hit,
         )
         return InpnProtectedAreasExtraction(

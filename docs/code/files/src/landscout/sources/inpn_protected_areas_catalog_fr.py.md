@@ -6,11 +6,11 @@
 - File type: Python source
 - Layer/domain: official source physical metadata authority
 - Responsibility: Builds and independently validates the schema-2 metadata-only catalog from immutable verified package bytes.
-- Source SHA256: `1483af5b8353f04053f2ca57b51fc0a7b1aa5653f2673af29876f815187eec57`
+- Source SHA256: `68be6014316dcb6009283814f25df29762e8a962e8a1594dbce39de9af86c80f`
 
 ## 1. Architectural contract
 
-The source file below is authoritative. STEP 7F.1B.1.1 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only.
+The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> final archive postcondition -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only. Pyogrio's known byte-buffer `/vsimem/pyogrio_<hex>` extension warning is filtered only inside `list_layers` and `read_info`; unrelated runtime warnings remain visible and exact `GPKG` driver proof still runs.
 
 ## 2. Imports and dependencies
 
@@ -34,6 +34,10 @@ import re
 
 ```python
 import unicodedata
+```
+
+```python
+import warnings
 ```
 
 ```python
@@ -100,6 +104,17 @@ _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 - Role: module-level immutable identity, schema, validation domain, or lookup used exactly where referenced in the source snapshot. Any schema constant is persisted/hash-significant only through its explicit consumers.
 
+### `_PYOGRIO_BYTES_GPKG_WARNING`
+
+```python
+_PYOGRIO_BYTES_GPKG_WARNING = (
+    r"^File /vsimem/pyogrio_[0-9a-f]+ has GPKG application_id, "
+    r"but non conformant file extension$"
+)
+```
+
+- Role: matches only Pyogrio's dynamic hexadecimal `/vsimem` path warning for byte-backed GPKG metadata calls; it is never installed globally.
+
 ### `__all__`
 
 - Exact declaration:
@@ -135,9 +150,9 @@ __all__ = [
 - Purpose: One source-ordered physical attribute-field metadata record.
 - Fields:
 
-  - `name: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `source_dtype: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `position: int`; default `required`; owns exactly the named validated factual or integrity value.
+  - `name: str`; exact physical source attribute name reported by Pyogrio.
+  - `source_dtype: str`; exact dtype text reported in source field order.
+  - `position: int`; zero-based source field position.
 - Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
 
 ### `InpnProtectedAreasLayerCatalog`
@@ -147,17 +162,17 @@ __all__ = [
 - Purpose: One source-ordered OGR layer metadata record without feature rows.
 - Fields:
 
-  - `layer_name: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `layer_position: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `feature_count: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `geometry_type_raw: str | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `is_spatial: bool`; default `required`; owns exactly the named validated factual or integrity value.
-  - `crs_raw: str | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `crs_authority_name: str | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `crs_authority_code: str | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `crs_wkt: str | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `total_bounds: tuple[float, float, float, float] | None`; default `required`; owns exactly the named validated factual or integrity value.
-  - `fields: tuple[InpnProtectedAreasFieldCatalog, ...]`; default `required`; owns exactly the named validated factual or integrity value.
+  - `layer_name: str`; exact OGR-visible physical layer name.
+  - `layer_position: int`; zero-based order returned by `pyogrio.list_layers`.
+  - `feature_count: int`; exact non-negative metadata count forced by `read_info`.
+  - `geometry_type_raw: str | None`; exact reported geometry-type text, or null for a non-spatial layer.
+  - `is_spatial: bool`; true exactly when `geometry_type_raw` is non-null.
+  - `crs_raw: str | None`; exact parseable CRS text reported for a spatial layer, otherwise null.
+  - `crs_authority_name: str | None`; canonical authority name derived by PyProj when available.
+  - `crs_authority_code: str | None`; canonical authority code derived by PyProj when available.
+  - `crs_wkt: str | None`; deterministic WKT2:2019 serialization for a spatial layer, otherwise null.
+  - `total_bounds: tuple[float, float, float, float] | None`; metadata-reported two-dimensional extent normalized to an exact built-in float tuple, or null under explicit empty/non-spatial rules.
+  - `fields: tuple[InpnProtectedAreasFieldCatalog, ...]`; immutable source-ordered field metadata.
 - Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
 
 ### `InpnProtectedAreasGeoPackageCatalog`
@@ -167,12 +182,12 @@ __all__ = [
 - Purpose: One extraction-ordered verified GeoPackage and all of its OGR layers.
 - Fields:
 
-  - `relative_path: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `file_size: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `file_sha256: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `package_position: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `driver_name: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `layers: tuple[InpnProtectedAreasLayerCatalog, ...]`; default `required`; owns exactly the named validated factual or integrity value.
+  - `relative_path: str`; canonical extraction-relative POSIX GeoPackage path.
+  - `file_size: int`; exact archive-derived package byte count.
+  - `file_sha256: str`; exact archive-derived lowercase package SHA256.
+  - `package_position: int`; zero-based lexically ordered extraction position.
+  - `driver_name: str`; exact physical GDAL/OGR driver, required to equal `GPKG`.
+  - `layers: tuple[InpnProtectedAreasLayerCatalog, ...]`; immutable physical OGR layer sequence.
 - Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
 
 ### `InpnProtectedAreasCatalog`
@@ -182,24 +197,24 @@ __all__ = [
 - Purpose: Portable factual metadata catalog bound to one verified INPN EP snapshot.
 - Fields:
 
-  - `catalog_schema_version: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `provider: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `authority: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `program: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `dataset_id: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `dataset_name: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `declared_version: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `reference_page_url: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `archive_url: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `archive_filename: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `archive_size: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `archive_sha256: str`; default `required`; owns exactly the named validated factual or integrity value.
-  - `packages: tuple[InpnProtectedAreasGeoPackageCatalog, ...]`; default `required`; owns exactly the named validated factual or integrity value.
-  - `package_count: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `layer_count: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `field_count: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `total_feature_count: int`; default `required`; owns exactly the named validated factual or integrity value.
-  - `complete_catalog_content_sha256: str`; default `required`; owns exactly the named validated factual or integrity value.
+  - `catalog_schema_version: int`; exact portable catalog/hash schema, currently `2`.
+  - `provider: str`; canonical provider copied from verified download lineage.
+  - `authority: str`; canonical data authority copied from verified download lineage.
+  - `program: str`; canonical source program copied from verified download lineage.
+  - `dataset_id: str`; canonical `EP` dataset identifier.
+  - `dataset_name: str`; canonical configured protected-areas dataset name.
+  - `declared_version: str`; configured month/year snapshot version.
+  - `reference_page_url: str`; exact reviewed PatriNat reference-page URL.
+  - `archive_url: str`; exact reviewed EP archive URL.
+  - `archive_filename: str`; exact verified archive filename.
+  - `archive_size: int`; exact verified archive byte count.
+  - `archive_sha256: str`; exact verified archive SHA256.
+  - `packages: tuple[InpnProtectedAreasGeoPackageCatalog, ...]`; immutable extraction-ordered complete package catalog.
+  - `package_count: int`; number of package records.
+  - `layer_count: int`; sum of all package layer records.
+  - `field_count: int`; sum of all layer field records.
+  - `total_feature_count: int`; sum of all layer metadata feature counts.
+  - `complete_catalog_content_sha256: str`; SHA256 of the canonical portable catalog payload excluding this hash field.
 - Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
 
 ## 5. Function-by-function contract
@@ -207,13 +222,13 @@ __all__ = [
 ### `_exact_text`
 
 - Exact signature: `def _exact_text(value: object, label: str) -> str`
-- Purpose: Exact text.
+- Purpose: requires an exact nonempty built-in string without edge whitespace so comparison-equal subclasses cannot become catalog evidence.
 - Inputs: `value: object`, `label: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 98: validates/branches on `type(value) is not str or not value or value != value.strip()`.
-2. line 100: returns `value`.
+1. line 103: validates/branches on `type(value) is not str or not value or value != value.strip()`.
+2. line 105: returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} must be an exact string')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -228,12 +243,12 @@ __all__ = [
 ### `_identity_key`
 
 - Exact signature: `def _identity_key(value: str) -> str`
-- Purpose: Identity key.
+- Purpose: derives the Unicode-NFKC/casefold collision key used only for duplicate physical names.
 - Inputs: `value: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 104: returns `unicodedata.normalize('NFKC', value).casefold()`.
+1. line 109: returns `unicodedata.normalize('NFKC', value).casefold()`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -248,14 +263,14 @@ __all__ = [
 ### `_require_unique_identities`
 
 - Exact signature: `def _require_unique_identities(values: tuple[str, ...], label: str) -> None`
-- Purpose: Require unique identities.
+- Purpose: rejects both exact duplicates and Unicode-NFKC/casefold collisions within one physical name domain.
 - Inputs: `values: tuple[str, ...]`, `label: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 108: validates/branches on `len(set(values)) != len(values)`.
-2. line 110: derives `normalized` for subsequent validation or output construction.
-3. line 111: validates/branches on `len(set(normalized)) != len(normalized)`.
+1. line 113: validates/branches on `len(set(values)) != len(values)`.
+2. line 115: derives `normalized` for subsequent validation or output construction.
+3. line 116: validates/branches on `len(set(normalized)) != len(normalized)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} contains duplicate exact names')`; `InpnProtectedAreasCatalogError(f'{label} contains Unicode-NFKC/casefold collisions')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -270,12 +285,12 @@ __all__ = [
 ### `_is_link_or_junction`
 
 - Exact signature: `def _is_link_or_junction(path: Path) -> bool`
-- Purpose: Is link or junction.
+- Purpose: treats a path as unsafe when it is a symbolic link/junction or link inspection itself fails.
 - Inputs: `path: Path`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `bool`.
 - Ordered algorithm:
 
-1. line 118: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
+1. line 123: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -295,19 +310,19 @@ __all__ = [
 - Output: `Path`.
 - Ordered algorithm:
 
-1. line 128: derives `relative` for subsequent validation or output construction.
-2. line 129: derives `windows` for subsequent validation or output construction.
-3. line 130: validates/branches on `relative.is_absolute() or windows.is_absolute() or bool(windows.drive) or ('..' in relative.parts) or (relative.as_posix() != item.relative_path)`.
-4. line 140: derives `root` for subsequent validation or output construction.
-5. line 141: validates/branches on `_is_link_or_junction(root) or not root.is_dir()`.
-6. line 143: derives `path` for subsequent validation or output construction.
-7. line 144: derives `root_resolved` for subsequent validation or output construction.
-8. line 145: derives `path_resolved` for subsequent validation or output construction.
-9. line 146: validates/branches on `path_resolved == root_resolved or not path_resolved.is_relative_to(root_resolved)`.
-10. line 152: derives `current` for subsequent validation or output construction.
-11. line 153: iterates `component` over `relative.parts` in source order.
-12. line 159: validates/branches on `not path.is_file()`.
-13. line 163: returns `path`.
+1. line 133: derives `relative` for subsequent validation or output construction.
+2. line 134: derives `windows` for subsequent validation or output construction.
+3. line 135: validates/branches on `relative.is_absolute() or windows.is_absolute() or bool(windows.drive) or ('..' in relative.parts) or (relative.as_posix() != item.relative_path)`.
+4. line 145: derives `root` for subsequent validation or output construction.
+5. line 146: validates/branches on `_is_link_or_junction(root) or not root.is_dir()`.
+6. line 148: derives `path` for subsequent validation or output construction.
+7. line 149: derives `root_resolved` for subsequent validation or output construction.
+8. line 150: derives `path_resolved` for subsequent validation or output construction.
+9. line 151: validates/branches on `path_resolved == root_resolved or not path_resolved.is_relative_to(root_resolved)`.
+10. line 157: derives `current` for subsequent validation or output construction.
+11. line 158: iterates `component` over `relative.parts` in source order.
+12. line 164: validates/branches on `not path.is_file()`.
+13. line 168: returns `path`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {item.relative_path}: relative path is not canonical')`; `InpnProtectedAreasCatalogError('extraction root is missing or unsafe')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: path escapes the extraction root')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: source is not a regular file')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: links or junctions are forbidden')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: `path.resolve`, `root.resolve`
@@ -327,10 +342,10 @@ __all__ = [
 - Output: `bytes`.
 - Ordered algorithm:
 
-1. line 170: derives `path` for subsequent validation or output construction.
-2. line 171: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
-3. line 177: validates/branches on `type(package_bytes) is not bytes or len(package_bytes) != item.file_size or sha256(package_bytes).hexdigest() != item.sha256`.
-4. line 185: returns `package_bytes`.
+1. line 175: derives `path` for subsequent validation or output construction.
+2. line 176: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
+3. line 182: validates/branches on `type(package_bytes) is not bytes or len(package_bytes) != item.file_size or sha256(package_bytes).hexdigest() != item.sha256`.
+4. line 190: returns `package_bytes`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {item.relative_path}: physical byte identity changed')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: cannot read physical byte snapshot')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: `path.read_bytes`
@@ -345,13 +360,13 @@ __all__ = [
 ### `_metadata_sequence`
 
 - Exact signature: `def _metadata_sequence(value: object, label: str) -> tuple[object, ...]`
-- Purpose: Metadata sequence.
+- Purpose: converts a Pyogrio array/list/tuple result into an immutable tuple while rejecting text, bytes, mappings, and malformed array-like values.
 - Inputs: `value: object`, `label: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[object, ...]`.
 - Ordered algorithm:
 
-1. line 189: validates/branches on `isinstance(value, (str, bytes, bytearray, Mapping))`.
-2. line 191: executes a controlled error boundary catching `(AttributeError, TypeError, ValueError)` and performs any declared cleanup/finalization.
+1. line 194: validates/branches on `isinstance(value, (str, bytes, bytearray, Mapping))`.
+2. line 196: executes a controlled error boundary catching `(AttributeError, TypeError, ValueError)` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} metadata array is malformed')`; `TypeError` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -366,17 +381,17 @@ __all__ = [
 ### `_layer_enumeration`
 
 - Exact signature: `def _layer_enumeration(value: object, relative_path: str) -> tuple[tuple[str, str | None], ...]`
-- Purpose: Layer enumeration.
+- Purpose: validates Pyogrio's ordered two-column layer enumeration into unique exact `(name, geometry type)` records.
 - Inputs: `value: object`, `relative_path: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[tuple[str, str | None], ...]`.
 - Ordered algorithm:
 
-1. line 205: derives `rows` for subsequent validation or output construction.
-2. line 206: validates/branches on `not rows`.
-3. line 210: derives `result` for subsequent validation or output construction.
-4. line 211: iterates `(position, raw_row)` over `enumerate(rows)` in source order.
-5. line 231: performs `_require_unique_identities(tuple((name for name, _ in result)), f'package {relative_path} layer identities')`.
-6. line 235: returns `tuple(result)`.
+1. line 210: derives `rows` for subsequent validation or output construction.
+2. line 211: validates/branches on `not rows`.
+3. line 215: derives `result` for subsequent validation or output construction.
+4. line 216: iterates `(position, raw_row)` over `enumerate(rows)` in source order.
+5. line 236: performs `_require_unique_identities(tuple((name for name, _ in result)), f'package {relative_path} layer identities')`.
+6. line 240: returns `tuple(result)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path}: no OGR-visible layer')`; `InpnProtectedAreasCatalogError(f'package {relative_path}: layer enumeration row is malformed')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -391,13 +406,13 @@ __all__ = [
 ### `_metadata_mapping`
 
 - Exact signature: `def _metadata_mapping(value: object, relative_path: str, layer_name: str) -> Mapping[object, object]`
-- Purpose: Metadata mapping.
+- Purpose: requires each `read_info` result to implement the mapping contract before metadata keys are used.
 - Inputs: `value: object`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `Mapping[object, object]`.
 - Ordered algorithm:
 
-1. line 241: validates/branches on `not isinstance(value, Mapping)`.
-2. line 245: returns `value`.
+1. line 246: validates/branches on `not isinstance(value, Mapping)`.
+2. line 250: returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: metadata is not a mapping')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -412,13 +427,13 @@ __all__ = [
 ### `_required_metadata`
 
 - Exact signature: `def _required_metadata(metadata: Mapping[object, object], key: str, relative_path: str, layer_name: str) -> object`
-- Purpose: Required metadata.
+- Purpose: fetches one mandatory Pyogrio metadata key and fails with package/layer context when absent.
 - Inputs: `metadata: Mapping[object, object]`, `key: str`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `object`.
 - Ordered algorithm:
 
-1. line 254: validates/branches on `key not in metadata`.
-2. line 258: returns `metadata[key]`.
+1. line 259: validates/branches on `key not in metadata`.
+2. line 263: returns `metadata[key]`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: missing {key} metadata')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -433,18 +448,18 @@ __all__ = [
 ### `_field_catalogs`
 
 - Exact signature: `def _field_catalogs(metadata: Mapping[object, object], relative_path: str, layer_name: str) -> tuple[InpnProtectedAreasFieldCatalog, ...]`
-- Purpose: Field catalogs.
+- Purpose: exact-compares ordered field/dtype array lengths, canonicalizes each string, rejects name collisions, and builds zero-based field records.
 - Inputs: `metadata: Mapping[object, object]`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[InpnProtectedAreasFieldCatalog, ...]`.
 - Ordered algorithm:
 
-1. line 266: derives `names` for subsequent validation or output construction.
-2. line 270: derives `dtypes` for subsequent validation or output construction.
-3. line 274: validates/branches on `len(names) != len(dtypes)`.
-4. line 278: derives `fields` for subsequent validation or output construction.
-5. line 279: iterates `(position, (raw_name, raw_dtype))` over `enumerate(zip(names, dtypes, strict=True))` in source order.
-6. line 295: performs `_require_unique_identities(tuple((field.name for field in fields)), f'package {relative_path} layer {layer_name} field identities')`.
-7. line 299: returns `tuple(fields)`.
+1. line 271: derives `names` for subsequent validation or output construction.
+2. line 275: derives `dtypes` for subsequent validation or output construction.
+3. line 279: validates/branches on `len(names) != len(dtypes)`.
+4. line 283: derives `fields` for subsequent validation or output construction.
+5. line 284: iterates `(position, (raw_name, raw_dtype))` over `enumerate(zip(names, dtypes, strict=True))` in source order.
+6. line 300: performs `_require_unique_identities(tuple((field.name for field in fields)), f'package {relative_path} layer {layer_name} field identities')`.
+7. line 304: returns `tuple(fields)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: field/dtype lengths differ')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -459,13 +474,13 @@ __all__ = [
 ### `_feature_count`
 
 - Exact signature: `def _feature_count(value: object, relative_path: str, layer_name: str) -> int`
-- Purpose: Feature count.
+- Purpose: accepts only an exact non-negative built-in integer feature count; booleans and numeric coercions fail.
 - Inputs: `value: object`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `int`.
 - Ordered algorithm:
 
-1. line 303: validates/branches on `type(value) is not int or value < 0`.
-2. line 308: returns `value`.
+1. line 308: validates/branches on `type(value) is not int or value < 0`.
+2. line 313: returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: feature count must be an exact non-negative integer')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -480,12 +495,12 @@ __all__ = [
 ### `_missing_bound`
 
 - Exact signature: `def _missing_bound(value: object) -> bool`
-- Purpose: Missing bound.
+- Purpose: recognizes only null or non-boolean real NaN as a missing metadata bound component.
 - Inputs: `value: object`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `bool`.
 - Ordered algorithm:
 
-1. line 312: returns `value is None or (isinstance(value, Real) and (not isinstance(value, bool)) and math.isnan(float(value)))`.
+1. line 317: returns `value is None or (isinstance(value, Real) and (not isinstance(value, bool)) and math.isnan(float(value)))`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -500,14 +515,14 @@ __all__ = [
 ### `_bounds_sequence`
 
 - Exact signature: `def _bounds_sequence(value: object, relative_path: str, layer_name: str) -> tuple[object, object, object, object]`
-- Purpose: Bounds sequence.
+- Purpose: requires exactly four ordered metadata-bound components and returns their immutable tuple representation.
 - Inputs: `value: object`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[object, object, object, object]`.
 - Ordered algorithm:
 
-1. line 324: derives `values` for subsequent validation or output construction.
-2. line 328: validates/branches on `len(values) != 4`.
-3. line 332: returns `(values[0], values[1], values[2], values[3])`.
+1. line 329: derives `values` for subsequent validation or output construction.
+2. line 333: validates/branches on `len(values) != 4`.
+3. line 337: returns `(values[0], values[1], values[2], values[3])`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must have four values')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -522,23 +537,23 @@ __all__ = [
 ### `_validated_bounds`
 
 - Exact signature: `def _validated_bounds(value: object, *, is_spatial: bool, feature_count: int, relative_path: str, layer_name: str) -> tuple[float, float, float, float] | None`
-- Purpose: Validated bounds.
+- Purpose: enforces spatial/non-spatial and empty/populated extent rules, finite numeric ordering, and built-in float normalization.
 - Inputs: `value: object`, `is_spatial: bool`, `feature_count: int`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[float, float, float, float] | None`.
 - Ordered algorithm:
 
-1. line 343: validates/branches on `not is_spatial`.
-2. line 349: validates/branches on `value is None`.
-3. line 355: derives `values` for subsequent validation or output construction.
-4. line 356: derives `missing` for subsequent validation or output construction.
-5. line 357: validates/branches on `any(missing)`.
-6. line 363: validates/branches on `feature_count == 0`.
-7. line 367: validates/branches on `any((isinstance(member, bool) or not isinstance(member, Real) for member in values))`.
-8. line 373: derives `bounds` for subsequent validation or output construction.
-9. line 374: validates/branches on `not all((math.isfinite(member) for member in bounds))`.
-10. line 378: derives `(min_x, min_y, max_x, max_y)` for subsequent validation or output construction.
-11. line 379: validates/branches on `min_x > max_x or min_y > max_y`.
-12. line 383: returns `(min_x, min_y, max_x, max_y)`.
+1. line 348: validates/branches on `not is_spatial`.
+2. line 354: validates/branches on `value is None`.
+3. line 360: derives `values` for subsequent validation or output construction.
+4. line 361: derives `missing` for subsequent validation or output construction.
+5. line 362: validates/branches on `any(missing)`.
+6. line 368: validates/branches on `feature_count == 0`.
+7. line 372: validates/branches on `any((isinstance(member, bool) or not isinstance(member, Real) for member in values))`.
+8. line 378: derives `bounds` for subsequent validation or output construction.
+9. line 379: validates/branches on `not all((math.isfinite(member) for member in bounds))`.
+10. line 383: derives `(min_x, min_y, max_x, max_y)` for subsequent validation or output construction.
+11. line 384: validates/branches on `min_x > max_x or min_y > max_y`.
+12. line 388: returns `(min_x, min_y, max_x, max_y)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: populated spatial bounds are missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds are partially missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: empty spatial bounds must be null')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must be numeric')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must be finite')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds are reversed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: non-spatial bounds must be null')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -553,17 +568,17 @@ __all__ = [
 ### `_canonical_crs`
 
 - Exact signature: `def _canonical_crs(value: object, relative_path: str, layer_name: str) -> tuple[str, str | None, str | None, str]`
-- Purpose: Canonical crs.
+- Purpose: parses exact raw CRS text and derives deterministic WKT2:2019 plus optional canonical authority name/code.
 - Inputs: `value: object`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[str, str | None, str | None, str]`.
 - Ordered algorithm:
 
-1. line 391: derives `raw` for subsequent validation or output construction.
-2. line 395: executes a controlled error boundary catching `Exception` and performs any declared cleanup/finalization.
-3. line 403: validates/branches on `type(wkt) is not str or not wkt`.
-4. line 407: validates/branches on `authority is None`.
-5. line 409: validates/branches on `type(authority) is not tuple or len(authority) != 2 or any((type(member) is not str or not member for member in authority))`.
-6. line 417: returns `(raw, authority[0], authority[1], wkt)`.
+1. line 396: derives `raw` for subsequent validation or output construction.
+2. line 400: executes a controlled error boundary catching `Exception` and performs any declared cleanup/finalization.
+3. line 408: validates/branches on `type(wkt) is not str or not wkt`.
+4. line 412: validates/branches on `authority is None`.
+5. line 414: validates/branches on `type(authority) is not tuple or len(authority) != 2 or any((type(member) is not str or not member for member in authority))`.
+6. line 422: returns `(raw, authority[0], authority[1], wkt)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: canonical CRS WKT is missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: CRS authority is malformed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: CRS is not parseable')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -578,12 +593,14 @@ __all__ = [
 ### `_inspect_layer`
 
 - Exact signature: `def _inspect_layer(package_bytes: bytes, relative_path: str, layer_name: str, layer_position: int, listed_geometry_type: str | None) -> tuple[InpnProtectedAreasLayerCatalog, str]`
-- Purpose: Calls metadata-only Pyogrio inspection on package bytes and builds one strict ordered layer record, including exact GPKG driver evidence.
+- Purpose: calls metadata-only Pyogrio inspection on package bytes inside the narrow known-warning boundary and builds one strict ordered layer record, including exact GPKG driver evidence.
 - Inputs: `package_bytes: bytes`, `relative_path: str`, `layer_name: str`, `layer_position: int`, `listed_geometry_type: str | None`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[InpnProtectedAreasLayerCatalog, str]`.
 - Ordered algorithm:
 
-1. line 427: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError` and performs any declared cleanup/finalization.
+1. lines 432-443: call `pyogrio.read_info` with forced count/bounds from the package bytes while filtering only the exact known `RuntimeWarning`.
+2. lines 444-521: validate driver, reported layer/geometry identity, count, fields, CRS, and bounds, then construct the immutable layer record.
+3. lines 522-533: preserve catalog errors and translate any other metadata failure with package/layer context.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: driver must be exact GPKG')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: reported layer name differs')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: layer enumeration and metadata geometry types differ')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: metadata inspection failed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: non-spatial CRS must be null')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -598,13 +615,15 @@ __all__ = [
 ### `_inspect_package`
 
 - Exact signature: `def _inspect_package(extraction: InpnProtectedAreasExtraction, item: InpnProtectedAreasExtractedFile, package_position: int) -> InpnProtectedAreasGeoPackageCatalog`
-- Purpose: Uses one package byte snapshot for layer enumeration and every layer metadata call, then records one exact-GPKG package.
+- Purpose: uses one package byte snapshot for warning-scoped layer enumeration and every layer metadata call, then records one exact-GPKG package.
 - Inputs: `extraction: InpnProtectedAreasExtraction`, `item: InpnProtectedAreasExtractedFile`, `package_position: int`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `InpnProtectedAreasGeoPackageCatalog`.
 - Ordered algorithm:
 
-1. line 529: validates/branches on `PurePosixPath(item.relative_path).suffix.casefold() != '.gpkg'`.
-2. line 533: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError` and performs any declared cleanup/finalization.
+1. lines 540-543: reject any extracted regular file whose canonical suffix is not `.gpkg`.
+2. lines 545-557: capture one verified package byte snapshot, enumerate layers from those bytes, and locally filter only the known extension warning.
+3. lines 558-579: inspect every layer from the same bytes, require one consistent exact `GPKG` driver, and construct the package record.
+4. lines 580-589: preserve catalog errors and translate other enumeration/inspection failures with package context.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'extracted file {item.relative_path} is not a GeoPackage and cannot be ignored')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: layer driver metadata is inconsistent')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: physical inspection failed')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: OGR layer enumeration failed')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -619,12 +638,12 @@ __all__ = [
 ### `_field_payload`
 
 - Exact signature: `def _field_payload(field: InpnProtectedAreasFieldCatalog) -> dict[str, object]`
-- Purpose: Field payload.
+- Purpose: serializes one field record into its explicit canonical hash payload keys.
 - Inputs: `field: InpnProtectedAreasFieldCatalog`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 579: returns `{'name': field.name, 'source_dtype': field.source_dtype, 'position': field.position}`.
+1. line 594: returns `{'name': field.name, 'source_dtype': field.source_dtype, 'position': field.position}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -639,12 +658,12 @@ __all__ = [
 ### `_layer_payload`
 
 - Exact signature: `def _layer_payload(layer: InpnProtectedAreasLayerCatalog) -> dict[str, object]`
-- Purpose: Layer payload.
+- Purpose: serializes one layer and ordered field sequence into the explicit portable hash payload.
 - Inputs: `layer: InpnProtectedAreasLayerCatalog`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 587: returns `{'layer_name': layer.layer_name, 'layer_position': layer.layer_position, 'feature_count': layer.feature_count, 'geometry_type_raw': layer.geometry_type_raw, 'is_spatial': layer.is_spatial, 'crs_raw': layer.crs_raw, 'crs_authority_name': layer.crs_authority_name, 'crs_authority_code': layer.crs_authority_code, 'crs_wkt': layer.crs_wkt, 'total_bounds': layer.total_bounds, 'fields': [_field_payload(field) for field in layer.fields]}`.
+1. line 602: returns `{'layer_name': layer.layer_name, 'layer_position': layer.layer_position, 'feature_count': layer.feature_count, 'geometry_type_raw': layer.geometry_type_raw, 'is_spatial': layer.is_spatial, 'crs_raw': layer.crs_raw, 'crs_authority_name': layer.crs_authority_name, 'crs_authority_code': layer.crs_authority_code, 'crs_wkt': layer.crs_wkt, 'total_bounds': layer.total_bounds, 'fields': [_field_payload(field) for field in layer.fields]}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -659,12 +678,12 @@ __all__ = [
 ### `_package_payload`
 
 - Exact signature: `def _package_payload(package: InpnProtectedAreasGeoPackageCatalog) -> dict[str, object]`
-- Purpose: Package payload.
+- Purpose: serializes one package, exact driver, and ordered layer sequence into the explicit portable hash payload.
 - Inputs: `package: InpnProtectedAreasGeoPackageCatalog`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 603: returns `{'relative_path': package.relative_path, 'file_size': package.file_size, 'file_sha256': package.file_sha256, 'package_position': package.package_position, 'driver_name': package.driver_name, 'layers': [_layer_payload(layer) for layer in package.layers]}`.
+1. line 618: returns `{'relative_path': package.relative_path, 'file_size': package.file_size, 'file_sha256': package.file_sha256, 'package_position': package.package_position, 'driver_name': package.driver_name, 'layers': [_layer_payload(layer) for layer in package.layers]}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -679,12 +698,12 @@ __all__ = [
 ### `_catalog_payload`
 
 - Exact signature: `def _catalog_payload(catalog: InpnProtectedAreasCatalog) -> dict[str, object]`
-- Purpose: Catalog payload.
+- Purpose: constructs the complete portable schema-2 catalog hash payload while excluding local paths, cache flags, timestamps, and the hash itself.
 - Inputs: `catalog: InpnProtectedAreasCatalog`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 614: returns `{'catalog_schema_version': catalog.catalog_schema_version, 'provider': catalog.provider, 'authority': catalog.authority, 'program': catalog.program, 'dataset_id': catalog.dataset_id, 'dataset_name': catalog.dataset_name, 'declared_version': catalog.declared_version, 'reference_page_url': catalog.reference_page_url, 'archive_url': catalog.archive_url, 'archive_filename': catalog.archive_filename, 'archive_size': catalog.archive_size, 'archive_sha256': catalog.archive_sha256, 'packages': [_package_payload(package) for package in catalog.packages], 'package_count': catalog.package_count, 'layer_count': catalog.layer_count, 'field_count': catalog.field_count, 'total_feature_count': catalog.total_feature_count}`.
+1. line 629: returns `{'catalog_schema_version': catalog.catalog_schema_version, 'provider': catalog.provider, 'authority': catalog.authority, 'program': catalog.program, 'dataset_id': catalog.dataset_id, 'dataset_name': catalog.dataset_name, 'declared_version': catalog.declared_version, 'reference_page_url': catalog.reference_page_url, 'archive_url': catalog.archive_url, 'archive_filename': catalog.archive_filename, 'archive_size': catalog.archive_size, 'archive_sha256': catalog.archive_sha256, 'packages': [_package_payload(package) for package in catalog.packages], 'package_count': catalog.package_count, 'layer_count': catalog.layer_count, 'field_count': catalog.field_count, 'total_feature_count': catalog.total_feature_count}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -704,8 +723,8 @@ __all__ = [
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 636: executes a controlled error boundary catching `(TypeError, ValueError)` and performs any declared cleanup/finalization.
-2. line 648: returns `sha256(encoded).hexdigest()`.
+1. line 651: executes a controlled error boundary catching `(TypeError, ValueError)` and performs any declared cleanup/finalization.
+2. line 663: returns `sha256(encoded).hexdigest()`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog content is not canonical JSON')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -720,15 +739,15 @@ __all__ = [
 ### `_build_catalog`
 
 - Exact signature: `def _build_catalog(extraction: InpnProtectedAreasExtraction) -> InpnProtectedAreasCatalog`
-- Purpose: Build catalog.
+- Purpose: inspects every extraction-ordered package and computes exact aggregate counts plus the canonical complete-content hash.
 - Inputs: `extraction: InpnProtectedAreasExtraction`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 654: derives `packages` for subsequent validation or output construction.
-2. line 658: derives `download` for subsequent validation or output construction.
-3. line 659: derives `catalog` for subsequent validation or output construction.
-4. line 683: returns `InpnProtectedAreasCatalog(**{**catalog.__dict__, 'complete_catalog_content_sha256': _catalog_content_sha256(catalog)})`.
+1. line 669: derives `packages` for subsequent validation or output construction.
+2. line 673: derives `download` for subsequent validation or output construction.
+3. line 674: derives `catalog` for subsequent validation or output construction.
+4. line 698: returns `InpnProtectedAreasCatalog(**{**catalog.__dict__, 'complete_catalog_content_sha256': _catalog_content_sha256(catalog)})`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -748,24 +767,24 @@ __all__ = [
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 692: validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
-2. line 696: validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
-3. line 701: iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
-4. line 713: validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
-5. line 715: validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
-6. line 720: validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
-7. line 725: derives `package_names` for subsequent validation or output construction.
-8. line 726: derives `layer_count` for subsequent validation or output construction.
-9. line 727: derives `field_count` for subsequent validation or output construction.
-10. line 728: derives `feature_count` for subsequent validation or output construction.
-11. line 729: iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order.
-12. line 862: performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
-13. line 863: validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
-14. line 865: derives `expected_counts` for subsequent validation or output construction.
-15. line 871: derives `actual_counts` for subsequent validation or output construction.
-16. line 877: validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
-17. line 881: validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
-18. line 887: returns `catalog`.
+1. line 707: validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
+2. line 711: validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
+3. line 716: iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
+4. line 728: validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
+5. line 730: validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
+6. line 735: validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
+7. line 740: derives `package_names` for subsequent validation or output construction.
+8. line 741: derives `layer_count` for subsequent validation or output construction.
+9. line 742: derives `field_count` for subsequent validation or output construction.
+10. line 743: derives `feature_count` for subsequent validation or output construction.
+11. line 744: iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order.
+12. line 877: performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
+13. line 878: validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
+14. line 880: derives `expected_counts` for subsequent validation or output construction.
+15. line 886: derives `actual_counts` for subsequent validation or output construction.
+16. line 892: validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
+17. line 896: validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
+18. line 902: returns `catalog`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog must be an exact InpnProtectedAreasCatalog')`; `InpnProtectedAreasCatalogError('catalog schema version is invalid')`; `InpnProtectedAreasCatalogError('catalog archive size is invalid')`; `InpnProtectedAreasCatalogError('catalog archive SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog packages must be a non-empty tuple')`; `InpnProtectedAreasCatalogError('catalog package paths are not ordered')`; `InpnProtectedAreasCatalogError('catalog aggregate counts are invalid')`; `InpnProtectedAreasCatalogError('catalog content SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog package type is invalid')`; `InpnProtectedAreasCatalogError('catalog package path is invalid')`; `InpnProtectedAreasCatalogError('catalog package order is invalid')`; `InpnProtectedAreasCatalogError('catalog package size is invalid')`; `InpnProtectedAreasCatalogError('catalog package SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog package driver must be exact GPKG')`; `InpnProtectedAreasCatalogError('catalog package layers are invalid')`; `InpnProtectedAreasCatalogError('catalog layer type is invalid')`; `InpnProtectedAreasCatalogError('catalog layer order is invalid')`; `InpnProtectedAreasCatalogError('catalog spatial flag is invalid')`; `InpnProtectedAreasCatalogError('catalog bounds representation is not canonical')`; `InpnProtectedAreasCatalogError('catalog fields must be a tuple')`; `InpnProtectedAreasCatalogError('catalog spatial geometry type is invalid')`; `InpnProtectedAreasCatalogError('catalog CRS metadata is not canonical')`; `InpnProtectedAreasCatalogError('catalog non-spatial metadata is inconsistent')`; `InpnProtectedAreasCatalogError('catalog field type is invalid')`; `InpnProtectedAreasCatalogError('catalog field order is invalid')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -780,15 +799,15 @@ __all__ = [
 ### `_validate_source_locks`
 
 - Exact signature: `def _validate_source_locks(catalog: InpnProtectedAreasCatalog, extraction: InpnProtectedAreasExtraction) -> None`
-- Purpose: Validate source locks.
+- Purpose: exact-compares catalog provider/archive lineage with the freshly validated extraction download.
 - Inputs: `catalog: InpnProtectedAreasCatalog`, `extraction: InpnProtectedAreasExtraction`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 894: derives `download` for subsequent validation or output construction.
-2. line 895: derives `expected` for subsequent validation or output construction.
-3. line 908: derives `actual` for subsequent validation or output construction.
-4. line 921: validates/branches on `actual != expected`.
+1. line 909: derives `download` for subsequent validation or output construction.
+2. line 910: derives `expected` for subsequent validation or output construction.
+3. line 923: derives `actual` for subsequent validation or output construction.
+4. line 936: validates/branches on `actual != expected`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog source/archive lineage differs from the verified extraction')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -808,8 +827,8 @@ __all__ = [
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 931: performs `'Build a portable metadata-only catalog from one verified EP extraction.'`.
-2. line 933: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
+1. line 946: performs `'Build a portable metadata-only catalog from one verified EP extraction.'`.
+2. line 948: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('extraction physical inventory changed during metadata inspection')`; `InpnProtectedAreasCatalogError('INPN extraction byte identity changed or failed source-complete catalog validation')`; `InpnProtectedAreasCatalogError('INPN protected-areas metadata catalog cannot be built safely')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -829,8 +848,8 @@ __all__ = [
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 960: performs `'Independently rebuild and exact-compare one supplied physical catalog.'`.
-2. line 962: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
+1. line 975: performs `'Independently rebuild and exact-compare one supplied physical catalog.'`.
+2. line 977: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog differs from the independently rebuilt physical metadata')`; `InpnProtectedAreasCatalogError('INPN extraction failed catalog source-lock validation')`; `InpnProtectedAreasCatalogError('INPN protected-areas catalog validation failed safely')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -846,8 +865,8 @@ __all__ = [
 
 - Acquisition validates configuration and download lineage, reuses a valid local cache offline, or performs the existing safe HTTPS download and transactional cache publication.
 - Archive authority is one built-in `bytes` snapshot. ZIP validation, member hashing, and extraction streaming use that same snapshot object.
-- Extraction cache validation proves exact ordered path/size/SHA equality across archive inventory, marker, physical files, and caller evidence.
-- Cataloging validates the extraction before and after metadata inspection, reads each package path once, and gives the same built-in `bytes` object to `pyogrio.list_layers` and every `pyogrio.read_info` call for that package.
+- Extraction cache validation proves exact ordered path/size/SHA equality across archive inventory, marker, physical files, and caller evidence, followed by the live archive-path postcondition.
+- Cataloging validates the extraction before and after metadata inspection, reads each package path once, and gives the same built-in `bytes` object to `pyogrio.list_layers` and every `pyogrio.read_info` call for that package. Each call locally ignores only the exact known dynamic `/vsimem/pyogrio_<hex>` extension warning.
 - Only metadata APIs run. No API that materializes feature rows or geometries is called.
 - Schema 2 hashes canonical JSON including exact package driver identity. Absolute paths, timestamps, cache-hit flags, Python repr, and object identity remain excluded.
 
@@ -871,8 +890,8 @@ For `inpn_protected_areas_fr.py`, `validate_inpn_protected_areas_extraction` is 
 
 ## 8. Tests and change impact
 
-- `tests/unit/test_inpn_protected_areas_fr.py` proves archive/download/cache/ZIP/extraction behavior, including coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and archive-path swap isolation.
-- `tests/unit/test_inpn_protected_areas_catalog_fr.py` proves byte-only Pyogrio metadata calls, package swap isolation, persistent mutation rejection, exact driver identity, schema 2, canonical final runtime types, hashing, independent rebuild, and zero feature materialization.
+- `tests/unit/test_inpn_protected_areas_fr.py` contains 169 cases proving controlled ZIP opening, canonical download lineage, archive/download/cache/extraction postconditions, coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and effective transient/persistent archive swaps.
+- `tests/unit/test_inpn_protected_areas_catalog_fr.py` contains 86 cases proving byte-only Pyogrio metadata calls, narrow warning suppression with unrelated warnings preserved, package swap isolation, persistent mutation rejection, exact driver identity, schema 2, canonical final runtime types, hashing, independent rebuild, and zero feature materialization.
 - Any change requires both focused suites, controlled offline EP verification, companion SHA synchronization, full pytest, Ruff check/format, mypy, uv lock/pip checks, and `git diff --check`.
 
 ## 9. Exact complete current file content
@@ -888,6 +907,7 @@ import json
 import math
 import re
 import unicodedata
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
@@ -908,6 +928,10 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 CATALOG_HASH_SCHEMA_VERSION = 2
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
+_PYOGRIO_BYTES_GPKG_WARNING = (
+    r"^File /vsimem/pyogrio_[0-9a-f]+ has GPKG application_id, "
+    r"but non conformant file extension$"
+)
 
 
 class InpnProtectedAreasCatalogError(ValueError):
@@ -1307,12 +1331,18 @@ def _inspect_layer(
     listed_geometry_type: str | None,
 ) -> tuple[InpnProtectedAreasLayerCatalog, str]:
     try:
-        raw_metadata = pyogrio.read_info(
-            package_bytes,
-            layer=layer_name,
-            force_feature_count=True,
-            force_total_bounds=True,
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=_PYOGRIO_BYTES_GPKG_WARNING,
+                category=RuntimeWarning,
+            )
+            raw_metadata = pyogrio.read_info(
+                package_bytes,
+                layer=layer_name,
+                force_feature_count=True,
+                force_total_bounds=True,
+            )
         metadata = _metadata_mapping(raw_metadata, relative_path, layer_name)
         driver_name = _exact_text(
             _required_metadata(metadata, "driver", relative_path, layer_name),
@@ -1415,10 +1445,14 @@ def _inspect_package(
     try:
         package_bytes = _read_verified_package_bytes(extraction, item)
         try:
-            enumeration = _layer_enumeration(
-                pyogrio.list_layers(package_bytes),
-                item.relative_path,
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=_PYOGRIO_BYTES_GPKG_WARNING,
+                    category=RuntimeWarning,
+                )
+                raw_layers = pyogrio.list_layers(package_bytes)
+            enumeration = _layer_enumeration(raw_layers, item.relative_path)
         except InpnProtectedAreasCatalogError:
             raise
         except Exception as error:

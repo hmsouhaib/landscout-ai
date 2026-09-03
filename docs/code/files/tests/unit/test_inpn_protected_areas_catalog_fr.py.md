@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_catalog_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN metadata-only catalog authority evidence
-- Source SHA256: `0c3c42a3496e2ab46c419077bf9f0bc2b0072de8e902805fafee47dc14e7f4bf`
-- Collected cases after STEP 7F.1B.1.1: `82`
+- Source SHA256: `e31e86bf0ce47f3f0bd7605a5107065f2997d8f3c0c61c1ebcfb9ee1e177b629`
+- Collected cases after STEP 7F.1B.1.2: `86`
 
 ## 1. Test architecture and boundary
 
@@ -28,6 +28,14 @@ import json
 
 ```python
 import math
+```
+
+```python
+import re
+```
+
+```python
+import warnings
 ```
 
 ```python
@@ -123,31 +131,33 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 ## 3. Fixtures, helpers, context managers, and support classes
 
+`KNOWN_BYTES_GPKG_WARNING` is the test-side exact regex for the known dynamic hexadecimal Pyogrio `/vsimem` extension message; it is used only to classify captured warnings.
+
 ### `_StringSubclass`
 
 - Kind: support class.
-- Bases: `str`.
-- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Exact base: `str`.
+- Purpose: used only to prove comparison-equal string subclasses are not accepted as canonical catalog metadata.
 - Decorators: `none`.
-- Exact fields: `headers: ClassVar[dict[str, str]]`, fixed to the local ZIP response content type.
-- Exact behavior: inherits `io.BytesIO`; no methods are overridden, so the fake response is a deterministic in-memory byte stream used only by synthetic source setup.
-- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+- Exact fields: none.
+- Exact methods: none.
 
 ### `_FloatSubclass`
 
 - Kind: support class.
-- Bases: `float`.
-- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Exact base: `float`.
+- Purpose: used only to prove float subclasses are rejected from canonical bounds.
 - Decorators: `none`.
-- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+- Exact fields/methods: none.
 
 ### `_Response`
 
 - Kind: support class.
-- Bases: `io.BytesIO`.
-- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Exact base: `io.BytesIO`.
+- Purpose: deterministic in-memory fake local ZIP response used by synthetic source setup.
 - Decorators: `none`.
-- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+- Exact class variable: `headers: ClassVar[dict[str, str]] = {"Content-Type": "application/zip"}`.
+- Exact methods: no overrides; all byte-stream behavior is inherited from `io.BytesIO`.
 
 ### `_response`
 
@@ -873,10 +883,17 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Calls exercised: `_one_package`, `build_inpn_protected_areas_catalog`, `validate_inpn_protected_areas_catalog`.
 - Regression boundary: factual source/package/catalog evidence only; no category meaning, parcel operations, exclusion, score, or ranking.
 
-## 5. STEP 7F.1B.1.1 coverage map
+### STEP 7F.1B.1.2 warning regressions
 
-- Archive suite: immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; transient archive-path swap isolation.
-- Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
+- `test_valid_bytes_backed_catalog_suppresses_only_known_extension_warning` captures every warning during a valid byte-backed build and requires zero matching extension warnings.
+- `test_unrelated_read_info_runtime_warning_remains_observable` injects one unrelated `RuntimeWarning` in `read_info`, requires `pytest.warns` to observe exactly that warning, and still builds the catalog.
+- `test_known_extension_warning_suppression_does_not_bypass_driver_validation` emits the exact known message while returning driver `SQLite`; the warning is absent but exact `GPKG` validation still rejects the layer.
+- `test_catalog_warning_suppression_installs_no_global_filter` snapshots `warnings.filters`, builds a catalog, and requires byte-for-byte list equality afterward.
+
+## 5. STEP 7F.1B.1.2 coverage map
+
+- Archive suite: controlled ZIP opening; canonical download lineage; immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality plus final archive postconditions; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; effective transient/persistent archive swaps.
+- Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; only the known extension warning suppressed; unrelated warnings observable; driver validation retained; transient swap isolation; persistent mutation rejection; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
 - Zero materialization: production attempts to call `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, or `geopandas.read_parquet` fail immediately in the regression.
 - Semantic non-goals: no protected-area categories, Natura 2000, ZNIEFF, geometry normalization, parcel relation, exclusion, scoring, or ranking.
 
@@ -890,6 +907,8 @@ from __future__ import annotations
 import io
 import json
 import math
+import re
+import warnings
 import zipfile
 from collections.abc import Callable, Mapping
 from contextlib import contextmanager
@@ -937,6 +956,10 @@ EXPECTED_EXPORTS = {
     "build_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_catalog",
 }
+KNOWN_BYTES_GPKG_WARNING = re.compile(
+    r"^File /vsimem/pyogrio_[^ ]+ has GPKG application_id, "
+    r"but non conformant file extension$"
+)
 
 
 class _StringSubclass(str):
@@ -1110,6 +1133,89 @@ def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(
     assert layer.total_bounds == (1000.0, 2000.0, 1000.0, 2000.0)
     assert len(result.complete_catalog_content_sha256) == 64
     validate_inpn_protected_areas_catalog(extraction, config, result)
+
+
+def test_valid_bytes_backed_catalog_suppresses_only_known_extension_warning(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.package_count == 1
+    assert not [
+        warning
+        for warning in captured
+        if warning.category is RuntimeWarning
+        and KNOWN_BYTES_GPKG_WARNING.fullmatch(str(warning.message))
+    ]
+
+
+def test_unrelated_read_info_runtime_warning_remains_observable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = catalog_module.pyogrio.read_info
+
+    def warn_then_read(*args: object, **kwargs: object) -> object:
+        warnings.warn("unrelated metadata warning", RuntimeWarning, stacklevel=1)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", warn_then_read)
+
+    with pytest.warns(RuntimeWarning, match="unrelated metadata warning") as captured:
+        result = build_inpn_protected_areas_catalog(extraction, config)
+
+    assert result.package_count == 1
+    assert len(captured) == 1
+
+
+def test_known_extension_warning_suppression_does_not_bypass_driver_validation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    original = catalog_module.pyogrio.read_info
+
+    def warn_with_wrong_driver(*args: object, **kwargs: object) -> object:
+        warnings.warn(
+            "File /vsimem/pyogrio_deadbeef has GPKG application_id, "
+            "but non conformant file extension",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+        result = dict(original(*args, **kwargs))
+        result["driver"] = "SQLite"
+        return result
+
+    monkeypatch.setattr(catalog_module.pyogrio, "read_info", warn_with_wrong_driver)
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        with pytest.raises(InpnProtectedAreasCatalogError, match="driver|GPKG"):
+            build_inpn_protected_areas_catalog(extraction, config)
+
+    assert not [
+        warning
+        for warning in captured
+        if KNOWN_BYTES_GPKG_WARNING.fullmatch(str(warning.message))
+    ]
+
+
+def test_catalog_warning_suppression_installs_no_global_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    filters_before = list(warnings.filters)
+
+    build_inpn_protected_areas_catalog(extraction, config)
+
+    assert warnings.filters == filters_before
 
 
 def test_package_with_multiple_layers_preserves_physical_order(

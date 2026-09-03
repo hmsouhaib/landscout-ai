@@ -6,6 +6,7 @@ import json
 import math
 import re
 import unicodedata
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
@@ -26,6 +27,10 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 CATALOG_HASH_SCHEMA_VERSION = 2
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
+_PYOGRIO_BYTES_GPKG_WARNING = (
+    r"^File /vsimem/pyogrio_[0-9a-f]+ has GPKG application_id, "
+    r"but non conformant file extension$"
+)
 
 
 class InpnProtectedAreasCatalogError(ValueError):
@@ -425,12 +430,18 @@ def _inspect_layer(
     listed_geometry_type: str | None,
 ) -> tuple[InpnProtectedAreasLayerCatalog, str]:
     try:
-        raw_metadata = pyogrio.read_info(
-            package_bytes,
-            layer=layer_name,
-            force_feature_count=True,
-            force_total_bounds=True,
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=_PYOGRIO_BYTES_GPKG_WARNING,
+                category=RuntimeWarning,
+            )
+            raw_metadata = pyogrio.read_info(
+                package_bytes,
+                layer=layer_name,
+                force_feature_count=True,
+                force_total_bounds=True,
+            )
         metadata = _metadata_mapping(raw_metadata, relative_path, layer_name)
         driver_name = _exact_text(
             _required_metadata(metadata, "driver", relative_path, layer_name),
@@ -533,10 +544,14 @@ def _inspect_package(
     try:
         package_bytes = _read_verified_package_bytes(extraction, item)
         try:
-            enumeration = _layer_enumeration(
-                pyogrio.list_layers(package_bytes),
-                item.relative_path,
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message=_PYOGRIO_BYTES_GPKG_WARNING,
+                    category=RuntimeWarning,
+                )
+                raw_layers = pyogrio.list_layers(package_bytes)
+            enumeration = _layer_enumeration(raw_layers, item.relative_path)
         except InpnProtectedAreasCatalogError:
             raise
         except Exception as error:
