@@ -598,6 +598,108 @@ def test_validated_download_is_fresh_and_uses_exact_builtin_strings(
         assert type(getattr(fresh, field_name)) is str
 
 
+def test_validate_download_rejects_persistent_archive_mutation_after_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    original_validate = inpn._validated_zip_members
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed
+        members = original_validate(archive)
+        download.path.write_bytes(archive_b)
+        mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="stale|snapshot|changed"):
+        inpn._validate_download(download, config)
+
+    assert mutation_observed
+    assert download.path.read_bytes() == archive_b
+
+
+def test_cached_download_persistent_archive_mutation_is_never_returned(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, cached_download, _ = _download(tmp_path, payload=archive_a)
+    session = _session(config, archive_a)
+    original_validate = inpn._validated_zip_members
+    validation_count = 0
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed, validation_count
+        members = original_validate(archive)
+        validation_count += 1
+        if validation_count == 1:
+            cached_download.path.write_bytes(archive_b)
+            mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+
+    result = _download_with_session(config, session)
+
+    assert mutation_observed
+    assert validation_count == 2
+    assert len(session.calls) == 1
+    assert result.cache_hit is False
+    assert result.path.read_bytes() == archive_a
+    assert result.file_size == len(archive_a)
+    assert result.sha256 == sha256(archive_a).hexdigest()
+    metadata = _read_json(_download_metadata_path(result))
+    assert metadata["file_size"] == len(archive_a)
+    assert metadata["sha256"] == sha256(archive_a).hexdigest()
+
+
+def test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, cached_download, _ = _download(tmp_path, payload=archive_a)
+    offline = _Session(error=SafeHttpsError("offline"))
+    original_validate = inpn._validated_zip_members
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed
+        members = original_validate(archive)
+        cached_download.path.write_bytes(archive_b)
+        mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+    returned: InpnProtectedAreasDownload | None = None
+
+    with pytest.raises(InpnProtectedAreasSourceError):
+        returned = _download_with_session(config, offline)
+
+    assert mutation_observed
+    assert returned is None
+    assert len(offline.calls) == 1
+    assert cached_download.path.read_bytes() == archive_b
+
+
 @pytest.mark.parametrize("mismatch", ["size", "sha256"])
 def test_cold_download_must_match_configured_snapshot_before_publication(
     tmp_path: Path,

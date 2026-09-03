@@ -886,6 +886,11 @@ def _validate_download(
     try:
         with _open_archive_snapshot(archive_bytes) as archive:
             _validated_zip_members(archive)
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_download,
+            validated_config,
+        )
         return validated_download
     except InpnProtectedAreasSourceError:
         raise

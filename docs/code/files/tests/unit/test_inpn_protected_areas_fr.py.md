@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN archive/extraction source authority evidence
-- Source SHA256: `72e6c314a8350490e1617089e2bd341bc5a87f3f722f743f82d8fc69451551e8`
-- Collected cases after STEP 7F.1B.1.2: `169`
+- Source SHA256: `8835930ed2a1f9c18462e8dac957f7283b27f6979cd50135c6e8f616215b7719`
+- Collected cases after STEP 7F.1B.1.2.1: `172`
 
 ## 1. Test architecture and boundary
 
@@ -150,7 +150,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 - Kind: support class.
 - Bases: `object`.
-- Purpose: provides deterministic fake transport, scalar-subclass, or mutation-fixture behavior required by the tests.
+- Purpose: records each fake safe-HTTPS request, returns an ordered local response sequence, or raises one configured transport failure without real DNS/HTTP.
 - Decorators: `none`.
 - Exact methods:
 
@@ -164,7 +164,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _zip_bytes(members: dict[str, bytes] | list[tuple[str, bytes]] | None=None) -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Zip bytes.
+- Purpose: builds deterministic stored ZIP bytes from ordered member names/payloads, including duplicate-name fixtures when a tuple list is supplied.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `archive.writestr`, `io.BytesIO`, `isinstance`, `list`, `stream.getvalue`, `values.items`, `warnings.catch_warnings`, `warnings.simplefilter`, `zipfile.ZipFile`, `zipfile.ZipInfo`.
 - Validation behavior: assertions and delegated production validation.
@@ -175,7 +175,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _special_zip(name: str, mode: int) -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Special zip.
+- Purpose: builds one ZIP member with an explicit Unix mode for symbolic-link, directory, and special-file rejection tests.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `archive.writestr`, `io.BytesIO`, `stream.getvalue`, `zipfile.ZipFile`, `zipfile.ZipInfo`.
 - Validation behavior: assertions and delegated production validation.
@@ -186,7 +186,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _unsupported_compression_zip() -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Unsupported compression zip.
+- Purpose: rewrites local and central compression method fields to an unsupported value while preserving otherwise deterministic ZIP structure.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `99 .to_bytes`, `_zip_bytes`, `bytearray`, `bytes`, `payload.index`.
 - Validation behavior: assertions and delegated production validation.
@@ -197,7 +197,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _config_payload() -> dict[str, object]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Config payload.
+- Purpose: loads the checked-in YAML mapping as mutable local fixture input for strict source-config tests.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `CONFIG_PATH.read_text`, `isinstance`, `yaml.safe_load`.
 - Validation behavior: assertions and delegated production validation.
@@ -208,7 +208,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _write_config(tmp_path: Path, payload: dict[str, object]) -> Path`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Write config.
+- Purpose: writes one mutated source-config mapping below `tmp_path` as deterministic YAML for loader rejection tests.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `path.write_text`, `yaml.safe_dump`.
 - Validation behavior: assertions and delegated production validation.
@@ -219,7 +219,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _config(tmp_path: Path, expected_bytes: bytes | None=None) -> InpnProtectedAreasSourceConfig`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Config.
+- Purpose: reconstructs a strict source config with an isolated cache root and size/SHA pinned to the supplied synthetic archive bytes.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `InpnProtectedAreasSourceConfig.model_validate`, `_config_payload`, `_zip_bytes`, `len`, `sha256`, `sha256(snapshot).hexdigest`, `str`.
 - Validation behavior: assertions and delegated production validation.
@@ -230,7 +230,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _session(config: InpnProtectedAreasSourceConfig, payload: bytes | None=None, *, status_code: int=200, redirect_chain: tuple[str, ...]=()) -> _Session`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Session.
+- Purpose: builds the ordered fake response sequence for a direct download or explicit redirect chain using one configured payload/status.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_Response`, `_Session`, `_zip_bytes`, `responses.append`, `str`.
 - Validation behavior: assertions and delegated production validation.
@@ -241,7 +241,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _download(tmp_path: Path, *, payload: bytes | None=None) -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasDownload, _Session]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Download.
+- Purpose: performs one fake-transport cold download of exact synthetic bytes and returns its config, canonical result, and recorded session.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_config`, `_download_with_session`, `_session`, `_zip_bytes`.
 - Validation behavior: assertions and delegated production validation.
@@ -252,7 +252,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _download_with_session(config: InpnProtectedAreasSourceConfig, session: _Session, *, timeout_seconds: float=120.0) -> InpnProtectedAreasDownload`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Download with session.
+- Purpose: temporarily binds the source adapter to one fake safe-HTTPS opener and invokes the public downloader with the requested timeout.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `download_inpn_protected_areas_archive`, `monkeypatch.setattr`, `pytest.MonkeyPatch.context`.
 - Validation behavior: assertions and delegated production validation.
@@ -263,7 +263,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _download_metadata_path(download: InpnProtectedAreasDownload) -> Path`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Download metadata path.
+- Purpose: derives the schema-v1 download metadata sidecar adjacent to a synthetic cached archive result.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `download.path.with_name`.
 - Validation behavior: assertions and delegated production validation.
@@ -282,7 +282,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _extraction_metadata_path(extraction: InpnProtectedAreasExtraction) -> Path`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Extraction metadata path.
+- Purpose: finds and uniquely requires the hidden LandScout extraction marker in one synthetic extraction root.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `extraction.extraction_path.iterdir`, `len`, `path.is_file`, `path.name.startswith`, `sorted`.
 - Validation behavior: assertions and delegated production validation.
@@ -293,7 +293,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _read_json(path: Path) -> dict[str, object]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Read json.
+- Purpose: reads a test metadata file as UTF-8 JSON and asserts the fixture root is a mapping.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `isinstance`, `json.loads`, `path.read_text`.
 - Validation behavior: assertions and delegated production validation.
@@ -304,7 +304,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _write_json(path: Path, payload: dict[str, object]) -> None`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Write json.
+- Purpose: rewrites a local test metadata mapping as stable indented UTF-8 JSON with a trailing newline.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `json.dumps`, `path.write_text`.
 - Validation behavior: assertions and delegated production validation.
@@ -315,7 +315,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _rewrite_extraction_marker_and_caller(extraction: InpnProtectedAreasExtraction) -> InpnProtectedAreasExtraction`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Rewrite extraction marker and caller.
+- Purpose: rehashes the current physical extraction files, rewrites the marker inventory, and returns a caller envelope coordinated to that forged state.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `InpnProtectedAreasExtractedFile`, `_extraction_metadata_path`, `_read_json`, `_write_json`, `extraction.extraction_path.rglob`, `path.is_file`, `path.read_bytes`, `path.relative_to`, `path.relative_to(extraction.extraction_path).as_posix`, `path.stat`, `replace`, `sha256`, `sha256(path.read_bytes()).hexdigest`, `sorted`, `tuple`.
 - Validation behavior: assertions and delegated production validation.
@@ -326,7 +326,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _force_cache_miss(download: InpnProtectedAreasDownload) -> tuple[Path, bytes]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Force cache miss.
+- Purpose: corrupts only the cached download metadata SHA and returns the sidecar path plus its original bytes for restoration assertions.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_download_metadata_path`, `_read_json`, `_write_json`, `metadata_path.read_bytes`.
 - Validation behavior: assertions and delegated production validation.
@@ -337,7 +337,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _tree_snapshot(root: Path) -> dict[str, bytes]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Tree snapshot.
+- Purpose: captures every regular file below a local extraction root as a deterministic relative-path-to-bytes mapping.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `path.is_file`, `path.read_bytes`, `path.relative_to`, `path.relative_to(root).as_posix`, `root.rglob`, `sorted`.
 - Validation behavior: assertions and delegated production validation.
@@ -1081,9 +1081,15 @@ from landscout.sources.inpn_protected_areas_fr import (
 - `test_archive_mutation_during_extraction_cache_validation_is_not_hidden` proves cache validation cannot swallow a successful-check-then-mutate attack.
 - `test_archive_mutation_during_public_extraction_validation_fails` proves the public validator's final postcondition rejects a persistent mutation.
 
+### STEP 7F.1B.1.2.1 cached-download return-postcondition regressions
+
+- `test_validate_download_rejects_persistent_archive_mutation_after_snapshot` creates same-length valid archives A and B at one configured path, starts from a canonical A download, and hooks `_validated_zip_members` after snapshot validation to persist B before return. The hook and final B bytes are asserted; `_validate_download` must raise the controlled source error because its final reread no longer equals snapshot A.
+- `test_cached_download_persistent_archive_mutation_is_never_returned` starts from a valid A archive/metadata cache and a fake successful safe-HTTPS response containing exact A. Its `_validated_zip_members` hook persists B only during the first validation (the cache candidate); the candidate must become a miss, exactly one refresh must occur, the second validation must not remutate, and the returned `cache_hit=False` archive plus schema-v1 sidecar must both contain A size/SHA evidence.
+- `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline` starts from the same valid A cache, persists B from the post-snapshot member-validation hook, and injects a controlled offline transport error. The hook and one refresh attempt are asserted; no stale result may be assigned, the public downloader must raise `InpnProtectedAreasSourceError`, and B remains visible at the rejected cache path.
+
 ## 5. STEP 7F.1B.1.2 coverage map
 
-- Archive suite: controlled ZIP opening; exact lineage reconstruction; immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; cold/cache-hit/public-validator and pre/post-publication archive checks; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; effective transient and persistent archive-path swaps.
+- Archive suite: controlled ZIP opening; exact lineage reconstruction; immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; cold/cache-hit/public-validator and pre/post-publication archive checks; cached-candidate post-snapshot mutation rejection with exact online refresh/offline failure behavior; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; effective transient and persistent archive-path swaps.
 - Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; narrow known-warning suppression and visible unrelated warnings; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
 - Zero materialization: production attempts to call `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, or `geopandas.read_parquet` fail immediately in the regression.
 - Semantic non-goals: no protected-area categories, Natura 2000, ZNIEFF, geometry normalization, parcel relation, exclusion, scoring, or ranking.
@@ -1691,6 +1697,108 @@ def test_validated_download_is_fresh_and_uses_exact_builtin_strings(
         "sha256",
     ):
         assert type(getattr(fresh, field_name)) is str
+
+
+def test_validate_download_rejects_persistent_archive_mutation_after_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, download, _ = _download(tmp_path, payload=archive_a)
+    original_validate = inpn._validated_zip_members
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed
+        members = original_validate(archive)
+        download.path.write_bytes(archive_b)
+        mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="stale|snapshot|changed"):
+        inpn._validate_download(download, config)
+
+    assert mutation_observed
+    assert download.path.read_bytes() == archive_b
+
+
+def test_cached_download_persistent_archive_mutation_is_never_returned(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, cached_download, _ = _download(tmp_path, payload=archive_a)
+    session = _session(config, archive_a)
+    original_validate = inpn._validated_zip_members
+    validation_count = 0
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed, validation_count
+        members = original_validate(archive)
+        validation_count += 1
+        if validation_count == 1:
+            cached_download.path.write_bytes(archive_b)
+            mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+
+    result = _download_with_session(config, session)
+
+    assert mutation_observed
+    assert validation_count == 2
+    assert len(session.calls) == 1
+    assert result.cache_hit is False
+    assert result.path.read_bytes() == archive_a
+    assert result.file_size == len(archive_a)
+    assert result.sha256 == sha256(archive_a).hexdigest()
+    metadata = _read_json(_download_metadata_path(result))
+    assert metadata["file_size"] == len(archive_a)
+    assert metadata["sha256"] == sha256(archive_a).hexdigest()
+
+
+def test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_a = _zip_bytes({"EP/package.gpkg": b"package-a"})
+    archive_b = _zip_bytes({"EP/package.gpkg": b"package-b"})
+    assert len(archive_b) == len(archive_a)
+    config, cached_download, _ = _download(tmp_path, payload=archive_a)
+    offline = _Session(error=SafeHttpsError("offline"))
+    original_validate = inpn._validated_zip_members
+    mutation_observed = False
+
+    def validate_then_mutate(
+        archive: zipfile.ZipFile,
+    ) -> tuple[inpn._ValidatedZipMember, ...]:
+        nonlocal mutation_observed
+        members = original_validate(archive)
+        cached_download.path.write_bytes(archive_b)
+        mutation_observed = True
+        return members
+
+    monkeypatch.setattr(inpn, "_validated_zip_members", validate_then_mutate)
+    returned: InpnProtectedAreasDownload | None = None
+
+    with pytest.raises(InpnProtectedAreasSourceError):
+        returned = _download_with_session(config, offline)
+
+    assert mutation_observed
+    assert returned is None
+    assert len(offline.calls) == 1
+    assert cached_download.path.read_bytes() == archive_b
 
 
 @pytest.mark.parametrize("mismatch", ["size", "sha256"])

@@ -6,11 +6,11 @@
 - File type: Python source
 - Layer/domain: official source acquisition and archive/extraction authority
 - Responsibility: Acquires the pinned PatriNat/INPN EP archive and proves extraction bytes against one immutable archive snapshot.
-- Source SHA256: `7ff9a84538a337ffa1c915810302a27ace508c2bf53a67fc344b6f313f761242`
+- Source SHA256: `ece38793091317d16e8826279472dcaa26e5130eca7ada3f26d9ec3c4b4ed06d`
 
 ## 1. Architectural contract
 
-The pinned archive is source authority. STEP 7F.1B.1.2 requires `pinned EP.zip bytes -> controlled snapshot opening -> validated ZIP members -> archive-derived uncompressed regular-member inventory -> marker/physical/caller equality -> final archive-path postcondition`. The marker remains cache evidence and cannot override archive member bytes. Cold cache publication is checked after publication; extraction rebuild is checked before and after publication; cache-hit and public-validator returns are checked immediately before success. Valid local caches remain fully offline; invalid extraction caches may be rebuilt from the valid local archive without network.
+The pinned archive is source authority. STEP 7F.1B.1.2 requires `pinned EP.zip bytes -> controlled snapshot opening -> validated ZIP members -> archive-derived uncompressed regular-member inventory -> marker/physical/caller equality -> final archive-path postcondition`. The marker remains cache evidence and cannot override archive member bytes. Cold cache publication is checked after publication; extraction rebuild is checked before and after publication; cache-hit and public-validator returns are checked immediately before success. A cached download candidate cannot be returned if its physical archive path changes during ZIP validation. Valid local caches remain fully offline; invalid extraction caches may be rebuilt from the valid local archive without network.
 
 ## 2. Imports and dependencies
 
@@ -426,7 +426,7 @@ __all__ = [
 ### `_validate_utc_timestamp`
 
 - Exact signature: `def _validate_utc_timestamp(value: object) -> None`
-- Purpose: Validate utc timestamp.
+- Purpose: requires an exact nonempty timestamp string whose parsed timezone is present and exactly UTC.
 - Inputs: `value: object`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
@@ -451,7 +451,7 @@ __all__ = [
 ### `_validated_config`
 
 - Exact signature: `def _validated_config(config: object) -> InpnProtectedAreasSourceConfig`
-- Purpose: Validated config.
+- Purpose: rejects non-exact config objects, then reconstructs and revalidates a fresh strict config from the supplied model dump.
 - Inputs: `config: object`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `InpnProtectedAreasSourceConfig`.
 - Ordered algorithm:
@@ -496,7 +496,7 @@ __all__ = [
 ### `_cache_directory`
 
 - Exact signature: `def _cache_directory(config: InpnProtectedAreasSourceConfig) -> Path`
-- Purpose: Cache directory.
+- Purpose: derives the versioned provider/dataset cache directory from validated source identity.
 - Inputs: `config: InpnProtectedAreasSourceConfig`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `Path`.
 - Ordered algorithm:
@@ -518,7 +518,7 @@ __all__ = [
 ### `_archive_path`
 
 - Exact signature: `def _archive_path(config: InpnProtectedAreasSourceConfig) -> Path`
-- Purpose: Archive path.
+- Purpose: derives the exact configured archive path below the versioned source cache directory.
 - Inputs: `config: InpnProtectedAreasSourceConfig`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `Path`.
 - Ordered algorithm:
@@ -539,7 +539,7 @@ __all__ = [
 ### `_metadata_path`
 
 - Exact signature: `def _metadata_path(archive_path: Path) -> Path`
-- Purpose: Metadata path.
+- Purpose: derives the schema-v1 download metadata sidecar path adjacent to the archive.
 - Inputs: `archive_path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `Path`.
 - Ordered algorithm:
@@ -560,7 +560,7 @@ __all__ = [
 ### `_sha256_file`
 
 - Exact signature: `def _sha256_file(path: Path) -> str`
-- Purpose: Sha256 file.
+- Purpose: streams one file in fixed-size chunks and returns its lowercase SHA256 digest.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `str`.
 - Ordered algorithm:
@@ -583,7 +583,7 @@ __all__ = [
 ### `_is_link_or_junction`
 
 - Exact signature: `def _is_link_or_junction(path: Path) -> bool`
-- Purpose: Is link or junction.
+- Purpose: detects symbolic links and Windows junctions, failing closed when junction inspection raises.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `bool`.
 - Ordered algorithm:
@@ -604,7 +604,7 @@ __all__ = [
 ### `_is_regular_file`
 
 - Exact signature: `def _is_regular_file(path: Path) -> bool`
-- Purpose: Is regular file.
+- Purpose: accepts only an existing ordinary file that is neither a symbolic link nor a junction.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `bool`.
 - Ordered algorithm:
@@ -625,7 +625,7 @@ __all__ = [
 ### `_read_strict_json`
 
 - Exact signature: `def _read_strict_json(path: Path) -> dict[str, object]`
-- Purpose: Read strict json.
+- Purpose: reads UTF-8 JSON and rejects duplicate keys or non-object roots through the shared strict decoder.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `dict[str, object]`.
 - Ordered algorithm:
@@ -646,7 +646,7 @@ __all__ = [
 ### `_windows_component_key`
 
 - Exact signature: `def _windows_component_key(component: str) -> str`
-- Purpose: Windows component key.
+- Purpose: normalizes one ZIP path component to its Windows collision key while rejecting trailing-dot/space and reserved-device forms.
 - Inputs: `component: str`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `str`.
 - Ordered algorithm:
@@ -671,7 +671,7 @@ __all__ = [
 ### `_canonical_member_destination`
 
 - Exact signature: `def _canonical_member_destination(name: str) -> tuple[PurePosixPath, tuple[str, ...]]`
-- Purpose: Canonical member destination.
+- Purpose: maps one ZIP member name to a canonical safe POSIX destination and Windows collision tuple while rejecting traversal, absolute, drive, and metadata collisions.
 - Inputs: `name: str`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `tuple[PurePosixPath, tuple[str, ...]]`.
 - Ordered algorithm:
@@ -749,7 +749,7 @@ __all__ = [
 ### `_download_metadata`
 
 - Exact signature: `def _download_metadata(config: InpnProtectedAreasSourceConfig, result: InpnProtectedAreasDownload) -> _DownloadMetadata`
-- Purpose: Download metadata.
+- Purpose: constructs the strict schema-v1 cache sidecar from validated source identity and verified download evidence.
 - Inputs: `config: InpnProtectedAreasSourceConfig`, `result: InpnProtectedAreasDownload`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `_DownloadMetadata`.
 - Ordered algorithm:
@@ -770,7 +770,7 @@ __all__ = [
 ### `_load_cached_download`
 
 - Exact signature: `def _load_cached_download(archive_path: Path, metadata_path: Path, config: InpnProtectedAreasSourceConfig) -> InpnProtectedAreasDownload | None`
-- Purpose: Load cached download.
+- Purpose: accepts a physical archive/metadata pair only when lineage and configured bytes validate, including the final archive-path postcondition inside `_validate_download`; otherwise returns a cache miss.
 - Inputs: `archive_path: Path`, `metadata_path: Path`, `config: InpnProtectedAreasSourceConfig`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `InpnProtectedAreasDownload | None`.
 - Ordered algorithm:
@@ -785,14 +785,14 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `_DownloadMetadata.model_validate`, `_is_regular_file`, `_read_strict_json`, `_validate_download`, `any`, `expected.items`, `getattr`, `str`.
 - Internal caller/callee relationship: directly calls `_is_regular_file`, `_read_strict_json`, `_validate_download`; the public flows below establish external entry points.
-- Direct tests: `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`
+- Direct tests: `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`, `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
 ### `_replace_file`
 
 - Exact signature: `def _replace_file(source: Path, target: Path) -> None`
-- Purpose: Replace file.
+- Purpose: performs the isolated file replacement seam used by transactional cache publication and its failure tests.
 - Inputs: `source: Path`, `target: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
@@ -813,7 +813,7 @@ __all__ = [
 ### `_publish_cache_pair`
 
 - Exact signature: `def _publish_cache_pair(temporary_archive: Path, temporary_metadata: Path, archive_path: Path, metadata_path: Path) -> None`
-- Purpose: Publish cache pair.
+- Purpose: transactionally publishes archive and metadata together, restoring prior files on replacement failure and preserving recovery evidence if rollback fails.
 - Inputs: `temporary_archive: Path`, `temporary_metadata: Path`, `archive_path: Path`, `metadata_path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
@@ -840,7 +840,7 @@ __all__ = [
 ### `_download_archive_bytes`
 
 - Exact signature: `def _download_archive_bytes(configured_url: str, timeout_seconds: float, destination: Path) -> None`
-- Purpose: Download archive bytes.
+- Purpose: streams the safe-HTTPS official response into a new temporary archive while rejecting non-ZIP/HTML/empty or malformed response state.
 - Inputs: `configured_url: str`, `timeout_seconds: float`, `destination: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
@@ -881,7 +881,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `InpnProtectedAreasSourceError`, `_archive_path`, `_download_archive_bytes`, `_download_metadata`, `_load_cached_download`, `_metadata_path`, `_open_archive_snapshot`, `_publish_cache_pair`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`, `archive_path.parent.mkdir`, `archive_path.with_name`, `datetime.now`, `datetime.now(UTC).isoformat`, `float`, `isfinite`, `isinstance`, `len`, `metadata.model_dump_json`, `metadata_path.with_name`, `sha256`, `sha256(archive_bytes).hexdigest`, `str`, `temporary_archive.read_bytes`, `temporary_archive.unlink`, `temporary_metadata.unlink`, `temporary_metadata.write_text`, `temporary_path.unlink`.
 - Internal caller/callee relationship: directly calls `_archive_path`, `_download_archive_bytes`, `_download_metadata`, `_load_cached_download`, `_metadata_path`, `_open_archive_snapshot`, `_publish_cache_pair`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: `test_wrong_download_config_type_has_controlled_error`, `test_download_timeout_is_strict_finite_positive`, `test_download_api_has_no_arbitrary_http_session_injection`, `test_valid_physical_and_metadata_cache_is_reused`
+- Direct tests: `test_wrong_download_config_type_has_controlled_error`, `test_download_timeout_is_strict_finite_positive`, `test_download_api_has_no_arbitrary_http_session_injection`, `test_valid_physical_and_metadata_cache_is_reused`, `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -936,23 +936,24 @@ __all__ = [
 ### `_validate_download`
 
 - Exact signature: `def _validate_download(download: object, config: InpnProtectedAreasSourceConfig) -> InpnProtectedAreasDownload`
-- Purpose: Validates a download and ZIP member structure from one verified immutable archive byte snapshot.
+- Purpose: validates a download and ZIP member structure from one verified immutable byte snapshot, then rereads the configured path and rejects any mutation before return.
 - Inputs: `download: object`, `config: InpnProtectedAreasSourceConfig`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `InpnProtectedAreasDownload`.
 - Ordered algorithm:
 
 1. lines 883-885: reconstruct validated config/download authority and capture verified immutable archive bytes.
-2. lines 886-889: open only that snapshot through `_open_archive_snapshot`, validate its complete member structure, and return the fresh canonical envelope.
-3. lines 890-904: preserve controlled source errors and translate remaining member-validation ZIP/compression failures, including `EOFError` and `LargeZipFile`.
+2. lines 886-888: open only that snapshot through `_open_archive_snapshot` and validate its complete member structure.
+3. lines 889-894: require the physical archive path to remain byte-for-byte equal to the initial snapshot immediately before returning the fresh canonical envelope.
+4. lines 895-909: preserve controlled source errors and translate remaining member-validation ZIP/compression failures, including `EOFError` and `LargeZipFile`.
 
 - Validation: `InpnProtectedAreasSourceError('INPN protected-areas download is stale or invalid')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
 - Filesystem effects: none directly; any effects are delegated.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
-- Callees: `InpnProtectedAreasSourceError`, `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`.
-- Internal caller/callee relationship: directly calls `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Callees: `InpnProtectedAreasSourceError`, `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`.
+- Internal caller/callee relationship: directly calls `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
+- Direct tests: `test_validated_download_is_fresh_and_uses_exact_builtin_strings`, `test_validate_download_rejects_persistent_archive_mutation_after_snapshot`, `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`, `test_internal_download_validation_zip_failures_are_controlled`
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -961,20 +962,20 @@ __all__ = [
 - Exact signature: `def _require_archive_snapshot_unchanged(initial_archive_bytes: bytes, download: object, config: InpnProtectedAreasSourceConfig) -> None`
 - Purpose: reconstructs exact config/download authority, rereads the configured archive path through `_read_verified_archive_bytes`, and requires byte-for-byte equality with the initial immutable snapshot.
 - Validation: exact nonempty built-in initial bytes and controlled `InpnProtectedAreasSourceError` on stale lineage, size/SHA failure, unreadable path, or exact mismatch.
-- Callers/order: after cold cache publication; after extraction-cache equality before cache-hit return; before and after extraction-directory publication; after public archive/marker/physical/caller equality before the fresh return.
+- Callers/order: after `_validate_download` ZIP-member validation before any direct or cached-candidate return; after cold cache publication; after extraction-cache equality before cache-hit return; before and after extraction-directory publication; after public archive/marker/physical/caller equality before the fresh return.
 - Business boundary: an in-operation return postcondition, not a claim about mutation after the function returns.
 
 ### `_validate_inventory_relative_path`
 
 - Exact signature: `def _validate_inventory_relative_path(value: object) -> None`
-- Purpose: Validate inventory relative path.
+- Purpose: requires exact canonical POSIX inventory text and rejects traversal, unsafe components, or the reserved extraction-marker path.
 - Inputs: `value: object`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 929: branch/fail closed on `type(value) is not str or not value or value != value.strip()`.
-2. line 931: derive `(destination, _)`.
-3. line 932: branch/fail closed on `destination.as_posix() != value or value == EXTRACTION_METADATA_FILENAME`.
+1. line 934: branch/fail closed on `type(value) is not str or not value or value != value.strip()`.
+2. line 936: derive `(destination, _)`.
+3. line 937: branch/fail closed on `destination.as_posix() != value or value == EXTRACTION_METADATA_FILENAME`.
 
 - Validation: `ValueError('Inventory relative_path must be an exact non-empty string')`; `ValueError('Inventory relative_path is not canonical POSIX form')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -990,17 +991,17 @@ __all__ = [
 ### `_inventory`
 
 - Exact signature: `def _inventory(root: Path) -> tuple[InpnProtectedAreasExtractedFile, ...]`
-- Purpose: Inventory.
+- Purpose: walks one extraction root without following links, hashes every regular payload file, and returns a complete path-sorted immutable inventory.
 - Inputs: `root: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `tuple[InpnProtectedAreasExtractedFile, ...]`.
 - Ordered algorithm:
 
-1. line 937: branch/fail closed on `_is_link_or_junction(root) or not root.is_dir()`.
-2. line 941: derive `files`.
-3. line 942: iterate `path` over `root.rglob('*')` in source order.
-4. line 971: perform `files.sort(key=lambda item: item.relative_path)`.
-5. line 972: branch/fail closed on `not files`.
-6. line 976: return `tuple(files)`.
+1. line 942: branch/fail closed on `_is_link_or_junction(root) or not root.is_dir()`.
+2. line 946: derive `files`.
+3. line 947: iterate `path` over `root.rglob('*')` in source order.
+4. line 976: perform `files.sort(key=lambda item: item.relative_path)`.
+5. line 977: branch/fail closed on `not files`.
+6. line 981: return `tuple(files)`.
 
 - Validation: `InpnProtectedAreasSourceError('Extraction root must be a regular directory')`; `InpnProtectedAreasSourceError('Extracted INPN archive contains no regular files')`; `InpnProtectedAreasSourceError(f'Extracted link or junction is forbidden: {path}')`; `InpnProtectedAreasSourceError(f'Extracted special filesystem entry is forbidden: {path}')`; `InpnProtectedAreasSourceError(f'Cannot inventory extracted file: {relative_path}')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1016,12 +1017,12 @@ __all__ = [
 ### `_extraction_metadata`
 
 - Exact signature: `def _extraction_metadata(download: InpnProtectedAreasDownload, files: tuple[InpnProtectedAreasExtractedFile, ...]) -> _ExtractionMetadata`
-- Purpose: Extraction metadata.
+- Purpose: converts one verified download and ordered extracted-file tuple into strict schema-v1 extraction metadata.
 - Inputs: `download: InpnProtectedAreasDownload`, `files: tuple[InpnProtectedAreasExtractedFile, ...]`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `_ExtractionMetadata`.
 - Ordered algorithm:
 
-1. line 983: return `_ExtractionMetadata(schema_version=EXTRACTION_METADATA_SCHEMA_VERSION, archive_sha256=download.sha256, archive_size=download.file_size, files=tuple((_ExtractedFileMetadata(relative_path=item.relative_path, file_size=item.file_size, sha256=item.sha256) for item in files)))`.
+1. line 988: return `_ExtractionMetadata(schema_version=EXTRACTION_METADATA_SCHEMA_VERSION, archive_sha256=download.sha256, archive_size=download.file_size, files=tuple((_ExtractedFileMetadata(relative_path=item.relative_path, file_size=item.file_size, sha256=item.sha256) for item in files)))`.
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1042,9 +1043,9 @@ __all__ = [
 - Output: `tuple[InpnProtectedAreasExtractedFile, ...]`.
 - Ordered algorithm:
 
-1. line 1003: derive `marker`.
-2. line 1004: branch/fail closed on `not _is_regular_file(marker)`.
-3. line 1008: controlled try/except boundary for `InpnProtectedAreasSourceError`, `(OSError, TypeError, ValueError, ValidationError, json.JSONDecodeError)` with visible cleanup/finalization.
+1. line 1008: derive `marker`.
+2. line 1009: branch/fail closed on `not _is_regular_file(marker)`.
+3. line 1013: controlled try/except boundary for `InpnProtectedAreasSourceError`, `(OSError, TypeError, ValueError, ValidationError, json.JSONDecodeError)` with visible cleanup/finalization.
 
 - Validation: `InpnProtectedAreasSourceError('Extraction integrity metadata is missing or unsafe')`; `ValueError('Extraction metadata archive lineage differs')`; `ValueError('Archive, extraction metadata, and physical files differ')`; `InpnProtectedAreasSourceError('Extraction cache archive and physical inventory validation failed')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1060,12 +1061,12 @@ __all__ = [
 ### `_path_exists`
 
 - Exact signature: `def _path_exists(path: Path) -> bool`
-- Purpose: Path exists.
+- Purpose: detects any filesystem occupant at a path, including symbolic links and junctions, for safe publication cleanup decisions.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `bool`.
 - Ordered algorithm:
 
-1. line 1042: return `path.exists() or path.is_symlink() or _is_link_or_junction(path)`.
+1. line 1047: return `path.exists() or path.is_symlink() or _is_link_or_junction(path)`.
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1081,12 +1082,12 @@ __all__ = [
 ### `_remove_path`
 
 - Exact signature: `def _remove_path(path: Path) -> None`
-- Purpose: Remove path.
+- Purpose: removes one explicit file, link, junction, or directory tree according to its observed filesystem kind.
 - Inputs: `path: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 1046: branch/fail closed on `path.is_junction()`.
+1. line 1051: branch/fail closed on `path.is_junction()`.
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1102,12 +1103,12 @@ __all__ = [
 ### `_replace_directory`
 
 - Exact signature: `def _replace_directory(source: Path, target: Path) -> None`
-- Purpose: Replace directory.
+- Purpose: performs the isolated directory replacement seam used by transactional extraction publication and its failure tests.
 - Inputs: `source: Path`, `target: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 1055: perform `source.replace(target)`.
+1. line 1060: perform `source.replace(target)`.
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1123,16 +1124,16 @@ __all__ = [
 ### `_publish_extraction_directory`
 
 - Exact signature: `def _publish_extraction_directory(temporary_root: Path, root: Path) -> None`
-- Purpose: Publish extraction directory.
+- Purpose: transactionally publishes a complete extraction directory, restoring the prior tree on replacement failure and retaining backup evidence if rollback fails.
 - Inputs: `temporary_root: Path`, `root: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 1059: derive `backup`.
-2. line 1060: branch/fail closed on `_path_exists(backup)`.
-3. line 1064: derive `old_moved`.
-4. line 1065: branch/fail closed on `_path_exists(root)`.
-5. line 1073: controlled try/except boundary for `OSError` with visible cleanup/finalization.
+1. line 1064: derive `backup`.
+2. line 1065: branch/fail closed on `_path_exists(backup)`.
+3. line 1069: derive `old_moved`.
+4. line 1070: branch/fail closed on `_path_exists(root)`.
+5. line 1078: controlled try/except boundary for `OSError` with visible cleanup/finalization.
 
 - Validation: `InpnProtectedAreasSourceError('Extraction recovery backup already exists; manual recovery is required')`; `InpnProtectedAreasSourceError('INPN extraction publication failed')`; `InpnProtectedAreasSourceError('Cannot stage existing INPN extraction for publication')`; `InpnProtectedAreasSourceError('INPN extraction publication and rollback both failed')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1153,13 +1154,13 @@ __all__ = [
 - Output: `InpnProtectedAreasExtraction`.
 - Ordered algorithm:
 
-1. lines 1095-1101: validate config/download authority, capture one archive snapshot, and derive exact final/temporary extraction roots.
-2. lines 1102-1105: controlled-open the snapshot and derive validated members plus authoritative uncompressed-file inventory.
-3. lines 1106-1127: validate an existing cache against archive/marker/physical evidence, enforce the archive-path postcondition, and only then return a cache hit.
-4. lines 1129-1139: create a fresh `.part` tree and stream every regular member from the still-open immutable snapshot.
-5. lines 1140-1153: verify extracted bytes, write schema-1 marker evidence, and revalidate the complete `.part` cache.
-6. lines 1154-1164: require the archive path unchanged both before and after transactional extraction publication.
-7. lines 1165-1190: return rebuilt evidence only after both checks; otherwise translate controlled ZIP/filesystem failures and clean `.part`.
+1. lines 1100-1106: validate config/download authority, capture one archive snapshot, and derive exact final/temporary extraction roots.
+2. lines 1107-1110: controlled-open the snapshot and derive validated members plus authoritative uncompressed-file inventory.
+3. lines 1111-1132: validate an existing cache against archive/marker/physical evidence, enforce the archive-path postcondition, and only then return a cache hit.
+4. lines 1134-1144: create a fresh `.part` tree and stream every regular member from the still-open immutable snapshot.
+5. lines 1145-1158: verify extracted bytes, write schema-1 marker evidence, and revalidate the complete `.part` cache.
+6. lines 1159-1169: require the archive path unchanged both before and after transactional extraction publication.
+7. lines 1170-1195: return rebuilt evidence only after both checks; otherwise translate controlled ZIP/filesystem failures and clean `.part`.
 
 - Validation: `InpnProtectedAreasSourceError('Extracted files differ from the verified archive inventory')`; `InpnProtectedAreasSourceError('Cannot safely extract the INPN protected-areas archive')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1180,11 +1181,11 @@ __all__ = [
 - Output: `InpnProtectedAreasExtraction`.
 - Ordered algorithm:
 
-1. lines 1197-1234: require exact public envelope, inventory item, path, boolean, integer, and SHA runtime domains.
-2. lines 1236-1246: reconstruct download authority, capture verified archive bytes, and derive the authoritative inventory through the controlled opener.
-3. lines 1247-1260: require configured extraction root plus exact archive/marker/physical/caller equality.
-4. lines 1261-1281: recheck the archive path and reconstruct official strings from config plus size/SHA/path from verified archive state.
-5. lines 1282-1294: return a fresh source-bound extraction or translate remaining boundary failures.
+1. lines 1202-1239: require exact public envelope, inventory item, path, boolean, integer, and SHA runtime domains.
+2. lines 1241-1251: reconstruct download authority, capture verified archive bytes, and derive the authoritative inventory through the controlled opener.
+3. lines 1252-1265: require configured extraction root plus exact archive/marker/physical/caller equality.
+4. lines 1266-1286: recheck the archive path and reconstruct official strings from config plus size/SHA/path from verified archive state.
+5. lines 1287-1299: return a fresh source-bound extraction or translate remaining boundary failures.
 
 - Validation: `InpnProtectedAreasSourceError('extraction must be an exact InpnProtectedAreasExtraction')`; `InpnProtectedAreasSourceError('extraction download must be an exact InpnProtectedAreasDownload')`; `InpnProtectedAreasSourceError('extraction path must be a pathlib Path')`; `InpnProtectedAreasSourceError('extraction cache_hit must be boolean')`; `InpnProtectedAreasSourceError('extraction inventory must be an exact immutable file tuple')`; `InpnProtectedAreasSourceError('extraction path differs from the configured source identity')`; `InpnProtectedAreasSourceError('archive, marker, physical, and caller extraction inventory differs')`; `InpnProtectedAreasSourceError('INPN protected-areas extraction revalidation failed safely')`; `InpnProtectedAreasSourceError('extraction inventory file size must be a non-negative integer')`; `InpnProtectedAreasSourceError('extraction inventory file SHA256 is invalid')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
@@ -1226,7 +1227,7 @@ __all__ = [
 
 ## 8. Test and change-impact map
 
-`tests/unit/test_inpn_protected_areas_fr.py` contains 169 collected cases. It covers strict config/download models, comparison-equal string/equality-spoof rejection, fresh canonical download reconstruction, controlled ZIP constructor/content errors, cache hit/miss/recovery, safe transport delegation, ZIP namespace/content attacks, extraction transactionality, every required archive return postcondition, archive-derived equality, coordinated marker/file forgery, local offline rebuild, and effective transient/persistent archive swaps with asserted hooks. The catalog's 86 cases separately prove narrow known-warning suppression, visible unrelated warnings, and corruption rejection before Pyogrio.
+`tests/unit/test_inpn_protected_areas_fr.py` contains 172 collected cases. It covers strict config/download models, comparison-equal string/equality-spoof rejection, fresh canonical download reconstruction, controlled ZIP constructor/content errors, cache hit/miss/recovery, cached-download mutation rejection with online refresh and offline failure, safe transport delegation, ZIP namespace/content attacks, extraction transactionality, every required archive return postcondition, archive-derived equality, coordinated marker/file forgery, local offline rebuild, and effective transient/persistent archive swaps with asserted hooks. The catalog's 86 cases separately prove narrow known-warning suppression, visible unrelated warnings, and corruption rejection before Pyogrio.
 
 Changes require both INPN focused suites, the controlled zero-network real EP run, source SHA synchronization, full pytest, Ruff, mypy, uv lock/pip checks, and `git diff --check`.
 
@@ -2123,6 +2124,11 @@ def _validate_download(
     try:
         with _open_archive_snapshot(archive_bytes) as archive:
             _validated_zip_members(archive)
+        _require_archive_snapshot_unchanged(
+            archive_bytes,
+            validated_download,
+            validated_config,
+        )
         return validated_download
     except InpnProtectedAreasSourceError:
         raise

@@ -890,7 +890,7 @@ For `inpn_protected_areas_fr.py`, `validate_inpn_protected_areas_extraction` is 
 
 ## 8. Tests and change impact
 
-- `tests/unit/test_inpn_protected_areas_fr.py` contains 169 cases proving controlled ZIP opening, canonical download lineage, archive/download/cache/extraction postconditions, coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and effective transient/persistent archive swaps.
+- `tests/unit/test_inpn_protected_areas_fr.py` contains 172 cases proving controlled ZIP opening, canonical download lineage, archive/download/cache/extraction postconditions, cached-download mutation rejection and refresh/offline behavior, coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and effective transient/persistent archive swaps.
 - `tests/unit/test_inpn_protected_areas_catalog_fr.py` contains 86 cases proving byte-only Pyogrio metadata calls, narrow warning suppression with unrelated warnings preserved, package swap isolation, persistent mutation rejection, exact driver identity, schema 2, canonical final runtime types, hashing, independent rebuild, and zero feature materialization.
 - Any change requires both focused suites, controlled offline EP verification, companion SHA synchronization, full pytest, Ruff check/format, mypy, uv lock/pip checks, and `git diff --check`.
 

@@ -164,7 +164,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _response(payload: bytes) -> Any`
 - Decorators: `contextmanager`.
 - Kind: context manager.
-- Purpose: Response.
+- Purpose: yields one in-memory ZIP byte stream through the fake source download context and guarantees closure.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_Response`, `response.close`.
 - Validation behavior: assertions and delegated production validation.
@@ -175,7 +175,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _spatial_frame(*, field_names: tuple[str, ...]=('beta', 'alpha'), feature_count: int=1, crs: str='EPSG:2154') -> gpd.GeoDataFrame`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Spatial frame.
+- Purpose: builds a deterministic EPSG-tagged GeoDataFrame with ordered physical fields, point geometries, and an exact requested feature count.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `Point`, `enumerate`, `gpd.GeoDataFrame`, `gpd.GeoSeries`, `pd.Series`, `range`.
 - Validation behavior: assertions and delegated production validation.
@@ -186,7 +186,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _non_spatial_frame() -> pd.DataFrame`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Non spatial frame.
+- Purpose: builds a deterministic attribute-only DataFrame with explicit integer and string dtypes for non-spatial layer metadata tests.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `pd.DataFrame`, `pd.Series`.
 - Validation behavior: assertions and delegated production validation.
@@ -197,7 +197,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _gpkg_bytes(tmp_path: Path, name: str, layers: tuple[tuple[str, pd.DataFrame], ...]) -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Gpkg bytes.
+- Purpose: writes the requested ordered synthetic layers to one temporary GeoPackage and returns its exact physical bytes.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `enumerate`, `path.read_bytes`, `pyogrio.write_dataframe`.
 - Validation behavior: assertions and delegated production validation.
@@ -208,7 +208,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _zip_bytes(files: Mapping[str, bytes]) -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Zip bytes.
+- Purpose: packages an ordered mapping of extracted relative paths and payloads into deterministic stored ZIP bytes.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `archive.writestr`, `files.items`, `io.BytesIO`, `stream.getvalue`, `zipfile.ZipFile`, `zipfile.ZipInfo`.
 - Validation behavior: assertions and delegated production validation.
@@ -219,7 +219,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _config(tmp_path: Path, archive: bytes) -> InpnProtectedAreasSourceConfig`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Config.
+- Purpose: reconstructs a strict INPN source config with an isolated cache root and exact size/SHA pinned to the synthetic archive.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `CONFIG_PATH.read_text`, `InpnProtectedAreasSourceConfig.model_validate`, `isinstance`, `len`, `sha256`, `sha256(archive).hexdigest`, `str`, `yaml.safe_load`.
 - Validation behavior: assertions and delegated production validation.
@@ -230,7 +230,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _extraction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, files: Mapping[str, bytes]) -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Extraction.
+- Purpose: downloads and extracts one synthetic archive through fake local transport, returning its validated source config and extraction evidence.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_config`, `_response`, `_zip_bytes`, `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive`, `monkeypatch.setattr`.
 - Validation behavior: assertions and delegated production validation.
@@ -241,7 +241,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _one_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, frame: pd.DataFrame | None=None, layer_name: str='physical_layer') -> tuple[InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: One package.
+- Purpose: builds one synthetic GeoPackage layer, embeds it in an EP archive, and returns the resulting validated extraction fixture.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_extraction`, `_gpkg_bytes`, `_spatial_frame`.
 - Validation behavior: assertions and delegated production validation.
@@ -252,7 +252,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _patch_info(monkeypatch: pytest.MonkeyPatch, mutate: Callable[[dict[str, object]], None]) -> None`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Patch info.
+- Purpose: wraps `pyogrio.read_info` so one caller-supplied mutation is applied to a copied metadata mapping for malformed-info tests.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `dict`, `monkeypatch.setattr`, `mutate`, `original`.
 - Validation behavior: assertions and delegated production validation.
@@ -263,7 +263,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _catalog_with_hash(value: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: Catalog with hash.
+- Purpose: recomputes and installs the canonical catalog content hash after a deliberate immutable-record mutation.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `catalog_module._catalog_content_sha256`, `replace`.
 - Validation behavior: assertions and delegated production validation.
