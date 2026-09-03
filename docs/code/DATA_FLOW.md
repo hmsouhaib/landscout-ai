@@ -128,6 +128,7 @@ InpnProtectedAreasSourceConfig
   -> archive-derived regular-member inventory
   -> extract_inpn_protected_areas_archive
   -> marker + physical + caller inventory equality
+  -> archive path postcondition against initial immutable snapshot
   -> archive-bound InpnProtectedAreasExtraction
   -> validate_inpn_protected_areas_extraction
   -> immutable verified package bytes
@@ -137,7 +138,7 @@ InpnProtectedAreasSourceConfig
   -> validate_inpn_protected_areas_catalog
 ```
 
-The flow currently stops at a portable, source-bound schema-2 metadata catalog. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match. Each package is read once and all metadata-only OGR calls use those exact verified bytes; exact `GPKG` driver identity is hash-bound. The independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
+The flow currently stops at a portable, source-bound schema-2 metadata catalog. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match, and every successful source return rechecks the live archive path against the initial snapshot. Each package is read once and all metadata-only OGR calls use those exact verified bytes; exact `GPKG` driver identity is hash-bound. Only the expected byte-backed `/vsimem` extension warning is locally suppressed. The independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
 
 ## Result preservation pattern
 

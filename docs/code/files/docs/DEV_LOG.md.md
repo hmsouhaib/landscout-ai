@@ -6,23 +6,31 @@
 - File type: Markdown engineering history
 - Layer/domain: repository engineering evidence
 - Responsibility: Preserves chronological implementation, real-source, regression, and quality-gate evidence while current source/tests remain authoritative.
-- Source SHA256: `1dd31444a9d9be98a4ef0d42707fe6666da275f356c9fbb56647e5199c4f3272`
+- Source SHA256: `61ed93d4707febc55703a71fc022447d82ed7b2002750f6e40d42145d9203abe`
 
-## 1. STEP 7F.1B.1.1 evidence delta
+## 1. STEP 7F.1B.1.2 evidence delta
+
+- Records the controlled immutable ZIP opener, archive-derived inventory, four-way equality, exact canonical download lineage, and final archive-path postconditions at every download/extraction return boundary.
+- Binds 172 source, 3 direct cached-download, 86 catalog, 258 combined, and 3,253 full-suite passing cases, each run with a unique isolated `--basetemp` and exit code 0; the full suite retained four explicit unrelated `UserWarning` instances and zero known Pyogrio extension warnings.
+- Binds the authorized local Windows native stack and the controlled offline EP run: zero DNS/HTTP/download/feature-reader attempts, cache hits, unchanged 15-file/package/layer and 195-field/11,381-feature baseline, schema 2, and catalog SHA `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
+- Preserves `sig_tadl` as unresolved factual metadata and records every environmental-semantic non-goal.
+
+## 2. STEP 7F.1B.1.1 evidence delta
 
 - Records the independent-review defects and red-first failures for coordinated extraction forgery, live-path package inspection, unproven driver identity, noncanonical final values, and incomplete companions.
 - Records one verified immutable archive snapshot, archive-derived uncompressed-member inventory, four-way equality, one immutable snapshot per package, exact GPKG driver, catalog schema 2, and canonical runtime types.
 - Binds the controlled existing-cache run: zero DNS/HTTP/download/feature-reader calls; 15 archive/physical files; 15 exact-GPKG packages/layers; 195 fields; 11,381 features; archive SHA unchanged; schema-2 hash `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
 - Preserves `sig_tadl` only as an unresolved raw physical metadata consistency observation and records all semantic non-goals.
 
-## 2. Purpose and authority
+## 3. Purpose and authority
 
 This file is chronological evidence, not implementation authority. Production source, checked-in configuration, tests, and verified local-source bytes decide current behavior. Previous entries are retained as historical snapshots even when later independent-review corrections supersede their provisional architecture or hashes.
 
-## 3. Exact heading inventory
+## 4. Exact heading inventory
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1B.1.2 — Close final INPN archive postconditions and evidence gaps`
 - `## STEP 7F.1B.1.1 — Bind INPN catalog to archive and package byte snapshots`
 - `## STEP 7F.1B.1 — Build exact INPN EP GeoPackage metadata catalog`
 - `## STEP 7F.1A.4.2.2 — Remove final canonical companion contradictions`
@@ -276,11 +284,11 @@ This file is chronological evidence, not implementation authority. Production so
 - `### Exact representation contract`
 - `### Real Muret/D031 regression and read-back`
 
-## 4. Change impact
+## 5. Change impact
 
 Append factual entries only after commands have actually run. After the final DEV_LOG edit, compute its raw-file SHA256, update this companion, and do not modify DEV_LOG again. Changes require `git diff --check`; code behavior remains governed by the paired source/tests.
 
-## 5. Exact complete current file content
+## 6. Exact complete current file content
 
 The raw-byte SHA above binds this complete current history snapshot.
 
@@ -290,11 +298,23 @@ The raw-byte SHA above binds this complete current history snapshot.
 ## Current project state
 
 - Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.1.1
-- Current step: STEP 7F.1B.1.1 complete
+- Latest completed step: STEP 7F.1B.1.2
+- Current step: STEP 7F.1B.1.2 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of the archive/package snapshot correction
+- Next step: independent review before STEP 7F.1B.2
+
+## STEP 7F.1B.1.2 — Close final INPN archive postconditions and evidence gaps
+
+- Status: Complete. Runtime validation executed locally on the current authorized Windows environment; this was not GitHub CI validation. The real locked native stack loaded successfully with Python 3.12.13, Pyogrio 0.13.0, GeoPandas 1.1.4, Shapely 2.1.2, and PyArrow 25.0.1. The installed `pyogrio\_io.pyd` SHA256 was `58ca7342605b29190ed505411bec9687f09814b581b4c77b93f75d5953434fea`; Authenticode reported `NotSigned`, and Application Control did not block execution.
+- Immutable archive authority: `_open_archive_snapshot` accepts only exact nonempty built-in bytes, opens `ZipFile(BytesIO(snapshot))`, guarantees closure, and converts controlled ZIP constructor/read failures while preserving their causes. `_archive_regular_file_inventory` derives the complete ordered regular-member path/size/SHA inventory from the same validated immutable snapshot. Source-complete extraction validation requires exact archive-derived == schema-v1 marker == freshly hashed physical == caller inventory equality.
+- Return postconditions: cold download rereads the published archive before return; `_validate_download` now rereads the configured archive after snapshot ZIP-member validation, so a stale cached candidate cannot return; extraction cache hits recheck the archive immediately before return; extraction rebuilds check it before and after publication; and the public extraction validator performs its final archive-path check before returning fresh canonical evidence.
+- Adversarial and lineage evidence: effective archive-A/archive-B transient-swap hooks prove copied/inspected evidence remains bound to snapshot A, while persistent mutations are rejected. The three direct cached-download regressions prove persistent post-snapshot mutation rejection, exactly one successful refresh returning `cache_hit=False`, and controlled failure when refresh is offline. Download lineage is reconstructed with exact built-in strings/scalars and the configured path rather than comparison-equal caller objects.
+- Pyogrio warning boundary: the bytes-backed GPKG extension warning is suppressed only around the exact metadata calls that emit it; unrelated warnings remain visible and the dedicated RuntimeWarning regression passes. No global warning filter is installed. The final full suite emitted four `UserWarning` instances: three missing-CRS fixture warnings from `pyogrio/geopandas.py:948` and one empty-geometry `GeoSeries.notna()` behavior warning from `src/landscout/sources/gpu_fr.py:2228`; known bytes-backed GPKG extension warnings were zero.
+- Pytest validation: every invocation used a fresh dedicated `--basetemp` below `%LOCALAPPDATA%\LandScout\pytest-runs` because the default `%TEMP%\pytest-of-souha\pytest-current` cleanup alias was inaccessible. The source suite passed 172 cases in 1.42 seconds; the three direct cache-postcondition regressions separately passed 3 cases in 0.48 seconds; the catalog suite passed 86 cases in 3.24 seconds; the combined suites passed 258 cases in 4.15 seconds; and the complete repository passed 3,253 cases with four warnings in 706.77 seconds. Every Pytest command returned exit code 0 with zero assertion, collection, or session-cleanup failures. A collect-only audit also found exactly 3,253 cases: origin/main contained 3,224, the first recovery checkpoint added 26 approved cases, and the cached-download correction added three.
+- Controlled real-source verification: the existing approved cache was exercised with DNS, safe HTTPS, `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, and `geopandas.read_parquet` replaced by immediate failures. DNS, HTTP, downloads, and feature-row reader attempts were zero; download and extraction were cache hits. Archive SHA256 remained `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`; archive-derived and physical inventories each contained 15 files; all 15 packages and 15 layers reported exact `GPKG`; the catalog retained 195 ordered fields and 11,381 features, schema 2, and SHA256 `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`. The raw `EP/sig_tadl.gpkg` `EPSG:32753` bounds observation remains unresolved and unmodified.
+- Quality gates: `uv run ruff check .` passed; `uv run ruff format --check .` reported all 103 Python files formatted; `uv run mypy src` reported no issues in 49 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 45 compatible packages; `uv run python -m compileall -q src tests`, `git diff --check`, and both conflict-marker searches passed.
+- Boundary: no EP feature rows were loaded; no protected-area category, Natura 2000, or ZNIEFF meaning was assigned; no EP geometry was normalized, repaired, or transformed; no parcel was intersected; and no environmental exclusion, compatibility result, score, or ranking was created.
 
 ## STEP 7F.1B.1.1 — Bind INPN catalog to archive and package byte snapshots
 

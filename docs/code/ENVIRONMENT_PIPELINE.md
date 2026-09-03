@@ -11,7 +11,8 @@ flowchart TD
     Download --> Bytes[Verified immutable EP.zip bytes]
     Bytes --> Members[Archive-derived regular-member inventory]
     Members --> Extract[Marker and physical extraction equality]
-    Extract --> Inventory[Archive-bound InpnProtectedAreasExtraction]
+    Extract --> ArchivePostcondition[Archive path still equals initial snapshot]
+    ArchivePostcondition --> Inventory[Archive-bound InpnProtectedAreasExtraction]
     Inventory --> Revalidate[validate_inpn_protected_areas_extraction]
     Revalidate --> PackageBytes[One verified immutable byte snapshot per package]
     PackageBytes --> Driver[Exact GPKG driver evidence]
@@ -53,13 +54,15 @@ The strict frozen Pydantic config forbids extra fields and validates exact sourc
 7. validates complete member destinations and CRC/content before publication;
 8. requires exact configured size and SHA256;
 9. creates immutable source lineage and schema-v1 metadata;
-10. transactionally publishes archive and sidecar with recovery preservation.
+10. transactionally publishes archive and sidecar with recovery preservation;
+11. rereads the published path and requires exact equality with the validated
+    pre-publication snapshot before returning.
 
 Cache hits perform no DNS or HTTP because cache verification precedes the transport call.
 
 ## ZIP safety
 
-All members are validated before any extraction. The implementation normalizes POSIX/Windows separators and rejects traversal, absolute/drive/UNC paths, empty destinations, control/forbidden characters, trailing dot/space, Windows reserved names (including superscript COM/LPT forms), duplicate/casefold/normalized collisions, file-directory ancestor conflicts, encrypted entries, symlinks, FIFOs, sockets/devices, and collisions with the extraction marker. `ZipFile.testzip()` and member reads enforce archive integrity.
+All archive snapshots are opened through one controlled context manager that requires exact nonempty built-in bytes, guarantees closure, and translates constructor-time `BadZipFile`, `LargeZipFile`, `RuntimeError`, `zlib.error`, `EOFError`, and `OSError` failures to `InpnProtectedAreasSourceError` with their original cause. All members are validated before any extraction. The implementation normalizes POSIX/Windows separators and rejects traversal, absolute/drive/UNC paths, empty destinations, control/forbidden characters, trailing dot/space, Windows reserved names (including superscript COM/LPT forms), duplicate/casefold/normalized collisions, file-directory ancestor conflicts, encrypted entries, symlinks, FIFOs, sockets/devices, and collisions with the extraction marker. `ZipFile.testzip()` and member reads enforce archive integrity.
 
 Extraction never calls `extractall`; validated regular members are streamed to exclusive targets below a fresh temporary root.
 
@@ -67,11 +70,11 @@ Extraction never calls `extractall`; validated regular members are streamed to e
 
 `InpnProtectedAreasExtractedFile` carries canonical POSIX relative path, exact byte size, and SHA256. One verified built-in `bytes` snapshot of `EP.zip` supplies both the validated ZIP member set and the uncompressed member streams. Hashing those streams produces the authoritative lexically ordered regular-file inventory. The schema-v1 extraction marker remains cache evidence: validation requires exact archive-derived inventory == marker inventory == freshly hashed physical inventory == caller `files`. Coordinated marker/file changes, same-size content changes, size changes, missing/renamed/extra files, links, and special entries fail closed.
 
-Directory rebuild completes and validates under `.part` while the old cache remains intact, then publishes transactionally with `.bak` rollback. Recovery material is preserved on rollback failure.
+Directory rebuild completes and validates under `.part` while the old cache remains intact, then publishes transactionally with `.bak` rollback. A cache hit checks the live archive immediately before return; a rebuild checks it both before and after directory publication. Recovery material is preserved on rollback failure.
 
 ## Metadata-only physical catalog
 
-`validate_inpn_protected_areas_extraction` reconstructs configuration/download authority and returns a new object whose inventory comes from the immutable archive-authority chain after four-way equality. `build_inpn_protected_areas_catalog` reads each package path once, validates that built-in `bytes` snapshot against the archive-derived size/SHA, and supplies the same bytes to `pyogrio.list_layers` and every `pyogrio.read_info(..., force_feature_count=True, force_total_bounds=True)` call. Each layer must report exact driver `GPKG`. Deterministic package/layer/field order, exact feature counts and geometry-type text, raw/canonical CRS evidence, exact canonical bounds, archive/package hashes, driver identity, and aggregate counts are preserved. The full extraction is revalidated after inspection, and `validate_inpn_protected_areas_catalog` independently rebuilds and exact-compares every value.
+`validate_inpn_protected_areas_extraction` reconstructs configuration/download authority, requires exact built-in lineage strings, performs a final archive-path postcondition after four-way inventory equality, and returns a new object whose download identity is rebuilt from validated config and verified archive state. `build_inpn_protected_areas_catalog` reads each package path once, validates that built-in `bytes` snapshot against the archive-derived size/SHA, and supplies the same bytes to `pyogrio.list_layers` and every `pyogrio.read_info(..., force_feature_count=True, force_total_bounds=True)` call. A local warning boundary suppresses only Pyogrio's exact dynamic `/vsimem/pyogrio_<hex>` non-conformant-extension `RuntimeWarning`; other warnings remain visible. Each layer must still report exact driver `GPKG`. Deterministic package/layer/field order, exact feature counts and geometry-type text, raw/canonical CRS evidence, exact canonical bounds, archive/package hashes, driver identity, and aggregate counts are preserved. The full extraction is revalidated after inspection, and `validate_inpn_protected_areas_catalog` independently rebuilds and exact-compares every value.
 
 Catalog hash schema 2 uses canonical JSON over portable factual content and includes exact package driver identity. Absolute cache/extraction paths, cache-hit state, timestamps, Python representations, and object identity are excluded. Supplied non-null bounds must be an exact four-member tuple of built-in floats; every non-null derived CRS string must be an exact built-in string.
 
