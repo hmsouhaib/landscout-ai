@@ -2,7 +2,7 @@
 
 ## Current implemented scope
 
-The environment domain currently implements acquisition, exact snapshot verification, safe caching/extraction, complete file inventory, and metadata-only physical GeoPackage cataloging for the PatriNat/INPN protected-areas reference archive. The catalog opens OGR metadata only; no production module reads feature rows, assigns environmental semantics, or performs parcel analysis.
+The environment domain currently implements acquisition, exact snapshot verification, safe caching/extraction, complete file inventory, metadata-only physical GeoPackage cataloging, and a complete non-geometry attribute-value profile for the PatriNat/INPN protected-areas reference archive. Attribute rows are read only from verified immutable package bytes; no production module reads EP geometry, assigns environmental semantics, or performs parcel analysis.
 
 ```mermaid
 flowchart TD
@@ -17,7 +17,8 @@ flowchart TD
     Revalidate --> PackageBytes[One verified immutable byte snapshot per package]
     PackageBytes --> Driver[Exact GPKG driver evidence]
     Driver --> Catalog[metadata-only schema-2 InpnProtectedAreasCatalog]
-    Catalog -. not implemented .-> Semantics[Category interpretation]
+    Catalog --> Attributes[attribute-only schema-1 value profile]
+    Attributes -. not implemented .-> Semantics[Category interpretation]
     Semantics -. not implemented .-> Overlay[Parcel intersection]
     Overlay -. not implemented .-> Decision[Environmental score or exclusion]
 ```
@@ -78,13 +79,22 @@ Directory rebuild completes and validates under `.part` while the old cache rema
 
 Catalog hash schema 2 uses canonical JSON over portable factual content and includes exact package driver identity. Absolute cache/extraction paths, cache-hit state, timestamps, Python representations, and object identity are excluded. Supplied non-null bounds must be an exact four-member tuple of built-in floats; every non-null derived CRS string must be an exact built-in string.
 
+## Attribute-only value profile
+
+`build_inpn_protected_areas_attribute_profile` first revalidates the exact extraction and supplied schema-2 catalog, independently rebuilds a fresh catalog, and uses only fresh evidence. Each package path is resolved and hashed through the catalog's package-byte authority exactly once; the same built-in `bytes` snapshot supplies every `pyogrio.read_dataframe` call for that package. Calls explicitly request the exact catalog field list with `read_geometry=False`, `fid_as_index=True`, `use_arrow=False`, and `datetime_as_string=True`. The shared local warning context suppresses only the known byte-backed GPKG extension warning.
+
+The reader must return an exact Pandas `DataFrame` with exact row count and ordered fields, a single unique integer FID index, no geometry dtype, and no Shapely object. FIDs are preserved and sorted only for canonical evidence. Every non-null scalar is represented as exact text, Boolean text, base-10 integer text, `float.hex()` text, or padded Base64; nulls are counted separately, all distinct values and frequencies are retained, and unsupported/temporal/composite/non-finite values fail closed. Immutable field/layer/profile records bind FID, column, row, catalog, archive, and complete-profile hashes. Intrinsic validation checks exact nested runtime types, domains, ordering, counts, and canonical hash; the public validator independently rebuilds every value from current package bytes. Final extraction/catalog revalidation detects persistent mutation.
+
 ## Current factual result
 
-The approved snapshot contains 15 archive-derived and physical regular files; all 15 report exact driver `GPKG`. Controlled offline schema-2 inspection found 15 OGR layers, 195 ordered fields, and 11,381 total features. Its catalog content SHA256 is `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`. DNS, HTTP, downloads, and feature-row materialization were all zero. The `EP/sig_tadl.gpkg` combination of raw EPSG:32753 authority and bounds near 140/-66 remains an unresolved physical source metadata consistency observation; no repair or environmental meaning is applied.
+The approved snapshot contains 15 archive-derived and physical regular files; all 15 report exact driver `GPKG`. Controlled offline inspection found 15 OGR layers, 195 ordered fields, and 11,381 total rows. Catalog SHA256 remains `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`; attribute-profile schema 1 SHA256 is `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`. The profile contains 36,466 null cells and 38,993 per-field distinct non-null values across two observed runtime-dtype schema groups. DNS, HTTP, downloads, GeoDataFrames, and geometry objects were all zero. The `EP/sig_tadl.gpkg` combination of raw EPSG:32753 authority and bounds near 140/-66 remains an unresolved physical source metadata consistency observation; no repair or environmental meaning is applied.
+
+EP is not the separate Natura 2000 reference archive and is not the separate ZNIEFF reference archive. Text resembling those datasets remains uninterpreted raw EP evidence.
 
 ## Explicitly not implemented
 
 - protected-area category semantics;
+- protected-area geometry loading or normalization;
 - Natura 2000 interpretation;
 - ZNIEFF interpretation;
 - semantic protected-area geometry/layer selection;

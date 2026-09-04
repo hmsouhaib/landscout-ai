@@ -6,11 +6,11 @@
 - File type: Python source
 - Layer/domain: official source physical metadata authority
 - Responsibility: Builds and independently validates the schema-2 metadata-only catalog from immutable verified package bytes.
-- Source SHA256: `68be6014316dcb6009283814f25df29762e8a962e8a1594dbce39de9af86c80f`
+- Source SHA256: `96f093fdaa18dc429c43b5ef51e709ec5ee458e9c7c8f5a70f7700b83e722a40`
 
 ## 1. Architectural contract
 
-The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> final archive postcondition -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only. Pyogrio's known byte-buffer `/vsimem/pyogrio_<hex>` extension warning is filtered only inside `list_layers` and `read_info`; unrelated runtime warnings remain visible and exact `GPKG` driver proof still runs.
+The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> final archive postcondition -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only. Pyogrio's known byte-buffer `/vsimem/pyogrio_<hex>` extension warning is filtered only by `_suppress_pyogrio_bytes_gpkg_warning` around `list_layers`, `read_info`, and the attribute profiler's `read_dataframe`; unrelated runtime warnings remain visible and exact `GPKG` driver proof still runs.
 
 ## 2. Imports and dependencies
 
@@ -41,7 +41,11 @@ import warnings
 ```
 
 ```python
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+```
+
+```python
+from contextlib import contextmanager
 ```
 
 ```python
@@ -218,6 +222,13 @@ __all__ = [
 - Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
 
 ## 5. Function-by-function contract
+
+### `_suppress_pyogrio_bytes_gpkg_warning`
+
+- Exact signature: `def _suppress_pyogrio_bytes_gpkg_warning() -> Iterator[None]`
+- Purpose: Reusable context manager that locally suppresses only the exact Pyogrio `RuntimeWarning` emitted for a byte-backed GPKG `/vsimem/pyogrio_<hex>` filename.
+- Scope: catalog `list_layers`/`read_info` and attribute-profile `read_dataframe` calls enter it explicitly; no global filter is installed, and unrelated warnings remain observable.
+- Side effects and hashing: warning-filter state exists only for the context duration; the helper performs no I/O and changes no catalog schema or canonical payload.
 
 ### `_exact_text`
 
@@ -866,7 +877,7 @@ __all__ = [
 - Acquisition validates configuration and download lineage, reuses a valid local cache offline, or performs the existing safe HTTPS download and transactional cache publication.
 - Archive authority is one built-in `bytes` snapshot. ZIP validation, member hashing, and extraction streaming use that same snapshot object.
 - Extraction cache validation proves exact ordered path/size/SHA equality across archive inventory, marker, physical files, and caller evidence, followed by the live archive-path postcondition.
-- Cataloging validates the extraction before and after metadata inspection, reads each package path once, and gives the same built-in `bytes` object to `pyogrio.list_layers` and every `pyogrio.read_info` call for that package. Each call locally ignores only the exact known dynamic `/vsimem/pyogrio_<hex>` extension warning.
+- Cataloging validates the extraction before and after metadata inspection, reads each package path once, and gives the same built-in `bytes` object to `pyogrio.list_layers` and every `pyogrio.read_info` call for that package. The shared context manager locally ignores only the exact known dynamic `/vsimem/pyogrio_<hex>` extension warning and is reused by the attribute-only profiler.
 - Only metadata APIs run. No API that materializes feature rows or geometries is called.
 - Schema 2 hashes canonical JSON including exact package driver identity. Absolute paths, timestamps, cache-hit flags, Python repr, and object identity remain excluded.
 
@@ -908,7 +919,8 @@ import math
 import re
 import unicodedata
 import warnings
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from hashlib import sha256
 from numbers import Real
@@ -932,6 +944,19 @@ _PYOGRIO_BYTES_GPKG_WARNING = (
     r"^File /vsimem/pyogrio_[0-9a-f]+ has GPKG application_id, "
     r"but non conformant file extension$"
 )
+
+
+@contextmanager
+def _suppress_pyogrio_bytes_gpkg_warning() -> Iterator[None]:
+    """Suppress only Pyogrio's expected byte-backed GPKG extension warning."""
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=_PYOGRIO_BYTES_GPKG_WARNING,
+            category=RuntimeWarning,
+        )
+        yield
 
 
 class InpnProtectedAreasCatalogError(ValueError):
@@ -1331,12 +1356,7 @@ def _inspect_layer(
     listed_geometry_type: str | None,
 ) -> tuple[InpnProtectedAreasLayerCatalog, str]:
     try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                message=_PYOGRIO_BYTES_GPKG_WARNING,
-                category=RuntimeWarning,
-            )
+        with _suppress_pyogrio_bytes_gpkg_warning():
             raw_metadata = pyogrio.read_info(
                 package_bytes,
                 layer=layer_name,
@@ -1445,12 +1465,7 @@ def _inspect_package(
     try:
         package_bytes = _read_verified_package_bytes(extraction, item)
         try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore",
-                    message=_PYOGRIO_BYTES_GPKG_WARNING,
-                    category=RuntimeWarning,
-                )
+            with _suppress_pyogrio_bytes_gpkg_warning():
                 raw_layers = pyogrio.list_layers(package_bytes)
             enumeration = _layer_enumeration(raw_layers, item.relative_path)
         except InpnProtectedAreasCatalogError:

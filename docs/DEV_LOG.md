@@ -3,11 +3,1777 @@
 ## Current project state
 
 - Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.1.2
-- Current step: STEP 7F.1B.1.2 complete
+- Latest completed step: STEP 7F.1B.2
+- Current step: STEP 7F.1B.2 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step: independent review before STEP 7F.1B.2
+- Next step: independent review before category semantics or geometry loading
+
+## STEP 7F.1B.2 — Build exact INPN EP attribute-value profile
+
+- Status: Complete. The source-complete builder reconstructs and validates the exact extraction/config/catalog inputs, requires a fresh independently rebuilt schema-2 catalog, profiles every cataloged non-geometry field from one verified immutable built-in `bytes` snapshot per package, then revalidates extraction and catalog after all reads. The public validator checks the supplied profile intrinsically and exact-compares a complete independent physical rebuild, including rejection of coordinated profile/hash forgery and persistent package mutation.
+- Reader contract: every layer uses `pyogrio.read_dataframe(package_bytes, layer=..., columns=[all catalog fields in order], read_geometry=False, fid_as_index=True, use_arrow=False, datetime_as_string=True)`. The result must be an exact pandas `DataFrame`, never a GeoDataFrame; catalog column order and feature count must match exactly; GeometryDtype and Shapely cells fail closed. No filter, subset, SQL, bbox, mask, or row limit is applied.
+- FIDs and values: Python/NumPy integer FIDs normalize to exact built-in integers, are unique, sorted numerically for canonical evidence, and never renumbered; no starting value, sign, or contiguity is assumed. Nulls are separate from the non-null domain. Every supported scalar becomes exact `TEXT`, `BOOLEAN`, `INTEGER`, `FLOAT_HEX`, or `BINARY_BASE64`; every distinct non-null value and exact frequency is retained. Mutable/composite/arbitrary/temporal and non-finite non-null values fail closed.
+- Hashing: schema 1 uses SHA256 over canonical UTF-8 JSON (`sort_keys=True`, compact separators, `ensure_ascii=False`, `allow_nan=False`). Exact column hashes bind field identity/dtypes plus FID-addressed values; FID hashes bind sorted physical identities; row hashes bind each FID and all ordered cells; the complete profile hash binds source/archive/catalog lineage, all ordered layer/field/domain evidence, and aggregates. Absolute paths, timestamps, cache-hit flags, Python repr, and object identity are excluded.
+- Controlled real-source verification: one read-only run used the existing approved cache and archive SHA `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`. Download and extraction were verified cache hits; DNS, HTTP, and downloads were zero. Exactly 15 packages, 15 layers, 195 field definitions, and 11,381 attribute rows were profiled. Total null cells were 36,466; summed per-layer-field distinct non-null cardinalities were 38,993. GeoDataFrames and geometry objects were zero. The first complete build took 48.619 seconds; repeat-build equality and independent rebuild validation both passed.
+- Lineage: archive size `99,835,011` bytes; catalog schema `2` and SHA `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34` remained unchanged; attribute profile schema `1` and complete SHA `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`.
+- Tests: existing INPN source/catalog suites passed 258 cases in 4.37 seconds; the new attribute suite passed 74 cases in 5.18 seconds; all three passed 332 cases in 8.90 seconds, all without warnings. The complete repository passed 3,327 cases (3,253 baseline + 74 new) with four pre-existing unrelated `UserWarning` instances in 729.09 seconds. Every Pytest invocation used a unique base below `%LOCALAPPDATA%\LandScout\pytest-runs` and completed cleanup with exit code 0.
+- Quality gates: `uv run ruff check .` passed; `uv run ruff format --check .` reported all 105 Python files formatted; `uv run mypy src` reported no issues in 50 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 45 compatible packages; and `uv run python -m compileall -q src tests` passed. The final `git diff --check` and both conflict-marker searches also passed after documentation synchronization.
+- Boundary: protected-area categories interpreted: no; legal regimes interpreted: no; Natura 2000 mapped: no; ZNIEFF mapped: no; EP geometries loaded: no; parcels loaded: no; intersections, exclusions, scores, and rankings: no. `EP` is not the Natura 2000 reference archive and is not the ZNIEFF reference archive.
+
+### Real schema groups
+
+### Schema group 1
+
+Layers:
+
+  - `EP/sig_blm.gpkg:sig_blm`
+  - `EP/sig_epa.gpkg:sig_epa`
+  - `EP/sig_ncl.gpkg:sig_ncl`
+  - `EP/sig_pyf.gpkg:sig_pyf`
+  - `EP/sig_tadl.gpkg:sig_tadl`
+
+Ordered fields:
+
+  - 0: `id_mnhn` — source `object`, runtime `str`
+  - 1: `nom` — source `object`, runtime `str`
+  - 2: `date_crea_sign` — source `object`, runtime `str`
+  - 3: `date_modif_geo` — source `object`, runtime `str`
+  - 4: `lien_fiche` — source `object`, runtime `object`
+  - 5: `type_espace` — source `object`, runtime `str`
+  - 6: `objectif_protection` — source `object`, runtime `str`
+  - 7: `statut` — source `object`, runtime `object`
+  - 8: `superficie_ha` — source `float64`, runtime `float64`
+  - 9: `cd_type_milieu` — source `object`, runtime `str`
+  - 10: `ref_carto_nom` — source `object`, runtime `object`
+  - 11: `ref_carto_version` — source `object`, runtime `object`
+  - 12: `doc_gestion` — source `object`, runtime `str`
+### Schema group 2
+
+Layers:
+
+  - `EP/sig_cli.gpkg:sig_cli`
+  - `EP/sig_glp.gpkg:sig_glp`
+  - `EP/sig_guf.gpkg:sig_guf`
+  - `EP/sig_maf.gpkg:sig_maf`
+  - `EP/sig_metrop.gpkg:sig_metrop`
+  - `EP/sig_mtq.gpkg:sig_mtq`
+  - `EP/sig_myt.gpkg:sig_myt`
+  - `EP/sig_reu.gpkg:sig_reu`
+  - `EP/sig_spm.gpkg:sig_spm`
+  - `EP/sig_subant.gpkg:sig_subant`
+
+Ordered fields:
+
+  - 0: `id_mnhn` — source `object`, runtime `str`
+  - 1: `nom` — source `object`, runtime `str`
+  - 2: `date_crea_sign` — source `object`, runtime `str`
+  - 3: `date_modif_geo` — source `object`, runtime `str`
+  - 4: `lien_fiche` — source `object`, runtime `object`
+  - 5: `type_espace` — source `object`, runtime `str`
+  - 6: `objectif_protection` — source `object`, runtime `str`
+  - 7: `statut` — source `object`, runtime `object`
+  - 8: `superficie_ha` — source `float64`, runtime `float64`
+  - 9: `cd_type_milieu` — source `object`, runtime `str`
+  - 10: `ref_carto_nom` — source `object`, runtime `str`
+  - 11: `ref_carto_version` — source `object`, runtime `str`
+  - 12: `doc_gestion` — source `object`, runtime `str`
+
+### Complete field profile table (195 physical field definitions)
+
+| Package/layer | Position | Field | Source dtype | Runtime dtype | Null | Non-null | Distinct non-null | Column SHA256 |
+|---|---:|---|---|---|---:|---:|---:|---|
+| `EP/sig_blm.gpkg:sig_blm` | 0 | `id_mnhn` | `object` | `str` | 0 | 4 | 4 | `d6faca8de14c3370c072ae07cb78a01dd6668632897f958cb490e4fbbb1fc304` |
+| `EP/sig_blm.gpkg:sig_blm` | 1 | `nom` | `object` | `str` | 0 | 4 | 4 | `4b61132679c464615d8ba344d01f022abc9373e78214091921632901649f61bc` |
+| `EP/sig_blm.gpkg:sig_blm` | 2 | `date_crea_sign` | `object` | `str` | 0 | 4 | 4 | `66cfeed700fb43435357af404162f607f4dd26470eec32cd7607b3920571ee01` |
+| `EP/sig_blm.gpkg:sig_blm` | 3 | `date_modif_geo` | `object` | `str` | 0 | 4 | 2 | `25785945acd5361ee96a9d84f10156cda9f4fb6acc867fb8660b7ddb486d56ad` |
+| `EP/sig_blm.gpkg:sig_blm` | 4 | `lien_fiche` | `object` | `object` | 4 | 0 | 0 | `4311f63fd85bd135aa7d611b3b2866c0edcf9637a9f900667a26e104e78a1daf` |
+| `EP/sig_blm.gpkg:sig_blm` | 5 | `type_espace` | `object` | `str` | 0 | 4 | 3 | `3fc7d67590037706f72b0a478d7b89ed81d6bba8ba148eb203e6345af4275beb` |
+| `EP/sig_blm.gpkg:sig_blm` | 6 | `objectif_protection` | `object` | `str` | 0 | 4 | 1 | `c812c778f2d412c143ad3449abd3023e9fe0c4d22d1ab20819bbadebc5e857ba` |
+| `EP/sig_blm.gpkg:sig_blm` | 7 | `statut` | `object` | `object` | 4 | 0 | 0 | `4311f63fd85bd135aa7d611b3b2866c0edcf9637a9f900667a26e104e78a1daf` |
+| `EP/sig_blm.gpkg:sig_blm` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 4 | 4 | `b6830e1bbe2951e4f4903f27b52215bd97a40d9f3a4cd91c6c3204b6cf53abb5` |
+| `EP/sig_blm.gpkg:sig_blm` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 4 | 2 | `0515995e8ead57e2d3b352a7d789bd520d37c065a4190b1ef494ef4f6faabb46` |
+| `EP/sig_blm.gpkg:sig_blm` | 10 | `ref_carto_nom` | `object` | `object` | 4 | 0 | 0 | `4311f63fd85bd135aa7d611b3b2866c0edcf9637a9f900667a26e104e78a1daf` |
+| `EP/sig_blm.gpkg:sig_blm` | 11 | `ref_carto_version` | `object` | `object` | 4 | 0 | 0 | `4311f63fd85bd135aa7d611b3b2866c0edcf9637a9f900667a26e104e78a1daf` |
+| `EP/sig_blm.gpkg:sig_blm` | 12 | `doc_gestion` | `object` | `str` | 0 | 4 | 2 | `b6e7c5f5bb95095880c645e175569bc76f55b97e1afb415f7e7a4b9fc3beb484` |
+| `EP/sig_cli.gpkg:sig_cli` | 0 | `id_mnhn` | `object` | `str` | 0 | 1 | 1 | `5c2ddd0121f96135529f40242f9bb22fe9d550d4da1b312acebe7a37121f7727` |
+| `EP/sig_cli.gpkg:sig_cli` | 1 | `nom` | `object` | `str` | 0 | 1 | 1 | `25c925f2f8de6647ec5505d7c1a677ba1b01a62c411e5ed9435ea6c23e9303ab` |
+| `EP/sig_cli.gpkg:sig_cli` | 2 | `date_crea_sign` | `object` | `str` | 0 | 1 | 1 | `a96b7616f23de099cd621b910eed1c45be187acc2a5caa02cc7a523c3366733d` |
+| `EP/sig_cli.gpkg:sig_cli` | 3 | `date_modif_geo` | `object` | `str` | 0 | 1 | 1 | `7bd2828d159608c814075192e35ce9ce0ade217a5dc9cfa9431e4e2c3596e7c5` |
+| `EP/sig_cli.gpkg:sig_cli` | 4 | `lien_fiche` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_cli.gpkg:sig_cli` | 5 | `type_espace` | `object` | `str` | 0 | 1 | 1 | `d27045b3cba16ee6f46e452ebd439f64a43d74652ede5e33920135d63da69fe9` |
+| `EP/sig_cli.gpkg:sig_cli` | 6 | `objectif_protection` | `object` | `str` | 0 | 1 | 1 | `1adb7ae08d3ae628c499317124c42bc799a40ac21381476603ad5e82c06f4613` |
+| `EP/sig_cli.gpkg:sig_cli` | 7 | `statut` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_cli.gpkg:sig_cli` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 1 | 1 | `42cdc20f80b089759b9ce33863f8e33167535e5196e99e8e0fe7f2113476563c` |
+| `EP/sig_cli.gpkg:sig_cli` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 1 | 1 | `5fec672067886e650fcb84904747cc67c9548037993cf1656cb0d4fabf4d6ae6` |
+| `EP/sig_cli.gpkg:sig_cli` | 10 | `ref_carto_nom` | `object` | `str` | 0 | 1 | 1 | `5c244f6ea86af672fac4ce1bee5b9abb3c8853851075743d669652e43d83aa1b` |
+| `EP/sig_cli.gpkg:sig_cli` | 11 | `ref_carto_version` | `object` | `str` | 0 | 1 | 1 | `67b14817487874829731abbe97f183cec3ccdbf40dbb32e11a14b742637ef472` |
+| `EP/sig_cli.gpkg:sig_cli` | 12 | `doc_gestion` | `object` | `str` | 0 | 1 | 1 | `5db8ff7abdc0c08a031c7c07272715077449d370bfee7c6cfa4be5486254e944` |
+| `EP/sig_epa.gpkg:sig_epa` | 0 | `id_mnhn` | `object` | `str` | 0 | 5 | 5 | `5c7f0be9150035699791ae0bfdd3bf0ceb904180a63b71ac8594ea5324d59369` |
+| `EP/sig_epa.gpkg:sig_epa` | 1 | `nom` | `object` | `str` | 0 | 5 | 5 | `3dfad8957e7d1afa26c298d31d61cdfc0233f5c968b896dca08fc6afacb9081e` |
+| `EP/sig_epa.gpkg:sig_epa` | 2 | `date_crea_sign` | `object` | `str` | 0 | 5 | 2 | `453e08136d8d861873608deea26fe4c544e3d819bd9ae5f3150ab973c06b7c24` |
+| `EP/sig_epa.gpkg:sig_epa` | 3 | `date_modif_geo` | `object` | `str` | 0 | 5 | 3 | `2f0b5f3e8d731db5c298cf212087e405bf4c6feb9209eb65c649b3233246aef6` |
+| `EP/sig_epa.gpkg:sig_epa` | 4 | `lien_fiche` | `object` | `object` | 5 | 0 | 0 | `bdae73b9265f54186b3ac92ae2b88d9c7386ade93e06e74bc4aa0e2ef79d02bf` |
+| `EP/sig_epa.gpkg:sig_epa` | 5 | `type_espace` | `object` | `str` | 0 | 5 | 3 | `58d89f8cbfadfef66f4eec8fbd957af6773c6ce26842f0bdfcd620b48c84c194` |
+| `EP/sig_epa.gpkg:sig_epa` | 6 | `objectif_protection` | `object` | `str` | 0 | 5 | 1 | `8b7fa67c3b1bdf2cc382e17f8b2b74f44af0d6b30cfc738bc96c48868c2590b8` |
+| `EP/sig_epa.gpkg:sig_epa` | 7 | `statut` | `object` | `object` | 5 | 0 | 0 | `bdae73b9265f54186b3ac92ae2b88d9c7386ade93e06e74bc4aa0e2ef79d02bf` |
+| `EP/sig_epa.gpkg:sig_epa` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 5 | 5 | `be8c519f1cbe30507d6c3d16c5df8baf6c6c908bfa103de9134ac3dee0184620` |
+| `EP/sig_epa.gpkg:sig_epa` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 5 | 2 | `fc785b0dc2f44cbfaeb550aaac4d96776725e2a7f45e122b243cd142422b507d` |
+| `EP/sig_epa.gpkg:sig_epa` | 10 | `ref_carto_nom` | `object` | `object` | 5 | 0 | 0 | `bdae73b9265f54186b3ac92ae2b88d9c7386ade93e06e74bc4aa0e2ef79d02bf` |
+| `EP/sig_epa.gpkg:sig_epa` | 11 | `ref_carto_version` | `object` | `object` | 5 | 0 | 0 | `bdae73b9265f54186b3ac92ae2b88d9c7386ade93e06e74bc4aa0e2ef79d02bf` |
+| `EP/sig_epa.gpkg:sig_epa` | 12 | `doc_gestion` | `object` | `str` | 0 | 5 | 2 | `d6d1e3483f61e3030bdb5e7b03d1e1521c667965d6b8abb9538a75a285794c7f` |
+| `EP/sig_glp.gpkg:sig_glp` | 0 | `id_mnhn` | `object` | `str` | 0 | 94 | 94 | `7817c0a8557780f35ca7a8dc87cad978fb7e57b6719be1c2171f3d54fbf84e58` |
+| `EP/sig_glp.gpkg:sig_glp` | 1 | `nom` | `object` | `str` | 0 | 94 | 93 | `0f2862ee16e4ef0e05f777167f9cbe84fa8566392cde5a5ed55c54e37e278c88` |
+| `EP/sig_glp.gpkg:sig_glp` | 2 | `date_crea_sign` | `object` | `str` | 0 | 94 | 39 | `73deae7bc6bedab4e60609b504b5808000394d97fce3541652c77525d7e77a6c` |
+| `EP/sig_glp.gpkg:sig_glp` | 3 | `date_modif_geo` | `object` | `str` | 0 | 94 | 11 | `df81aefb8bd76afd4cf9ba7dfd3998ad0afcde8f1c0e66d0889a94af1589cb38` |
+| `EP/sig_glp.gpkg:sig_glp` | 4 | `lien_fiche` | `object` | `object` | 94 | 0 | 0 | `5eb5b034b7b4907c83a34a280eed699ce1fd8910ba04d6ef1d3092ad1bb2ff40` |
+| `EP/sig_glp.gpkg:sig_glp` | 5 | `type_espace` | `object` | `str` | 0 | 94 | 12 | `5f0840ef0bf000b085076ac68815e8c862fcd66921b0c9ed470e36003f649af4` |
+| `EP/sig_glp.gpkg:sig_glp` | 6 | `objectif_protection` | `object` | `str` | 5 | 89 | 2 | `d831922b3493547727c8fee2b6a973eb2b414778a9a3ae3bfa5091c2601dfce6` |
+| `EP/sig_glp.gpkg:sig_glp` | 7 | `statut` | `object` | `object` | 94 | 0 | 0 | `5eb5b034b7b4907c83a34a280eed699ce1fd8910ba04d6ef1d3092ad1bb2ff40` |
+| `EP/sig_glp.gpkg:sig_glp` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 94 | 94 | `c1ef77991e73f0e18ea64eec0f0924a2aa3b77a2034e5d0c957f04da16780968` |
+| `EP/sig_glp.gpkg:sig_glp` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 94 | 3 | `545edb0e36be7b9105fd41b1dda83732f98b946e3b114afd933d9b0d82b9cdfe` |
+| `EP/sig_glp.gpkg:sig_glp` | 10 | `ref_carto_nom` | `object` | `str` | 27 | 67 | 4 | `6c8f25b11c71ab9d0ea0554c943b973a6b953a1114b18aeb1fc9fec33ab258ce` |
+| `EP/sig_glp.gpkg:sig_glp` | 11 | `ref_carto_version` | `object` | `str` | 85 | 9 | 4 | `5f4ecc8fe1b14683542b5c8bbe66da2962492da8dabeba58a4caae5841687a31` |
+| `EP/sig_glp.gpkg:sig_glp` | 12 | `doc_gestion` | `object` | `str` | 0 | 94 | 2 | `a88f1507fc15f8a443c708ddf45b7056b8873aa341079e29997646d69665d07a` |
+| `EP/sig_guf.gpkg:sig_guf` | 0 | `id_mnhn` | `object` | `str` | 0 | 42 | 42 | `0c08e51508f30e1d253b38b9ce412d085c2f23840e280c42596b9e20ca5c0331` |
+| `EP/sig_guf.gpkg:sig_guf` | 1 | `nom` | `object` | `str` | 0 | 42 | 42 | `5559580b04d0b60f1479f41045d405e5408207fc249867fcfb51bd7d213e3e81` |
+| `EP/sig_guf.gpkg:sig_guf` | 2 | `date_crea_sign` | `object` | `str` | 0 | 42 | 38 | `bc13885bc2a9298eaf7766e87f6b8371257a6879573ee464c629255b66dde408` |
+| `EP/sig_guf.gpkg:sig_guf` | 3 | `date_modif_geo` | `object` | `str` | 2 | 40 | 18 | `5801074cfff19e2819df2fb8116f10d18160191a3b92f3f90352fa7588d3280b` |
+| `EP/sig_guf.gpkg:sig_guf` | 4 | `lien_fiche` | `object` | `object` | 42 | 0 | 0 | `48b8e92bd766a5c89968a419356970b02328a47985bb7f57d0517ce308f230a3` |
+| `EP/sig_guf.gpkg:sig_guf` | 5 | `type_espace` | `object` | `str` | 0 | 42 | 11 | `e5573edb635e52215834f9d659fea0901989bbb230a555491034bb88b5f619a5` |
+| `EP/sig_guf.gpkg:sig_guf` | 6 | `objectif_protection` | `object` | `str` | 4 | 38 | 2 | `5b37fd9fa8e900ba36a5041d25b436bcbd610ce4c4e09eef95dac565d0e7325e` |
+| `EP/sig_guf.gpkg:sig_guf` | 7 | `statut` | `object` | `object` | 42 | 0 | 0 | `48b8e92bd766a5c89968a419356970b02328a47985bb7f57d0517ce308f230a3` |
+| `EP/sig_guf.gpkg:sig_guf` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 42 | 42 | `4709777831ab8bf823df56f9b1beb9cedb870527b413bdb8faa0a7b0570c01c3` |
+| `EP/sig_guf.gpkg:sig_guf` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 42 | 2 | `7f0ebbfd82f7eb446f5a50770b891fb63531d280fe03615eca0f1bb2f1408c53` |
+| `EP/sig_guf.gpkg:sig_guf` | 10 | `ref_carto_nom` | `object` | `str` | 27 | 15 | 5 | `705682d98cbd0bef889faf942c021a82c3868ede0f0019a57962666c51e8412d` |
+| `EP/sig_guf.gpkg:sig_guf` | 11 | `ref_carto_version` | `object` | `str` | 32 | 10 | 7 | `b2fa50f06d837795fdb86cfcebee767d7af5bdbbff501c1611a230ac71e83c90` |
+| `EP/sig_guf.gpkg:sig_guf` | 12 | `doc_gestion` | `object` | `str` | 0 | 42 | 2 | `d20e140027bf4478a4438cec054a471a86ae06328520df4d1ce68059a351a8ae` |
+| `EP/sig_maf.gpkg:sig_maf` | 0 | `id_mnhn` | `object` | `str` | 0 | 21 | 21 | `9855b578fd85610d68fe7e39be96c998390382221980a4914d0df9ffbba49725` |
+| `EP/sig_maf.gpkg:sig_maf` | 1 | `nom` | `object` | `str` | 0 | 21 | 21 | `888d16a742f3274b80fa605042ef50c79931cd86d16f1aee142b12545218ab59` |
+| `EP/sig_maf.gpkg:sig_maf` | 2 | `date_crea_sign` | `object` | `str` | 0 | 21 | 8 | `9784c434ad46175698d2637a9e4fe743a47c45781e9bf3e96686a0bd7a1ab0b8` |
+| `EP/sig_maf.gpkg:sig_maf` | 3 | `date_modif_geo` | `object` | `str` | 0 | 21 | 4 | `46047ab46207d9e848dd208b3654433552227946224c2265671fb767097836c7` |
+| `EP/sig_maf.gpkg:sig_maf` | 4 | `lien_fiche` | `object` | `object` | 21 | 0 | 0 | `19f60318f25254aea382daa6cefb5ae7b717ca28859d717b2a8a7a195c847f4e` |
+| `EP/sig_maf.gpkg:sig_maf` | 5 | `type_espace` | `object` | `str` | 0 | 21 | 4 | `96ce383f849722784d1cf0eeb9f3c0a43099669a36056842f8a3ccd9f56c7669` |
+| `EP/sig_maf.gpkg:sig_maf` | 6 | `objectif_protection` | `object` | `str` | 0 | 21 | 1 | `046c30a8bf2c4c46f8afe66f7ae1a737a438e600d3275e7e7d674b36ca6a9513` |
+| `EP/sig_maf.gpkg:sig_maf` | 7 | `statut` | `object` | `object` | 21 | 0 | 0 | `19f60318f25254aea382daa6cefb5ae7b717ca28859d717b2a8a7a195c847f4e` |
+| `EP/sig_maf.gpkg:sig_maf` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 21 | 21 | `10b1adc800f8416191f9fab06f74b541096b92b7186b93b55c477519fed30423` |
+| `EP/sig_maf.gpkg:sig_maf` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 21 | 2 | `53113a64dca7cd3c2af1f441a8e65d280210c25f4701b9814525c65eb81e4173` |
+| `EP/sig_maf.gpkg:sig_maf` | 10 | `ref_carto_nom` | `object` | `str` | 5 | 16 | 1 | `0910a0aa585b758df53bd2c4b38a2e125d03fb94676463ecf85791d318dd0a8d` |
+| `EP/sig_maf.gpkg:sig_maf` | 11 | `ref_carto_version` | `object` | `str` | 5 | 16 | 2 | `daaf5166a94df7250394b2fc07ceccc6cad88faa99d7437e2f334c5a66aca360` |
+| `EP/sig_maf.gpkg:sig_maf` | 12 | `doc_gestion` | `object` | `str` | 0 | 21 | 2 | `bbdb61e4fc5d5705228b96583d191585938ed1dfdeabb6999f0e20623a6fa448` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 0 | `id_mnhn` | `object` | `str` | 0 | 10872 | 10872 | `b8d48c679a891d54bf11a773336d2dd5d3c94f576531be4ef074e0f00e6b8494` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 1 | `nom` | `object` | `str` | 0 | 10872 | 9946 | `cc01b4a7f284f43c8eb67a4227918cb732726c49868a2555e53d27d1a882ec9d` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 2 | `date_crea_sign` | `object` | `str` | 753 | 10119 | 5201 | `35a5b093e183f6cbaf13596a1b2070631fe83018fb9e5071e261248bab4c9b24` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 3 | `date_modif_geo` | `object` | `str` | 14 | 10858 | 159 | `3a7298e4f96e16033386a7ce13d37084853a56a092fefd0288273af1e145178f` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 4 | `lien_fiche` | `object` | `object` | 10872 | 0 | 0 | `743e2eba4a1d5cb6ad84ff8f80467066a82d8c71e742db7a5b45e28e701b4312` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 5 | `type_espace` | `object` | `str` | 0 | 10872 | 32 | `4e65bcebd3921405c1e94587b7e362891621e49deacab7322da30d6ecc6c3cf8` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 6 | `objectif_protection` | `object` | `str` | 1811 | 9061 | 3 | `12d4352af87f8c6970c1cda2e4da2bb2cd4c845c413d35b71081dbee34b7f6fa` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 7 | `statut` | `object` | `object` | 10872 | 0 | 0 | `743e2eba4a1d5cb6ad84ff8f80467066a82d8c71e742db7a5b45e28e701b4312` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 10872 | 10604 | `75c51361eef182963c746babeee9a39293a74c8970a603249b3b5448b1c969a2` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 9 | `cd_type_milieu` | `object` | `str` | 5 | 10867 | 3 | `286efaba0394997ac9bbb1660c2fb7abbdf6dce3f8ba1e383e5960c12d522a88` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 10 | `ref_carto_nom` | `object` | `str` | 4785 | 6087 | 54 | `c6f3b1dac766e4155a85a6876c8e487e7af784b4137fad19448f40d7d6e3cc20` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 11 | `ref_carto_version` | `object` | `str` | 5205 | 5667 | 21 | `8d99b73af015d9e7903158808c41b75f679ee9f296257966e1a5a1edfd44a40e` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 12 | `doc_gestion` | `object` | `str` | 0 | 10872 | 2 | `af628ffe1babf29ba6428d6d9d296cfdec82a9203b413223794e8e691ea00c55` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 0 | `id_mnhn` | `object` | `str` | 0 | 79 | 79 | `ae16453c3c6b82461f692cec67495c8ad8378e4c101fe468167edebbc57facf4` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 1 | `nom` | `object` | `str` | 0 | 79 | 74 | `65f86877a6da9c7f3ad1d4fbefbbd17b819e9c3f91109f678fb605124f17742a` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 2 | `date_crea_sign` | `object` | `str` | 0 | 79 | 46 | `16d440d46aff04fc025f9102247ca36897a0fd002646afca5c610958c019a5c8` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 3 | `date_modif_geo` | `object` | `str` | 0 | 79 | 18 | `23d67f0b795bea91968d13cb9d1b4ff5eaca95a3fe95d2829887826de4ff9655` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 4 | `lien_fiche` | `object` | `object` | 79 | 0 | 0 | `ab38256082d2ddc143a5badfdfd2ecc60289fd13b553b36c1bd678d584f5575b` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 5 | `type_espace` | `object` | `str` | 0 | 79 | 15 | `67a710eb792b63348c921e82006fc7d0f32fae248767daa9b7b1ea02fefed81f` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 6 | `objectif_protection` | `object` | `str` | 13 | 66 | 2 | `9bd799637b6da012d41330a170bf30f36b5b818729205893f53d883d67879d4d` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 7 | `statut` | `object` | `object` | 79 | 0 | 0 | `ab38256082d2ddc143a5badfdfd2ecc60289fd13b553b36c1bd678d584f5575b` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 79 | 79 | `85b649e6258b8482c4c84e288fb4665792c69878cada20d23f84e83963a93304` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 79 | 3 | `57f5ee6ab7bfab16b22167c1e8db4c0e64c81af07ae878a6e0c717c8014c6346` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 10 | `ref_carto_nom` | `object` | `str` | 53 | 26 | 7 | `cc4c9ccfa5a567ba9c214807b31b8de56886823d1ccc0358a217ac7b994d6157` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 11 | `ref_carto_version` | `object` | `str` | 67 | 12 | 6 | `05305f65c3003d32639fbecdf2f96d19cb7b50f7d5d4d5f92e770ca3c9fbd55a` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 12 | `doc_gestion` | `object` | `str` | 0 | 79 | 2 | `a82ce2af2c3adabfca7362147ce6233a236e5ac45d87a1804e025d78f98e62f9` |
+| `EP/sig_myt.gpkg:sig_myt` | 0 | `id_mnhn` | `object` | `str` | 0 | 30 | 30 | `ace30a79d7e71c2259dae65539e71a83ffb10e6144b828a3982ae2b85bfdd20a` |
+| `EP/sig_myt.gpkg:sig_myt` | 1 | `nom` | `object` | `str` | 0 | 30 | 29 | `65a8d8e14035a04f101aaa14b8a4692d881e55b76d87ff871f97b94128a6de13` |
+| `EP/sig_myt.gpkg:sig_myt` | 2 | `date_crea_sign` | `object` | `str` | 0 | 30 | 17 | `8476d352538443ab03f4d7067083b8020d0bf05268af1713374273ac6c619055` |
+| `EP/sig_myt.gpkg:sig_myt` | 3 | `date_modif_geo` | `object` | `str` | 0 | 30 | 11 | `904584734f8c38f95a8ec8996d5d250ff937dd0527adb572eb69f7268e5bbc63` |
+| `EP/sig_myt.gpkg:sig_myt` | 4 | `lien_fiche` | `object` | `object` | 30 | 0 | 0 | `c68a84035a1496d7e37df498f5ceb516cc63aeb90e1ad635dbbd05aacff02c53` |
+| `EP/sig_myt.gpkg:sig_myt` | 5 | `type_espace` | `object` | `str` | 0 | 30 | 5 | `ce6d65a7d8b4c8a2f1786138fd3a7f45a495a20ca1d01cc183f806cf78f368d5` |
+| `EP/sig_myt.gpkg:sig_myt` | 6 | `objectif_protection` | `object` | `str` | 7 | 23 | 1 | `bdc4ab9b7f276a2563f2ea967c91932bdb9ed0be229f09232d12820bc85357f9` |
+| `EP/sig_myt.gpkg:sig_myt` | 7 | `statut` | `object` | `object` | 30 | 0 | 0 | `c68a84035a1496d7e37df498f5ceb516cc63aeb90e1ad635dbbd05aacff02c53` |
+| `EP/sig_myt.gpkg:sig_myt` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 30 | 30 | `b130869e9d6fc89c3bf9cad38556bb935e1378d610f26f5e7410045d243d1705` |
+| `EP/sig_myt.gpkg:sig_myt` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 30 | 2 | `d2c8523058cc93c436fb863803d2cd80d768d037df5a9f4ef47ab843e8e0113e` |
+| `EP/sig_myt.gpkg:sig_myt` | 10 | `ref_carto_nom` | `object` | `str` | 12 | 18 | 4 | `58b7d2926a8ab249569d794e8b048d15d2990efb7900b0334b4068f8b7e1456c` |
+| `EP/sig_myt.gpkg:sig_myt` | 11 | `ref_carto_version` | `object` | `str` | 26 | 4 | 2 | `fc46067e1d5c2f2a21857ad0815509c1ddb840a8a581a773ed5b34e41a1f5385` |
+| `EP/sig_myt.gpkg:sig_myt` | 12 | `doc_gestion` | `object` | `str` | 0 | 30 | 2 | `a5c128c523895ebb599dbad31eec40f1de1412d8f957072512c6707fd6126b1c` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 0 | `id_mnhn` | `object` | `str` | 0 | 88 | 88 | `7894cad3fb03bcc8fff0d34bf5f544ae2ce4a8251363dba06d8a3d31afde4785` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 1 | `nom` | `object` | `str` | 0 | 88 | 88 | `cc4318438123ed1df2164dacb436fbce6c61bede5f8fa0e2c569e4b97c973ca5` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 2 | `date_crea_sign` | `object` | `str` | 0 | 88 | 28 | `e6a6b6419cbf8888e2e8f9fb6668ea81a7118e40b591e78013c870d035998286` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 3 | `date_modif_geo` | `object` | `str` | 0 | 88 | 5 | `28ec7060b69f90177156f2a7af3597d5a2b7062341cabeb735248984c36b61d4` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 4 | `lien_fiche` | `object` | `object` | 88 | 0 | 0 | `3eb66fb886d4ad526c51403966a46865a466306f75b43651dac426864c13cbec` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 5 | `type_espace` | `object` | `str` | 0 | 88 | 16 | `8818b024cf334def09b27aca91db76e8cf10b52eb0e393776eed04e47ea493f0` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 6 | `objectif_protection` | `object` | `str` | 87 | 1 | 1 | `1eeefc3931d066803ef31e822d148a5e2caff93bf9c83d45b57c146f5744baf6` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 7 | `statut` | `object` | `object` | 88 | 0 | 0 | `3eb66fb886d4ad526c51403966a46865a466306f75b43651dac426864c13cbec` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 88 | 88 | `d77ee980bd3a1433ce542b3168059626a767308781c47d16d3d1beb2ab0a8b7b` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 9 | `cd_type_milieu` | `object` | `str` | 55 | 33 | 3 | `2366de0d3c02311e04e23912f31ec918854cdae7da07f8b91a48142ae8cee2b1` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 10 | `ref_carto_nom` | `object` | `object` | 88 | 0 | 0 | `3eb66fb886d4ad526c51403966a46865a466306f75b43651dac426864c13cbec` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 11 | `ref_carto_version` | `object` | `object` | 88 | 0 | 0 | `3eb66fb886d4ad526c51403966a46865a466306f75b43651dac426864c13cbec` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 12 | `doc_gestion` | `object` | `str` | 0 | 88 | 2 | `95a249f890b70097e7135d1c3ac4c12774ef01b9cfff44a810bc3af506b60cc5` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 0 | `id_mnhn` | `object` | `str` | 0 | 87 | 87 | `8e3789554721ebf3de5fca96efc3ab66a979cfb0052227c8dcffa8184dfe4b1d` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 1 | `nom` | `object` | `str` | 0 | 87 | 80 | `46935db7df881378c2bfe8aaf368ffb6285ea2d5f8ecbbb723d00200f9442ba2` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 2 | `date_crea_sign` | `object` | `str` | 0 | 87 | 34 | `0aa03060a9fc1a03de260ab1731e12d4d271208e9e004fb4056a89ca9d080448` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 3 | `date_modif_geo` | `object` | `str` | 1 | 86 | 5 | `f21271b7c4134de33dc9624d58859c045ccf7caab3cd4435ae396a834bdd27b7` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 4 | `lien_fiche` | `object` | `object` | 87 | 0 | 0 | `3a76908a53bd10a23c9b5c040dbea4f1f88c8cc8fc5a0ce87ddd1a4938e6c55c` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 5 | `type_espace` | `object` | `str` | 0 | 87 | 18 | `2c9c922f30332e3a9a25e16fd04fe7a5e518377066a9ac164483c18b960ebd55` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 6 | `objectif_protection` | `object` | `str` | 86 | 1 | 1 | `5e19cf38e7c34569276000388ae884ecfe395231f23331aceed28192d32f77da` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 7 | `statut` | `object` | `object` | 87 | 0 | 0 | `3a76908a53bd10a23c9b5c040dbea4f1f88c8cc8fc5a0ce87ddd1a4938e6c55c` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 87 | 86 | `dcfd30a852a708219831bd3ea60f15b820d3aaf62001f9a28efc8e52151f2af3` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 9 | `cd_type_milieu` | `object` | `str` | 84 | 3 | 3 | `5e7e64bee30b26f1b42211e7f1b07edb3c20318b50dafb766a89a5e8c021eebb` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 10 | `ref_carto_nom` | `object` | `object` | 87 | 0 | 0 | `3a76908a53bd10a23c9b5c040dbea4f1f88c8cc8fc5a0ce87ddd1a4938e6c55c` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 11 | `ref_carto_version` | `object` | `object` | 87 | 0 | 0 | `3a76908a53bd10a23c9b5c040dbea4f1f88c8cc8fc5a0ce87ddd1a4938e6c55c` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 12 | `doc_gestion` | `object` | `str` | 0 | 87 | 1 | `0d28ae7283933e2de9b8bec4c0782c239f192c5ad5dfc40df2abdb590f2f410e` |
+| `EP/sig_reu.gpkg:sig_reu` | 0 | `id_mnhn` | `object` | `str` | 0 | 44 | 44 | `2e1730f5031c0b8a96ab393a50011eb9e619ea5424c59584383e42235f355d77` |
+| `EP/sig_reu.gpkg:sig_reu` | 1 | `nom` | `object` | `str` | 0 | 44 | 43 | `c52892f51e5488bf6b063ec7993b31e19914836b0738c95d43ce8d1d0571e1bc` |
+| `EP/sig_reu.gpkg:sig_reu` | 2 | `date_crea_sign` | `object` | `str` | 1 | 43 | 37 | `a382351914c09df413abafa0d52ef4de4881045555b52ec699b2e70d008abd2b` |
+| `EP/sig_reu.gpkg:sig_reu` | 3 | `date_modif_geo` | `object` | `str` | 0 | 44 | 12 | `9993ba64ab33b772c4b9fad33429d983c21f4ad2971543c5f931c18e06080797` |
+| `EP/sig_reu.gpkg:sig_reu` | 4 | `lien_fiche` | `object` | `object` | 44 | 0 | 0 | `c48a05b1a6257c145f6b3cfb5b8627cb34e7e037c5ac5f6be534e6655e4e23de` |
+| `EP/sig_reu.gpkg:sig_reu` | 5 | `type_espace` | `object` | `str` | 0 | 44 | 10 | `af5749faedfd2c9d808ab9aee5156926791163c19d6d358a45a499db6b99b164` |
+| `EP/sig_reu.gpkg:sig_reu` | 6 | `objectif_protection` | `object` | `str` | 0 | 44 | 2 | `5ae2e7aab0ac3fa42e7aee5711fa8433dc48871604635919a1dbfea4c37de2cc` |
+| `EP/sig_reu.gpkg:sig_reu` | 7 | `statut` | `object` | `object` | 44 | 0 | 0 | `c48a05b1a6257c145f6b3cfb5b8627cb34e7e037c5ac5f6be534e6655e4e23de` |
+| `EP/sig_reu.gpkg:sig_reu` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 44 | 44 | `5d5e3ccfcc44be95af1b28394063e70efc13cd07bdcb1f32a20999d91062277c` |
+| `EP/sig_reu.gpkg:sig_reu` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 44 | 2 | `0c6b3f9ea9e97616cdeafcee8001af1fdbc7b60e26c521f6b25624a22f924957` |
+| `EP/sig_reu.gpkg:sig_reu` | 10 | `ref_carto_nom` | `object` | `str` | 25 | 19 | 3 | `970667f76eb15c9073277f038afe2538e7f3543dceab03899cf99989cf38b427` |
+| `EP/sig_reu.gpkg:sig_reu` | 11 | `ref_carto_version` | `object` | `str` | 27 | 17 | 3 | `dcf2f009aa4e4b7fbb6ed87e21adfc73404aec2c56f611ccfe26f289b4c7f671` |
+| `EP/sig_reu.gpkg:sig_reu` | 12 | `doc_gestion` | `object` | `str` | 0 | 44 | 2 | `05479e0241acf4706769933af5edd1dad7109fad76a3f147aa65e87c0e54d282` |
+| `EP/sig_spm.gpkg:sig_spm` | 0 | `id_mnhn` | `object` | `str` | 0 | 2 | 2 | `07a4d210926a0bae7580fe9870c82e9a8be51ce537248041d2a5f3787e083971` |
+| `EP/sig_spm.gpkg:sig_spm` | 1 | `nom` | `object` | `str` | 0 | 2 | 2 | `e18e682154b8a3991cff4b196cff9403fa250c6267f214200c851e77c2974868` |
+| `EP/sig_spm.gpkg:sig_spm` | 2 | `date_crea_sign` | `object` | `str` | 0 | 2 | 2 | `2a5343244c615ccda783df849ee6783539ccbdb1e18c85a5feeb18b34676c090` |
+| `EP/sig_spm.gpkg:sig_spm` | 3 | `date_modif_geo` | `object` | `str` | 0 | 2 | 2 | `74f30fd7fe5e5658b74bc52c4af7994c8ad453b82b3ac22b4aee39119c722c9b` |
+| `EP/sig_spm.gpkg:sig_spm` | 4 | `lien_fiche` | `object` | `object` | 2 | 0 | 0 | `2ef58295d1cf1ebcdf2f03f5eb6a4f45b868ba1421c238786e3811faed821549` |
+| `EP/sig_spm.gpkg:sig_spm` | 5 | `type_espace` | `object` | `str` | 0 | 2 | 1 | `f743b8e218b62f9c473d3bd56932133d92ef390d39facfd13aa51dc6cbc0d7ab` |
+| `EP/sig_spm.gpkg:sig_spm` | 6 | `objectif_protection` | `object` | `str` | 0 | 2 | 1 | `df2c6a7f5fc69a042b51a296ea6b0628c8ce81c4b339b4767a311cc8ed9aa5ff` |
+| `EP/sig_spm.gpkg:sig_spm` | 7 | `statut` | `object` | `object` | 2 | 0 | 0 | `2ef58295d1cf1ebcdf2f03f5eb6a4f45b868ba1421c238786e3811faed821549` |
+| `EP/sig_spm.gpkg:sig_spm` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 2 | 2 | `1bb9b2cad9a7c961140c082dcf69006a1005d06ec70f9aa12cbe8451f4d335fd` |
+| `EP/sig_spm.gpkg:sig_spm` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 2 | 1 | `f20c8b07634821ceead7823258519c3d8bb86073d7acd94860f388f675f3ee0c` |
+| `EP/sig_spm.gpkg:sig_spm` | 10 | `ref_carto_nom` | `object` | `str` | 1 | 1 | 1 | `e56f39f68c7d88c5068e27936fdccbc6da589825330826cbd8943bf1dc95932e` |
+| `EP/sig_spm.gpkg:sig_spm` | 11 | `ref_carto_version` | `object` | `str` | 1 | 1 | 1 | `0f5ef070ae592c80a19ee9710b818957425d717f7da9841e6a811f02d3f4f478` |
+| `EP/sig_spm.gpkg:sig_spm` | 12 | `doc_gestion` | `object` | `str` | 0 | 2 | 1 | `ea037d45602676aa8ecedec4d94dcd25ce7a1b94ca21ad8bec678b0dc65b1ce7` |
+| `EP/sig_subant.gpkg:sig_subant` | 0 | `id_mnhn` | `object` | `str` | 0 | 11 | 11 | `bf78f28e830855f130ef886547b3fe2e864bbd357a7b03822af10b39ce8f56de` |
+| `EP/sig_subant.gpkg:sig_subant` | 1 | `nom` | `object` | `str` | 0 | 11 | 10 | `04f034221b660e15e32fde82874ffb0694bcf34288a530c479fd966be3a3d8fe` |
+| `EP/sig_subant.gpkg:sig_subant` | 2 | `date_crea_sign` | `object` | `str` | 0 | 11 | 4 | `78686c0319aaf33de5429a2270f0ebb95732d329adecf67a080f89311461d3d7` |
+| `EP/sig_subant.gpkg:sig_subant` | 3 | `date_modif_geo` | `object` | `str` | 1 | 10 | 3 | `a0c23def2b42d75e5c157ec0df2aef597a1d1cc53072502726ec9696666460a9` |
+| `EP/sig_subant.gpkg:sig_subant` | 4 | `lien_fiche` | `object` | `object` | 11 | 0 | 0 | `e3195874bc13c81faf56ed854fa8641e38088b7170e0355cc7fb8375fd18ebb6` |
+| `EP/sig_subant.gpkg:sig_subant` | 5 | `type_espace` | `object` | `str` | 0 | 11 | 4 | `19a42cfb0ab496042ee934bf32ac192ab5d8f37cab977a4d3f8ea71b73fb26c9` |
+| `EP/sig_subant.gpkg:sig_subant` | 6 | `objectif_protection` | `object` | `str` | 2 | 9 | 1 | `25703e9b54320b2803683a29f763d9d5a2fe6ee0ca4805ae4837eaf2f0a62918` |
+| `EP/sig_subant.gpkg:sig_subant` | 7 | `statut` | `object` | `object` | 11 | 0 | 0 | `e3195874bc13c81faf56ed854fa8641e38088b7170e0355cc7fb8375fd18ebb6` |
+| `EP/sig_subant.gpkg:sig_subant` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 11 | 11 | `e6a063adbea32bca643e168e335810c13fab177adec72510fbbd0caf7388a480` |
+| `EP/sig_subant.gpkg:sig_subant` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 11 | 2 | `6b10eca1f6b74b0f22b238efe3cc767e2b4ae363f0944831be49759da21eb32b` |
+| `EP/sig_subant.gpkg:sig_subant` | 10 | `ref_carto_nom` | `object` | `str` | 10 | 1 | 1 | `f419cc97db5305fa031ab0fc9507dd85058b8a271a2f8c4ad9ce84b0eea43c0c` |
+| `EP/sig_subant.gpkg:sig_subant` | 11 | `ref_carto_version` | `object` | `str` | 10 | 1 | 1 | `1455ddc173d5b4e997a025ad16534069a38999b026aa5a8382ff823f25b83ae5` |
+| `EP/sig_subant.gpkg:sig_subant` | 12 | `doc_gestion` | `object` | `str` | 0 | 11 | 2 | `283c9bc3ba3ff4524034e2055c6b220405d1e968c19a386bddb07031e763349d` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 0 | `id_mnhn` | `object` | `str` | 0 | 1 | 1 | `e5f330eef3d576028b3d39a65339b87284c23d2268780b6d5be0919c359b070e` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 1 | `nom` | `object` | `str` | 0 | 1 | 1 | `0a5d71e84ffd77f4fe054442143e637a9b48875f3c965aa1fc93005a8dad000f` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 2 | `date_crea_sign` | `object` | `str` | 0 | 1 | 1 | `8c0fe562733c24486c7ca7cd436b6a8a54f212b4e479658badccc5a6db00a90d` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 3 | `date_modif_geo` | `object` | `str` | 0 | 1 | 1 | `ac9d339bbe49090f79678d9db1d135afd06d9edcf645455d4d304ee4472c43a7` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 4 | `lien_fiche` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 5 | `type_espace` | `object` | `str` | 0 | 1 | 1 | `885230ab2a22fb0576b3194567faaa85eae350d4cd1f00fcd3d508f87fc109b3` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 6 | `objectif_protection` | `object` | `str` | 0 | 1 | 1 | `1adb7ae08d3ae628c499317124c42bc799a40ac21381476603ad5e82c06f4613` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 7 | `statut` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 8 | `superficie_ha` | `float64` | `float64` | 0 | 1 | 1 | `090120c76c25b4358269e7d52243cac98ac2df621e49f815593ce9362b6fe388` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 9 | `cd_type_milieu` | `object` | `str` | 0 | 1 | 1 | `82e460b205472d83596f079ef09c62c3bd0496227000b066c72a13ddaecbcb51` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 10 | `ref_carto_nom` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 11 | `ref_carto_version` | `object` | `object` | 1 | 0 | 0 | `c3a7f418188d35915d14f8d06db06bc98703266618252cd00e94561223447cec` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 12 | `doc_gestion` | `object` | `str` | 0 | 1 | 1 | `2613ff9227dbd3581f7d44a547ff7f5ad3a3fda38a7ef478691117ae9af63423` |
+
+### Complete low-cardinality domains (178 fields, threshold <= 64)
+
+Each JSON array below is the entire canonical non-null domain for that exact package/layer/field, ordered by `(value_kind, canonical_value)` and carrying exact frequencies. It is not a sample. Null counts remain in the summary and complete field table.
+
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:id_mnhn</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR3600132","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800433","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800434","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7400007","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:nom</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Etang Saint-Jean","count":1,"value_kind":"TEXT"},{"canonical_value":"Etangs De Grand Et Petit Cul-De-Sac","count":1,"value_kind":"TEXT"},{"canonical_value":"Saint-Barthélemy","count":1,"value_kind":"TEXT"},{"canonical_value":"Sanctuaire Agoa","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:date_crea_sign</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1992-07-27","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-10-03","count":1,"value_kind":"TEXT"},{"canonical_value":"1996-10-10","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-09-18","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:date_modif_geo</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2009-04-06","count":3,"value_kind":"TEXT"},{"canonical_value":"2016-02-15","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:lien_fiche</code> — 0 distinct, 4 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:type_espace</code> — 3 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":2,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone protégée de la convention de Carthagène (Caraïbes)","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":4,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:statut</code> — 0 distinct, 4 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:superficie_ha</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.259450efdc9c5p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.38db51d68c693p+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.583f141205bc0p+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9cc05e87fcb92p+18","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":2,"value_kind":"TEXT"},{"canonical_value":"TER","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:ref_carto_nom</code> — 0 distinct, 4 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:ref_carto_version</code> — 0 distinct, 4 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_blm.gpkg:sig_blm:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":3,"value_kind":"TEXT"},{"canonical_value":"true","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:id_mnhn</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR3800927","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:nom</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Aire Marine Protégée Dans Les Eaux Territoriales De L’Île De Clipperton","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:date_crea_sign</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2016-11-15","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:date_modif_geo</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2020-12-11","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:lien_fiche</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:type_espace</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:statut</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:superficie_ha</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.610645e7ea5f8p+17","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:cd_type_milieu</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:ref_carto_nom</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"SHOM","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:ref_carto_version</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2016","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_cli.gpkg:sig_cli:doc_gestion</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"true","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:id_mnhn</code> — 5 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR0400003","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400009","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400010","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600183","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200042","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:nom</code> — 5 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"24 milles autour de l'archipel des Glorieuses","count":1,"value_kind":"TEXT"},{"canonical_value":"Archipel des Glorieuses","count":1,"value_kind":"TEXT"},{"canonical_value":"Ile D’Europa","count":1,"value_kind":"TEXT"},{"canonical_value":"banc de la Cordelière","count":1,"value_kind":"TEXT"},{"canonical_value":"banc du Geyser","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:date_crea_sign</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2011-10-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-06-08","count":4,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:date_modif_geo</code> — 3 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2021-07-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-01-18","count":3,"value_kind":"TEXT"},{"canonical_value":"2023-10-25","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:lien_fiche</code> — 0 distinct, 5 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:type_espace</code> — 3 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Réserve naturelle nationale","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone de protection renforcée d'une réserve naturelle nationale","count":3,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":5,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:statut</code> — 0 distinct, 5 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:superficie_ha</code> — 5 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.09bd63c656abep+22","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.42176cd5f99c4p+17","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.6b11c267caea7p+19","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.6f59f7d6b65aap+17","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a32847089a027p+17","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MER","count":3,"value_kind":"TEXT"},{"canonical_value":"MIX","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:ref_carto_nom</code> — 0 distinct, 5 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:ref_carto_version</code> — 0 distinct, 5 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_epa.gpkg:sig_epa:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":3,"value_kind":"TEXT"},{"canonical_value":"true","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:date_crea_sign</code> — 39 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1980-04-25","count":1,"value_kind":"TEXT"},{"canonical_value":"1980-05-05","count":1,"value_kind":"TEXT"},{"canonical_value":"1987-03-02","count":1,"value_kind":"TEXT"},{"canonical_value":"1987-03-16","count":1,"value_kind":"TEXT"},{"canonical_value":"1989-02-20","count":2,"value_kind":"TEXT"},{"canonical_value":"1991-05-14","count":1,"value_kind":"TEXT"},{"canonical_value":"1991-05-31","count":1,"value_kind":"TEXT"},{"canonical_value":"1991-12-10","count":1,"value_kind":"TEXT"},{"canonical_value":"1992-01-01","count":3,"value_kind":"TEXT"},{"canonical_value":"1993-12-08","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-09-20","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-10-03","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-10-24","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-07-11","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-11-03","count":1,"value_kind":"TEXT"},{"canonical_value":"1997-05-27","count":1,"value_kind":"TEXT"},{"canonical_value":"1997-06-30","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-05-12","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-09-03","count":1,"value_kind":"TEXT"},{"canonical_value":"1999-02-22","count":1,"value_kind":"TEXT"},{"canonical_value":"1999-12-10","count":1,"value_kind":"TEXT"},{"canonical_value":"2000-08-24","count":1,"value_kind":"TEXT"},{"canonical_value":"2000-09-29","count":1,"value_kind":"TEXT"},{"canonical_value":"2002-10-10","count":1,"value_kind":"TEXT"},{"canonical_value":"2003-09-05","count":42,"value_kind":"TEXT"},{"canonical_value":"2003-11-07","count":1,"value_kind":"TEXT"},{"canonical_value":"2004-09-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-05-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-12-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-06-16","count":3,"value_kind":"TEXT"},{"canonical_value":"2008-10-01","count":2,"value_kind":"TEXT"},{"canonical_value":"2009-07-24","count":2,"value_kind":"TEXT"},{"canonical_value":"2010-02-24","count":5,"value_kind":"TEXT"},{"canonical_value":"2010-03-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-10-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-07-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-09-18","count":2,"value_kind":"TEXT"},{"canonical_value":"2017-08-16","count":3,"value_kind":"TEXT"},{"canonical_value":"2018-04-17","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:date_modif_geo</code> — 11 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2011-02-10","count":4,"value_kind":"TEXT"},{"canonical_value":"2013-02-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-09-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-09-09","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-02-15","count":3,"value_kind":"TEXT"},{"canonical_value":"2018-07-23","count":3,"value_kind":"TEXT"},{"canonical_value":"2023-06-22","count":64,"value_kind":"TEXT"},{"canonical_value":"2023-10-25","count":3,"value_kind":"TEXT"},{"canonical_value":"2025-01-23","count":5,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":8,"value_kind":"TEXT"},{"canonical_value":"2026-06-29","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:lien_fiche</code> — 0 distinct, 94 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:type_espace</code> — 12 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":5,"value_kind":"TEXT"},{"canonical_value":"Parc national, aire d'adhésion","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc national, zone cœur","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique dirigée","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone centrale","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone de transition","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone tampon","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":2,"value_kind":"TEXT"},{"canonical_value":"Site classé selon la loi de 1930","count":5,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":72,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone protégée de la convention de Carthagène (Caraïbes)","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:objectif_protection</code> — 2 distinct, 5 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":88,"value_kind":"TEXT"},{"canonical_value":"nature","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:statut</code> — 0 distinct, 94 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:cd_type_milieu</code> — 3 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MER","count":1,"value_kind":"TEXT"},{"canonical_value":"MIX","count":14,"value_kind":"TEXT"},{"canonical_value":"TER","count":79,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:ref_carto_nom</code> — 4 distinct, 27 null</summary>
+
+```json
+[{"canonical_value":"BD TOPO","count":2,"value_kind":"TEXT"},{"canonical_value":"BD-Parcellaire","count":8,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":42,"value_kind":"TEXT"},{"canonical_value":"Orthophoto","count":15,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:ref_carto_version</code> — 4 distinct, 85 null</summary>
+
+```json
+[{"canonical_value":"2015","count":6,"value_kind":"TEXT"},{"canonical_value":"2019","count":1,"value_kind":"TEXT"},{"canonical_value":"2022","count":1,"value_kind":"TEXT"},{"canonical_value":"2025","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_glp.gpkg:sig_glp:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":69,"value_kind":"TEXT"},{"canonical_value":"true","count":25,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:id_mnhn</code> — 42 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR1100377","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100390","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100673","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100674","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100675","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100693","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100762","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100763","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100764","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100930","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100942","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100982","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100983","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100984","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100985","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100986","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100996","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100997","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100998","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101027","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23GUF01","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24GUF01","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24GUF02","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24GUF03","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3202410","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3202411","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3300008","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3400008","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600109","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600128","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600129","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600138","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600139","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600160","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800440","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800444","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800952","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200010","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200011","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200033","count":1,"value_kind":"TEXT"},{"canonical_value":"FR8000040","count":1,"value_kind":"TEXT"},{"canonical_value":"FR9300073","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:nom</code> — 42 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Bagne Des Annamites","count":1,"value_kind":"TEXT"},{"canonical_value":"Basse Mana","count":1,"value_kind":"TEXT"},{"canonical_value":"CRIQUE ET PIPRI DE YIYI","count":1,"value_kind":"TEXT"},{"canonical_value":"Estuaire Du Fleuve Sinnamary (Propris De Yiyi, Mangroves De L'Estuaire)","count":1,"value_kind":"TEXT"},{"canonical_value":"Grand Matoury","count":1,"value_kind":"TEXT"},{"canonical_value":"Guyane","count":1,"value_kind":"TEXT"},{"canonical_value":"Guyane (Parc Amazonien)","count":1,"value_kind":"TEXT"},{"canonical_value":"Guyane (Parc Amazonien) [Aire D'Adhésion]","count":1,"value_kind":"TEXT"},{"canonical_value":"HABITATION VIDAL","count":1,"value_kind":"TEXT"},{"canonical_value":"Ile Du Grand-Connétable","count":1,"value_kind":"TEXT"},{"canonical_value":"Iles De Remire","count":1,"value_kind":"TEXT"},{"canonical_value":"Iles Du Salut","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilets Dupont","count":1,"value_kind":"TEXT"},{"canonical_value":"KANAWA","count":1,"value_kind":"TEXT"},{"canonical_value":"L'Amana","count":1,"value_kind":"TEXT"},{"canonical_value":"La Trinité","count":1,"value_kind":"TEXT"},{"canonical_value":"Le Mont Mahury","count":1,"value_kind":"TEXT"},{"canonical_value":"Les Savanes De Wayabo","count":1,"value_kind":"TEXT"},{"canonical_value":"Lucifer - Dékou-Dékou (de)","count":1,"value_kind":"TEXT"},{"canonical_value":"Marais De Kaw","count":1,"value_kind":"TEXT"},{"canonical_value":"Marais De Kaw-Roura","count":1,"value_kind":"TEXT"},{"canonical_value":"Mont Grand Matoury","count":1,"value_kind":"TEXT"},{"canonical_value":"Montagne D'Argent","count":1,"value_kind":"TEXT"},{"canonical_value":"Montagne De Kaw","count":1,"value_kind":"TEXT"},{"canonical_value":"Montagne De Kaw - Reserve Tresor","count":1,"value_kind":"TEXT"},{"canonical_value":"Nouragues","count":1,"value_kind":"TEXT"},{"canonical_value":"POINTE LIBERTE","count":1,"value_kind":"TEXT"},{"canonical_value":"Petit Cayenne","count":1,"value_kind":"TEXT"},{"canonical_value":"Petites Montagnes Tortue (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Piste De L'Anse","count":1,"value_kind":"TEXT"},{"canonical_value":"Pitons rocheux de l'Armontabo (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Pointe Isere – Savane Sarcelle ","count":1,"value_kind":"TEXT"},{"canonical_value":"Rivages De Cayenne","count":1,"value_kind":"TEXT"},{"canonical_value":"Rive Droite Du Mahury","count":1,"value_kind":"TEXT"},{"canonical_value":"SALINE DE MONTJOLY","count":1,"value_kind":"TEXT"},{"canonical_value":"Sables Blancs De Mana","count":1,"value_kind":"TEXT"},{"canonical_value":"Savane Des Peres","count":1,"value_kind":"TEXT"},{"canonical_value":"Savane-roche Virginie (de la)","count":1,"value_kind":"TEXT"},{"canonical_value":"Savanes Et Marais De Macouria","count":1,"value_kind":"TEXT"},{"canonical_value":"Site_Classe_De_L_Habitation-Vidal_Mondelice","count":1,"value_kind":"TEXT"},{"canonical_value":"Site_Classe_Des_Abattis_Et_De_La_Montagne_Cottica","count":1,"value_kind":"TEXT"},{"canonical_value":"Trésor","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:date_crea_sign</code> — 38 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1983-07-06","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-02-14","count":1,"value_kind":"TEXT"},{"canonical_value":"1992-12-08","count":1,"value_kind":"TEXT"},{"canonical_value":"1993-12-08","count":2,"value_kind":"TEXT"},{"canonical_value":"1994-04-11","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-06-06","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-11-06","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-12-04","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-12-18","count":1,"value_kind":"TEXT"},{"canonical_value":"1996-06-06","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-03-13","count":2,"value_kind":"TEXT"},{"canonical_value":"1998-06-18","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-08-26","count":2,"value_kind":"TEXT"},{"canonical_value":"1998-11-30","count":1,"value_kind":"TEXT"},{"canonical_value":"2000-10-31","count":1,"value_kind":"TEXT"},{"canonical_value":"2001-03-26","count":1,"value_kind":"TEXT"},{"canonical_value":"2006-09-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-02-27","count":2,"value_kind":"TEXT"},{"canonical_value":"2008-03-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-07-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-09-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-02-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-12-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-07-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-07-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-07-25","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-08-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-10-01","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-12-16","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-03-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-09-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-11-03","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-04-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-09-30","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-12-30","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-03-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2022-11-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2026-06-08","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:date_modif_geo</code> — 18 distinct, 2 null</summary>
+
+```json
+[{"canonical_value":"2009-03-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-02-10","count":7,"value_kind":"TEXT"},{"canonical_value":"2012-03-07","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-04-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-08-01","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-10-20","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-03-08","count":4,"value_kind":"TEXT"},{"canonical_value":"2018-03-07","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-03-09","count":2,"value_kind":"TEXT"},{"canonical_value":"2019-12-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-03-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-07-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-06-22","count":4,"value_kind":"TEXT"},{"canonical_value":"2024-03-12","count":3,"value_kind":"TEXT"},{"canonical_value":"2025-01-23","count":2,"value_kind":"TEXT"},{"canonical_value":"2025-03-26","count":1,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":5,"value_kind":"TEXT"},{"canonical_value":"2026-06-29","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:lien_fiche</code> — 0 distinct, 42 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:type_espace</code> — 11 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":3,"value_kind":"TEXT"},{"canonical_value":"Parc national, aire d'adhésion","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc national, zone cœur","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc naturel régional","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique dirigée","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique intégrale","count":3,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":6,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle régionale","count":1,"value_kind":"TEXT"},{"canonical_value":"Site classé selon la loi de 1930","count":2,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":20,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:objectif_protection</code> — 2 distinct, 4 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":34,"value_kind":"TEXT"},{"canonical_value":"nature","count":4,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:statut</code> — 0 distinct, 42 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:superficie_ha</code> — 42 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.01d03afb7e910p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.03d1b9b66f933p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.067bc45cbbc2cp+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.089f9b83cf2d0p+14","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0bae8f227d029p+14","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.14552e978d4fep+14","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.1ae9877ee4e27p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.2119ad81adea9p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.215eb606b7aa2p+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.2269564d7f0edp+12","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.277851eb851ecp+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.2bb883afb7e91p+17","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.2d7ce1984a0e4p+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.30206f2e87d2cp+19","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.31fe32a0663c7p+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.322fa28f5c28fp+17","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.341eefb2aae29p+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.3423aa64c2f83p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.3428d4d4024b3p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.4c62aabc9eeccp+20","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.4e89f19f7f8cbp+12","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.5745a1cac0831p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.638c9613d31bap+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.64bcb48d3ae68p+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.6a82afb7414a5p+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7387304039abfp+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.8296a9930be0ep+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9013333333333p+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.928e9a2c66905p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9ed5f99c38b05p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a05be30b39192p+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.bc7d88754f377p+14","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.bd81311f0c34cp+14","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c0d1b71758e22p-3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c3aaee0f3cb3ep+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c4b667967caeap+13","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.d61ea897635e7p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e39b785729b28p+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.eada6f0068db9p+12","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.ee09181800a7cp+20","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f4f7e7fa1a0cfp+15","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f74a333333333p+15","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":7,"value_kind":"TEXT"},{"canonical_value":"TER","count":35,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:ref_carto_nom</code> — 5 distinct, 27 null</summary>
+
+```json
+[{"canonical_value":"BD TOPO","count":1,"value_kind":"TEXT"},{"canonical_value":"BD-Parcellaire","count":5,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":6,"value_kind":"TEXT"},{"canonical_value":"Orthophoto","count":2,"value_kind":"TEXT"},{"canonical_value":"SCAN25","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:ref_carto_version</code> — 7 distinct, 32 null</summary>
+
+```json
+[{"canonical_value":"2014","count":1,"value_kind":"TEXT"},{"canonical_value":"2015","count":1,"value_kind":"TEXT"},{"canonical_value":"2017","count":1,"value_kind":"TEXT"},{"canonical_value":"2020","count":2,"value_kind":"TEXT"},{"canonical_value":"2022","count":1,"value_kind":"TEXT"},{"canonical_value":"2025","count":3,"value_kind":"TEXT"},{"canonical_value":"2026","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_guf.gpkg:sig_guf:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":35,"value_kind":"TEXT"},{"canonical_value":"true","count":7,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:id_mnhn</code> — 21 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR1100840","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100841","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100842","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100843","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100844","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100845","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100846","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100847","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100848","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100849","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100850","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100851","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100852","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100980","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101006","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101007","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600143","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800692","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7400003","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7400004","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7400009","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:nom</code> — 21 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"ANSE MARCEL","count":1,"value_kind":"TEXT"},{"canonical_value":"BABIT POINT","count":1,"value_kind":"TEXT"},{"canonical_value":"BAIE DE L'EMBOUCHURE","count":1,"value_kind":"TEXT"},{"canonical_value":"BELL POINT - CROWL ROCK","count":1,"value_kind":"TEXT"},{"canonical_value":"EASTERN POINT","count":1,"value_kind":"TEXT"},{"canonical_value":"ETANG CHEVRISE","count":1,"value_kind":"TEXT"},{"canonical_value":"ETANG DE GRAND CASE","count":1,"value_kind":"TEXT"},{"canonical_value":"ETANG DE L'AEROPORT","count":1,"value_kind":"TEXT"},{"canonical_value":"ETANG DE LA BARRIERE","count":1,"value_kind":"TEXT"},{"canonical_value":"ETANG ROUGE","count":1,"value_kind":"TEXT"},{"canonical_value":"Etangs De St Martin","count":1,"value_kind":"TEXT"},{"canonical_value":"Etangs Et Mares De Saint-Martin","count":1,"value_kind":"TEXT"},{"canonical_value":"GRAND ETANG","count":1,"value_kind":"TEXT"},{"canonical_value":"ILET PINEL","count":1,"value_kind":"TEXT"},{"canonical_value":"ILET TINTAMARE","count":1,"value_kind":"TEXT"},{"canonical_value":"LE GRAND ILET","count":1,"value_kind":"TEXT"},{"canonical_value":"POINTE DU BLUFF","count":1,"value_kind":"TEXT"},{"canonical_value":"POINTE MOLLY SMITH","count":1,"value_kind":"TEXT"},{"canonical_value":"Saint-Martin","count":1,"value_kind":"TEXT"},{"canonical_value":"Sanctuaire Agoa","count":1,"value_kind":"TEXT"},{"canonical_value":"St Martin","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:date_crea_sign</code> — 8 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1998-09-03","count":1,"value_kind":"TEXT"},{"canonical_value":"2003-09-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2006-08-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-02-21","count":5,"value_kind":"TEXT"},{"canonical_value":"2012-09-18","count":3,"value_kind":"TEXT"},{"canonical_value":"2013-04-03","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-12-21","count":8,"value_kind":"TEXT"},{"canonical_value":"2016-12-31","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:date_modif_geo</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2009-04-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-09-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-02-15","count":3,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":16,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:lien_fiche</code> — 0 distinct, 21 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:type_espace</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":1,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":16,"value_kind":"TEXT"},{"canonical_value":"Zone protégée de la convention de Carthagène (Caraïbes)","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":21,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:statut</code> — 0 distinct, 21 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:superficie_ha</code> — 21 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.000bb6ed67770p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0388f861a60d4p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0d0f7121ab4b7p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.2130e7ff583a5p+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.3fb4f61672325p+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7682949a56580p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7a656eac86057p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7b0f7b9e060fep+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7b156c0d6f545p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.8187e7c06e19cp+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.86eaae297396dp+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.93ca4b923a29cp+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9409057d1782dp+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.98aff6d330942p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9a877ee4e26d5p+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a46d187e7c06ep+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a4b44de7ea5f8p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a681dd1a21ea3p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c76cca2db61bbp+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.cdc80c73abc94p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.cf8e4b87bdcf0p+1","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":3,"value_kind":"TEXT"},{"canonical_value":"TER","count":18,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:ref_carto_nom</code> — 1 distinct, 5 null</summary>
+
+```json
+[{"canonical_value":"BD-Parcellaire","count":16,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:ref_carto_version</code> — 2 distinct, 5 null</summary>
+
+```json
+[{"canonical_value":"2015","count":14,"value_kind":"TEXT"},{"canonical_value":"2020","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_maf.gpkg:sig_maf:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":18,"value_kind":"TEXT"},{"canonical_value":"true","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:lien_fiche</code> — 0 distinct, 10872 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:type_espace</code> — 32 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Aire spécialement protégée d'intérêt méditerranéen de la convention de Barcelone","count":7,"value_kind":"TEXT"},{"canonical_value":"Arrêté de protection de biotope","count":1062,"value_kind":"TEXT"},{"canonical_value":"Arrêté de protection de géotope","count":43,"value_kind":"TEXT"},{"canonical_value":"Arrêté de protection des habitats naturels","count":26,"value_kind":"TEXT"},{"canonical_value":"Arrêté listes de sites d'intérêt géologique","count":194,"value_kind":"TEXT"},{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":5,"value_kind":"TEXT"},{"canonical_value":"Grand Site de France","count":26,"value_kind":"TEXT"},{"canonical_value":"Géoparcs mondiaux UNESCO","count":9,"value_kind":"TEXT"},{"canonical_value":"Parc national, aire d'adhésion","count":8,"value_kind":"TEXT"},{"canonical_value":"Parc national, zone cœur","count":8,"value_kind":"TEXT"},{"canonical_value":"Parc naturel marin","count":6,"value_kind":"TEXT"},{"canonical_value":"Parc naturel régional","count":57,"value_kind":"TEXT"},{"canonical_value":"Projet de Grand Site de France","count":22,"value_kind":"TEXT"},{"canonical_value":"Périmètre de protection d’une réserve naturelle nationale","count":17,"value_kind":"TEXT"},{"canonical_value":"Périmètre de protection d’une réserve naturelle régionale ou de Corse","count":2,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique dirigée","count":160,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique intégrale","count":107,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone centrale","count":13,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone de transition","count":13,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone tampon","count":13,"value_kind":"TEXT"},{"canonical_value":"Réserve intégrale de parc national","count":4,"value_kind":"TEXT"},{"canonical_value":"Réserve nationale de chasse et de faune sauvage","count":11,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle de Corse","count":7,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":152,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle régionale","count":191,"value_kind":"TEXT"},{"canonical_value":"Site classé selon la loi de 1930","count":2649,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis (ou assimilé) par un Conservatoire d'espaces naturels","count":2848,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":629,"value_kind":"TEXT"},{"canonical_value":"Terrain géré (location, convention de gestion) par un Conservatoire d'espaces naturels","count":2496,"value_kind":"TEXT"},{"canonical_value":"Zone de protection renforcée d'une réserve naturelle nationale","count":5,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":43,"value_kind":"TEXT"},{"canonical_value":"Zone marine protégée de la convention OSPAR (Atlantique Nord-est)","count":39,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:objectif_protection</code> — 3 distinct, 1811 null</summary>
+
+```json
+[{"canonical_value":"Géologie","count":263,"value_kind":"TEXT"},{"canonical_value":"Nature","count":8526,"value_kind":"TEXT"},{"canonical_value":"nature","count":272,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:statut</code> — 0 distinct, 10872 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:cd_type_milieu</code> — 3 distinct, 5 null</summary>
+
+```json
+[{"canonical_value":"MER","count":57,"value_kind":"TEXT"},{"canonical_value":"MIX","count":440,"value_kind":"TEXT"},{"canonical_value":"TER","count":10370,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:ref_carto_nom</code> — 54 distinct, 4785 null</summary>
+
+```json
+[{"canonical_value":" ","count":7,"value_kind":"TEXT"},{"canonical_value":"1/25 000","count":3,"value_kind":"TEXT"},{"canonical_value":"1/5 000","count":1,"value_kind":"TEXT"},{"canonical_value":"1/50 000","count":2,"value_kind":"TEXT"},{"canonical_value":"1/5000","count":2,"value_kind":"TEXT"},{"canonical_value":"Autre","count":312,"value_kind":"TEXT"},{"canonical_value":"BD ORTHO","count":9,"value_kind":"TEXT"},{"canonical_value":"BD ORTHO IGN","count":3,"value_kind":"TEXT"},{"canonical_value":"BD Ortho","count":278,"value_kind":"TEXT"},{"canonical_value":"BD Parcellaire","count":1540,"value_kind":"TEXT"},{"canonical_value":"BD TOPO","count":50,"value_kind":"TEXT"},{"canonical_value":"BD Topo","count":2,"value_kind":"TEXT"},{"canonical_value":"BD parcellaire","count":365,"value_kind":"TEXT"},{"canonical_value":"BD-Parcellaire","count":203,"value_kind":"TEXT"},{"canonical_value":"BDORTHO","count":1,"value_kind":"TEXT"},{"canonical_value":"BDPARCELLAIRE","count":1,"value_kind":"TEXT"},{"canonical_value":"BDParcellaire","count":1,"value_kind":"TEXT"},{"canonical_value":"BDTOPO","count":4,"value_kind":"TEXT"},{"canonical_value":"BDTOPOV3 LIMITE TERRE-MER","count":2,"value_kind":"TEXT"},{"canonical_value":"BD_TOPO","count":76,"value_kind":"TEXT"},{"canonical_value":"BDtopo","count":3,"value_kind":"TEXT"},{"canonical_value":"BdParcellaire Raster","count":1,"value_kind":"TEXT"},{"canonical_value":"BdParcellaire Vecteur","count":6,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":145,"value_kind":"TEXT"},{"canonical_value":"Cad.foret","count":1,"value_kind":"TEXT"},{"canonical_value":"Cadastre","count":41,"value_kind":"TEXT"},{"canonical_value":"Cadastre CDIF","count":7,"value_kind":"TEXT"},{"canonical_value":"Cadastre Etalab","count":2,"value_kind":"TEXT"},{"canonical_value":"Cadastre Etalab 2024","count":1,"value_kind":"TEXT"},{"canonical_value":"Calé sur Cadastre","count":5,"value_kind":"TEXT"},{"canonical_value":"Coodonnées GPS","count":1,"value_kind":"TEXT"},{"canonical_value":"Coordonnées GPS","count":1,"value_kind":"TEXT"},{"canonical_value":"DGFIP","count":1,"value_kind":"TEXT"},{"canonical_value":"DGI Cadastre","count":11,"value_kind":"TEXT"},{"canonical_value":"Fichiers fonciers","count":3,"value_kind":"TEXT"},{"canonical_value":"Histolitt","count":7,"value_kind":"TEXT"},{"canonical_value":"Inconnue","count":17,"value_kind":"TEXT"},{"canonical_value":"Lidar, GPS submétrique","count":115,"value_kind":"TEXT"},{"canonical_value":"Non défini","count":262,"value_kind":"TEXT"},{"canonical_value":"Numérisation manuelle","count":92,"value_kind":"TEXT"},{"canonical_value":"Ortho","count":2,"value_kind":"TEXT"},{"canonical_value":"Orthophoto","count":8,"value_kind":"TEXT"},{"canonical_value":"PARCELLAIRE","count":4,"value_kind":"TEXT"},{"canonical_value":"PCI VECTEUR","count":5,"value_kind":"TEXT"},{"canonical_value":"PCI Vecteur","count":1,"value_kind":"TEXT"},{"canonical_value":"PCI vecteur","count":1,"value_kind":"TEXT"},{"canonical_value":"Plan cadastral informatisé","count":2354,"value_kind":"TEXT"},{"canonical_value":"SCAN 25","count":26,"value_kind":"TEXT"},{"canonical_value":"SCAN100","count":1,"value_kind":"TEXT"},{"canonical_value":"SCAN25","count":65,"value_kind":"TEXT"},{"canonical_value":"Scan25","count":3,"value_kind":"TEXT"},{"canonical_value":"bd ortho / topo/Lidar","count":4,"value_kind":"TEXT"},{"canonical_value":"bd topo/ortho, cadastre GPS grand public en découvert","count":12,"value_kind":"TEXT"},{"canonical_value":"cadastre","count":17,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:ref_carto_version</code> — 21 distinct, 5205 null</summary>
+
+```json
+[{"canonical_value":" ","count":12,"value_kind":"TEXT"},{"canonical_value":"2007","count":1,"value_kind":"TEXT"},{"canonical_value":"2008","count":14,"value_kind":"TEXT"},{"canonical_value":"2009","count":2,"value_kind":"TEXT"},{"canonical_value":"2010","count":17,"value_kind":"TEXT"},{"canonical_value":"2011","count":3,"value_kind":"TEXT"},{"canonical_value":"2012","count":123,"value_kind":"TEXT"},{"canonical_value":"2013","count":34,"value_kind":"TEXT"},{"canonical_value":"2014","count":78,"value_kind":"TEXT"},{"canonical_value":"2015","count":42,"value_kind":"TEXT"},{"canonical_value":"2016","count":7,"value_kind":"TEXT"},{"canonical_value":"2017","count":31,"value_kind":"TEXT"},{"canonical_value":"2018","count":8,"value_kind":"TEXT"},{"canonical_value":"2019","count":5,"value_kind":"TEXT"},{"canonical_value":"2020","count":37,"value_kind":"TEXT"},{"canonical_value":"2021","count":4,"value_kind":"TEXT"},{"canonical_value":"2022","count":43,"value_kind":"TEXT"},{"canonical_value":"2023","count":11,"value_kind":"TEXT"},{"canonical_value":"2024","count":26,"value_kind":"TEXT"},{"canonical_value":"2025","count":5156,"value_kind":"TEXT"},{"canonical_value":"2026","count":13,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_metrop.gpkg:sig_metrop:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":10418,"value_kind":"TEXT"},{"canonical_value":"true","count":454,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:date_crea_sign</code> — 46 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1976-03-02","count":1,"value_kind":"TEXT"},{"canonical_value":"1976-08-24","count":1,"value_kind":"TEXT"},{"canonical_value":"1982-11-04","count":1,"value_kind":"TEXT"},{"canonical_value":"1984-02-27","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-02-12","count":1,"value_kind":"TEXT"},{"canonical_value":"1988-09-28","count":1,"value_kind":"TEXT"},{"canonical_value":"1988-10-05","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-03-01","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-03-07","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-08-11","count":2,"value_kind":"TEXT"},{"canonical_value":"1996-05-28","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-01-16","count":1,"value_kind":"TEXT"},{"canonical_value":"1998-08-12","count":1,"value_kind":"TEXT"},{"canonical_value":"1999-01-15","count":2,"value_kind":"TEXT"},{"canonical_value":"2000-03-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2000-07-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2001-04-04","count":1,"value_kind":"TEXT"},{"canonical_value":"2002-10-22","count":6,"value_kind":"TEXT"},{"canonical_value":"2003-04-04","count":4,"value_kind":"TEXT"},{"canonical_value":"2004-03-16","count":7,"value_kind":"TEXT"},{"canonical_value":"2005-01-17","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-04-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-08-05","count":2,"value_kind":"TEXT"},{"canonical_value":"2005-08-29","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-11-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2006-12-14","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-04-26","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-07-03","count":2,"value_kind":"TEXT"},{"canonical_value":"2008-09-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-02-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-02-04","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-02-24","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-03-01","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-06-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2012-09-18","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-02-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2013-08-22","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-01-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-10-14","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-05-10","count":7,"value_kind":"TEXT"},{"canonical_value":"2016-02-04","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-10-10","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-03-14","count":8,"value_kind":"TEXT"},{"canonical_value":"2017-05-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-09-15","count":3,"value_kind":"TEXT"},{"canonical_value":"2023-01-01","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:date_modif_geo</code> — 18 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2011-02-10","count":20,"value_kind":"TEXT"},{"canonical_value":"2012-03-07","count":3,"value_kind":"TEXT"},{"canonical_value":"2013-04-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-08-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-02-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-03-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-03-08","count":14,"value_kind":"TEXT"},{"canonical_value":"2018-03-08","count":3,"value_kind":"TEXT"},{"canonical_value":"2018-03-09","count":10,"value_kind":"TEXT"},{"canonical_value":"2019-12-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2022-07-15","count":3,"value_kind":"TEXT"},{"canonical_value":"2023-06-22","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-10-25","count":1,"value_kind":"TEXT"},{"canonical_value":"2024-03-12","count":9,"value_kind":"TEXT"},{"canonical_value":"2024-03-13","count":1,"value_kind":"TEXT"},{"canonical_value":"2025-01-23","count":4,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":2,"value_kind":"TEXT"},{"canonical_value":"2026-06-29","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:lien_fiche</code> — 0 distinct, 79 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:type_espace</code> — 15 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":24,"value_kind":"TEXT"},{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc naturel marin","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc naturel régional","count":1,"value_kind":"TEXT"},{"canonical_value":"Périmètre de protection d’une réserve naturelle nationale","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique intégrale","count":3,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone centrale","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone de transition","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone tampon","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":2,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle régionale","count":1,"value_kind":"TEXT"},{"canonical_value":"Site classé selon la loi de 1930","count":4,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":36,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone protégée de la convention de Carthagène (Caraïbes)","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:objectif_protection</code> — 2 distinct, 13 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":63,"value_kind":"TEXT"},{"canonical_value":"nature","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:statut</code> — 0 distinct, 79 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:cd_type_milieu</code> — 3 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MER","count":1,"value_kind":"TEXT"},{"canonical_value":"MIX","count":20,"value_kind":"TEXT"},{"canonical_value":"TER","count":58,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:ref_carto_nom</code> — 7 distinct, 53 null</summary>
+
+```json
+[{"canonical_value":"BD TOPO","count":1,"value_kind":"TEXT"},{"canonical_value":"BD parcellaire","count":1,"value_kind":"TEXT"},{"canonical_value":"BD-Parcellaire","count":1,"value_kind":"TEXT"},{"canonical_value":"BD_TOPO","count":5,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":16,"value_kind":"TEXT"},{"canonical_value":"RGAF09","count":1,"value_kind":"TEXT"},{"canonical_value":"SHOM","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:ref_carto_version</code> — 6 distinct, 67 null</summary>
+
+```json
+[{"canonical_value":"2012","count":5,"value_kind":"TEXT"},{"canonical_value":"2014","count":1,"value_kind":"TEXT"},{"canonical_value":"2016","count":1,"value_kind":"TEXT"},{"canonical_value":"2019","count":1,"value_kind":"TEXT"},{"canonical_value":"2022","count":1,"value_kind":"TEXT"},{"canonical_value":"2025","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_mtq.gpkg:sig_mtq:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":71,"value_kind":"TEXT"},{"canonical_value":"true","count":8,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:id_mnhn</code> — 30 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR1100696","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100698","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100868","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100869","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100870","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100871","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100872","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100873","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100874","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100875","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100876","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100877","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100878","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100879","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100880","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100881","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100931","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101037","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101038","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101039","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101040","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101041","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101042","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101043","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600162","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600182","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800703","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3801008","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200038","count":1,"value_kind":"TEXT"},{"canonical_value":"FR9100002","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:nom</code> — 29 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"BAIE DE BOUENI","count":1,"value_kind":"TEXT"},{"canonical_value":"BAIE DE DZOUMOGNE - LONGONI","count":1,"value_kind":"TEXT"},{"canonical_value":"Baie De Soulou","count":1,"value_kind":"TEXT"},{"canonical_value":"Bassin Versant De Tsingoni","count":1,"value_kind":"TEXT"},{"canonical_value":"Cratere De Petite Terre","count":1,"value_kind":"TEXT"},{"canonical_value":"Dziani Kariani","count":1,"value_kind":"TEXT"},{"canonical_value":"Forêts de Mayotte","count":1,"value_kind":"TEXT"},{"canonical_value":"Iles Blanches","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilot Karoni","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilot Mbouzi","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilot Tanaraki","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilots De Bandrele","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilots De Dembeni","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilots De La Passe","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilots M'Tzamboro","count":1,"value_kind":"TEXT"},{"canonical_value":"Ilots Sada","count":1,"value_kind":"TEXT"},{"canonical_value":"La Vasière Des Badamiers","count":1,"value_kind":"TEXT"},{"canonical_value":"Lagune D'Ambato-Mtsangamouji","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral De Bandrele","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral De Dembeni","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral De Kani-Keli","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral De Mamoudzou","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral De Sada-Chiconi","count":1,"value_kind":"TEXT"},{"canonical_value":"Mayotte","count":1,"value_kind":"TEXT"},{"canonical_value":"N’Gouja","count":2,"value_kind":"TEXT"},{"canonical_value":"POINTES ET PLAGES DE SAZILEY ET CHARIFOU","count":1,"value_kind":"TEXT"},{"canonical_value":"PRESQU’ILE DE BOUENI","count":1,"value_kind":"TEXT"},{"canonical_value":"Pointes Et Ilots Du Nord","count":1,"value_kind":"TEXT"},{"canonical_value":"Vasiere Des Badamiers","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:date_crea_sign</code> — 17 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1997-04-03","count":1,"value_kind":"TEXT"},{"canonical_value":"1997-10-20","count":1,"value_kind":"TEXT"},{"canonical_value":"2000-11-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2001-02-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2001-06-11","count":1,"value_kind":"TEXT"},{"canonical_value":"2001-10-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2002-09-03","count":1,"value_kind":"TEXT"},{"canonical_value":"2003-07-16","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-09-22","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-01-26","count":1,"value_kind":"TEXT"},{"canonical_value":"2009-03-12","count":8,"value_kind":"TEXT"},{"canonical_value":"2010-01-18","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-10-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-11-17","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-01-29","count":7,"value_kind":"TEXT"},{"canonical_value":"2016-12-20","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-05-03","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:date_modif_geo</code> — 11 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2009-03-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-03-08","count":7,"value_kind":"TEXT"},{"canonical_value":"2018-03-09","count":3,"value_kind":"TEXT"},{"canonical_value":"2019-03-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2020-10-20","count":1,"value_kind":"TEXT"},{"canonical_value":"2020-10-31","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-07-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-06-22","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-10-25","count":1,"value_kind":"TEXT"},{"canonical_value":"2024-03-12","count":9,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":4,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:lien_fiche</code> — 0 distinct, 30 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:type_espace</code> — 5 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":2,"value_kind":"TEXT"},{"canonical_value":"Parc naturel marin","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":2,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":24,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:objectif_protection</code> — 1 distinct, 7 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":23,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:statut</code> — 0 distinct, 30 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:superficie_ha</code> — 30 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.03888f861a60dp+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0461f9f01b867p+0","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0548a9bcfd4bfp-3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.07a9fe86833c6p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.0e0110a137f39p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.187aa79bbadc1p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.1d05532617c1cp+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.1d4e65bea0ba2p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.26663bcd35a86p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.276205bc01a37p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.32cb7d41743e9p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.3b107746887a9p-5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.4c0226809d495p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.4f3f141205bc0p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.58aef73c0c1fdp+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.5a73482be8bc1p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.5f09eecbfb15bp+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7d19a415f45e1p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.83516b11c6d1ep+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.993797cc39ffdp+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a0f338a62f599p+22","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.bc42eb1c432cap+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.bfc48e8a71de7p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c0f1561911490p+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.d21b4245f5ad9p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e29e978d4fdf4p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e3bc0c1fc8f32p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f4a50efdc9c4ep+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f4a7620ee8d11p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f7775b8130165p+3","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":11,"value_kind":"TEXT"},{"canonical_value":"TER","count":19,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:ref_carto_nom</code> — 4 distinct, 12 null</summary>
+
+```json
+[{"canonical_value":"BD-Parcellaire","count":4,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":6,"value_kind":"TEXT"},{"canonical_value":"Histolitt","count":1,"value_kind":"TEXT"},{"canonical_value":"Orthophoto","count":7,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:ref_carto_version</code> — 2 distinct, 26 null</summary>
+
+```json
+[{"canonical_value":"2015","count":3,"value_kind":"TEXT"},{"canonical_value":"2016","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_myt.gpkg:sig_myt:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":26,"value_kind":"TEXT"},{"canonical_value":"true","count":4,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:date_crea_sign</code> — 28 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1941-01-01","count":1,"value_kind":"TEXT"},{"canonical_value":"1966-12-29","count":1,"value_kind":"TEXT"},{"canonical_value":"1970-07-17","count":1,"value_kind":"TEXT"},{"canonical_value":"1981-07-27","count":2,"value_kind":"TEXT"},{"canonical_value":"1989-01-26","count":4,"value_kind":"TEXT"},{"canonical_value":"1993-06-25","count":5,"value_kind":"TEXT"},{"canonical_value":"1993-06-26","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-08-04","count":1,"value_kind":"TEXT"},{"canonical_value":"1995-08-04","count":1,"value_kind":"TEXT"},{"canonical_value":"1996-07-30","count":2,"value_kind":"TEXT"},{"canonical_value":"1998-04-23","count":2,"value_kind":"TEXT"},{"canonical_value":"2004-03-31","count":1,"value_kind":"TEXT"},{"canonical_value":"2005-10-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-07-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-10-24","count":3,"value_kind":"TEXT"},{"canonical_value":"2009-01-01","count":25,"value_kind":"TEXT"},{"canonical_value":"2009-02-18","count":3,"value_kind":"TEXT"},{"canonical_value":"2009-07-15","count":6,"value_kind":"TEXT"},{"canonical_value":"2009-09-29","count":1,"value_kind":"TEXT"},{"canonical_value":"2009-12-17","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-03-25","count":2,"value_kind":"TEXT"},{"canonical_value":"2012-01-01","count":2,"value_kind":"TEXT"},{"canonical_value":"2012-08-14","count":15,"value_kind":"TEXT"},{"canonical_value":"2014-02-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-04-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-10-24","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-08-14","count":2,"value_kind":"TEXT"},{"canonical_value":"2019-04-01","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:date_modif_geo</code> — 5 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2015-04-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2021-03-15","count":60,"value_kind":"TEXT"},{"canonical_value":"2022-11-01","count":8,"value_kind":"TEXT"},{"canonical_value":"2022-11-25","count":17,"value_kind":"TEXT"},{"canonical_value":"2023-10-25","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:lien_fiche</code> — 0 distinct, 88 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:type_espace</code> — 16 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Aire de gestion durable des ressources (Nouvelle-Calédonie - Province Nord)","count":2,"value_kind":"TEXT"},{"canonical_value":"Aire de gestion durable des ressources (Nouvelle-Calédonie - Province Sud)","count":10,"value_kind":"TEXT"},{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc naturel (Nouvelle-Calédonie)","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc provincial (Nouvelle-Calédonie - Province Nord)","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc provincial (Nouvelle-Calédonie - Province Sud)","count":8,"value_kind":"TEXT"},{"canonical_value":"Réserve de nature sauvage (Nouvelle-Calédonie - Province Nord)","count":8,"value_kind":"TEXT"},{"canonical_value":"Réserve intégrale (Nouvelle-Calédonie)","count":15,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle (Nouvelle-Calédonie - Province Sud)","count":30,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle (Nouvelle-Calédonie)","count":2,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle intégrale (Nouvelle-Calédonie - Province Nord)","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle intégrale (Nouvelle-Calédonie - Province Sud)","count":4,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle intégrale saisonnière (Nouvelle-Calédonie - Province Sud)","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle saisonnière (Nouvelle-Calédonie - Province Sud)","count":2,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone tampon d'aire de gestion durable des ressources (Nouvelle-Calédonie - Province Nord)","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:objectif_protection</code> — 1 distinct, 87 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:statut</code> — 0 distinct, 88 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:cd_type_milieu</code> — 3 distinct, 55 null</summary>
+
+```json
+[{"canonical_value":"MER","count":2,"value_kind":"TEXT"},{"canonical_value":"MIX","count":1,"value_kind":"TEXT"},{"canonical_value":"TER","count":30,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:ref_carto_nom</code> — 0 distinct, 88 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:ref_carto_version</code> — 0 distinct, 88 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_ncl.gpkg:sig_ncl:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":87,"value_kind":"TEXT"},{"canonical_value":"true","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:date_crea_sign</code> — 34 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1964-03-21","count":1,"value_kind":"TEXT"},{"canonical_value":"1970-06-18","count":1,"value_kind":"TEXT"},{"canonical_value":"1971-07-28","count":4,"value_kind":"TEXT"},{"canonical_value":"1972-08-01","count":1,"value_kind":"TEXT"},{"canonical_value":"1989-06-05","count":1,"value_kind":"TEXT"},{"canonical_value":"1992-11-12","count":3,"value_kind":"TEXT"},{"canonical_value":"1997-01-23","count":1,"value_kind":"TEXT"},{"canonical_value":"1997-12-26","count":2,"value_kind":"TEXT"},{"canonical_value":"2003-12-09","count":1,"value_kind":"TEXT"},{"canonical_value":"2004-10-20","count":1,"value_kind":"TEXT"},{"canonical_value":"2004-10-21","count":11,"value_kind":"TEXT"},{"canonical_value":"2006-08-01","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-06-04","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-09-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-03-19","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-09-27","count":3,"value_kind":"TEXT"},{"canonical_value":"2014-04-04","count":3,"value_kind":"TEXT"},{"canonical_value":"2014-06-06","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-06-26","count":2,"value_kind":"TEXT"},{"canonical_value":"2015-03-26","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-04-17","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-11-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-02-29","count":4,"value_kind":"TEXT"},{"canonical_value":"2016-03-04","count":2,"value_kind":"TEXT"},{"canonical_value":"2016-07-18","count":20,"value_kind":"TEXT"},{"canonical_value":"2017-07-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2017-08-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-04-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-04-10","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-07-12","count":3,"value_kind":"TEXT"},{"canonical_value":"2018-12-31","count":6,"value_kind":"TEXT"},{"canonical_value":"2019-11-29","count":1,"value_kind":"TEXT"},{"canonical_value":"2020-01-16","count":2,"value_kind":"TEXT"},{"canonical_value":"2020-02-27","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:date_modif_geo</code> — 5 distinct, 1 null</summary>
+
+```json
+[{"canonical_value":"2021-03-15","count":54,"value_kind":"TEXT"},{"canonical_value":"2022-11-30","count":23,"value_kind":"TEXT"},{"canonical_value":"2022-12-01","count":4,"value_kind":"TEXT"},{"canonical_value":"2022-12-02","count":2,"value_kind":"TEXT"},{"canonical_value":"2022-12-08","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:lien_fiche</code> — 0 distinct, 87 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:type_espace</code> — 18 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Aire de gestion des habitats ou des espèces (Polynésie française)","count":12,"value_kind":"TEXT"},{"canonical_value":"Aire marine protégée de plan de gestion de l'espace maritime (Polynésie française)","count":8,"value_kind":"TEXT"},{"canonical_value":"Aire protégée de ressources naturelles gérées (Polynésie française)","count":10,"value_kind":"TEXT"},{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":1,"value_kind":"TEXT"},{"canonical_value":"Gestion de l'espace maritime (Polynésie française)","count":1,"value_kind":"TEXT"},{"canonical_value":"Monument naturel (Polynésie française)","count":2,"value_kind":"TEXT"},{"canonical_value":"Parc territorial (Polynésie française)","count":2,"value_kind":"TEXT"},{"canonical_value":"Paysage naturel protégé (Polynésie française)","count":4,"value_kind":"TEXT"},{"canonical_value":"Périmètre de protection de réserve naturelle intégrale (Polynésie française)","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone centrale","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone de transition","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve de Biosphère, zone tampon","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle intégrale (Polynésie française)","count":3,"value_kind":"TEXT"},{"canonical_value":"Zone de nature sauvage (Polynésie française)","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone de pêche réglementée (Polynésie française)","count":35,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone protégée de la convention d'Apia","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone réglementée de pêche de plan de gestion de l'espace maritime (Polynésie française)","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:objectif_protection</code> — 1 distinct, 86 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:statut</code> — 0 distinct, 87 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:cd_type_milieu</code> — 3 distinct, 84 null</summary>
+
+```json
+[{"canonical_value":"MER","count":1,"value_kind":"TEXT"},{"canonical_value":"MIX","count":1,"value_kind":"TEXT"},{"canonical_value":"TER","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:ref_carto_nom</code> — 0 distinct, 87 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:ref_carto_version</code> — 0 distinct, 87 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_pyf.gpkg:sig_pyf:doc_gestion</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":87,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:id_mnhn</code> — 44 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR1100368","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100370","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100371","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100372","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100379","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100380","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100616","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100617","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100618","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100694","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100767","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100863","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100864","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100865","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100866","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100932","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100974","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1100995","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101078","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101102","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU01","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU03","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU04","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU05","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU06","count":1,"value_kind":"TEXT"},{"canonical_value":"FR23REU07","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24REU02","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24REU04","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24REU05","count":1,"value_kind":"TEXT"},{"canonical_value":"FR24REU06","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3200001","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3200002","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3200003","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3200004","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3200005","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3300009","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3400009","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600164","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600166","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800439","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800691","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3800782","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7100004","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200050","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:nom</code> — 43 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Anse Des Cascades","count":1,"value_kind":"TEXT"},{"canonical_value":"Bois Blanc","count":1,"value_kind":"TEXT"},{"canonical_value":"Bois de Nèfles - Saint-Paul (de)","count":1,"value_kind":"TEXT"},{"canonical_value":"Bois de couleurs des Bas (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Bras De La Plaine","count":1,"value_kind":"TEXT"},{"canonical_value":"Bras des Merles - Bras Bémale (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Bébour (de)","count":1,"value_kind":"TEXT"},{"canonical_value":"CAP DE LA HOUSSAYE","count":1,"value_kind":"TEXT"},{"canonical_value":"CAYENNE","count":1,"value_kind":"TEXT"},{"canonical_value":"Etang Du Gol","count":1,"value_kind":"TEXT"},{"canonical_value":"Etang de Saint-Paul","count":1,"value_kind":"TEXT"},{"canonical_value":"GRANDE CHALOUPE - RAVINE A MALHEUR","count":1,"value_kind":"TEXT"},{"canonical_value":"Grand Matarum (du)","count":1,"value_kind":"TEXT"},{"canonical_value":"Grande Anse","count":1,"value_kind":"TEXT"},{"canonical_value":"Grande Ravine","count":1,"value_kind":"TEXT"},{"canonical_value":"Hauts de Saint-Philippe (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Ile De Petite-Ile","count":1,"value_kind":"TEXT"},{"canonical_value":"La Pointe Au Sel","count":2,"value_kind":"TEXT"},{"canonical_value":"La Ravine Du Bernica","count":1,"value_kind":"TEXT"},{"canonical_value":"La Riviere Des Roches","count":1,"value_kind":"TEXT"},{"canonical_value":"Le Chaudron","count":1,"value_kind":"TEXT"},{"canonical_value":"Le Voile De La Mariee","count":1,"value_kind":"TEXT"},{"canonical_value":"Les Grottes Des Premiers Francais","count":1,"value_kind":"TEXT"},{"canonical_value":"Littoral de Saint-Philippe (du)","count":1,"value_kind":"TEXT"},{"canonical_value":"Mares (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Marine De La Réunion","count":1,"value_kind":"TEXT"},{"canonical_value":"Marine De Vincendo","count":1,"value_kind":"TEXT"},{"canonical_value":"Mazerin (du)","count":1,"value_kind":"TEXT"},{"canonical_value":"POINTE DES TROIS BASSINS","count":1,"value_kind":"TEXT"},{"canonical_value":"Pandanaie Des Hauts De L'Est","count":1,"value_kind":"TEXT"},{"canonical_value":"Pentes Du Piton Takamaka","count":1,"value_kind":"TEXT"},{"canonical_value":"Pierrefonds","count":1,"value_kind":"TEXT"},{"canonical_value":"Pitons, Cirques Et Remparts De L'Île De La Réunion Et Sa Zone Tampon","count":1,"value_kind":"TEXT"},{"canonical_value":"RAVINE DU PORTAIL AUX AVIRONS","count":1,"value_kind":"TEXT"},{"canonical_value":"Ravine des Lataniers","count":1,"value_kind":"TEXT"},{"canonical_value":"Rocher De Petite Ile","count":1,"value_kind":"TEXT"},{"canonical_value":"Rochers Des Colimacons","count":1,"value_kind":"TEXT"},{"canonical_value":"Réunion","count":1,"value_kind":"TEXT"},{"canonical_value":"Réunion [Aire D'Adhésion]","count":1,"value_kind":"TEXT"},{"canonical_value":"Saint Francois","count":1,"value_kind":"TEXT"},{"canonical_value":"Tamarinaies des Hauts sous le Vent (des)","count":1,"value_kind":"TEXT"},{"canonical_value":"Terre Rouge","count":1,"value_kind":"TEXT"},{"canonical_value":"Étang De Saint-Paul","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:date_crea_sign</code> — 37 distinct, 1 null</summary>
+
+```json
+[{"canonical_value":"1973-06-01","count":1,"value_kind":"TEXT"},{"canonical_value":"1980-02-11","count":1,"value_kind":"TEXT"},{"canonical_value":"1980-03-26","count":1,"value_kind":"TEXT"},{"canonical_value":"1980-08-01","count":1,"value_kind":"TEXT"},{"canonical_value":"1980-12-11","count":1,"value_kind":"TEXT"},{"canonical_value":"1981-02-24","count":1,"value_kind":"TEXT"},{"canonical_value":"1982-05-17","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-03-20","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-05-20","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-09-12","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-11-22","count":1,"value_kind":"TEXT"},{"canonical_value":"1985-12-30","count":1,"value_kind":"TEXT"},{"canonical_value":"1986-02-17","count":1,"value_kind":"TEXT"},{"canonical_value":"1987-11-16","count":2,"value_kind":"TEXT"},{"canonical_value":"1988-05-05","count":1,"value_kind":"TEXT"},{"canonical_value":"1989-07-20","count":1,"value_kind":"TEXT"},{"canonical_value":"1994-07-05","count":1,"value_kind":"TEXT"},{"canonical_value":"1996-04-15","count":1,"value_kind":"TEXT"},{"canonical_value":"1996-04-26","count":1,"value_kind":"TEXT"},{"canonical_value":"1997-07-31","count":1,"value_kind":"TEXT"},{"canonical_value":"2002-03-14","count":1,"value_kind":"TEXT"},{"canonical_value":"2003-04-22","count":1,"value_kind":"TEXT"},{"canonical_value":"2006-02-15","count":3,"value_kind":"TEXT"},{"canonical_value":"2006-12-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-02-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2007-03-05","count":2,"value_kind":"TEXT"},{"canonical_value":"2008-01-02","count":1,"value_kind":"TEXT"},{"canonical_value":"2009-03-27","count":1,"value_kind":"TEXT"},{"canonical_value":"2010-07-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2011-01-11","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-02-28","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-11-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-02-08","count":1,"value_kind":"TEXT"},{"canonical_value":"2016-12-28","count":2,"value_kind":"TEXT"},{"canonical_value":"2019-07-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2019-12-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2020-06-19","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:date_modif_geo</code> — 12 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2011-02-10","count":3,"value_kind":"TEXT"},{"canonical_value":"2013-02-21","count":1,"value_kind":"TEXT"},{"canonical_value":"2014-07-23","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-05-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2018-12-07","count":1,"value_kind":"TEXT"},{"canonical_value":"2019-12-11","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-02-01","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-06-22","count":14,"value_kind":"TEXT"},{"canonical_value":"2024-03-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2025-01-23","count":5,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":5,"value_kind":"TEXT"},{"canonical_value":"2026-06-29","count":10,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:lien_fiche</code> — 0 distinct, 44 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:type_espace</code> — 10 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Arrêté de protection de biotope","count":3,"value_kind":"TEXT"},{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc national, aire d'adhésion","count":1,"value_kind":"TEXT"},{"canonical_value":"Parc national, zone cœur","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique dirigée","count":6,"value_kind":"TEXT"},{"canonical_value":"Réserve biologique intégrale","count":4,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":2,"value_kind":"TEXT"},{"canonical_value":"Site classé selon la loi de 1930","count":5,"value_kind":"TEXT"},{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":20,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:objectif_protection</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":34,"value_kind":"TEXT"},{"canonical_value":"nature","count":10,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:statut</code> — 0 distinct, 44 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:superficie_ha</code> — 44 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.065f84cad57bcp+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.078221426fe72p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.097c6e6d9be4dp+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.09db76b3bb83dp+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.14e6f78feef5fp+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.1bc540cc78e9fp+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.1ddab851eb852p+12","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.250bc6a7ef9dbp+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.28fae147ae148p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.37cd940789614p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.40b7c21187e7cp+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.43cd2b2bfdb4dp+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.45906cca2db62p+2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.55a858793dd98p-2","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.63f61a60d4563p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.653497b7414a5p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.69d6e04c05921p+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.6bffe08aefb2bp+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.7048c3f3e0371p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.75eb851eb851fp+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.76e5b4245f5aep+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.82ad6238da3c2p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.92d5c28f5c28fp+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9564c447c30d3p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.984d74927913fp+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9c2ae5db76b3cp+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.b0147ae147ae1p+5","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.b23eb851eb852p+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.b94b5dcc63f14p+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.bbbd8c692f6e8p+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.be517c1bda512p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.cb3e425aee632p+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.cb7139fbe76c9p+16","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.cdb0a3d70a3d7p+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.ceda469d7342fp+4","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.d170a3d70a3d7p+7","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.da5a9a8049668p+1","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.dc04ff43419e3p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.dd4e147ae147bp+11","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.df35c28f5c28fp+9","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e181adea89763p+3","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e55bc55864452p+8","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.f5907e1c58256p+15","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.fc70dbdf8f473p+9","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MIX","count":2,"value_kind":"TEXT"},{"canonical_value":"TER","count":42,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:ref_carto_nom</code> — 3 distinct, 25 null</summary>
+
+```json
+[{"canonical_value":"BD TOPO","count":2,"value_kind":"TEXT"},{"canonical_value":"BD-Parcellaire","count":5,"value_kind":"TEXT"},{"canonical_value":"CADASTRE","count":12,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:ref_carto_version</code> — 3 distinct, 27 null</summary>
+
+```json
+[{"canonical_value":"2013","count":2,"value_kind":"TEXT"},{"canonical_value":"2014","count":5,"value_kind":"TEXT"},{"canonical_value":"2025","count":10,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_reu.gpkg:sig_reu:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":43,"value_kind":"TEXT"},{"canonical_value":"true","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:id_mnhn</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR1100699","count":1,"value_kind":"TEXT"},{"canonical_value":"FR1101017","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:nom</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Anse A Henry","count":1,"value_kind":"TEXT"},{"canonical_value":"ISTHME DE MIQUELON-LANGLADE","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:date_crea_sign</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2005-12-14","count":1,"value_kind":"TEXT"},{"canonical_value":"2015-04-16","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:date_modif_geo</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2024-03-12","count":1,"value_kind":"TEXT"},{"canonical_value":"2026-01-08","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:lien_fiche</code> — 0 distinct, 2 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:type_espace</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Terrain acquis par le Conservatoire du Littoral","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:statut</code> — 0 distinct, 2 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:superficie_ha</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.7b4c327674d16p+10","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.9a12d77318fc5p+3","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:cd_type_milieu</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"TER","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:ref_carto_nom</code> — 1 distinct, 1 null</summary>
+
+```json
+[{"canonical_value":"BD-Parcellaire","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:ref_carto_version</code> — 1 distinct, 1 null</summary>
+
+```json
+[{"canonical_value":"2010","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_spm.gpkg:sig_spm:doc_gestion</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":2,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:id_mnhn</code> — 11 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR0400004","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400005","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400006","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400007","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400008","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400011","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400012","count":1,"value_kind":"TEXT"},{"canonical_value":"FR0400013","count":1,"value_kind":"TEXT"},{"canonical_value":"FR3600161","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7100008","count":1,"value_kind":"TEXT"},{"canonical_value":"FR7200036","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:nom</code> — 10 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Terres Australes Françaises","count":2,"value_kind":"TEXT"},{"canonical_value":"Terres et mers australes françaises","count":1,"value_kind":"TEXT"},{"canonical_value":"archipel Crozet","count":1,"value_kind":"TEXT"},{"canonical_value":"banc Kerguelen-Heard Est","count":1,"value_kind":"TEXT"},{"canonical_value":"banc Kerguelen-Heard Ouest","count":1,"value_kind":"TEXT"},{"canonical_value":"banc Skiff","count":1,"value_kind":"TEXT"},{"canonical_value":"cratère de Saint-Paul","count":1,"value_kind":"TEXT"},{"canonical_value":"eaux territoriales et plateau Nord","count":1,"value_kind":"TEXT"},{"canonical_value":"méandre du front polaire","count":1,"value_kind":"TEXT"},{"canonical_value":"plateau et dorsale","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:date_crea_sign</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2006-10-03","count":1,"value_kind":"TEXT"},{"canonical_value":"2008-09-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2019-07-05","count":1,"value_kind":"TEXT"},{"canonical_value":"2022-02-11","count":8,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:date_modif_geo</code> — 3 distinct, 1 null</summary>
+
+```json
+[{"canonical_value":"2021-03-04","count":1,"value_kind":"TEXT"},{"canonical_value":"2022-03-15","count":1,"value_kind":"TEXT"},{"canonical_value":"2023-01-18","count":8,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:lien_fiche</code> — 0 distinct, 11 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:type_espace</code> — 4 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Bien inscrit sur la liste du patrimoine mondial de l'UNESCO","count":1,"value_kind":"TEXT"},{"canonical_value":"Réserve naturelle nationale","count":1,"value_kind":"TEXT"},{"canonical_value":"Zone de protection renforcée d'une réserve naturelle nationale","count":8,"value_kind":"TEXT"},{"canonical_value":"Zone humide protégée par la convention de Ramsar","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:objectif_protection</code> — 1 distinct, 2 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":9,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:statut</code> — 0 distinct, 11 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:superficie_ha</code> — 11 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x1.05f1de605197ap+26","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.215be83cfd4bfp+21","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.3cd8242c0d6f5p+22","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.43cb49ac1465fp+27","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.8b4d5db370cddp+24","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.90b3a14cec41ep+6","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.93cd6947ae148p+19","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.a981782f837b5p+17","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.c3d1952046c76p+19","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.d65bd3b8f9b13p+19","count":1,"value_kind":"FLOAT_HEX"},{"canonical_value":"0x1.e3627aa43fe5dp+21","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:cd_type_milieu</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MER","count":6,"value_kind":"TEXT"},{"canonical_value":"MIX","count":5,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:ref_carto_nom</code> — 1 distinct, 10 null</summary>
+
+```json
+[{"canonical_value":"SHOM","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:ref_carto_version</code> — 1 distinct, 10 null</summary>
+
+```json
+[{"canonical_value":"2016","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_subant.gpkg:sig_subant:doc_gestion</code> — 2 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":8,"value_kind":"TEXT"},{"canonical_value":"true","count":3,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:id_mnhn</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"FR7000001","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:nom</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Pointe-Géologie Archipelego","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:date_crea_sign</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"1995-01-01","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:date_modif_geo</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"2021-07-30","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:lien_fiche</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:type_espace</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Zone spécialement protégée de l'Antarctique","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:objectif_protection</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"Nature","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:statut</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:superficie_ha</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"0x0.0p+0","count":1,"value_kind":"FLOAT_HEX"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:cd_type_milieu</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"MER","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:ref_carto_nom</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:ref_carto_version</code> — 0 distinct, 1 null</summary>
+
+```json
+[]
+```
+
+</details>
+<details>
+<summary><code>EP/sig_tadl.gpkg:sig_tadl:doc_gestion</code> — 1 distinct, 0 null</summary>
+
+```json
+[{"canonical_value":"false","count":1,"value_kind":"TEXT"}]
+```
+
+</details>
+
+### High-cardinality fields (17 fields, no partial domains)
+
+| Package/layer | Position | Field | Distinct non-null | Column SHA256 |
+|---|---:|---|---:|---|
+| `EP/sig_glp.gpkg:sig_glp` | 0 | `id_mnhn` | 94 | `7817c0a8557780f35ca7a8dc87cad978fb7e57b6719be1c2171f3d54fbf84e58` |
+| `EP/sig_glp.gpkg:sig_glp` | 1 | `nom` | 93 | `0f2862ee16e4ef0e05f777167f9cbe84fa8566392cde5a5ed55c54e37e278c88` |
+| `EP/sig_glp.gpkg:sig_glp` | 8 | `superficie_ha` | 94 | `c1ef77991e73f0e18ea64eec0f0924a2aa3b77a2034e5d0c957f04da16780968` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 0 | `id_mnhn` | 10872 | `b8d48c679a891d54bf11a773336d2dd5d3c94f576531be4ef074e0f00e6b8494` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 1 | `nom` | 9946 | `cc01b4a7f284f43c8eb67a4227918cb732726c49868a2555e53d27d1a882ec9d` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 2 | `date_crea_sign` | 5201 | `35a5b093e183f6cbaf13596a1b2070631fe83018fb9e5071e261248bab4c9b24` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 3 | `date_modif_geo` | 159 | `3a7298e4f96e16033386a7ce13d37084853a56a092fefd0288273af1e145178f` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 8 | `superficie_ha` | 10604 | `75c51361eef182963c746babeee9a39293a74c8970a603249b3b5448b1c969a2` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 0 | `id_mnhn` | 79 | `ae16453c3c6b82461f692cec67495c8ad8378e4c101fe468167edebbc57facf4` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 1 | `nom` | 74 | `65f86877a6da9c7f3ad1d4fbefbbd17b819e9c3f91109f678fb605124f17742a` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 8 | `superficie_ha` | 79 | `85b649e6258b8482c4c84e288fb4665792c69878cada20d23f84e83963a93304` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 0 | `id_mnhn` | 88 | `7894cad3fb03bcc8fff0d34bf5f544ae2ce4a8251363dba06d8a3d31afde4785` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 1 | `nom` | 88 | `cc4318438123ed1df2164dacb436fbce6c61bede5f8fa0e2c569e4b97c973ca5` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 8 | `superficie_ha` | 88 | `d77ee980bd3a1433ce542b3168059626a767308781c47d16d3d1beb2ab0a8b7b` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 0 | `id_mnhn` | 87 | `8e3789554721ebf3de5fca96efc3ab66a979cfb0052227c8dcffa8184dfe4b1d` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 1 | `nom` | 80 | `46935db7df881378c2bfe8aaf368ffb6285ea2d5f8ecbbb723d00200f9442ba2` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 8 | `superficie_ha` | 86 | `dcfd30a852a708219831bd3ea60f15b820d3aaf62001f9a28efc8e52151f2af3` |
+
+### FID hash evidence
+
+| Package/layer | FID count | Min | Max | FID sequence SHA256 |
+|---|---:|---:|---:|---|
+| `EP/sig_blm.gpkg:sig_blm` | 4 | 1 | 4 | `f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f` |
+| `EP/sig_cli.gpkg:sig_cli` | 1 | 1 | 1 | `080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22` |
+| `EP/sig_epa.gpkg:sig_epa` | 5 | 1 | 5 | `f5baf0e4336fd53b4c82b453ece859868475160d36f22e9551a0e9b10ac9cc00` |
+| `EP/sig_glp.gpkg:sig_glp` | 94 | 1 | 94 | `0e23b6e4dfbf50733e1b02554bf2e094265eaa4482c886717fbfb47cd042c0e2` |
+| `EP/sig_guf.gpkg:sig_guf` | 42 | 1 | 42 | `9b669fa350a15f13d4ab456869612801860848d589df68cb61930c16e5ef4a98` |
+| `EP/sig_maf.gpkg:sig_maf` | 21 | 1 | 21 | `d2592aec818c569765bfa500e771578e176f38be15ddf0a61a24fdab79b09876` |
+| `EP/sig_metrop.gpkg:sig_metrop` | 10872 | 1 | 10872 | `74fbd5bd2940405f95e1adc81075f31edb5a55856a0c193ddc6ec01c5e4cc303` |
+| `EP/sig_mtq.gpkg:sig_mtq` | 79 | 1 | 79 | `4e5d751543e602052a0eea21a6538e84127b2ccb12f680679cb5dac5ffef2bed` |
+| `EP/sig_myt.gpkg:sig_myt` | 30 | 1 | 30 | `ebda43c0ca7bab4c6b235bede1b8d289a4181c5bbe556cf1af17979956289a7b` |
+| `EP/sig_ncl.gpkg:sig_ncl` | 88 | 1 | 88 | `850993d9f399eb243af2ee50618b6f037d3735bffd26d0c62887e83ff79f6e7e` |
+| `EP/sig_pyf.gpkg:sig_pyf` | 87 | 1 | 87 | `44518a20100d2f73652ce108d7db6acbbec00b30bffc4768e56f59e13f451146` |
+| `EP/sig_reu.gpkg:sig_reu` | 44 | 1 | 44 | `a5b6e06588c6904f0b803dbafe19b86b09846118261ed22e81d06c4db1217d60` |
+| `EP/sig_spm.gpkg:sig_spm` | 2 | 1 | 2 | `49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684` |
+| `EP/sig_subant.gpkg:sig_subant` | 11 | 1 | 11 | `e1330a9fe8a1883cb0bdc41e4fb5d25cf1c4fcd4c48b2c360d6da717513e1e4e` |
+| `EP/sig_tadl.gpkg:sig_tadl` | 1 | 1 | 1 | `080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22` |
+
+### Row-content hash evidence
+
+| Package/layer | Row-content SHA256 |
+|---|---|
+| `EP/sig_blm.gpkg:sig_blm` | `112688efcfe3ec1ca23d33f8c0d4b78ba6f86dfa757080700cb7ee2e136ebae3` |
+| `EP/sig_cli.gpkg:sig_cli` | `a53e4f4939f3a87b784910ea9a5f6d990f2816826abaff86278ff904160cedc9` |
+| `EP/sig_epa.gpkg:sig_epa` | `2bc1ca61ac70ae626c02d1f8b6df878f5e06f037a2efd78b3c78bd190216aa81` |
+| `EP/sig_glp.gpkg:sig_glp` | `35ef71afdd246b6bac19e309fe154c1283c132d8afe8fd5f57567129c5282a05` |
+| `EP/sig_guf.gpkg:sig_guf` | `7c542fc987d4955f5755bb49611508f30238fcf0f1530b94c5c3e44f9d7babd7` |
+| `EP/sig_maf.gpkg:sig_maf` | `95434f9a014a2b8edc598f5bdfd39d40463febf96a6d8a0eed8a65cdf28c9be1` |
+| `EP/sig_metrop.gpkg:sig_metrop` | `cc135c48a3db24b596495e7b9b4bdbe56bb8f06b4d4b4fcb65d245c60a455efa` |
+| `EP/sig_mtq.gpkg:sig_mtq` | `b99074fe603d87253bc7419bc1196600b9b99ff94c78af44dbfd1cec0d653d96` |
+| `EP/sig_myt.gpkg:sig_myt` | `514840edba04dbbba8e2c264b5507a3d8dc63533c727e97cc6b483ec80e1936a` |
+| `EP/sig_ncl.gpkg:sig_ncl` | `aee8a24c3cfc9ef727306c716a13faefc14dae36aed1fccf33a750c67b9f9bed` |
+| `EP/sig_pyf.gpkg:sig_pyf` | `78537e23be0f0055d6ed0b1c200355d89a05980fdad5defed67f1d34d0fea6a8` |
+| `EP/sig_reu.gpkg:sig_reu` | `91b0f4aa494a06ecc973b7ca110a9bf8ebe7c1dc0cac6c58880333f343fcb1ae` |
+| `EP/sig_spm.gpkg:sig_spm` | `69b90a968bf322392c23331a5490800b89e3d91cb5e733fda917d9a81f224889` |
+| `EP/sig_subant.gpkg:sig_subant` | `93bed722d1fd39080e55e99874a9d44aaa0ad231cac93d29a38064673b2584d3` |
+| `EP/sig_tadl.gpkg:sig_tadl` | `2f0aefda3a23541ce9b634f691dafefec13d0877e7f0d610805c35e40d2e3366` |
+
+- Complete profile hash: `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`.
+- Repeat-build determinism: `true`.
+- Independent rebuild: `passed`.
+
 
 ## STEP 7F.1B.1.2 — Close final INPN archive postconditions and evidence gaps
 

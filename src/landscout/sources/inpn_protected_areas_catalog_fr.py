@@ -7,7 +7,8 @@ import math
 import re
 import unicodedata
 import warnings
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from hashlib import sha256
 from numbers import Real
@@ -31,6 +32,19 @@ _PYOGRIO_BYTES_GPKG_WARNING = (
     r"^File /vsimem/pyogrio_[0-9a-f]+ has GPKG application_id, "
     r"but non conformant file extension$"
 )
+
+
+@contextmanager
+def _suppress_pyogrio_bytes_gpkg_warning() -> Iterator[None]:
+    """Suppress only Pyogrio's expected byte-backed GPKG extension warning."""
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=_PYOGRIO_BYTES_GPKG_WARNING,
+            category=RuntimeWarning,
+        )
+        yield
 
 
 class InpnProtectedAreasCatalogError(ValueError):
@@ -430,12 +444,7 @@ def _inspect_layer(
     listed_geometry_type: str | None,
 ) -> tuple[InpnProtectedAreasLayerCatalog, str]:
     try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                message=_PYOGRIO_BYTES_GPKG_WARNING,
-                category=RuntimeWarning,
-            )
+        with _suppress_pyogrio_bytes_gpkg_warning():
             raw_metadata = pyogrio.read_info(
                 package_bytes,
                 layer=layer_name,
@@ -544,12 +553,7 @@ def _inspect_package(
     try:
         package_bytes = _read_verified_package_bytes(extraction, item)
         try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore",
-                    message=_PYOGRIO_BYTES_GPKG_WARNING,
-                    category=RuntimeWarning,
-                )
+            with _suppress_pyogrio_bytes_gpkg_warning():
                 raw_layers = pyogrio.list_layers(package_bytes)
             enumeration = _layer_enumeration(raw_layers, item.relative_path)
         except InpnProtectedAreasCatalogError:

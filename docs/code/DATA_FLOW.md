@@ -136,9 +136,17 @@ InpnProtectedAreasSourceConfig
   -> build_inpn_protected_areas_catalog
   -> schema-2 InpnProtectedAreasCatalog(package/layer/field metadata)
   -> validate_inpn_protected_areas_catalog
+  -> build_inpn_protected_areas_attribute_profile
+  -> schema-1 InpnProtectedAreasAttributeProfile(complete non-geometry domains)
+  -> validate_inpn_protected_areas_attribute_profile
+  -> category semantics NOT IMPLEMENTED
+  -> geometry loading NOT IMPLEMENTED
+  -> parcel relation NOT IMPLEMENTED
+  -> environmental policy NOT IMPLEMENTED
+  -> score NOT IMPLEMENTED
 ```
 
-The flow currently stops at a portable, source-bound schema-2 metadata catalog. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match, and every successful source return rechecks the live archive path against the initial snapshot. Each package is read once and all metadata-only OGR calls use those exact verified bytes; exact `GPKG` driver identity is hash-bound. Only the expected byte-backed `/vsimem` extension warning is locally suppressed. The independent validator rebuilds and exact-compares every catalog value. No feature row or geometry is materialized, and there is no category semantics, Natura 2000/ZNIEFF interpretation, parcel overlay, exclusion, or score.
+The flow currently stops at a portable, source-bound schema-1 attribute profile. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match, and every successful source return rechecks the live archive path against the initial snapshot. Each package is read once per catalog/profile build and all OGR calls use exact verified bytes; exact `GPKG` driver identity is hash-bound. Attribute reads request no geometry and preserve every integer FID, exact scalar value/frequency, null, source/runtime dtype, field order, and content hash. Only the expected byte-backed `/vsimem` extension warning is locally suppressed. Independent validators rebuild and exact-compare every catalog/profile value. No EP geometry is materialized, and there is no category semantics, parcel overlay, exclusion, or score. EP is not the separately published Natura 2000 archive and is not the separately published ZNIEFF archive.
 
 ## Result preservation pattern
 
