@@ -7,9 +7,11 @@ import binascii
 import json
 import math
 import re
+import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
+from pathlib import PurePosixPath, PureWindowsPath
 from typing import cast
 
 import numpy as np
@@ -598,6 +600,51 @@ def _exact_text(value: object, label: str, *, allow_empty: bool = False) -> str:
     return value
 
 
+def _exact_metadata_text(value: object, label: str) -> str:
+    text = _exact_text(value, label)
+    if text != text.strip():
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} must not contain edge whitespace"
+        )
+    return text
+
+
+def _identity_key(value: str) -> str:
+    return unicodedata.normalize("NFKC", value).casefold()
+
+
+def _require_unique_identities(values: tuple[str, ...], label: str) -> None:
+    if len(set(values)) != len(values):
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} contains duplicate exact names"
+        )
+    normalized = tuple(_identity_key(value) for value in values)
+    if len(set(normalized)) != len(normalized):
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} contains Unicode-NFKC/casefold collisions"
+        )
+
+
+def _canonical_package_path(value: object, label: str) -> str:
+    path = _exact_metadata_text(value, label)
+    posix_path = PurePosixPath(path)
+    windows_path = PureWindowsPath(path)
+    if (
+        posix_path.as_posix() != path
+        or windows_path.as_posix() != path
+        or posix_path.is_absolute()
+        or windows_path.is_absolute()
+        or bool(windows_path.drive)
+        or ".." in posix_path.parts
+        or ".." in windows_path.parts
+        or posix_path.suffix.casefold() != ".gpkg"
+    ):
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} must be a canonical relative GeoPackage path"
+        )
+    return path
+
+
 def _exact_non_negative_int(value: object, label: str) -> int:
     if type(value) is not int or value < 0:
         raise InpnProtectedAreasAttributeProfileError(
@@ -695,7 +742,7 @@ def _validate_profile_intrinsic(
         "archive_url",
         "archive_filename",
     ):
-        _exact_text(getattr(profile, name), f"profile {name}")
+        _exact_metadata_text(getattr(profile, name), f"profile {name}")
     if type(profile.archive_size) is not int or profile.archive_size <= 0:
         raise InpnProtectedAreasAttributeProfileError("profile archive size is invalid")
     _exact_sha(profile.archive_sha256, "profile archive SHA256")
@@ -715,9 +762,10 @@ def _validate_profile_intrinsic(
             "profile layers must be a non-empty exact tuple"
         )
 
-    package_paths: dict[int, str] = {}
-    layer_identities: set[tuple[str, str]] = set()
-    expected_order: list[tuple[int, int]] = []
+    package_evidence: dict[int, tuple[str, int, str, str]] = {}
+    package_paths: list[str] = []
+    layer_names_by_package: dict[int, list[str]] = {}
+    last_package_position = -1
     field_count = 0
     total_rows = 0
     total_nulls = 0
@@ -727,37 +775,67 @@ def _validate_profile_intrinsic(
             raise InpnProtectedAreasAttributeProfileError(
                 "profile layer nested type is invalid"
             )
-        path = _exact_text(layer.relative_path, "profile layer package path")
+        path = _canonical_package_path(
+            layer.relative_path,
+            "profile layer package path",
+        )
         if type(layer.file_size) is not int or layer.file_size <= 0:
             raise InpnProtectedAreasAttributeProfileError(
                 f"package {path}: profile file size is invalid"
             )
-        _exact_sha(layer.file_sha256, f"package {path} file SHA256")
+        file_sha256 = _exact_sha(layer.file_sha256, f"package {path} file SHA256")
         package_position = _exact_non_negative_int(
             layer.package_position,
             f"package {path} position",
         )
-        previous_path = package_paths.setdefault(package_position, path)
-        if previous_path != path:
-            raise InpnProtectedAreasAttributeProfileError(
-                "profile package position maps to multiple paths"
-            )
-        if _exact_text(layer.driver_name, f"package {path} driver") != "GPKG":
+        driver_name = _exact_metadata_text(
+            layer.driver_name,
+            f"package {path} driver",
+        )
+        if driver_name != "GPKG":
             raise InpnProtectedAreasAttributeProfileError(
                 f"package {path}: driver must be exact GPKG"
             )
-        layer_name = _exact_text(layer.layer_name, f"package {path} layer name")
+        current_evidence = (path, layer.file_size, file_sha256, driver_name)
+        previous_evidence = package_evidence.get(package_position)
+        if previous_evidence is None:
+            if package_position != len(package_evidence):
+                raise InpnProtectedAreasAttributeProfileError(
+                    "profile package positions must be contiguous"
+                )
+            package_evidence[package_position] = current_evidence
+            package_paths.append(path)
+            layer_names_by_package[package_position] = []
+        elif previous_evidence != current_evidence:
+            raise InpnProtectedAreasAttributeProfileError(
+                "profile repeated package metadata is inconsistent"
+            )
+        if package_position < last_package_position or (
+            package_position != last_package_position and previous_evidence is not None
+        ):
+            raise InpnProtectedAreasAttributeProfileError(
+                "profile package layers must form contiguous groups"
+            )
+        last_package_position = package_position
+        layer_name = _exact_metadata_text(
+            layer.layer_name,
+            f"package {path} layer name",
+        )
         layer_position = _exact_non_negative_int(
             layer.layer_position,
             f"package {path} layer {layer_name} position",
         )
-        identity = (path, layer_name)
-        if identity in layer_identities:
+        package_layer_names = layer_names_by_package[package_position]
+        if layer_position != len(package_layer_names):
             raise InpnProtectedAreasAttributeProfileError(
-                "profile contains a duplicate package/layer identity"
+                f"package {path}: profile layer positions must be contiguous"
             )
-        layer_identities.add(identity)
-        expected_order.append((package_position, layer_position))
+        package_layer_names.append(layer_name)
+        _require_unique_identities(
+            tuple(package_layer_names),
+            f"package {path} layer identities",
+        )
+        identity = (path, layer_name)
         feature_count = _exact_non_negative_int(
             layer.feature_count,
             f"package {path} layer {layer_name} feature count",
@@ -775,14 +853,23 @@ def _validate_profile_intrinsic(
                 raise InpnProtectedAreasAttributeProfileError(
                     f"package {path} layer {layer_name}: empty FID range must be null"
                 )
-        elif (
-            type(layer.fid_min) is not int
-            or type(layer.fid_max) is not int
-            or layer.fid_min > layer.fid_max
-        ):
-            raise InpnProtectedAreasAttributeProfileError(
-                f"package {path} layer {layer_name}: FID range is invalid"
-            )
+        else:
+            if type(layer.fid_min) is not int or type(layer.fid_max) is not int:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: FID range is invalid"
+                )
+            if feature_count == 1 and layer.fid_min != layer.fid_max:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: single FID range is invalid"
+                )
+            if feature_count > 1 and layer.fid_min >= layer.fid_max:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: multi-FID range is invalid"
+                )
+            if feature_count > layer.fid_max - layer.fid_min + 1:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: FID range is impossible"
+                )
         _exact_sha(
             layer.fid_sequence_sha256,
             f"package {path} layer {layer_name} FID hash",
@@ -795,25 +882,27 @@ def _validate_profile_intrinsic(
             raise InpnProtectedAreasAttributeProfileError(
                 f"package {path} layer {layer_name}: fields must be an exact tuple"
             )
-        field_names: set[str] = set()
+        field_names: list[str] = []
         for position, field in enumerate(layer.fields):
             if type(field) is not InpnProtectedAreasFieldAttributeProfile:
                 raise InpnProtectedAreasAttributeProfileError(
                     f"package {path} layer {layer_name}: field nested type is invalid"
                 )
-            field_name = _exact_text(field.name, f"{identity} field name")
-            if field_name in field_names:
-                raise InpnProtectedAreasAttributeProfileError(
-                    f"package {path} layer {layer_name}: duplicate field name"
-                )
-            field_names.add(field_name)
+            field_name = _exact_metadata_text(field.name, f"{identity} field name")
+            field_names.append(field_name)
             if type(field.position) is not int or field.position != position:
                 raise InpnProtectedAreasAttributeProfileError(
                     f"package {path} layer {layer_name} field {field_name}: "
                     "position is invalid"
                 )
-            _exact_text(field.source_dtype, f"field {field_name} source dtype")
-            _exact_text(field.runtime_dtype, f"field {field_name} runtime dtype")
+            _exact_metadata_text(
+                field.source_dtype,
+                f"field {field_name} source dtype",
+            )
+            _exact_metadata_text(
+                field.runtime_dtype,
+                f"field {field_name} runtime dtype",
+            )
             null_count = _exact_non_negative_int(
                 field.null_count,
                 f"field {field_name} null count",
@@ -862,16 +951,47 @@ def _validate_profile_intrinsic(
             field_count += 1
             total_nulls += null_count
             total_distinct += distinct_count
+        _require_unique_identities(
+            tuple(field_names),
+            f"package {path} layer {layer_name} field identities",
+        )
+        if feature_count == 0:
+            expected_fid_hash = _canonical_json_sha256(
+                [],
+                f"package {path} layer {layer_name} empty FIDs",
+            )
+            if layer.fid_sequence_sha256 != expected_fid_hash:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: empty FID hash is invalid"
+                )
+            expected_row_hash = _canonical_json_sha256(
+                {"fields": field_names, "rows": []},
+                f"package {path} layer {layer_name} empty rows",
+            )
+            if layer.row_content_sha256 != expected_row_hash:
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: empty row hash is invalid"
+                )
+            expected_column_hash = _canonical_json_sha256(
+                [],
+                f"package {path} layer {layer_name} empty column",
+            )
+            if any(
+                field.column_content_sha256 != expected_column_hash
+                for field in layer.fields
+            ):
+                raise InpnProtectedAreasAttributeProfileError(
+                    f"package {path} layer {layer_name}: empty column hash is invalid"
+                )
         total_rows += feature_count
 
-    if expected_order != sorted(expected_order) or set(package_paths) != set(
-        range(len(package_paths))
-    ):
+    _require_unique_identities(tuple(package_paths), "profile package identities")
+    if tuple(package_paths) != tuple(sorted(package_paths)):
         raise InpnProtectedAreasAttributeProfileError(
-            "profile package/layer order is invalid"
+            "profile package paths are not ordered"
         )
     expected_counts = (
-        len(package_paths),
+        len(package_evidence),
         len(profile.layers),
         field_count,
         total_rows,
@@ -904,6 +1024,103 @@ def _validate_profile_intrinsic(
             "complete attribute profile SHA256 is invalid"
         )
     return profile
+
+
+def _validate_profile_catalog_contract(
+    profile: InpnProtectedAreasAttributeProfile,
+    catalog: InpnProtectedAreasCatalog,
+) -> None:
+    profile_source = (
+        profile.provider,
+        profile.authority,
+        profile.program,
+        profile.dataset_id,
+        profile.dataset_name,
+        profile.declared_version,
+        profile.reference_page_url,
+        profile.archive_url,
+        profile.archive_filename,
+        profile.archive_size,
+        profile.archive_sha256,
+        profile.source_catalog_schema_version,
+        profile.source_catalog_content_sha256,
+        profile.package_count,
+        profile.layer_count,
+        profile.field_definition_count,
+        profile.total_row_count,
+    )
+    catalog_source = (
+        catalog.provider,
+        catalog.authority,
+        catalog.program,
+        catalog.dataset_id,
+        catalog.dataset_name,
+        catalog.declared_version,
+        catalog.reference_page_url,
+        catalog.archive_url,
+        catalog.archive_filename,
+        catalog.archive_size,
+        catalog.archive_sha256,
+        catalog.catalog_schema_version,
+        catalog.complete_catalog_content_sha256,
+        catalog.package_count,
+        catalog.layer_count,
+        catalog.field_count,
+        catalog.total_feature_count,
+    )
+    if profile_source != catalog_source:
+        raise InpnProtectedAreasAttributeProfileError(
+            "attribute profile source/catalog summary differs from fresh catalog"
+        )
+
+    catalog_layers = tuple(
+        (package, layer) for package in catalog.packages for layer in package.layers
+    )
+    if len(profile.layers) != len(catalog_layers):
+        raise InpnProtectedAreasAttributeProfileError(
+            "attribute profile layer inventory differs from fresh catalog"
+        )
+    for profile_layer, (package, catalog_layer) in zip(
+        profile.layers,
+        catalog_layers,
+        strict=True,
+    ):
+        profile_identity = (
+            profile_layer.relative_path,
+            profile_layer.file_size,
+            profile_layer.file_sha256,
+            profile_layer.package_position,
+            profile_layer.driver_name,
+            profile_layer.layer_name,
+            profile_layer.layer_position,
+            profile_layer.feature_count,
+        )
+        catalog_identity = (
+            package.relative_path,
+            package.file_size,
+            package.file_sha256,
+            package.package_position,
+            package.driver_name,
+            catalog_layer.layer_name,
+            catalog_layer.layer_position,
+            catalog_layer.feature_count,
+        )
+        if profile_identity != catalog_identity:
+            raise InpnProtectedAreasAttributeProfileError(
+                "attribute profile package/layer facts differ from fresh catalog"
+            )
+        profile_fields = tuple(
+            (field.name, field.position, field.source_dtype)
+            for field in profile_layer.fields
+        )
+        catalog_fields = tuple(
+            (field.name, field.position, field.source_dtype)
+            for field in catalog_layer.fields
+        )
+        if profile_fields != catalog_fields:
+            raise InpnProtectedAreasAttributeProfileError(
+                "attribute profile field facts differ from fresh catalog"
+            )
 
 
 def _build_with_postconditions(
@@ -970,6 +1187,7 @@ def validate_inpn_protected_areas_attribute_profile(
             config,
             catalog,
         )
+        _validate_profile_catalog_contract(validated_profile, fresh_catalog)
         rebuilt = _build_with_postconditions(
             fresh_extraction,
             validated_config,

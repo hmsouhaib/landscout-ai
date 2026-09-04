@@ -218,6 +218,126 @@ def _profile_with_hash(
     )
 
 
+def _intrinsic_field(
+    name: str,
+    position: int,
+    *,
+    feature_count: int = 2,
+    source_dtype: str = "object",
+    runtime_dtype: str = "object",
+) -> InpnProtectedAreasFieldAttributeProfile:
+    distinct_values = (
+        (InpnProtectedAreasDistinctAttributeValue("TEXT", "x", feature_count),)
+        if feature_count
+        else ()
+    )
+    column_hash = (
+        attributes._canonical_json_sha256([], "empty test column")
+        if feature_count == 0
+        else "1" * 64
+    )
+    return InpnProtectedAreasFieldAttributeProfile(
+        name=name,
+        position=position,
+        source_dtype=source_dtype,
+        runtime_dtype=runtime_dtype,
+        null_count=0,
+        non_null_count=feature_count,
+        distinct_non_null_count=len(distinct_values),
+        distinct_values=distinct_values,
+        column_content_sha256=column_hash,
+    )
+
+
+def _intrinsic_layer(
+    *,
+    relative_path: str = "EP/one.gpkg",
+    package_position: int = 0,
+    layer_name: str = "physical_layer",
+    layer_position: int = 0,
+    file_size: int = 100,
+    file_sha256: str = "2" * 64,
+    feature_count: int = 2,
+    fid_min: int | None = 1,
+    fid_max: int | None = 2,
+    fields: tuple[InpnProtectedAreasFieldAttributeProfile, ...] | None = None,
+) -> InpnProtectedAreasLayerAttributeProfile:
+    selected_fields = fields or (
+        _intrinsic_field("text", 0, feature_count=feature_count),
+        _intrinsic_field("number", 1, feature_count=feature_count),
+    )
+    if feature_count == 0:
+        fid_min = None
+        fid_max = None
+    return InpnProtectedAreasLayerAttributeProfile(
+        relative_path=relative_path,
+        file_size=file_size,
+        file_sha256=file_sha256,
+        package_position=package_position,
+        driver_name="GPKG",
+        layer_name=layer_name,
+        layer_position=layer_position,
+        feature_count=feature_count,
+        fid_count=feature_count,
+        fid_min=fid_min,
+        fid_max=fid_max,
+        fid_sequence_sha256=(
+            attributes._canonical_json_sha256([], "empty test FIDs")
+            if feature_count == 0
+            else "3" * 64
+        ),
+        row_content_sha256=(
+            attributes._canonical_json_sha256(
+                {
+                    "fields": [field.name for field in selected_fields],
+                    "rows": [],
+                },
+                "empty test rows",
+            )
+            if feature_count == 0
+            else "4" * 64
+        ),
+        fields=selected_fields,
+    )
+
+
+def _intrinsic_profile(
+    *layers: InpnProtectedAreasLayerAttributeProfile,
+) -> InpnProtectedAreasAttributeProfile:
+    selected_layers = layers or (_intrinsic_layer(),)
+    profile = InpnProtectedAreasAttributeProfile(
+        attribute_profile_schema_version=ATTRIBUTE_PROFILE_SCHEMA_VERSION,
+        provider="PatriNat",
+        authority="MNHN",
+        program="INPN",
+        dataset_id="EP",
+        dataset_name="Protected areas",
+        declared_version="07/2026",
+        reference_page_url="https://example.com/reference",
+        archive_url="https://example.com/EP.zip",
+        archive_filename="EP.zip",
+        archive_size=1_000,
+        archive_sha256="5" * 64,
+        source_catalog_schema_version=catalog_module.CATALOG_HASH_SCHEMA_VERSION,
+        source_catalog_content_sha256="6" * 64,
+        layers=selected_layers,
+        package_count=len({layer.package_position for layer in selected_layers}),
+        layer_count=len(selected_layers),
+        field_definition_count=sum(len(layer.fields) for layer in selected_layers),
+        total_row_count=sum(layer.feature_count for layer in selected_layers),
+        total_null_count=sum(
+            field.null_count for layer in selected_layers for field in layer.fields
+        ),
+        total_distinct_non_null_value_count=sum(
+            field.distinct_non_null_count
+            for layer in selected_layers
+            for field in layer.fields
+        ),
+        complete_attribute_profile_content_sha256="",
+    )
+    return _profile_with_hash(profile)
+
+
 def _first_field(
     profile: InpnProtectedAreasAttributeProfile,
 ) -> InpnProtectedAreasFieldAttributeProfile:
@@ -1068,6 +1188,327 @@ def test_intrinsic_validator_rejects_comparison_equal_string_subclass(
         InpnProtectedAreasAttributeProfileError, match="built-in string"
     ):
         attributes._validate_profile_intrinsic(forged)
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        " EP/one.gpkg",
+        "EP/one.gpkg ",
+        "/EP/one.gpkg",
+        "C:/EP/one.gpkg",
+        "../EP/one.gpkg",
+        "EP\\one.gpkg",
+        "EP/one.txt",
+    ],
+)
+def test_intrinsic_rejects_noncanonical_package_paths(relative_path: str) -> None:
+    profile = _intrinsic_profile(_intrinsic_layer(relative_path=relative_path))
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_one_package_path_under_two_positions() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(),
+        _intrinsic_layer(
+            package_position=1,
+            layer_name="other_layer",
+            relative_path="EP/one.gpkg",
+        ),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_exact_duplicate_package_paths() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(relative_path="EP/duplicate.gpkg"),
+        _intrinsic_layer(
+            relative_path="EP/duplicate.gpkg",
+            package_position=1,
+            layer_name="other_layer",
+        ),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize(
+    ("first_path", "second_path"),
+    [
+        ("EP/ONE.gpkg", "ep/one.gpkg"),
+        ("EP/K.gpkg", "EP/\u212a.gpkg"),
+    ],
+)
+def test_intrinsic_rejects_package_identity_collisions(
+    first_path: str,
+    second_path: str,
+) -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(relative_path=first_path),
+        _intrinsic_layer(
+            relative_path=second_path,
+            package_position=1,
+            layer_name="other_layer",
+        ),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_nonlexical_package_order() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(relative_path="EP/z.gpkg"),
+        _intrinsic_layer(
+            relative_path="EP/a.gpkg",
+            package_position=1,
+            layer_name="other_layer",
+        ),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize("metadata", ["file_size", "file_sha256"])
+def test_intrinsic_rejects_inconsistent_repeated_package_metadata(
+    metadata: str,
+) -> None:
+    second = _intrinsic_layer(layer_name="other_layer", layer_position=1)
+    if metadata == "file_size":
+        second = replace(second, file_size=second.file_size + 1)
+    else:
+        second = replace(second, file_sha256="7" * 64)
+    profile = _intrinsic_profile(_intrinsic_layer(), second)
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize("positions", [(0, 0), (0, 2), (1, 0)])
+def test_intrinsic_rejects_noncanonical_layer_positions(
+    positions: tuple[int, int],
+) -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(layer_position=positions[0]),
+        _intrinsic_layer(layer_name="other_layer", layer_position=positions[1]),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_noncontiguous_package_groups() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(),
+        _intrinsic_layer(
+            relative_path="EP/two.gpkg",
+            package_position=1,
+            layer_name="second_package_layer",
+        ),
+        _intrinsic_layer(layer_name="late_first_package_layer", layer_position=1),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize(
+    ("first_name", "second_name"),
+    [
+        ("same", "same"),
+        ("Layer", "layer"),
+        ("K", "\u212a"),
+    ],
+)
+def test_intrinsic_rejects_layer_identity_collisions(
+    first_name: str,
+    second_name: str,
+) -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(layer_name=first_name),
+        _intrinsic_layer(layer_name=second_name, layer_position=1),
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_layer_name_edge_whitespace() -> None:
+    profile = _intrinsic_profile(_intrinsic_layer(layer_name=" layer"))
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize(
+    ("first_name", "second_name"),
+    [
+        ("same", "same"),
+        ("Field", "field"),
+        ("K", "\u212a"),
+    ],
+)
+def test_intrinsic_rejects_field_identity_collisions(
+    first_name: str,
+    second_name: str,
+) -> None:
+    fields = (
+        _intrinsic_field(first_name, 0),
+        _intrinsic_field(second_name, 1),
+    )
+    profile = _intrinsic_profile(_intrinsic_layer(fields=fields))
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_field_name_edge_whitespace() -> None:
+    fields = (
+        _intrinsic_field(" field", 0),
+        _intrinsic_field("number", 1),
+    )
+    profile = _intrinsic_profile(_intrinsic_layer(fields=fields))
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize("dtype", ["source", "runtime"])
+def test_intrinsic_rejects_dtype_edge_whitespace(dtype: str) -> None:
+    kwargs = {f"{dtype}_dtype": " object"}
+    fields = (
+        _intrinsic_field("text", 0, **kwargs),
+        _intrinsic_field("number", 1),
+    )
+    profile = _intrinsic_profile(_intrinsic_layer(fields=fields))
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_rejects_single_row_fid_extrema_mismatch() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=1, fid_min=1, fid_max=2)
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize(("fid_min", "fid_max"), [(2, 2), (2, 1)])
+def test_intrinsic_rejects_impossible_multirow_fid_ranges(
+    fid_min: int,
+    fid_max: int,
+) -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=2, fid_min=fid_min, fid_max=fid_max)
+    )
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_accepts_sparse_fid_range() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=2, fid_min=1, fid_max=10)
+    )
+
+    assert attributes._validate_profile_intrinsic(profile) is profile
+
+
+@pytest.mark.parametrize("component", ["fid", "row", "column"])
+def test_intrinsic_rejects_malformed_empty_component_hashes(component: str) -> None:
+    layer = _intrinsic_layer(feature_count=0)
+    if component == "fid":
+        layer = replace(layer, fid_sequence_sha256="8" * 64)
+    elif component == "row":
+        layer = replace(layer, row_content_sha256="8" * 64)
+    else:
+        first = replace(layer.fields[0], column_content_sha256="8" * 64)
+        layer = replace(layer, fields=(first, *layer.fields[1:]))
+    profile = _intrinsic_profile(layer)
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        attributes._validate_profile_intrinsic(profile)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["source", "catalog", "package", "layer", "field"],
+)
+def test_public_validator_rejects_catalog_mismatch_before_attribute_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    config, extraction, catalog = _source(tmp_path, monkeypatch)
+    profile = build_inpn_protected_areas_attribute_profile(extraction, config, catalog)
+    if mutation == "source":
+        forged = replace(profile, provider="forged provider")
+    elif mutation == "catalog":
+        forged = replace(profile, source_catalog_content_sha256="9" * 64)
+    elif mutation == "package":
+        layer = replace(profile.layers[0], file_size=profile.layers[0].file_size + 1)
+        forged = replace(profile, layers=(layer,))
+    elif mutation == "layer":
+        layer = replace(profile.layers[0], layer_name="other_layer")
+        forged = replace(profile, layers=(layer,))
+    else:
+        field = replace(profile.layers[0].fields[0], source_dtype="forged")
+        layer = replace(
+            profile.layers[0], fields=(field, *profile.layers[0].fields[1:])
+        )
+        forged = replace(profile, layers=(layer,))
+    forged = _profile_with_hash(forged)
+    read_calls = 0
+
+    def forbidden_read(*args: object, **kwargs: object) -> object:
+        nonlocal read_calls
+        read_calls += 1
+        raise AssertionError("attribute read reached before cheap catalog comparison")
+
+    monkeypatch.setattr(attributes.pyogrio, "read_dataframe", forbidden_read)
+
+    with pytest.raises(InpnProtectedAreasAttributeProfileError):
+        validate_inpn_protected_areas_attribute_profile(
+            extraction,
+            config,
+            catalog,
+            forged,
+        )
+    assert read_calls == 0
+
+
+def test_public_validator_valid_profile_reaches_attribute_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction, catalog = _source(tmp_path, monkeypatch)
+    profile = build_inpn_protected_areas_attribute_profile(extraction, config, catalog)
+    original = attributes.pyogrio.read_dataframe
+    read_calls = 0
+
+    def recording_read(*args: object, **kwargs: object) -> object:
+        nonlocal read_calls
+        read_calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(attributes.pyogrio, "read_dataframe", recording_read)
+
+    validate_inpn_protected_areas_attribute_profile(
+        extraction,
+        config,
+        catalog,
+        profile,
+    )
+
+    assert read_calls == catalog.layer_count
 
 
 def test_public_validator_rejects_wrong_profile_type_before_physical_rebuild(

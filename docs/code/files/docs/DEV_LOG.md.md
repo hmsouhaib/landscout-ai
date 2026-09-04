@@ -6,37 +6,45 @@
 - File type: Markdown engineering history
 - Layer/domain: repository engineering evidence
 - Responsibility: Preserves chronological implementation, real-source, regression, and quality-gate evidence while current source/tests remain authoritative.
-- Source SHA256: `9c4b749e793c9c58ab2997c4daca768ee2ae591af41059f7104505d8c30aa6cc`
+- Source SHA256: `40322aa315b09a572de868158cc95bae315124c631509e0a26c503c74d4cf8e9`
 
-## 1. STEP 7F.1B.2 evidence delta
+## 1. STEP 7F.1B.2.1 evidence delta
+
+- Records the independent-review defects, 33 red-first failures, 41 retained cases, canonical package grouping and identities, repeated package-evidence equality, FID-range relationships, deterministic empty hashes, and the pre-attribute-read fresh-catalog comparison.
+- Corrects column-hash and intrinsic-validation semantics while proving `_profile_payload`, its three subordinate payload/hash helpers, schemas, reader options, real catalog SHA, and real profile SHA unchanged.
+- Binds the zero-network/zero-geometry cached EP builder plus independent validator, 15 packages/layers, 195 fields, 11,381 rows, 258 existing INPN cases, 115 attribute cases, 373 combined cases, and 3,368 full-suite cases.
+- Records every required repository gate and the exact changed production/test raw SHA256 bindings without adding environmental semantics or geometry work.
+
+## 2. STEP 7F.1B.2 evidence delta
 
 - Records the source-complete extraction/catalog boundary, one immutable verified byte snapshot per package, and exact attribute-only Pyogrio call with physical FIDs and no geometry materialization.
 - Binds every one of 195 field profiles, all 178 complete low-cardinality domains, 17 high-cardinality count/hash summaries, and all per-layer FID/row hashes to schema-1 profile SHA `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`.
 - Records the controlled cached EP rebuild: zero DNS/HTTP/download/GeoDataFrame/geometry objects; unchanged 15 packages, 15 layers, 11,381 rows, schema-2 catalog SHA; deterministic repeat and independent profile rebuild.
 - Binds 258 existing, 74 new, 332 combined, and 3,327 full-suite passing cases, plus every required static/package/compile/whitespace gate and the environmental-semantic non-goals.
 
-## 2. STEP 7F.1B.1.2 evidence delta
+## 3. STEP 7F.1B.1.2 evidence delta
 
 - Records the controlled immutable ZIP opener, archive-derived inventory, four-way equality, exact canonical download lineage, and final archive-path postconditions at every download/extraction return boundary.
 - Binds 172 source, 3 direct cached-download, 86 catalog, 258 combined, and 3,253 full-suite passing cases, each run with a unique isolated `--basetemp` and exit code 0; the full suite retained four explicit unrelated `UserWarning` instances and zero known Pyogrio extension warnings.
 - Binds the authorized local Windows native stack and the controlled offline EP run: zero DNS/HTTP/download/feature-reader attempts, cache hits, unchanged 15-file/package/layer and 195-field/11,381-feature baseline, schema 2, and catalog SHA `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
 - Preserves `sig_tadl` as unresolved factual metadata and records every environmental-semantic non-goal.
 
-## 3. STEP 7F.1B.1.1 evidence delta
+## 4. STEP 7F.1B.1.1 evidence delta
 
 - Records the independent-review defects and red-first failures for coordinated extraction forgery, live-path package inspection, unproven driver identity, noncanonical final values, and incomplete companions.
 - Records one verified immutable archive snapshot, archive-derived uncompressed-member inventory, four-way equality, one immutable snapshot per package, exact GPKG driver, catalog schema 2, and canonical runtime types.
 - Binds the controlled existing-cache run: zero DNS/HTTP/download/feature-reader calls; 15 archive/physical files; 15 exact-GPKG packages/layers; 195 fields; 11,381 features; archive SHA unchanged; schema-2 hash `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`.
 - Preserves `sig_tadl` only as an unresolved raw physical metadata consistency observation and records all semantic non-goals.
 
-## 4. Purpose and authority
+## 5. Purpose and authority
 
 This file is chronological evidence, not implementation authority. Production source, checked-in configuration, tests, and verified local-source bytes decide current behavior. Previous entries are retained as historical snapshots even when later independent-review corrections supersede their provisional architecture or hashes.
 
-## 5. Exact heading inventory
+## 6. Exact heading inventory
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1B.2.1 — Close intrinsic attribute-profile structure gaps`
 - `## STEP 7F.1B.2 — Build exact INPN EP attribute-value profile`
 - `### Real schema groups`
 - `### Schema group 1`
@@ -300,11 +308,11 @@ This file is chronological evidence, not implementation authority. Production so
 - `### Exact representation contract`
 - `### Real Muret/D031 regression and read-back`
 
-## 6. Change impact
+## 7. Change impact
 
 Append factual entries only after commands have actually run. After the final DEV_LOG edit, compute its raw-file SHA256, update this companion, and do not modify DEV_LOG again. Changes require `git diff --check`; code behavior remains governed by the paired source/tests.
 
-## 7. Exact complete current file content
+## 8. Exact complete current file content
 
 The raw-byte SHA above binds this complete current history snapshot.
 
@@ -314,11 +322,24 @@ The raw-byte SHA above binds this complete current history snapshot.
 ## Current project state
 
 - Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.2
-- Current step: STEP 7F.1B.2 complete
+- Latest completed step: STEP 7F.1B.2.1
+- Current step: STEP 7F.1B.2.1 complete
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step: independent review before category semantics or geometry loading
+
+## STEP 7F.1B.2.1 — Close intrinsic attribute-profile structure gaps
+
+- Status: Complete. Independent review found that package path was not bijective with package position, sorted layer-position pairs did not reject duplicates or gaps, repeated package metadata could contradict itself, FID extrema relationships were incomplete, malformed catalog-bound structures reached an expensive physical rebuild, and the living documentation overstated both column-hash contents and intrinsic component-hash recomputation.
+- Red-first evidence: 40 selected new/control cases were run before production correction. The starting implementation produced 33 intended failures and seven passing controls: unsafe/noncanonical package paths, path/position and Unicode identity collisions, contradictory repeated package evidence, duplicate/gapped layer positions, edge-whitespace metadata, incomplete FID relationships, malformed deterministic empty hashes, and all five catalog-bound forgeries exposed the reviewed gaps. All 41 final new cases are retained, including the explicit exact-duplicate-package-path regression.
+- Intrinsic structure: flattened layers now prove one canonical relative `.gpkg` path per contiguous zero-based package position under POSIX and Windows path semantics; package paths are exact/NFKC/casefold unique and lexically ordered; each package forms one contiguous group; every repeated `(path, size, SHA256, driver)` tuple is identical; and layer positions are exact contiguous zero-based integers. Layer and field names reject exact, NFKC, and casefold collisions within their physical parent. Metadata identity/dtype text is exact, nonempty, and edge-trimmed, while raw canonical `TEXT` attribute values remain unchanged and may contain edge whitespace or be empty.
+- FID and empty evidence: empty ranges remain exactly null; one FID requires equal extrema; multiple FIDs require strict extrema; and `fid_count <= fid_max - fid_min + 1` closes impossible ranges while valid sparse identities remain accepted. Intrinsic validation proves SHA syntax for all components and recomputes only the deterministic empty FID sequence, empty row payload, and empty column payload. It does not claim to reconstruct non-empty FID, row, or column hashes without physical cells.
+- Cheap public preflight: after exact public inputs, intrinsic validation, extraction validation, supplied-catalog validation, and fresh catalog reconstruction, the public profile validator now exact-compares the profile's top-level source/catalog summary, package evidence, layer identity/order/count, and field name/order/source dtype before `pyogrio.read_dataframe`. Five coherent profile/hash forgeries covering source, catalog SHA, package, layer, and field facts all failed with zero attribute reads. A valid profile still reached one physical read per catalog layer and passed the complete independent rebuild.
+- Hash semantics and compatibility: `column_content_sha256` remains the SHA256 only of the ordered `[FID, canonical null-or-value cell]` sequence. Field name, position, source dtype, and runtime dtype remain separate field-profile facts bound by the unchanged complete-profile payload. `_profile_payload`, `_field_profile_payload`, `_layer_profile_payload`, `_profile_content_sha256`, reader options, attribute-profile schema `1`, and catalog schema `2` are unchanged; profile payload changed: no.
+- Controlled real-source verification: a read-only run reused the approved cache with DNS, safe HTTPS, and every geometry-capable reader replaced by immediate failures. Download and extraction were cache hits; DNS, HTTP, downloads, geometry-reader calls, and GeoDataFrames were all zero. The complete builder plus independent public validator made 30 expected attribute reads across two 15-layer passes. The result remains exactly 15 packages, 15 layers, 195 fields, and 11,381 rows. Catalog schema/hash remain `2` / `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`; attribute schema/hash remain `1` / `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`.
+- Tests: existing INPN source/catalog suites passed 258 cases in 4.20 seconds; the final attribute suite passed 115 cases in 5.75 seconds; all three INPN files passed 373 cases in 9.42 seconds, with no focused warnings. The complete repository passed exactly 3,368 cases (`3,327 + 41`) with four pre-existing warnings in 723.31 seconds. Every Pytest invocation used a unique `--basetemp` below `%LOCALAPPDATA%\LandScout\pytest-runs`.
+- Quality and documentation: `uv run ruff check .` passed; `uv run ruff format --check .` reported 105 formatted files; `uv run mypy src` reported no issues in 50 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 45 compatible packages; `uv run python -m compileall -q src tests`, `git diff --check`, and both conflict-marker searches passed. The source/test companions contain exact current snapshots and bind SHA256 `289323cbeea74ee9166449448306f4792e335f42c710805783f1b9d539dd4094` and `e8118609038f799be63abec16f8b38f2a0386eecdd9c1534497e4bf39d124fef`; cross-cutting hash/intrinsic claims were corrected without rewriting historical STEP 7F.1B.2 evidence.
+- Boundary: EP source semantics, archive/source identity, cache/extraction schemas and layout, catalog schema/hash, attribute schema/hash, raw value domains, Pyogrio reader options, and physical metadata are unchanged. No category or legal-regime semantics, Natura 2000 or ZNIEFF mapping, EP geometry load, parcel relation, environmental exclusion, score, or ranking was added.
 
 ## STEP 7F.1B.2 — Build exact INPN EP attribute-value profile
 
