@@ -6,11 +6,11 @@
 - File type: Python source
 - Layer/domain: official source acquisition and archive/extraction authority
 - Responsibility: Acquires the pinned PatriNat/INPN EP archive and proves extraction bytes against one immutable archive snapshot.
-- Source SHA256: `ece38793091317d16e8826279472dcaa26e5130eca7ada3f26d9ec3c4b4ed06d`
+- Source SHA256: `54680b35f24383278a61aae12bdd301af9a4c22c4306db680428290d1297a4f3`
 
 ## 1. Architectural contract
 
-The pinned archive is source authority. STEP 7F.1B.1.2 requires `pinned EP.zip bytes -> controlled snapshot opening -> validated ZIP members -> archive-derived uncompressed regular-member inventory -> marker/physical/caller equality -> final archive-path postcondition`. The marker remains cache evidence and cannot override archive member bytes. Cold cache publication is checked after publication; extraction rebuild is checked before and after publication; cache-hit and public-validator returns are checked immediately before success. A cached download candidate cannot be returned if its physical archive path changes during ZIP validation. Valid local caches remain fully offline; invalid extraction caches may be rebuilt from the valid local archive without network.
+The pinned archive is source authority. STEP 7F.1B.1.2 requires `pinned EP.zip bytes -> controlled snapshot opening -> validated ZIP members -> archive-derived uncompressed regular-member inventory -> marker/physical/caller equality -> final archive-path postcondition`. The marker remains cache evidence and cannot override archive member bytes. Cold cache publication is checked after publication; extraction rebuild is checked before and after publication; cache-hit and public-validator returns are checked immediately before success. A cached download candidate cannot be returned if its physical archive path changes during ZIP validation. Valid local caches remain fully offline; invalid extraction caches may be rebuilt from the valid local archive without network. `_validate_inventory_relative_path` is the single authoritative extracted-package path grammar reused by the catalog and attribute-profile intrinsic validators.
 
 ## 2. Imports and dependencies
 
@@ -967,24 +967,25 @@ __all__ = [
 
 ### `_validate_inventory_relative_path`
 
-- Exact signature: `def _validate_inventory_relative_path(value: object) -> None`
-- Purpose: requires exact canonical POSIX inventory text and rejects traversal, unsafe components, or the reserved extraction-marker path.
+- Exact signature: `def _validate_inventory_relative_path(value: object) -> str`
+- Purpose: requires exact canonical POSIX inventory text, rejects traversal, unsafe Windows-compatible components or the reserved extraction-marker path, and returns the original exact string without trimming or normalization.
 - Inputs: `value: object`; exact defaults/keyword-only placement are in the signature and source snapshot.
-- Output: `None`.
+- Output: the exact validated built-in `str` supplied by the caller.
 - Ordered algorithm:
 
 1. line 934: branch/fail closed on `type(value) is not str or not value or value != value.strip()`.
 2. line 936: derive `(destination, _)`.
 3. line 937: branch/fail closed on `destination.as_posix() != value or value == EXTRACTION_METADATA_FILENAME`.
+4. line 939: return the unchanged `value`.
 
 - Validation: `ValueError('Inventory relative_path must be an exact non-empty string')`; `ValueError('Inventory relative_path is not canonical POSIX form')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
 - Filesystem effects: none directly; any effects are delegated.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
-- Callees: `ValueError`, `_canonical_member_destination`, `destination.as_posix`, `type`, `value.strip`.
+- Callees: `ValueError`, `_canonical_member_destination`, `destination.as_posix`, `type`, `value.strip`; the returned spelling is unchanged.
 - Internal caller/callee relationship: directly calls `_canonical_member_destination`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct tests: the existing public acquisition/extraction suite plus the STEP 7F.1B.2.2 table-driven extraction/catalog/profile parity test cover the authoritative grammar.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1227,7 +1228,7 @@ __all__ = [
 
 ## 8. Test and change-impact map
 
-`tests/unit/test_inpn_protected_areas_fr.py` contains 172 collected cases. It covers strict config/download models, comparison-equal string/equality-spoof rejection, fresh canonical download reconstruction, controlled ZIP constructor/content errors, cache hit/miss/recovery, cached-download mutation rejection with online refresh and offline failure, safe transport delegation, ZIP namespace/content attacks, extraction transactionality, every required archive return postcondition, archive-derived equality, coordinated marker/file forgery, local offline rebuild, and effective transient/persistent archive swaps with asserted hooks. The catalog's 86 cases separately prove narrow known-warning suppression, visible unrelated warnings, and corruption rejection before Pyogrio.
+`tests/unit/test_inpn_protected_areas_fr.py` contains 172 collected cases. It covers strict config/download models, comparison-equal string/equality-spoof rejection, fresh canonical download reconstruction, controlled ZIP constructor/content errors, cache hit/miss/recovery, cached-download mutation rejection with online refresh and offline failure, safe transport delegation, ZIP namespace/content attacks, extraction transactionality, every required archive return postcondition, archive-derived equality, coordinated marker/file forgery, local offline rebuild, and effective transient/persistent archive swaps with asserted hooks. The catalog's 97 cases separately prove authoritative path-grammar parity, narrow known-warning suppression, visible unrelated warnings, and corruption rejection before Pyogrio.
 
 Changes require both INPN focused suites, the controlled zero-network real EP run, source SHA synchronization, full pytest, Ruff, mypy, uv lock/pip checks, and `git diff --check`.
 
@@ -2168,12 +2169,13 @@ def _require_archive_snapshot_unchanged(
         )
 
 
-def _validate_inventory_relative_path(value: object) -> None:
+def _validate_inventory_relative_path(value: object) -> str:
     if type(value) is not str or not value or value != value.strip():
         raise ValueError("Inventory relative_path must be an exact non-empty string")
     destination, _ = _canonical_member_destination(value)
     if destination.as_posix() != value or value == EXTRACTION_METADATA_FILENAME:
         raise ValueError("Inventory relative_path is not canonical POSIX form")
+    return value
 
 
 def _inventory(root: Path) -> tuple[InpnProtectedAreasExtractedFile, ...]:

@@ -6,11 +6,11 @@
 - File type: Python source
 - Layer/domain: official source physical metadata authority
 - Responsibility: Builds and independently validates the schema-2 metadata-only catalog from immutable verified package bytes.
-- Source SHA256: `96f093fdaa18dc429c43b5ef51e709ec5ee458e9c7c8f5a70f7700b83e722a40`
+- Source SHA256: `101c773fc37ac5b22633a464d35327e412828cdbc16646d16943b92e0962e4ce`
 
 ## 1. Architectural contract
 
-The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> final archive postcondition -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only. Pyogrio's known byte-buffer `/vsimem/pyogrio_<hex>` extension warning is filtered only by `_suppress_pyogrio_bytes_gpkg_warning` around `list_layers`, `read_info`, and the attribute profiler's `read_dataframe`; unrelated runtime warnings remain visible and exact `GPKG` driver proof still runs.
+The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned archive bytes -> archive-derived uncompressed-member inventory -> marker/physical/caller equality -> final archive postcondition -> immutable package bytes -> exact GPKG metadata -> schema-2 catalog`. The extraction marker is cache evidence and cannot override the archive. Every physical catalog fact is metadata evidence only. Intrinsic catalog validation delegates package-path canonicality to the extraction adapter's authoritative Windows-compatible grammar, then separately requires a case-insensitive `.gpkg` suffix; failures are translated to `InpnProtectedAreasCatalogError` with the original cause. Pyogrio's known byte-buffer `/vsimem/pyogrio_<hex>` extension warning is filtered only by `_suppress_pyogrio_bytes_gpkg_warning` around `list_layers`, `read_info`, and the attribute profiler's `read_dataframe`; unrelated runtime warnings remain visible and exact `GPKG` driver proof still runs.
 
 ## 2. Imports and dependencies
 
@@ -82,6 +82,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 ```
@@ -773,36 +774,36 @@ __all__ = [
 ### `_validate_catalog_intrinsic`
 
 - Exact signature: `def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog`
-- Purpose: Proves exact canonical runtime types, domains, ordering, aggregates, nested record types, driver identity, and content hash.
+- Purpose: Proves exact canonical runtime types, domains, authoritative package-path grammar, ordering, aggregates, nested record types, driver identity, and content hash.
 - Inputs: `catalog: object`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 707: validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
-2. line 711: validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
-3. line 716: iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
-4. line 728: validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
-5. line 730: validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
-6. line 735: validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
-7. line 740: derives `package_names` for subsequent validation or output construction.
-8. line 741: derives `layer_count` for subsequent validation or output construction.
-9. line 742: derives `field_count` for subsequent validation or output construction.
-10. line 743: derives `feature_count` for subsequent validation or output construction.
-11. line 744: iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order.
-12. line 877: performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
-13. line 878: validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
-14. line 880: derives `expected_counts` for subsequent validation or output construction.
-15. line 886: derives `actual_counts` for subsequent validation or output construction.
-16. line 892: validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
-17. line 896: validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
-18. line 902: returns `catalog`.
+1. line 712: validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
+2. line 717: validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
+3. line 721: iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
+4. line 733: validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
+5. line 735: validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
+6. line 740: validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
+7. line 745: derives `package_names` for subsequent validation or output construction.
+8. line 746: derives `layer_count` for subsequent validation or output construction.
+9. line 747: derives `field_count` for subsequent validation or output construction.
+10. line 748: derives `feature_count` for subsequent validation or output construction.
+11. line 749: iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order; each path passes `_validate_inventory_relative_path` and then the case-insensitive `.gpkg` suffix gate before being retained unchanged.
+12. line 883: performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
+13. line 884: validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
+14. line 886: derives `expected_counts` for subsequent validation or output construction.
+15. line 892: derives `actual_counts` for subsequent validation or output construction.
+16. line 898: validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
+17. line 902: validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
+18. line 908: returns `catalog`.
 
-- Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog must be an exact InpnProtectedAreasCatalog')`; `InpnProtectedAreasCatalogError('catalog schema version is invalid')`; `InpnProtectedAreasCatalogError('catalog archive size is invalid')`; `InpnProtectedAreasCatalogError('catalog archive SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog packages must be a non-empty tuple')`; `InpnProtectedAreasCatalogError('catalog package paths are not ordered')`; `InpnProtectedAreasCatalogError('catalog aggregate counts are invalid')`; `InpnProtectedAreasCatalogError('catalog content SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog package type is invalid')`; `InpnProtectedAreasCatalogError('catalog package path is invalid')`; `InpnProtectedAreasCatalogError('catalog package order is invalid')`; `InpnProtectedAreasCatalogError('catalog package size is invalid')`; `InpnProtectedAreasCatalogError('catalog package SHA256 is invalid')`; `InpnProtectedAreasCatalogError('catalog package driver must be exact GPKG')`; `InpnProtectedAreasCatalogError('catalog package layers are invalid')`; `InpnProtectedAreasCatalogError('catalog layer type is invalid')`; `InpnProtectedAreasCatalogError('catalog layer order is invalid')`; `InpnProtectedAreasCatalogError('catalog spatial flag is invalid')`; `InpnProtectedAreasCatalogError('catalog bounds representation is not canonical')`; `InpnProtectedAreasCatalogError('catalog fields must be a tuple')`; `InpnProtectedAreasCatalogError('catalog spatial geometry type is invalid')`; `InpnProtectedAreasCatalogError('catalog CRS metadata is not canonical')`; `InpnProtectedAreasCatalogError('catalog non-spatial metadata is inconsistent')`; `InpnProtectedAreasCatalogError('catalog field type is invalid')`; `InpnProtectedAreasCatalogError('catalog field order is invalid')` Library errors are contained by the function's visible error boundary when one exists.
+- Validation and exceptions: Explicit fail-closed raises include `InpnProtectedAreasCatalogError('catalog package path is invalid')` with its source/path cause chained and `InpnProtectedAreasCatalogError('catalog package path must have a GeoPackage suffix')`, plus the exact schema, source, package/layer/field type/domain/order, aggregate, driver, CRS/bounds, and content-hash failures visible in the complete source snapshot. No lower-layer `InpnProtectedAreasSourceError`, `ValueError`, or `OSError` leaks through the package-path boundary.
 - Filesystem effects: none directly; any effects belong to named callees.
 - Hashing effects: `_catalog_content_sha256`
 - Pyogrio calls: none.
-- Callees: `InpnProtectedAreasCatalogError`, `PurePosixPath`, `_SHA_PATTERN.fullmatch`, `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validated_bounds`, `any`, `enumerate`, `field_names.append`, `getattr`, `layer_names.append`, `len`, `package_names.append`, `pure.as_posix`, `pure.is_absolute`, `pure.suffix.casefold`, `sorted`, `tuple`, `type`.
-- Internal caller/callee relationship: directly invokes `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validated_bounds`; module callers are enumerated by the exact call graph and public flow below.
+- Callees: `InpnProtectedAreasCatalogError`, `PurePosixPath`, `_SHA_PATTERN.fullmatch`, `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validate_inventory_relative_path`, `_validated_bounds`, `any`, `enumerate`, `field_names.append`, `getattr`, `layer_names.append`, `len`, `package_names.append`, `sorted`, `tuple`, `type`.
+- Internal caller/callee relationship: directly invokes `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validate_inventory_relative_path`, `_validated_bounds`; source path failures are chained into the catalog error boundary.
 - Direct regression references: covered transitively through public-boundary tests or class validators.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
@@ -902,7 +903,7 @@ For `inpn_protected_areas_fr.py`, `validate_inpn_protected_areas_extraction` is 
 ## 8. Tests and change impact
 
 - `tests/unit/test_inpn_protected_areas_fr.py` contains 172 cases proving controlled ZIP opening, canonical download lineage, archive/download/cache/extraction postconditions, cached-download mutation rejection and refresh/offline behavior, coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and effective transient/persistent archive swaps.
-- `tests/unit/test_inpn_protected_areas_catalog_fr.py` contains 86 cases proving byte-only Pyogrio metadata calls, narrow warning suppression with unrelated warnings preserved, package swap isolation, persistent mutation rejection, exact driver identity, schema 2, canonical final runtime types, hashing, independent rebuild, and zero feature materialization.
+- `tests/unit/test_inpn_protected_areas_catalog_fr.py` contains 97 cases proving shared extraction/catalog path decisions across the reserved-name, forbidden-character, component-whitespace, trailing-dot, control-character, NFKC-hazard, valid nested, and uppercase-suffix corpus; byte-only Pyogrio metadata calls; narrow warning suppression with unrelated warnings preserved; package swap isolation; persistent mutation rejection; exact driver identity; schema 2; canonical final runtime types; hashing; independent rebuild; and zero feature materialization.
 - Any change requires both focused suites, controlled offline EP verification, companion SHA synchronization, full pytest, Ruff check/format, mypy, uv lock/pip checks, and `git diff --check`.
 
 ## 9. Exact complete current file content
@@ -935,6 +936,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 
@@ -1660,15 +1662,16 @@ def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog:
     for package_position, package in enumerate(catalog.packages):
         if type(package) is not InpnProtectedAreasGeoPackageCatalog:
             raise InpnProtectedAreasCatalogError("catalog package type is invalid")
-        relative_path = _exact_text(package.relative_path, "catalog package path")
-        pure = PurePosixPath(relative_path)
-        if (
-            pure.as_posix() != relative_path
-            or pure.is_absolute()
-            or ".." in pure.parts
-            or pure.suffix.casefold() != ".gpkg"
-        ):
-            raise InpnProtectedAreasCatalogError("catalog package path is invalid")
+        try:
+            relative_path = _validate_inventory_relative_path(package.relative_path)
+        except (InpnProtectedAreasSourceError, OSError, TypeError, ValueError) as error:
+            raise InpnProtectedAreasCatalogError(
+                "catalog package path is invalid"
+            ) from error
+        if PurePosixPath(relative_path).suffix.casefold() != ".gpkg":
+            raise InpnProtectedAreasCatalogError(
+                "catalog package path must have a GeoPackage suffix"
+            )
         package_names.append(relative_path)
         if type(package.package_position) is not int or (
             package.package_position != package_position

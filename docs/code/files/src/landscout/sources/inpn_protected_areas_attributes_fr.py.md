@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer/domain: official INPN EP source-bound factual attribute evidence
 - Responsibility: Profiles every non-geometry value from every cataloged EP layer using verified immutable package bytes, without assigning environmental meaning.
-- Source SHA256: `289323cbeea74ee9166449448306f4792e335f42c710805783f1b9d539dd4094`
+- Source SHA256: `b2d5c4451cb10b82e33cdb147c1cf7e0038b531537e9d96db003590ff5917d1d`
 
 ## 1. Architectural contract
 
@@ -28,7 +28,7 @@ import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
-from pathlib import PurePosixPath, PureWindowsPath
+from pathlib import PurePosixPath
 from typing import cast
 
 import numpy as np
@@ -53,6 +53,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 ```
@@ -98,7 +99,7 @@ Canonical values are exact built-in strings: Unicode text unchanged; booleans as
 |  | `complete_attribute_profile_content_sha256` | `str` | Schema-1 canonical hash over every portable factual field. |
 | `_CanonicalCell` | `value_kind`, `canonical_value` | optional exact strings | Internal explicit null-or-canonical scalar representation used only during construction/hashing. |
 
-No model retains a DataFrame, GeoDataFrame, Series, NumPy array, package path, geometry, mutable mapping, or mutable sequence.
+No model retains a DataFrame, GeoDataFrame, Series, NumPy array, absolute filesystem `Path`, geometry, mutable mapping, or mutable sequence. Each layer intentionally retains the exact portable source-package `relative_path: str` as factual lineage.
 
 ## 5. Every helper and public function
 
@@ -123,7 +124,7 @@ No model retains a DataFrame, GeoDataFrame, Series, NumPy array, package path, g
 | `_exact_metadata_text` | `def _exact_metadata_text(value: object, label: str) -> str` | Applies exact nonempty string validation plus the no-edge-whitespace rule to metadata and identity text, without changing raw attribute `TEXT` semantics. |
 | `_identity_key` | `def _identity_key(value: str) -> str` | Produces the Unicode-NFKC/casefold key used only for collision detection while retaining exact source spellings. |
 | `_require_unique_identities` | `def _require_unique_identities(values: tuple[str, ...], label: str) -> None` | Rejects exact and Unicode-NFKC/casefold identity collisions. |
-| `_canonical_package_path` | `def _canonical_package_path(value: object, label: str) -> str` | Requires an edge-trimmed canonical relative `.gpkg` path under POSIX and Windows path semantics, rejecting absolute, driven, traversing, backslash-alias, and wrong-suffix forms. |
+| `_canonical_package_path` | `def _canonical_package_path(value: object, label: str) -> str` | Delegates to the extraction adapter's authoritative Windows-compatible relative-path grammar, preserves the exact spelling, separately requires a case-insensitive `.gpkg` suffix, and chains source/path failures into `InpnProtectedAreasAttributeProfileError`. Whitespace is rejected, never trimmed. |
 | `_exact_non_negative_int` | `def _exact_non_negative_int(value: object, label: str) -> int` | Accepts only exact built-in nonnegative integers and therefore excludes booleans and integer subclasses. |
 | `_exact_sha` | `def _exact_sha(value: object, label: str) -> str` | Requires an exact lowercase 64-hex built-in string. |
 | `_validate_canonical_distinct_value` | `def _validate_canonical_distinct_value( value: object, *, label: str, ) -> InpnProtectedAreasDistinctAttributeValue` | Proves the exact record class, supported value kind, canonical spelling for that kind, positive frequency, and forbids null values from the non-null domain. |
@@ -159,7 +160,7 @@ pyogrio.read_dataframe(
 - Row hashes include every sorted FID plus every field's canonical cell in physical field order.
 - Layer payloads bind package/layer/catalog lineage, FID and row hashes, and complete ordered field profiles.
 - The complete hash binds schema, source/archive identity, source catalog schema/hash, every layer payload, and all aggregate counts.
-- Intrinsic validation rejects comparison-equal subclasses, malformed canonical scalars, unsafe/noncanonical paths, exact/NFKC/casefold identity collisions, noncontiguous package/layer structure, contradictory repeated package evidence, impossible FID ranges, frequency/count disagreement, malformed component-SHA syntax, wrong empty-component hashes, aggregate mismatch, and complete-profile hash mismatch. It does not and cannot recompute non-empty column, FID-sequence, or row hashes without the physical cells.
+- Intrinsic validation rejects comparison-equal subclasses, malformed canonical scalars, package paths forbidden by the same extraction grammar, exact/NFKC/casefold identity collisions, noncontiguous package/layer structure, contradictory repeated package evidence, impossible FID ranges (including a count greater than inclusive range capacity), frequency/count disagreement, malformed component-SHA syntax, wrong empty-component hashes, aggregate mismatch, and complete-profile hash mismatch. It does not and cannot recompute non-empty column, FID-sequence, or row hashes without the physical cells.
 - Public validation performs intrinsic validation, fresh-catalog preflight, and then a complete fresh physical rebuild/equality comparison; the rebuild reconstructs non-empty component hashes, and a caller cannot authorize coordinated profile-plus-hash tampering.
 - Full extraction/catalog validation runs before reading and again after all reads, closing persistent source changes. Each read itself is isolated from live-path swaps by immutable package bytes.
 
@@ -169,7 +170,7 @@ The exact `__all__` exposes four immutable factual models, `InpnProtectedAreasAt
 
 ## 9. Tests and protected non-goals
 
-`tests/unit/test_inpn_protected_areas_attributes_fr.py` contains 115 collected cases. In addition to the original 74 cases, 35 intrinsic structure/FID/empty-hash cases and six public-preflight cases cover canonical paths and grouping, exact/NFKC/casefold identities, repeated package metadata, contiguous positions, FID extrema/capacity, sparse FIDs, deterministic empty hashes, pre-read catalog rejection, and the valid physical-rebuild control. Existing source/catalog regressions remain required because this module depends on their archive and metadata authority.
+`tests/unit/test_inpn_protected_areas_attributes_fr.py` contains 130 collected cases. The STEP 7F.1B.2.2 additions exercise the complete shared package-path corpus, one three-layer extraction/catalog/profile decision-parity table, chained error translation, direct impossible FID evidence `(count=3, min=1, max=2)`, the valid sparse control `(count=3, min=1, max=4)`, and contradictory paths under one package position. Existing source/catalog regressions remain required because this module depends on their archive and metadata authority.
 
 This is factual EP attribute evidence only. It does not interpret protected-area categories or legal regimes; map Natura 2000 or ZNIEFF; load EP geometries or parcels; compute intersection/distance; exclude land; score; rank; or alter source URLs, cache/extraction schemas, catalog schema/hash, archive bytes, or physical metadata.
 
@@ -189,7 +190,7 @@ import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
-from pathlib import PurePosixPath, PureWindowsPath
+from pathlib import PurePosixPath
 from typing import cast
 
 import numpy as np
@@ -214,6 +215,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 
@@ -804,21 +806,15 @@ def _require_unique_identities(values: tuple[str, ...], label: str) -> None:
 
 
 def _canonical_package_path(value: object, label: str) -> str:
-    path = _exact_metadata_text(value, label)
-    posix_path = PurePosixPath(path)
-    windows_path = PureWindowsPath(path)
-    if (
-        posix_path.as_posix() != path
-        or windows_path.as_posix() != path
-        or posix_path.is_absolute()
-        or windows_path.is_absolute()
-        or bool(windows_path.drive)
-        or ".." in posix_path.parts
-        or ".." in windows_path.parts
-        or posix_path.suffix.casefold() != ".gpkg"
-    ):
+    try:
+        path = _validate_inventory_relative_path(value)
+    except (InpnProtectedAreasSourceError, OSError, TypeError, ValueError) as error:
         raise InpnProtectedAreasAttributeProfileError(
             f"{label} must be a canonical relative GeoPackage path"
+        ) from error
+    if PurePosixPath(path).suffix.casefold() != ".gpkg":
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} must have a GeoPackage suffix"
         )
     return path
 

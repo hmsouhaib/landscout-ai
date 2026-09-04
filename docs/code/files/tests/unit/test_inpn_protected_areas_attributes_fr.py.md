@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_attributes_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN EP source-bound attribute profile evidence
-- Source SHA256: `e8118609038f799be63abec16f8b38f2a0386eecdd9c1534497e4bf39d124fef`
-- Collected cases: `115`
+- Source SHA256: `3c7605e5017eb94536e8a8a6da90fe9000b62495d92434298934c6c18a4bf154`
+- Collected cases: `130`
 
 ## 1. Isolation and fixture architecture
 
@@ -87,6 +87,7 @@ Standard-library imports build deterministic ZIP bytes, inspect immutable datacl
 | `_frame_for` | `def _frame_for( catalog: InpnProtectedAreasCatalog, values: list[object], *, fids: list[object] | None = None, ) -> pd.DataFrame` | Creates the exact pandas attribute frame and named FID index expected for a catalog layer. |
 | `_build_with_frame` | `def _build_with_frame( monkeypatch: pytest.MonkeyPatch, config: InpnProtectedAreasSourceConfig, extraction: InpnProtectedAreasExtraction, catalog: InpnProtectedAreasCatalog, frame: pd.DataFrame, ) -> InpnProtectedAreasAttributeProfile` | Monkeypatches only `attributes.pyogrio.read_dataframe` and invokes the public profile builder. |
 | `_profile_with_hash` | `def _profile_with_hash( profile: InpnProtectedAreasAttributeProfile, ) -> InpnProtectedAreasAttributeProfile` | Recomputes the private canonical complete hash after a deliberate immutable-record replacement for adversarial tests. |
+| `_catalog_with_hash` | `def _catalog_with_hash(catalog: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog` | Recomputes the canonical catalog hash after a deliberate package-path replacement so cross-layer parity reaches intrinsic grammar validation. |
 | `_intrinsic_field` | `def _intrinsic_field( name: str, position: int, *, feature_count: int = 2, source_dtype: str = "object", runtime_dtype: str = "object", ) -> InpnProtectedAreasFieldAttributeProfile` | Constructs one internally coherent non-empty or empty immutable field record for fast intrinsic-only adversarial profiles; empty column hashes use the production canonical helper. |
 | `_intrinsic_layer` | `def _intrinsic_layer( *, relative_path: str = "EP/one.gpkg", package_position: int = 0, layer_name: str = "physical_layer", layer_position: int = 0, file_size: int = 100, file_sha256: str = "2" * 64, feature_count: int = 2, fid_min: int | None = 1, fid_max: int | None = 2, fields: tuple[InpnProtectedAreasFieldAttributeProfile, ...] | None = None, ) -> InpnProtectedAreasLayerAttributeProfile` | Constructs coherent package/layer/FID evidence, including production-derived empty FID, row, and column hashes, without physical I/O. |
 | `_intrinsic_profile` | `def _intrinsic_profile( *layers: InpnProtectedAreasLayerAttributeProfile, ) -> InpnProtectedAreasAttributeProfile` | Wraps intrinsic layers in a source/catalog envelope, derives every aggregate, and recalculates the complete profile hash so each mutation isolates the intended structural contract. |
@@ -142,6 +143,8 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_intrinsic_validator_rejects_malformed_profile` | `pytest.mark.parametrize(<br>    "mutation", ["aggregate", "nested-list", "bad-kind", "bad-hash"]<br>)` | Covers exactly aggregate-count mismatch, a mutable nested list, an unsupported value kind, and a malformed complete-profile hash. Package/layer lineage and ordering are covered by the dedicated regressions below. |
 | `test_intrinsic_validator_rejects_comparison_equal_string_subclass` | none | Proves a comparison-equal str subclass cannot cross exact canonical runtime-type validation. |
 | `test_intrinsic_rejects_noncanonical_package_paths` | seven paths: leading whitespace, trailing whitespace, POSIX absolute, Windows drive, traversal, backslash alias, and wrong suffix | Recalculates each complete hash and rejects every noncanonical package path intrinsically. |
+| `test_intrinsic_attribute_package_path_uses_authoritative_grammar` | the 11-case shared path corpus | Proves profile intrinsic validation uses the extraction grammar, accepts valid nested `.gpkg`/`.GPKG` paths unchanged, and chains controlled source/path causes for every rejection. |
+| `test_package_path_decisions_match_extraction_catalog_and_attribute_layers` | the 11-case shared path corpus | Runs every row through extraction, catalog, and profile validators and requires the three decisions to equal the single expected result. |
 | `test_intrinsic_rejects_one_package_path_under_two_positions` | none | Rejects a non-bijective exact package path reused under two positions. |
 | `test_intrinsic_rejects_exact_duplicate_package_paths` | none | Permanently and explicitly locks rejection of an exact duplicate package path. |
 | `test_intrinsic_rejects_package_identity_collisions` | exact casefold-equivalent pair and Unicode-NFKC-equivalent pair | Rejects package identities that collide after casefold or NFKC normalization. |
@@ -157,6 +160,9 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_intrinsic_rejects_single_row_fid_extrema_mismatch` | none | Requires one FID to have equal minimum and maximum evidence. |
 | `test_intrinsic_rejects_impossible_multirow_fid_ranges` | equal extrema and reversed extrema | Requires multiple FIDs to have a strict increasing range with adequate integer capacity. |
 | `test_intrinsic_accepts_sparse_fid_range` | none | Preserves valid sparse FID support; two FIDs spanning 1 through 10 remain intrinsic-valid. |
+| `test_intrinsic_rejects_fid_count_exceeding_range_capacity` | none | Directly rejects `fid_count=3`, `fid_min=1`, `fid_max=2` as impossible inclusive capacity. |
+| `test_intrinsic_accepts_sparse_fid_range_with_capacity` | none | Directly accepts sparse `fid_count=3`, `fid_min=1`, `fid_max=4`. |
+| `test_intrinsic_rejects_different_paths_for_one_package_position` | none | Rejects two different exact package paths claiming one package position. |
 | `test_intrinsic_rejects_malformed_empty_component_hashes` | `fid`, `row`, `column` | Independently recalculates the complete hash and rejects each wrong deterministically recomputable empty component hash. |
 | `test_public_validator_rejects_catalog_mismatch_before_attribute_read` | top-level source, source-catalog SHA, package evidence, layer identity, and field source dtype | Builds a valid physical source/profile, coherently forges one cheap catalog-bound fact, makes `read_dataframe` fatal, and proves all five mismatches fail with zero attribute calls. |
 | `test_public_validator_valid_profile_reaches_attribute_rebuild` | none | Wraps the real attribute reader and proves a valid profile reaches and passes the independent one-read-per-layer rebuild. |
@@ -167,11 +173,11 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_public_api_exports_only_profile_boundary` | none | Asserts the package and module expose only the approved records, controlled error, builder, and validator rather than internal byte/frame helpers. |
 | `test_profile_models_are_frozen_factual_records` | none | Proves all four public profile records are frozen dataclasses and reject field reassignment. |
 
-The decorators above are the exact source declarations, including every parameter value and generated case. The file collects 74 cases; no existing INPN test is replaced.
+The decorators above are the exact source declarations, including every parameter value and generated case. The file collects 130 cases; no existing INPN test is replaced.
 
 ## 7. Boundary and change impact
 
-The suite proves a factual attribute profiler, not environmental policy. It asserts no EP category meaning, legal effect, Natura 2000/ZNIEFF mapping, geometry load, parcel relation, exclusion, score, or rank. Any source change requires this 115-case suite plus the existing 258 INPN source/catalog cases, independent real-cache verification, full repository tests, quality gates, and companion SHA synchronization.
+The suite proves a factual attribute profiler, not environmental policy. It asserts no EP category meaning, legal effect, Natura 2000/ZNIEFF mapping, geometry load, parcel relation, exclusion, score, or rank. Any source change requires this 130-case suite plus the existing 269 INPN source/catalog cases, independent real-cache verification, full repository tests, quality gates, and companion SHA synchronization.
 
 ## 8. Exact complete current file content
 
@@ -236,6 +242,19 @@ EXPECTED_EXPORTS = {
 KNOWN_BYTES_GPKG_WARNING = (
     "File /vsimem/pyogrio_deadbeef has GPKG application_id, "
     "but non conformant file extension"
+)
+PACKAGE_PATH_GRAMMAR_CASES = (
+    ("EP/CON.gpkg", False),
+    ("EP/NUL.gpkg", False),
+    ("EP/a:b.gpkg", False),
+    ("EP/dir /one.gpkg", False),
+    ("EP/ dir/one.gpkg", False),
+    ("EP/dir./one.gpkg", False),
+    ("EP/control\x01.gpkg", False),
+    ("EP/ＮＵＬ.gpkg", False),
+    ("EP/dir／one.gpkg", False),
+    ("EP/subdir/one.gpkg", True),
+    ("EP/subdir/one.GPKG", True),
 )
 
 
@@ -393,6 +412,14 @@ def _profile_with_hash(
         complete_attribute_profile_content_sha256=attributes._profile_content_sha256(
             blank
         ),
+    )
+
+
+def _catalog_with_hash(catalog: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog:
+    blank = replace(catalog, complete_catalog_content_sha256="")
+    return replace(
+        blank,
+        complete_catalog_content_sha256=catalog_module._catalog_content_sha256(blank),
     )
 
 
@@ -1387,6 +1414,66 @@ def test_intrinsic_rejects_noncanonical_package_paths(relative_path: str) -> Non
         attributes._validate_profile_intrinsic(profile)
 
 
+@pytest.mark.parametrize(("relative_path", "accepted"), PACKAGE_PATH_GRAMMAR_CASES)
+def test_intrinsic_attribute_package_path_uses_authoritative_grammar(
+    relative_path: str,
+    accepted: bool,
+) -> None:
+    profile = _intrinsic_profile(_intrinsic_layer(relative_path=relative_path))
+
+    if accepted:
+        assert attributes._validate_profile_intrinsic(profile) is profile
+    else:
+        with pytest.raises(InpnProtectedAreasAttributeProfileError) as error:
+            attributes._validate_profile_intrinsic(profile)
+        assert isinstance(
+            error.value.__cause__,
+            (source_module.InpnProtectedAreasSourceError, ValueError, OSError),
+        )
+
+
+def test_package_path_decisions_match_extraction_catalog_and_attribute_layers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction, catalog = _source(tmp_path, monkeypatch)
+    profile = build_inpn_protected_areas_attribute_profile(extraction, config, catalog)
+
+    for relative_path, expected in PACKAGE_PATH_GRAMMAR_CASES:
+        forged_package = replace(catalog.packages[0], relative_path=relative_path)
+        forged_catalog = _catalog_with_hash(
+            replace(catalog, packages=(forged_package,))
+        )
+        forged_layer = replace(profile.layers[0], relative_path=relative_path)
+        forged_profile = _profile_with_hash(replace(profile, layers=(forged_layer,)))
+
+        decisions: list[bool] = []
+        for operation in (
+            lambda value=relative_path: source_module._validate_inventory_relative_path(
+                value
+            ),
+            lambda value=forged_catalog: catalog_module._validate_catalog_intrinsic(
+                value
+            ),
+            lambda value=forged_profile: attributes._validate_profile_intrinsic(value),
+        ):
+            try:
+                operation()
+            except (
+                source_module.InpnProtectedAreasSourceError,
+                InpnProtectedAreasAttributeProfileError,
+                catalog_module.InpnProtectedAreasCatalogError,
+                OSError,
+                TypeError,
+                ValueError,
+            ):
+                decisions.append(False)
+            else:
+                decisions.append(True)
+
+        assert decisions == [expected, expected, expected], relative_path
+
+
 def test_intrinsic_rejects_one_package_path_under_two_positions() -> None:
     profile = _intrinsic_profile(
         _intrinsic_layer(),
@@ -1598,6 +1685,43 @@ def test_intrinsic_accepts_sparse_fid_range() -> None:
     )
 
     assert attributes._validate_profile_intrinsic(profile) is profile
+
+
+def test_intrinsic_rejects_fid_count_exceeding_range_capacity() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=3, fid_min=1, fid_max=2)
+    )
+
+    with pytest.raises(
+        InpnProtectedAreasAttributeProfileError,
+        match="FID range is impossible",
+    ):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_accepts_sparse_fid_range_with_capacity() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=3, fid_min=1, fid_max=4)
+    )
+
+    assert attributes._validate_profile_intrinsic(profile) is profile
+
+
+def test_intrinsic_rejects_different_paths_for_one_package_position() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(),
+        _intrinsic_layer(
+            relative_path="EP/other.gpkg",
+            layer_name="other_layer",
+            layer_position=1,
+        ),
+    )
+
+    with pytest.raises(
+        InpnProtectedAreasAttributeProfileError,
+        match="repeated package metadata",
+    ):
+        attributes._validate_profile_intrinsic(profile)
 
 
 @pytest.mark.parametrize("component", ["fid", "row", "column"])

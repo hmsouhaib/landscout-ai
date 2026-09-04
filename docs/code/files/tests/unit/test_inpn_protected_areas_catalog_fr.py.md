@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_catalog_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN metadata-only catalog authority evidence
-- Source SHA256: `e31e86bf0ce47f3f0bd7605a5107065f2997d8f3c0c61c1ebcfb9ee1e177b629`
-- Collected cases after STEP 7F.1B.1.2: `86`
+- Source SHA256: `a44952e3ee5623f16864140ef80bdb0027417e519ef740e80b61bc9889c3a1be`
+- Collected cases after STEP 7F.1B.2.2: `97`
 
 ## 1. Test architecture and boundary
 
@@ -270,6 +270,13 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Filesystem/network boundary: uses pytest temporary paths and fake/blocked transport where visible; no approved EP cache or external service is modified.
 
 ## 4. Test-by-test regression inventory
+
+### `test_intrinsic_catalog_package_path_uses_authoritative_grammar`
+
+- Exact signature: `def test_intrinsic_catalog_package_path_uses_authoritative_grammar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, relative_path: str, accepted: bool) -> None`
+- Parametrization/decorators: the 11-case `PACKAGE_PATH_GRAMMAR_CASES` table.
+- Protected invariant: intrinsic catalog validation makes the same canonicality decision as extraction for Windows reserved names, forbidden characters, component-edge whitespace, trailing dots, controls, NFKC hazards, valid nested paths, and an uppercase `.GPKG` suffix.
+- Expected controlled failures: unsafe rows raise `InpnProtectedAreasCatalogError` before physical metadata access and retain the source/path error as `__cause__`; both valid rows are accepted unchanged.
 
 ### `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`
 
@@ -960,6 +967,19 @@ KNOWN_BYTES_GPKG_WARNING = re.compile(
     r"^File /vsimem/pyogrio_[^ ]+ has GPKG application_id, "
     r"but non conformant file extension$"
 )
+PACKAGE_PATH_GRAMMAR_CASES = (
+    ("EP/CON.gpkg", False),
+    ("EP/NUL.gpkg", False),
+    ("EP/a:b.gpkg", False),
+    ("EP/dir /one.gpkg", False),
+    ("EP/ dir/one.gpkg", False),
+    ("EP/dir./one.gpkg", False),
+    ("EP/control\x01.gpkg", False),
+    ("EP/ＮＵＬ.gpkg", False),
+    ("EP/dir／one.gpkg", False),
+    ("EP/subdir/one.gpkg", True),
+    ("EP/subdir/one.GPKG", True),
+)
 
 
 class _StringSubclass(str):
@@ -1105,6 +1125,29 @@ def _catalog_with_hash(
             without_hash
         ),
     )
+
+
+@pytest.mark.parametrize(("relative_path", "accepted"), PACKAGE_PATH_GRAMMAR_CASES)
+def test_intrinsic_catalog_package_path_uses_authoritative_grammar(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    relative_path: str,
+    accepted: bool,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    catalog = build_inpn_protected_areas_catalog(extraction, config)
+    forged_package = replace(catalog.packages[0], relative_path=relative_path)
+    forged = _catalog_with_hash(replace(catalog, packages=(forged_package,)))
+
+    if accepted:
+        assert catalog_module._validate_catalog_intrinsic(forged) is forged
+    else:
+        with pytest.raises(InpnProtectedAreasCatalogError) as error:
+            catalog_module._validate_catalog_intrinsic(forged)
+        assert isinstance(
+            error.value.__cause__,
+            (source_module.InpnProtectedAreasSourceError, ValueError, OSError),
+        )
 
 
 def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(

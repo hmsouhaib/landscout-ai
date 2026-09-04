@@ -56,6 +56,19 @@ KNOWN_BYTES_GPKG_WARNING = re.compile(
     r"^File /vsimem/pyogrio_[^ ]+ has GPKG application_id, "
     r"but non conformant file extension$"
 )
+PACKAGE_PATH_GRAMMAR_CASES = (
+    ("EP/CON.gpkg", False),
+    ("EP/NUL.gpkg", False),
+    ("EP/a:b.gpkg", False),
+    ("EP/dir /one.gpkg", False),
+    ("EP/ dir/one.gpkg", False),
+    ("EP/dir./one.gpkg", False),
+    ("EP/control\x01.gpkg", False),
+    ("EP/ＮＵＬ.gpkg", False),
+    ("EP/dir／one.gpkg", False),
+    ("EP/subdir/one.gpkg", True),
+    ("EP/subdir/one.GPKG", True),
+)
 
 
 class _StringSubclass(str):
@@ -201,6 +214,29 @@ def _catalog_with_hash(
             without_hash
         ),
     )
+
+
+@pytest.mark.parametrize(("relative_path", "accepted"), PACKAGE_PATH_GRAMMAR_CASES)
+def test_intrinsic_catalog_package_path_uses_authoritative_grammar(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    relative_path: str,
+    accepted: bool,
+) -> None:
+    config, extraction = _one_package(tmp_path, monkeypatch)
+    catalog = build_inpn_protected_areas_catalog(extraction, config)
+    forged_package = replace(catalog.packages[0], relative_path=relative_path)
+    forged = _catalog_with_hash(replace(catalog, packages=(forged_package,)))
+
+    if accepted:
+        assert catalog_module._validate_catalog_intrinsic(forged) is forged
+    else:
+        with pytest.raises(InpnProtectedAreasCatalogError) as error:
+            catalog_module._validate_catalog_intrinsic(forged)
+        assert isinstance(
+            error.value.__cause__,
+            (source_module.InpnProtectedAreasSourceError, ValueError, OSError),
+        )
 
 
 def test_one_valid_geopackage_with_one_spatial_layer_is_cataloged(

@@ -930,12 +930,13 @@ def _require_archive_snapshot_unchanged(
         )
 
 
-def _validate_inventory_relative_path(value: object) -> None:
+def _validate_inventory_relative_path(value: object) -> str:
     if type(value) is not str or not value or value != value.strip():
         raise ValueError("Inventory relative_path must be an exact non-empty string")
     destination, _ = _canonical_member_destination(value)
     if destination.as_posix() != value or value == EXTRACTION_METADATA_FILENAME:
         raise ValueError("Inventory relative_path is not canonical POSIX form")
+    return value
 
 
 def _inventory(root: Path) -> tuple[InpnProtectedAreasExtractedFile, ...]:

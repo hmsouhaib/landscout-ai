@@ -23,6 +23,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 
@@ -748,15 +749,16 @@ def _validate_catalog_intrinsic(catalog: object) -> InpnProtectedAreasCatalog:
     for package_position, package in enumerate(catalog.packages):
         if type(package) is not InpnProtectedAreasGeoPackageCatalog:
             raise InpnProtectedAreasCatalogError("catalog package type is invalid")
-        relative_path = _exact_text(package.relative_path, "catalog package path")
-        pure = PurePosixPath(relative_path)
-        if (
-            pure.as_posix() != relative_path
-            or pure.is_absolute()
-            or ".." in pure.parts
-            or pure.suffix.casefold() != ".gpkg"
-        ):
-            raise InpnProtectedAreasCatalogError("catalog package path is invalid")
+        try:
+            relative_path = _validate_inventory_relative_path(package.relative_path)
+        except (InpnProtectedAreasSourceError, OSError, TypeError, ValueError) as error:
+            raise InpnProtectedAreasCatalogError(
+                "catalog package path is invalid"
+            ) from error
+        if PurePosixPath(relative_path).suffix.casefold() != ".gpkg":
+            raise InpnProtectedAreasCatalogError(
+                "catalog package path must have a GeoPackage suffix"
+            )
         package_names.append(relative_path)
         if type(package.package_position) is not int or (
             package.package_position != package_position

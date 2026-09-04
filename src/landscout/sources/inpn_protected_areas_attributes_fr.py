@@ -11,7 +11,7 @@ import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
-from pathlib import PurePosixPath, PureWindowsPath
+from pathlib import PurePosixPath
 from typing import cast
 
 import numpy as np
@@ -36,6 +36,7 @@ from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasExtraction,
     InpnProtectedAreasSourceConfig,
     InpnProtectedAreasSourceError,
+    _validate_inventory_relative_path,
     validate_inpn_protected_areas_extraction,
 )
 
@@ -626,21 +627,15 @@ def _require_unique_identities(values: tuple[str, ...], label: str) -> None:
 
 
 def _canonical_package_path(value: object, label: str) -> str:
-    path = _exact_metadata_text(value, label)
-    posix_path = PurePosixPath(path)
-    windows_path = PureWindowsPath(path)
-    if (
-        posix_path.as_posix() != path
-        or windows_path.as_posix() != path
-        or posix_path.is_absolute()
-        or windows_path.is_absolute()
-        or bool(windows_path.drive)
-        or ".." in posix_path.parts
-        or ".." in windows_path.parts
-        or posix_path.suffix.casefold() != ".gpkg"
-    ):
+    try:
+        path = _validate_inventory_relative_path(value)
+    except (InpnProtectedAreasSourceError, OSError, TypeError, ValueError) as error:
         raise InpnProtectedAreasAttributeProfileError(
             f"{label} must be a canonical relative GeoPackage path"
+        ) from error
+    if PurePosixPath(path).suffix.casefold() != ".gpkg":
+        raise InpnProtectedAreasAttributeProfileError(
+            f"{label} must have a GeoPackage suffix"
         )
     return path
 

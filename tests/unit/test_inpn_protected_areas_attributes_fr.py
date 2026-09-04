@@ -59,6 +59,19 @@ KNOWN_BYTES_GPKG_WARNING = (
     "File /vsimem/pyogrio_deadbeef has GPKG application_id, "
     "but non conformant file extension"
 )
+PACKAGE_PATH_GRAMMAR_CASES = (
+    ("EP/CON.gpkg", False),
+    ("EP/NUL.gpkg", False),
+    ("EP/a:b.gpkg", False),
+    ("EP/dir /one.gpkg", False),
+    ("EP/ dir/one.gpkg", False),
+    ("EP/dir./one.gpkg", False),
+    ("EP/control\x01.gpkg", False),
+    ("EP/ＮＵＬ.gpkg", False),
+    ("EP/dir／one.gpkg", False),
+    ("EP/subdir/one.gpkg", True),
+    ("EP/subdir/one.GPKG", True),
+)
 
 
 class _Response(io.BytesIO):
@@ -215,6 +228,14 @@ def _profile_with_hash(
         complete_attribute_profile_content_sha256=attributes._profile_content_sha256(
             blank
         ),
+    )
+
+
+def _catalog_with_hash(catalog: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog:
+    blank = replace(catalog, complete_catalog_content_sha256="")
+    return replace(
+        blank,
+        complete_catalog_content_sha256=catalog_module._catalog_content_sha256(blank),
     )
 
 
@@ -1209,6 +1230,66 @@ def test_intrinsic_rejects_noncanonical_package_paths(relative_path: str) -> Non
         attributes._validate_profile_intrinsic(profile)
 
 
+@pytest.mark.parametrize(("relative_path", "accepted"), PACKAGE_PATH_GRAMMAR_CASES)
+def test_intrinsic_attribute_package_path_uses_authoritative_grammar(
+    relative_path: str,
+    accepted: bool,
+) -> None:
+    profile = _intrinsic_profile(_intrinsic_layer(relative_path=relative_path))
+
+    if accepted:
+        assert attributes._validate_profile_intrinsic(profile) is profile
+    else:
+        with pytest.raises(InpnProtectedAreasAttributeProfileError) as error:
+            attributes._validate_profile_intrinsic(profile)
+        assert isinstance(
+            error.value.__cause__,
+            (source_module.InpnProtectedAreasSourceError, ValueError, OSError),
+        )
+
+
+def test_package_path_decisions_match_extraction_catalog_and_attribute_layers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config, extraction, catalog = _source(tmp_path, monkeypatch)
+    profile = build_inpn_protected_areas_attribute_profile(extraction, config, catalog)
+
+    for relative_path, expected in PACKAGE_PATH_GRAMMAR_CASES:
+        forged_package = replace(catalog.packages[0], relative_path=relative_path)
+        forged_catalog = _catalog_with_hash(
+            replace(catalog, packages=(forged_package,))
+        )
+        forged_layer = replace(profile.layers[0], relative_path=relative_path)
+        forged_profile = _profile_with_hash(replace(profile, layers=(forged_layer,)))
+
+        decisions: list[bool] = []
+        for operation in (
+            lambda value=relative_path: source_module._validate_inventory_relative_path(
+                value
+            ),
+            lambda value=forged_catalog: catalog_module._validate_catalog_intrinsic(
+                value
+            ),
+            lambda value=forged_profile: attributes._validate_profile_intrinsic(value),
+        ):
+            try:
+                operation()
+            except (
+                source_module.InpnProtectedAreasSourceError,
+                InpnProtectedAreasAttributeProfileError,
+                catalog_module.InpnProtectedAreasCatalogError,
+                OSError,
+                TypeError,
+                ValueError,
+            ):
+                decisions.append(False)
+            else:
+                decisions.append(True)
+
+        assert decisions == [expected, expected, expected], relative_path
+
+
 def test_intrinsic_rejects_one_package_path_under_two_positions() -> None:
     profile = _intrinsic_profile(
         _intrinsic_layer(),
@@ -1420,6 +1501,43 @@ def test_intrinsic_accepts_sparse_fid_range() -> None:
     )
 
     assert attributes._validate_profile_intrinsic(profile) is profile
+
+
+def test_intrinsic_rejects_fid_count_exceeding_range_capacity() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=3, fid_min=1, fid_max=2)
+    )
+
+    with pytest.raises(
+        InpnProtectedAreasAttributeProfileError,
+        match="FID range is impossible",
+    ):
+        attributes._validate_profile_intrinsic(profile)
+
+
+def test_intrinsic_accepts_sparse_fid_range_with_capacity() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(feature_count=3, fid_min=1, fid_max=4)
+    )
+
+    assert attributes._validate_profile_intrinsic(profile) is profile
+
+
+def test_intrinsic_rejects_different_paths_for_one_package_position() -> None:
+    profile = _intrinsic_profile(
+        _intrinsic_layer(),
+        _intrinsic_layer(
+            relative_path="EP/other.gpkg",
+            layer_name="other_layer",
+            layer_position=1,
+        ),
+    )
+
+    with pytest.raises(
+        InpnProtectedAreasAttributeProfileError,
+        match="repeated package metadata",
+    ):
+        attributes._validate_profile_intrinsic(profile)
 
 
 @pytest.mark.parametrize("component", ["fid", "row", "column"])
