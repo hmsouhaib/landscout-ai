@@ -6,7 +6,16 @@
 - File type: Markdown engineering history
 - Layer/domain: repository engineering evidence
 - Responsibility: Preserves chronological implementation, real-source, regression, and quality-gate evidence while current source/tests remain authoritative.
-- Source SHA256: `8afd6087e302b58b0c22e6db92172b69278dc74ebfeb91aa085412ab60afffcf`
+- Source SHA256: `d0cc0c4eaea79b1b8a7e17c207b9d16ed5cf38c302bdd78273de1fbe036c845d`
+
+## STEP 7F.1B.3 evidence delta
+
+- Records the Pyogrio 0.13.0 M-loss blocker, the unchanged repository under the original contract, and the approved verified-GPKG-bytes -> SQLite deserialize -> exact FID/BLOB -> Standard GeoPackageBinary/ISO WKB -> Shapely replacement.
+- Binds five immutable public geometry records, query-only/trusted-schema behavior, exact source/config/catalog revalidation, raw versus parser stream hashes, complete toolchain/schema identity, intrinsic closure, cheap catalog preflight, independent physical rebuild, and final source postconditions.
+- Records permanent unmocked M/ZM and dimensional EMPTY preservation, all 273 new cases, 399 existing INPN cases, 672 combined cases, 3,667 full-suite cases with four pre-existing warnings, and every required quality gate.
+- Records the offline 15-package/15-table/11,381-row result, all valid non-empty XY MultiPolygon, 10,281,493 coordinates, complete per-layer FID/domains/bounds/raw/parser hashes, and profile SHA `997c8c27cbbedb2860778386b3f2eb5afa9f64de6ad07e41fc67b4cec9060ee7`.
+- Preserves exact archive/catalog/attribute identities, zero attributes/network/repair/reprojection/parcel analysis, and the unresolved EPSG:32753 `sig_tadl` observation without category or legal meaning.
+
 
 ## 1. STEP 7F.1B.2.2 evidence delta
 
@@ -51,6 +60,11 @@ This file is chronological evidence, not implementation authority. Production so
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1B.3 — Build exact INPN EP geometry-quality profile`
+- `### Complete physical table, FID and coordinate inventory`
+- `### Exact source and geometry stream hashes`
+- `### Exact catalog and observed bounds`
+- `### sig_tadl remains unresolved`
 - `## STEP 7F.1B.2.2 — Align INPN package-path canonicality and FID evidence`
 - `## STEP 7F.1B.2.1 — Close intrinsic attribute-profile structure gaps`
 - `## STEP 7F.1B.2 — Build exact INPN EP attribute-value profile`
@@ -330,11 +344,96 @@ The raw-byte SHA above binds this complete current history snapshot.
 ## Current project state
 
 - Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.2.2
-- Current step: STEP 7F.1B.2.2 complete
+- Latest completed step: STEP 7F.1B.3
+- Current step: STEP 7F.1B.3 complete
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step: independent review before category semantics or geometry loading
+- Next step: independent review of geometry evidence before category semantics
+
+## STEP 7F.1B.3 — Build exact INPN EP geometry-quality profile
+
+- Status: Complete under the revised raw-GeoPackageBinary reader contract. Work began on clean `main` at `abcba8e5311726c16cbfd7f9da95d415a79495c2`, equal to `origin/main`.
+- Original blocking discovery: locked Pyogrio 0.13.0 removes M from POINT M/POINT ZM and their EMPTY forms, even with `force_2d=False`. No repository changes were made under that invalid reader contract. The revised implementation keeps Pyogrio as the unchanged metadata catalog reader and uses exact verified package bytes -> `sqlite3.Connection.deserialize` -> FID plus raw geometry BLOB -> embedded ISO WKB -> Shapely for geometry rows.
+- Source-complete authority: the public builder and validator require exact extraction/config/catalog types, reconstruct the config, revalidate extraction and supplied catalog, independently rebuild a fresh schema-2 catalog, and derive only from fresh evidence. Each package uses the existing verified byte-snapshot authority; one query-only in-memory SQLite connection serves all layers in that snapshot. Trusted schema is disabled, identifiers are strictly quoted, metadata values are bound, views and unproven/non-rowid FIDs fail closed, and no attribute columns, extensions, attached databases, or physical-path geometry rereads are used.
+- Physical/parser boundary: Standard GeoPackageBinary version 0 headers validate magic, flags, independent header byte order, signed SRS ID, envelopes and EMPTY state; embedded ISO WKB core types 1..7 are framed recursively, fully consumed, and parsed with `on_invalid="raise"`. Unsupported Extended GeoPackageBinary, EWKB flags, trailing/truncated WKB, dimension loss, and metadata Z/M contradictions fail closed. Every present ordinate is finite; mixed collections check component/ring dimensions so missing-ordinate padding is not mistaken for source NaN. Invalid parseable topology is observed with its exact reason, never repaired.
+- Portable evidence: five frozen factual dataclasses retain only immutable scalar/tuple records, exact relative package paths, complete type/dimension/validity-reason domains, FID ranges/hashes, count closure, CRS, bounds, raw BLOB hashes, parser WKB hashes, and toolchain identity. They retain no absolute filesystem Path, SQLite object, geometry/frame/array, package bytes, or raw BLOB. Intrinsic validation proves canonical types/paths/grouping/identity/order/ranges/domains/counts/bounds/empty hashes and complete-hash closure; it cannot reconstruct non-empty component hashes without rows. Public validation rejects fresh-catalog mismatches before geometry rows, then rebuilds and exact-compares physical evidence. Final extraction/catalog postconditions reject persistent mutation; temporary path swaps cannot inject geometry into immutable snapshots.
+- Hash schemas: new geometry-profile schema `1`, geometry-encoding schema `1`, contract `SHAPELY_EXTENDED_WKB_LITTLE_ENDIAN_SOURCE_DIMENSION_NO_SRID_V1`. FID hashing uses the existing canonical sorted-integer JSON representation. Raw stream rows are `[FID, null-or-SHA256(exact-full-GeoPackageBinary)]`; parser stream rows are `[FID, state, type, dimension, has_z, has_m, validity, reason, parser-WKB]`. Both streams are incrementally hashed as complete canonical JSON arrays. Parser serialization explicitly selects hex, exact dimension, little endian, no SRID, extended flavor, and no normalization. Complete profile hashing includes every portable dataclass field except its own hash, including exact toolchain versions, using sorted compact UTF-8 JSON with `ensure_ascii=False` and `allow_nan=False`.
+- Snapshot/schema compatibility: EP 07/2026 remains 99,835,011 bytes with archive SHA `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`. Download and extraction schemas remain 1; catalog schema remains 2 with SHA `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`. Existing attribute schema/payload/reader are untouched; its approved SHA remains `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`. No EP redownload, source/config/cache/extraction change, or attribute reread was performed.
+- Toolchain: SQLite 3.53.1; Pyogrio 0.13.0; GDAL 3.12.4; Shapely 2.1.2; GEOS 3.13.1; PyProj 3.7.2. Native deserialization/trusted-schema capability and process-only POINT M/POINT ZM/EMPTY WKB roundtrips passed before implementation.
+- Controlled real EP verification: download and extraction were byte-verified cache hits. There are 15 physical packages, 15 physical feature tables, zero views, 195 unchanged catalog fields, and 11,381 geometry rows per build. NULL/EMPTY/invalid/Z/M counts are all 0; all rows are non-empty valid XY MultiPolygon. Total coordinates: 10,281,493. All 15 observed XY bounds exactly equal their catalog bounds. DNS, HTTP, downloads, attribute columns selected, Pyogrio/GeoPandas feature reads, repairs, normalization, reprojection, and parcel operations were all zero under fatal sentinels.
+- Geometry profile SHA256: `997c8c27cbbedb2860778386b3f2eb5afa9f64de6ad07e41fc67b4cec9060ee7`. Repeated build equality and independent public physical validation passed. The controlled sequence used 45 SQLite snapshots, 45 exact FID-plus-geometry SELECTs, and 34,143 row reads (three passes of 11,381). First build: 28.442 seconds; total offline setup/build/repeat/validation: 89.549 seconds. Different-cache-root portability, cache-hit independence, source swaps, coordinated forgery rejection, and independently calculated raw/parser stream hashes are permanent synthetic regressions.
+- Permanent tests: 273 new geometry cases retain all original tests. Real unmocked SQLite/ISO WKB fixtures prove XY/XYZ/XYM/XYZM and EMPTY dimension/coordinate preservation, including M=4 and Z=3 where specified. Other cases cover headers, metadata, rowid PK semantics, query-only closure/error causes, safe quoted identifiers, FIDs, finite ordinates, topology/reasons, bounds, domains, immutable public results, source authority, TOCTOU, and hashes.
+- Validation: existing INPN 399 passed in 10.70 seconds; geometry 273 passed in 11.34 seconds; combined INPN 672 passed in 20.54 seconds, with no unhandled focused warnings. The full repository passed exactly 3,667 cases (`3,394 + 273`) with four pre-existing UserWarnings in 736.83 seconds (three missing-CRS fixture warnings and one GeoSeries.notna empty-geometry warning); no skips or xfails. Every Pytest run used a distinct `%LOCALAPPDATA%\LandScout\pytest-runs` base and completed cleanup.
+- Quality/documentation: repository-wide Ruff check and format check (107 files), mypy (51 source files), uv lock check (48 packages), uv pip check (45 compatible packages), compileall, git diff check, conflict search, and the exact companion source-SHA/snapshot audit passed. Complete new production/test companions, the source export companion, all six requested cross-cutting documents, this log, and its companion are synchronized. No cache, GeoPackage, ZIP, generated dump, audit script, pytest directory, or unrelated file is committed.
+- Boundary: no category interpretation, legal regime, Natura 2000/ZNIEFF mapping, geometry repair/normalization/reprojection, parcel loading/intersection/distance, environmental exclusion/decision, score, or ranking. This result is geometry technical-quality evidence only.
+
+### Complete physical table, FID and coordinate inventory
+
+Every listed layer is a physical `table` with FID column `fid`, geometry column `geom`, GeoPackage type `MULTIPOLYGON`, catalog type `MultiPolygon`, and Z/M declarations `0/0`. Layer position is 0 in each package; package positions are listed below. For each layer with n rows, the complete type domain is `((MultiPolygon, n),)`, dimension/Z/M domain is `((2, False, False, n),)`, and validity domain is `((True, "Valid Geometry", n),)`. Its non-empty and valid counts equal n; NULL, EMPTY, invalid, has-Z, and has-M counts are each exactly 0.
+
+| Relative package / layer | Package position | Package bytes | EPSG authority = gpkg_srs_id | Rows = FID count | FID min / max | Coordinates |
+| --- | --- | --- | --- | --- | --- | --- |
+| `EP/sig_blm.gpkg / sig_blm` | 0 | 397312 | 32620 | 4 | 1 / 4 | 18307 |
+| `EP/sig_cli.gpkg / sig_cli` | 1 | 102400 | 32612 | 1 | 1 / 1 | 371 |
+| `EP/sig_epa.gpkg / sig_epa` | 2 | 200704 | 32738 | 5 | 1 / 5 | 6148 |
+| `EP/sig_glp.gpkg / sig_glp` | 3 | 6328320 | 32620 | 94 | 1 / 94 | 382055 |
+| `EP/sig_guf.gpkg / sig_guf` | 4 | 1814528 | 2972 | 42 | 1 / 42 | 104156 |
+| `EP/sig_maf.gpkg / sig_maf` | 5 | 557056 | 32620 | 21 | 1 / 21 | 27126 |
+| `EP/sig_metrop.gpkg / sig_metrop` | 6 | 154755072 | 2154 | 10872 | 1 / 10872 | 9096783 |
+| `EP/sig_mtq.gpkg / sig_mtq` | 7 | 3874816 | 32620 | 79 | 1 / 79 | 230435 |
+| `EP/sig_myt.gpkg / sig_myt` | 8 | 1249280 | 32738 | 30 | 1 / 30 | 70218 |
+| `EP/sig_ncl.gpkg / sig_ncl` | 9 | 1212416 | 32758 | 88 | 1 / 88 | 65778 |
+| `EP/sig_pyf.gpkg / sig_pyf` | 10 | 876544 | 32705 | 87 | 1 / 87 | 44951 |
+| `EP/sig_reu.gpkg / sig_reu` | 11 | 2310144 | 2975 | 44 | 1 / 44 | 135729 |
+| `EP/sig_spm.gpkg / sig_spm` | 12 | 151552 | 32621 | 2 | 1 / 2 | 3542 |
+| `EP/sig_subant.gpkg / sig_subant` | 13 | 1634304 | 32342 | 11 | 1 / 11 | 95274 |
+| `EP/sig_tadl.gpkg / sig_tadl` | 14 | 106496 | 32753 | 1 | 1 / 1 | 620 |
+
+### Exact source and geometry stream hashes
+
+| Package/layer | Package SHA256 | FID sequence SHA256 | Raw complete-BLOB stream SHA256 | Parser WKB stream SHA256 |
+| --- | --- | --- | --- | --- |
+| `EP/sig_blm.gpkg / sig_blm` | `a183bcdf38f508943a7535b39a4d34c419595adbf9419e49f3d3238cf7dc6699` | `f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f` | `b4fd11546c29dffa9916f08ad60d333f5ee6042097efab59a305bb85ff541625` | `f1593fd9fc540e1af4a6bbafcc2e6faff35b571d90c19099537f4e7bfff0d785` |
+| `EP/sig_cli.gpkg / sig_cli` | `c150500dbb5e99060ad507e7950f39fc10084d3c98a4727dd7f144e5616107d6` | `080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22` | `6f2fdc5237484263a5a7f4ddc6253cb95612b302ffe0e74a8ee823c549ef85dc` | `3bae746739fa6d193723302153d8f93c4344b82655a2e01c8fdb4fdbce58092c` |
+| `EP/sig_epa.gpkg / sig_epa` | `a5ab3fa031af445470c4462565acfd55f904284ff1f012471b95b06aea4de125` | `f5baf0e4336fd53b4c82b453ece859868475160d36f22e9551a0e9b10ac9cc00` | `25c46c11ba961285234581e62e20bb776510ce7e2929ecc12c193992c405116e` | `307e2c7dc720be8759a08e26260740275cb503bdbfed2562c21f25d7fd037202` |
+| `EP/sig_glp.gpkg / sig_glp` | `802cde41d4f2e27f001ebe5da9742d9d519e51fe1b8a8a77624481c2dd791fc8` | `0e23b6e4dfbf50733e1b02554bf2e094265eaa4482c886717fbfb47cd042c0e2` | `7be6dbf0e7cadc3f51e81d145152c7d2894808c77cd6ce18f89e5d4d492244b2` | `4102cc8633235e874728a8c3cb9062b1e77b1c389645473c259e882d1bc91ae2` |
+| `EP/sig_guf.gpkg / sig_guf` | `f52c3c9561af5b638dd17c1b6f14d755b2d2898e1ef0ba678650fc7fd2eacc33` | `9b669fa350a15f13d4ab456869612801860848d589df68cb61930c16e5ef4a98` | `4f43ad56a5135e9e7ab42112d9f91905e5a9eec8b5330fa829d498fcf34201bb` | `57ef7ac8d9f353920d32a5da2c44fad3723b1e8a75bb5034d6cc3d71cfaee79d` |
+| `EP/sig_maf.gpkg / sig_maf` | `17d5062e67ec8fee3cd70454f595f4b6a312fe4634c4176538768084a56edf1d` | `d2592aec818c569765bfa500e771578e176f38be15ddf0a61a24fdab79b09876` | `3df0fe3b1ad327fa96eef24a11c46f298506df729759281932f3ac5e0b0c76a1` | `0b9b01d4a660b9407c4831e87badefe0c945c37a0793a4b641bdab8cd5aa024e` |
+| `EP/sig_metrop.gpkg / sig_metrop` | `57c18dedcaeb28aa40c74af2d273d0f1f48678a9249ab01a2978c1d6977f7583` | `74fbd5bd2940405f95e1adc81075f31edb5a55856a0c193ddc6ec01c5e4cc303` | `0f384477acae234868e81efc1eef810265cff0fd5cc7e0dcba9c7f5995f1aa5e` | `c92408a4a268139b00cf1e88e995c77687626c3c1983f1eae92bc3f3842d4bc1` |
+| `EP/sig_mtq.gpkg / sig_mtq` | `b585dcad51dc78cc5f273a2c2da2eb3c3e2ff03ece303ec3111ceb7fee97acf5` | `4e5d751543e602052a0eea21a6538e84127b2ccb12f680679cb5dac5ffef2bed` | `d0ebb9df17b424f2d395ca86454b97c24cb577d19463288a6aad64e063d5de2b` | `9c86f454d939bf3d6b52e8c577c94ffd42d9020dda34b3b12a864315874221f9` |
+| `EP/sig_myt.gpkg / sig_myt` | `c99b60758a6472bf900c45ea9158686407d98c5f2bc296733401577b3868e2d4` | `ebda43c0ca7bab4c6b235bede1b8d289a4181c5bbe556cf1af17979956289a7b` | `9241fb52f324efcdf6418d2f34cca8ef1ab1a3440493de6026aa21bd2eac61db` | `17398427c714c8544ece254abf5138857aa5bfbcbea68dd043a60ff1667bf0ae` |
+| `EP/sig_ncl.gpkg / sig_ncl` | `2348f34420b59a930dfd93994ebff3d9c9f9ae6c9e3c98edd5057583e1959d51` | `850993d9f399eb243af2ee50618b6f037d3735bffd26d0c62887e83ff79f6e7e` | `7ed0db5b01359869b85c7774cafe3e6ba8ddc6ac9dcee3027b06a3005db43685` | `e36bc090b6917bd37f37fb420f4d5d1f0f3ad005d881c77884ab693966bd6e05` |
+| `EP/sig_pyf.gpkg / sig_pyf` | `8db8a10fcf6cf1914a9664f1fcfbfdd24379ad61fd16bd173a6086dc83d9e6de` | `44518a20100d2f73652ce108d7db6acbbec00b30bffc4768e56f59e13f451146` | `216e6716321ddaacf4e49981cb3ec238bca68e5bb8fe9ad087208897d3f82c57` | `f109ef2c7176d9f2a360e2a474510e9e0103d3f3bff04c57783494adfe383e87` |
+| `EP/sig_reu.gpkg / sig_reu` | `341ce23f76e10d465fea74df0891bca2dd51a97096f902f1e8d735164ccc2b52` | `a5b6e06588c6904f0b803dbafe19b86b09846118261ed22e81d06c4db1217d60` | `580f84c7088e8c0db68e871767528b98eb747b47c3ff345d4537fc9b505d4843` | `e6b97301f168d05c6dda946e8e973fbec05bca4bde633a13d3381252fbd1dc87` |
+| `EP/sig_spm.gpkg / sig_spm` | `6db736b64ee13ab2223e45476ec243ccfd549fa81188463c6e453200cecca356` | `49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684` | `df827829a27e6e48a24bc10ee330620efd129736d2d2527a81c79ee6cc41c70c` | `40d87b327d3daae5687c3f77a7c540a4da1b7b0249423032c87ef96125ae1288` |
+| `EP/sig_subant.gpkg / sig_subant` | `23e8f1fc2e0ee2a4650da801a2544d2c5a1091d6351adee9f621cd88e02fc61d` | `e1330a9fe8a1883cb0bdc41e4fb5d25cf1c4fcd4c48b2c360d6da717513e1e4e` | `d6634b7b1d062288ab2581dae37e8a51a77884fd783536fe951a03fbccd963cd` | `68605903a8ee496dff09396b0b077efb0ef256461f2a9f9fb9c3b9c9f99b25f0` |
+| `EP/sig_tadl.gpkg / sig_tadl` | `831aea828fbb02bfd428f82c183ed8217e6dada572f2dc4797ac2e6ccca60fe7` | `080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22` | `bc63ca714fc5abf6f6a1e147c8c208b68c0279b64943828f67eec86a18ec8789` | `bed565737aaef8bf29fc28b1f5d62472d68e1adbdcc78cd7012653282ac60233` |
+
+### Exact catalog and observed bounds
+
+For each row below, both separately recorded tuples have exactly the displayed values and `bounds_relation == "EXACT_MATCH"`. No tolerance, transformation, CRS override, or correctness interpretation is applied.
+
+| Package/layer | Catalog bounds = observed bounds |
+| --- | --- |
+| `EP/sig_blm.gpkg / sig_blm` | `(494954.0137, 1950470.0043, 583112.9093, 2025155.2335)` |
+| `EP/sig_cli.gpkg / sig_cli` | `(671080.0864, 1115373.3362, 719382.0443, 1163548.3188)` |
+| `EP/sig_epa.gpkg / sig_epa` | `(-3789.25600000005, 7493062.0841, 880937.7261, 8822044.5043)` |
+| `EP/sig_glp.gpkg / sig_glp` | `(519927.9637, 1665713.2503, 1083293.01, 2055310.133)` |
+| `EP/sig_guf.gpkg / sig_guf` | `(99570.4873000002, 233520.0645, 429623.8876, 642298.9683)` |
+| `EP/sig_maf.gpkg / sig_maf` | `(434790.4656, 1976185.5268, 524921.2136, 2011241.6704)` |
+| `EP/sig_metrop.gpkg / sig_metrop` | `(75945.1652000025, 5984426.6673, 1401587.5623, 7135517.6259)` |
+| `EP/sig_mtq.gpkg / sig_mtq` | `(520055.1595, 1556643.2723, 1085571.1993, 1833951.5644)` |
+| `EP/sig_myt.gpkg / sig_myt` | `(350109.8306, 8393412.0014, 681383.3389, 8768462.8917)` |
+| `EP/sig_ncl.gpkg / sig_ncl` | `(-421565.3768, 7101762.9457, 1438096.3286, 8360168.8313)` |
+| `EP/sig_pyf.gpkg / sig_pyf` | `(-49643.5285999998, 6502679.0036, 2725834.7579, 9485760.0085)` |
+| `EP/sig_reu.gpkg / sig_reu` | `(313642.529999606, 7634489.4428, 379236.6, 7690882.3864)` |
+| `EP/sig_spm.gpkg / sig_spm` | `(547977.7866747527, 5184547.6196, 563865.1536, 5209816.029657059)` |
+| `EP/sig_subant.gpkg / sig_subant` | `(-1337689.9373, 4100873.8107, 1631467.1533, 6155468.5163)` |
+| `EP/sig_tadl.gpkg / sig_tadl` | `(140.000388639325, -66.6746135205968, 140.027762750552, -66.660531007899)` |
+
+### sig_tadl remains unresolved
+
+`EP/sig_tadl.gpkg` retains declared EPSG:32753 and GeoPackage SRS ID 32753, Z/M flags 0/0, one valid non-empty XY MultiPolygon, and 620 coordinates. Catalog and observed bounds both remain `(140.000388639325, -66.6746135205968, 140.027762750552, -66.660531007899)`. Exact observed/catalog agreement does not resolve the CRS/coordinate observation. Status: **UNRESOLVED PHYSICAL SOURCE CONSISTENCY OBSERVATION**. No inferred EPSG:4326, repair, reprojection, or environmental meaning.
 
 ## STEP 7F.1B.2.2 — Align INPN package-path canonicality and FID evidence
 

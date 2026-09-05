@@ -106,6 +106,16 @@ from landscout.sources.inpn_protected_areas_fr import (
     load_inpn_protected_areas_source_config,
     validate_inpn_protected_areas_extraction,
 )
+from landscout.sources.inpn_protected_areas_geometry_fr import (
+    InpnProtectedAreasCoordinateDimensionCount,
+    InpnProtectedAreasGeometryProfile,
+    InpnProtectedAreasGeometryProfileError,
+    InpnProtectedAreasGeometryTypeCount,
+    InpnProtectedAreasGeometryValidityReasonCount,
+    InpnProtectedAreasLayerGeometryProfile,
+    build_inpn_protected_areas_geometry_profile,
+    validate_inpn_protected_areas_geometry_profile,
+)
 from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
@@ -167,6 +177,7 @@ __all__ = [
     "InpnProtectedAreasAttributeProfileError",
     "InpnProtectedAreasCatalog",
     "InpnProtectedAreasCatalogError",
+    "InpnProtectedAreasCoordinateDimensionCount",
     "InpnProtectedAreasDistinctAttributeValue",
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
@@ -174,8 +185,13 @@ __all__ = [
     "InpnProtectedAreasFieldAttributeProfile",
     "InpnProtectedAreasFieldCatalog",
     "InpnProtectedAreasGeoPackageCatalog",
+    "InpnProtectedAreasGeometryProfile",
+    "InpnProtectedAreasGeometryProfileError",
+    "InpnProtectedAreasGeometryTypeCount",
+    "InpnProtectedAreasGeometryValidityReasonCount",
     "InpnProtectedAreasLayerAttributeProfile",
     "InpnProtectedAreasLayerCatalog",
+    "InpnProtectedAreasLayerGeometryProfile",
     "InpnProtectedAreasSourceConfig",
     "InpnProtectedAreasSourceError",
     "MissingGeometryColumnError",
@@ -192,6 +208,7 @@ __all__ = [
     "build_gpu_partition_download_url",
     "build_inpn_protected_areas_attribute_profile",
     "build_inpn_protected_areas_catalog",
+    "build_inpn_protected_areas_geometry_profile",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
     "discover_current_gpu_document",
@@ -226,4 +243,5 @@ __all__ = [
     "validate_inpn_protected_areas_attribute_profile",
     "validate_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_extraction",
+    "validate_inpn_protected_areas_geometry_profile",
 ]

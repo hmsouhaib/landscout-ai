@@ -5,16 +5,16 @@
 - Repository path: `src/landscout/sources/__init__.py`
 - File type: Python package exports
 - Layer/domain: official source adapters and source-bound factual authorities
-- Responsibility: Re-exports approved source APIs while keeping raw-path, byte-reader, frame, and intrinsic-validation helpers internal.
-- Source SHA256: `b323e00e7aff36e8580dba05b8907dc9b5d7d8f1635e223b54d97d4ef170fbcf`
+- Responsibility: Re-exports approved source APIs while keeping raw-path, byte-reader, SQLite, parser, frame, and intrinsic-validation helpers internal.
+- Source SHA256: `2d28ace467439bda4597a62f2720f40f241bae3261b0c3a198a1397e35d21695`
 
-## 1. STEP 7F.1B.2 contract delta
+## 1. STEP 7F.1B.3 contract delta
 
-The package now publishes the four immutable INPN EP attribute-profile records, the controlled profile error, the source-complete builder, and the independent validator. It does not export `_read_verified_package_bytes`, `_suppress_pyogrio_bytes_gpkg_warning`, scalar canonicalizers, frame readers, payload/hash helpers, or an environmental semantic API.
+The package publishes five immutable INPN EP geometry-quality records, the controlled geometry-profile error, the source-complete builder, and the independent validator. It retains every earlier attribute/catalog/extraction and other adapter export. Geometry exports provide factual technical evidence from verified raw GeoPackage BLOBs; they do not expose SQLite connections, Shapely geometry, raw byte readers, `_open_gpkg_sqlite_snapshot`, `_parse_gpkg_geometry_blob`, or any environmental semantic API.
 
-## 2. Imports and ownership
+## 2. Imports and qualified ownership
 
-There are no standard-library or third-party imports and no executable behavior beyond imports and the `__all__` assignment. Every binding is qualified in the exact source snapshot. The INPN ownership chain is intentionally split among `inpn_protected_areas_fr` (download/extraction), `inpn_protected_areas_catalog_fr` (physical metadata), and `inpn_protected_areas_attributes_fr` (attribute-only values); Cadastre, GPU, IGN, and RTE exports remain unchanged.
+There are no standard-library or third-party imports and no executable behavior beyond imports and the `__all__` assignment. The exact imports and their source owners appear in the snapshot and table below. INPN ownership is split among `inpn_protected_areas_fr` (download/extraction), `inpn_protected_areas_catalog_fr` (physical metadata), `inpn_protected_areas_attributes_fr` (non-geometry values), and `inpn_protected_areas_geometry_fr` (raw-BLOB geometry technical quality). Re-exported bindings do not move implementation ownership into this package initializer.
 
 ## 3. Exact public exports
 
@@ -66,6 +66,7 @@ There are no standard-library or third-party imports and no executable behavior 
 | `InpnProtectedAreasAttributeProfileError` | `landscout.sources.inpn_protected_areas_attributes_fr.InpnProtectedAreasAttributeProfileError` |
 | `InpnProtectedAreasCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasCatalog` |
 | `InpnProtectedAreasCatalogError` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasCatalogError` |
+| `InpnProtectedAreasCoordinateDimensionCount` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasCoordinateDimensionCount` |
 | `InpnProtectedAreasDistinctAttributeValue` | `landscout.sources.inpn_protected_areas_attributes_fr.InpnProtectedAreasDistinctAttributeValue` |
 | `InpnProtectedAreasDownload` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasDownload` |
 | `InpnProtectedAreasExtractedFile` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasExtractedFile` |
@@ -73,8 +74,13 @@ There are no standard-library or third-party imports and no executable behavior 
 | `InpnProtectedAreasFieldAttributeProfile` | `landscout.sources.inpn_protected_areas_attributes_fr.InpnProtectedAreasFieldAttributeProfile` |
 | `InpnProtectedAreasFieldCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasFieldCatalog` |
 | `InpnProtectedAreasGeoPackageCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasGeoPackageCatalog` |
+| `InpnProtectedAreasGeometryProfile` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasGeometryProfile` |
+| `InpnProtectedAreasGeometryProfileError` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasGeometryProfileError` |
+| `InpnProtectedAreasGeometryTypeCount` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasGeometryTypeCount` |
+| `InpnProtectedAreasGeometryValidityReasonCount` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasGeometryValidityReasonCount` |
 | `InpnProtectedAreasLayerAttributeProfile` | `landscout.sources.inpn_protected_areas_attributes_fr.InpnProtectedAreasLayerAttributeProfile` |
 | `InpnProtectedAreasLayerCatalog` | `landscout.sources.inpn_protected_areas_catalog_fr.InpnProtectedAreasLayerCatalog` |
+| `InpnProtectedAreasLayerGeometryProfile` | `landscout.sources.inpn_protected_areas_geometry_fr.InpnProtectedAreasLayerGeometryProfile` |
 | `InpnProtectedAreasSourceConfig` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasSourceConfig` |
 | `InpnProtectedAreasSourceError` | `landscout.sources.inpn_protected_areas_fr.InpnProtectedAreasSourceError` |
 | `MissingGeometryColumnError` | `landscout.sources.cadastre_loader_fr.MissingGeometryColumnError` |
@@ -91,6 +97,7 @@ There are no standard-library or third-party imports and no executable behavior 
 | `build_gpu_partition_download_url` | `landscout.sources.gpu_fr.build_gpu_partition_download_url` |
 | `build_inpn_protected_areas_attribute_profile` | `landscout.sources.inpn_protected_areas_attributes_fr.build_inpn_protected_areas_attribute_profile` |
 | `build_inpn_protected_areas_catalog` | `landscout.sources.inpn_protected_areas_catalog_fr.build_inpn_protected_areas_catalog` |
+| `build_inpn_protected_areas_geometry_profile` | `landscout.sources.inpn_protected_areas_geometry_fr.build_inpn_protected_areas_geometry_profile` |
 | `build_rte_odre_export_url` | `landscout.sources.rte_odre_fr.build_rte_odre_export_url` |
 | `build_rte_odre_metadata_url` | `landscout.sources.rte_odre_fr.build_rte_odre_metadata_url` |
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
@@ -125,12 +132,13 @@ There are no standard-library or third-party imports and no executable behavior 
 | `validate_inpn_protected_areas_attribute_profile` | `landscout.sources.inpn_protected_areas_attributes_fr.validate_inpn_protected_areas_attribute_profile` |
 | `validate_inpn_protected_areas_catalog` | `landscout.sources.inpn_protected_areas_catalog_fr.validate_inpn_protected_areas_catalog` |
 | `validate_inpn_protected_areas_extraction` | `landscout.sources.inpn_protected_areas_fr.validate_inpn_protected_areas_extraction` |
+| `validate_inpn_protected_areas_geometry_profile` | `landscout.sources.inpn_protected_areas_geometry_fr.validate_inpn_protected_areas_geometry_profile` |
 
 ## 4. Validation, side effects, and boundary
 
-This module performs no validation, network, filesystem, hashing, CRS, geometry, or mutation work itself; those contracts belong to each qualified implementation. Re-exporting the attribute profile does not interpret EP categories/legal regimes, map Natura 2000/ZNIEFF, load geometry/parcels, intersect, exclude, score, or rank.
+This module itself performs no validation, network, filesystem, hashing, CRS, geometry, or mutation work; those contracts belong to the qualified implementations. Raw geometry profiling uses verified bytes -> SQLite deserialize -> FID plus GeoPackageBinary -> embedded WKB -> Shapely. Pyogrio remains the metadata reader but is intentionally excluded from EP geometry-row materialization because its locked 0.13.0 reader drops M. Public source exports do not interpret categories/legal regimes, map Natura 2000/ZNIEFF, normalize/repair/reproject environmental geometry, load parcels, intersect, exclude, score, or rank.
 
-Any import/export change requires package-ownership tests, companion SHA/snapshot synchronization, source/catalog/attribute focused suites, and the full repository gates.
+Any import/export change requires exact package-ownership tests, companion SHA/snapshot synchronization, source/catalog/attribute/geometry focused suites, and the required full repository gates.
 
 ## 5. Exact complete current file content
 
@@ -243,6 +251,16 @@ from landscout.sources.inpn_protected_areas_fr import (
     load_inpn_protected_areas_source_config,
     validate_inpn_protected_areas_extraction,
 )
+from landscout.sources.inpn_protected_areas_geometry_fr import (
+    InpnProtectedAreasCoordinateDimensionCount,
+    InpnProtectedAreasGeometryProfile,
+    InpnProtectedAreasGeometryProfileError,
+    InpnProtectedAreasGeometryTypeCount,
+    InpnProtectedAreasGeometryValidityReasonCount,
+    InpnProtectedAreasLayerGeometryProfile,
+    build_inpn_protected_areas_geometry_profile,
+    validate_inpn_protected_areas_geometry_profile,
+)
 from landscout.sources.rte_odre_fr import (
     RteDatasetConfig,
     RteOdreDatasetMetadata,
@@ -304,6 +322,7 @@ __all__ = [
     "InpnProtectedAreasAttributeProfileError",
     "InpnProtectedAreasCatalog",
     "InpnProtectedAreasCatalogError",
+    "InpnProtectedAreasCoordinateDimensionCount",
     "InpnProtectedAreasDistinctAttributeValue",
     "InpnProtectedAreasDownload",
     "InpnProtectedAreasExtractedFile",
@@ -311,8 +330,13 @@ __all__ = [
     "InpnProtectedAreasFieldAttributeProfile",
     "InpnProtectedAreasFieldCatalog",
     "InpnProtectedAreasGeoPackageCatalog",
+    "InpnProtectedAreasGeometryProfile",
+    "InpnProtectedAreasGeometryProfileError",
+    "InpnProtectedAreasGeometryTypeCount",
+    "InpnProtectedAreasGeometryValidityReasonCount",
     "InpnProtectedAreasLayerAttributeProfile",
     "InpnProtectedAreasLayerCatalog",
+    "InpnProtectedAreasLayerGeometryProfile",
     "InpnProtectedAreasSourceConfig",
     "InpnProtectedAreasSourceError",
     "MissingGeometryColumnError",
@@ -329,6 +353,7 @@ __all__ = [
     "build_gpu_partition_download_url",
     "build_inpn_protected_areas_attribute_profile",
     "build_inpn_protected_areas_catalog",
+    "build_inpn_protected_areas_geometry_profile",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
     "discover_current_gpu_document",
@@ -363,5 +388,6 @@ __all__ = [
     "validate_inpn_protected_areas_attribute_profile",
     "validate_inpn_protected_areas_catalog",
     "validate_inpn_protected_areas_extraction",
+    "validate_inpn_protected_areas_geometry_profile",
 ]
 ```

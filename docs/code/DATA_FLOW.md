@@ -139,14 +139,31 @@ InpnProtectedAreasSourceConfig
   -> build_inpn_protected_areas_attribute_profile
   -> schema-1 InpnProtectedAreasAttributeProfile(complete non-geometry domains)
   -> validate_inpn_protected_areas_attribute_profile
-  -> category semantics NOT IMPLEMENTED
-  -> geometry loading NOT IMPLEMENTED
-  -> parcel relation NOT IMPLEMENTED
-  -> environmental policy NOT IMPLEMENTED
-  -> score NOT IMPLEMENTED
+
+InpnProtectedAreasExtraction + SourceConfig + fresh schema-2 Catalog
+  -> build_inpn_protected_areas_geometry_profile
+  -> exact verified immutable package bytes
+  -> sqlite3.Connection.deserialize into query-only in-memory database
+  -> exact feature-table / geometry-column / INTEGER PRIMARY KEY metadata
+  -> SELECT only quoted FID column + geometry BLOB column
+  -> Standard GeoPackageBinary header validation
+  -> embedded WKB parsed by Shapely, retaining XY/XYZ/XYM/XYZM
+  -> schema-1 InpnProtectedAreasGeometryProfile(technical quality only)
+  -> validate_inpn_protected_areas_geometry_profile
+
+category semantics / geometry normalization / parcel relation
+  -> NOT IMPLEMENTED
+environmental policy / exclusion / score
+  -> NOT IMPLEMENTED
 ```
 
-The flow currently stops at a portable, source-bound schema-1 attribute profile. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match, and every successful source return rechecks the live archive path against the initial snapshot. Extraction, catalog, and profile intrinsic validation use the same authoritative Windows-compatible relative-package-path grammar. Accepted portable `relative_path: str` values are preserved exactly; whitespace is rejected rather than trimmed, no profile retains an absolute filesystem `Path`, and catalog/profile boundaries translate lower-layer path failures with chained causes. Each package is read once per catalog/profile build and all OGR calls use exact verified bytes; exact `GPKG` driver identity is hash-bound. Attribute reads request no geometry and preserve every integer FID, exact scalar value/frequency, null, source/runtime dtype, field order, and content hash. Only the expected byte-backed `/vsimem` extension warning is locally suppressed. Intrinsic profile validation proves canonical package grouping, contiguous layer/field structure, collision-free identities, inclusive FID-range capacity, component-SHA syntax, recomputable empty hashes, aggregates, and complete-hash closure; non-empty component hashes remain physical evidence. The public validator exact-compares all catalog-bound profile facts with a fresh catalog before attribute reads, then rebuilds and exact-compares every profile value. Catalog/profile canonical payloads and schema versions remain unchanged. No EP geometry is materialized, and there is no category semantics, parcel overlay, exclusion, or score. EP is not the separately published Natura 2000 archive and is not the separately published ZNIEFF archive.
+The flow stops at two separate portable, source-bound schema-1 profiles: non-geometry attribute values and geometry technical quality. Neither profile interprets the other. Archive member validation, archive-derived inventory, and extraction streaming share one verified archive snapshot; archive/marker/physical/caller inventories must match, and every successful source return rechecks the live archive path against the initial snapshot. Extraction, catalog, and profile intrinsic validation use the same authoritative Windows-compatible relative-package-path grammar. Accepted portable `relative_path: str` values are preserved exactly; whitespace is rejected rather than trimmed, no profile retains an absolute filesystem `Path`, and catalog/profile boundaries translate lower-layer path failures with chained causes.
+
+Every package's metadata calls share exact verified bytes and hash-bound `GPKG` driver identity. Attribute reads remain the approved Pyogrio non-geometry reader, preserving every integer FID, exact scalar value/frequency, null, source/runtime dtype, field order, and content hash. Only the expected byte-backed `/vsimem` extension warning is locally suppressed. Attribute schema/payload/hash and catalog schema/payload/hash are unchanged.
+
+Pyogrio 0.13.0 must not materialize EP geometry rows because it removes M. The geometry branch instead deserializes one exact verified byte snapshot per package into SQLite and selects only FID plus geometry BLOB. Standard GeoPackageBinary is the exact source BLOB (header + optional envelope + embedded WKB); embedded WKB is the parser input; parser-derived canonical WKB is a separate explicit source-dimensional extended little-endian no-SRID encoding. Raw full-BLOB and parser-derived streams have distinct FID-addressed hashes. Z/M metadata, actual dimensions, null/empty/non-empty states, finite coordinates, validity/reasons, and exact bounds relations remain factual evidence. Profile identity includes the exact reader/parser toolchain and encoding contract, never operational paths or handles.
+
+Intrinsic profile validation proves canonical grouping, collision-free identities, FID relationships, ordered domains/count closure, canonical bounds, digest syntax, recomputable empty hashes, and complete-hash closure; non-empty component hashes remain physical evidence. Each public validator compares catalog-bound facts with a freshly rebuilt catalog before row reads, independently rebuilds every physical field/hash, and enforces final extraction/catalog equality. Immutable package bytes isolate temporary path swaps, while final postconditions reject persistent mutation. No geometry repair/reprojection/normalization, category semantics, parcel overlay, exclusion, or score is implemented. EP is not the separately published Natura 2000 archive and is not the separately published ZNIEFF archive.
 
 ## Result preservation pattern
 
