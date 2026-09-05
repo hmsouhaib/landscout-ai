@@ -5,14 +5,14 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_geometry_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN EP raw-geometry source authority and technical evidence
-- Source SHA256: `a53a0db2a38ae683b398d4672bade804e26e9718386be7672ce75878d07d8515`
-- Collected cases: `273`
+- Source SHA256: `d953df5225ddefb72928e478881ad130ab856f503ecd107ab32e74f892375e8c`
+- Collected cases: `327`
 
 ## 1. Fixture isolation and actual regression scope
 
 Every source is a synthetic ZIP/GeoPackage under Pytest temporary directories. An ordinary XY container is initially written with Pyogrio only during fixture construction. Test geometries are then installed through SQLite as explicit Standard GeoPackageBinary + ISO WKB bytes; measured geometries never pass through the lossy Pyogrio geometry reader. Raw point type words and XY/XYZ/XYM/XYZM coordinates are independently constructed with struct, including NaN empty encodings. The real Shapely parser, coordinate extraction, WKB serialization, and source download/extraction/catalog authorities remain active. In-memory fake safe HTTPS carries synthetic ZIP bytes; no real EP cache, DNS, HTTP, or download is used.
 
-Header/parser tests isolate byte order, flags, envelope lengths, SRS/empty consistency, dimensional declarations, malformed framing, and topology. Source-bound builder/validator tests prove exact package snapshots, FID/BLOB-only projection, complete domains/counts/bounds, portable hashes, immediate immutable outputs, cheap preflight, independent physical rebuild, and effective transient/persistent path swaps. Private seam tests are identified below and do not replace the real-parser measured regressions.
+Header/parser tests isolate byte order, flags, envelope lengths, SRS/empty consistency, dimensional declarations, malformed framing, and topology. They do not assert numerical header-envelope agreement with WKB coordinates; observed coordinate bounds and catalog bounds are independently compared. Source-bound builder/validator tests prove exact package snapshots, FID/BLOB-only projection, complete domains/counts/bounds, portable hashes, immediate immutable outputs, cheap preflight, independent physical rebuild, and effective transient/persistent path swaps. Private seam tests are identified below and do not replace the real-parser measured regressions.
 
 ## 2. Every import and constant
 
@@ -81,9 +81,28 @@ DIMENSIONS = (
     (False, True, (1.0, 2.0, 4.0)),
     (True, True, (1.0, 2.0, 3.0, 4.0)),
 )
+
+CORE_TYPE_CASES = (
+    ("POINT", "Point", "POINT (1 2)"),
+    ("LINESTRING", "LineString", "LINESTRING (0 0, 1 2)"),
+    ("POLYGON", "Polygon", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ("MULTIPOINT", "MultiPoint", "MULTIPOINT ((1 2), (3 4))"),
+    ("MULTILINESTRING", "MultiLineString", "MULTILINESTRING ((0 0, 1 2))"),
+    ("MULTIPOLYGON", "MultiPolygon", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+    ("GEOMETRYCOLLECTION", "GeometryCollection", "GEOMETRYCOLLECTION (POINT (1 2))"),
+)
+
+INVALID_DECLARED_TYPES = (
+    "point",
+    " Point",
+    "POINT ",
+    "UNKNOWN",
+    "NOT_A_TYPE",
+    "CURVEPOLYGON",
+)
 ```
 
-Standard-library imports construct and corrupt synthetic bytes, record SQL, hash canonical expectations, and inspect frozen dataclasses. NumPy supplies forbidden scalar/array fixtures; GeoPandas/Pyogrio create ordinary containers and name fatal reader sentinels; Shapely provides real geometry assertions. `geometry` is the imported `landscout.sources.inpn_protected_areas_geometry_fr` module; `catalog_module` and `source_module` refer to their distinct qualified physical trust owners. `EXPECTED_EXPORTS` is the eight-name approved geometry API, and `DIMENSIONS` explicitly separates XY, XYZ, XYM, and XYZM layouts.
+Standard-library imports construct and corrupt synthetic bytes, record SQL, hash canonical expectations, and inspect frozen dataclasses. NumPy supplies forbidden scalar/array fixtures; GeoPandas/Pyogrio create ordinary containers and name fatal reader sentinels; Shapely provides real geometry assertions. `geometry` is the imported `landscout.sources.inpn_protected_areas_geometry_fr` module; `catalog_module` and `source_module` refer to their distinct qualified physical trust owners. `EXPECTED_EXPORTS` is the eight-name approved geometry API, and `DIMENSIONS` explicitly separates XY, XYZ, XYM, and XYZM layouts. CORE_TYPE_CASES contains the seven exact declaration/Shapely-name/WKT records used for concrete and GEOMETRY-supertype controls. INVALID_DECLARED_TYPES contains the six exact lowercase/edge-whitespace/unknown/extended negative declarations.
 
 ## 3. Every support class
 
@@ -2011,7 +2030,280 @@ assert profile.layers[0].layer_name == layer_name
 assert profile.geometry_row_count == 2
 ```
 
+### `test_type_contract_metadata_rejects_noncanonical_declared_geometry_type`
+
+
+```python
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_metadata_rejects_noncanonical_declared_geometry_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+```
+
+Mutates the real serialized SQLite gpkg_geometry_columns declaration to each invalid value while retaining a separately built catalog. The private metadata boundary must reject all six lowercase/edge-whitespace/unknown/extended declarations in a verified query-only SQLite snapshot; this isolates metadata validation rather than a prior catalog rejection.
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
+### `test_type_contract_metadata_rejects_different_sql_geometry_column_type`
+
+
+```python
+@pytest.mark.parametrize("sql_type", ["GEOMETRY", "BLOB", "LINESTRING", "point"])
+def test_type_contract_metadata_rejects_different_sql_geometry_column_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: str
+) -> None:
+```
+
+Rebuilds a real physical SQLite table with one INTEGER PRIMARY KEY and the parametrized quoted SQL geometry type while declaring POINT in gpkg_geometry_columns. It first asserts PRAGMA table_info retained the exact test spelling, including lowercase point, then requires the private metadata boundary to reject all four mismatches. No casefold or normalization can satisfy SQL/declaration equality.
+
+Direct assertions:
+
+
+```python
+assert (
+            connection.execute("PRAGMA table_info(physical_layer)").fetchall()[1][2]
+            == sql_type
+        )
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
+### `test_type_contract_sql_declared_type_requires_exact_runtime_spelling`
+
+
+```python
+@pytest.mark.parametrize("sql_type", [_StringSubclass("POINT"), None, 1])
+def test_type_contract_sql_declared_type_requires_exact_runtime_spelling(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: object
+) -> None:
+```
+
+Uses a valid physical POINT container and alters only the table_info result seam to inject a comparison-equal string subclass, None, or integer SQL declared type. The metadata reader must reject all three impossible/non-exact runtime values; real SQLite normally returns built-in strings, so this narrow seam tests fail-closed DB-API handling.
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
+Monkeypatch expressions:
+
+
+```python
+monkeypatch.setattr(geometry, "_sqlite_rows", altered)
+```
+
+### `test_type_contract_sql_declared_type_requires_exact_runtime_spelling.altered`
+
+
+```python
+def altered(
+        connection: sqlite3.Connection,
+        statement: str,
+        parameters: tuple[object, ...] = (),
+    ) -> tuple[tuple[object, ...], ...]:
+```
+
+Delegates every real SQLite query and replaces only the geom column's declared SQL-type slot in PRAGMA main.table_info rows. All other metadata values and statements remain unchanged, isolating the SQL-type exact-runtime contract.
+
+This helper/callback does not directly assert an outcome; its constructed or delegated state is checked by the owning tests.
+
+### `test_type_contract_rejects_unassignable_root_wkb_family`
+
+
+```python
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("LINESTRING", "POINT (1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+        ("MULTIPOINT", "POINT (1 2)"),
+        ("MULTILINESTRING", "LINESTRING (0 0, 1 2)"),
+        ("GEOMETRYCOLLECTION", "POINT (1 2)"),
+        ("POINT", "LINESTRING EMPTY"),
+    ],
+)
+def test_type_contract_rejects_unassignable_root_wkb_family(
+    declared_type: str, wkt: str
+) -> None:
+```
+
+Passes real typed ISO WKB inside Standard GeoPackageBinary to the actual parser with eight contradictory specific declarations. The cases cover each concrete family plus a POINT declaration with LINESTRING EMPTY; EMPTY cannot evade the root assignability check.
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
+### `test_type_contract_accepts_matching_core_roots_and_geometry_supertype`
+
+
+```python
+@pytest.mark.parametrize(("declared_type", "observed_type", "wkt"), CORE_TYPE_CASES)
+@pytest.mark.parametrize("use_supertype", [False, True])
+def test_type_contract_accepts_matching_core_roots_and_geometry_supertype(
+    declared_type: str, observed_type: str, wkt: str, use_supertype: bool
+) -> None:
+```
+
+Runs all seven real core WKB families twice: once under their matching specific declaration and once under GEOMETRY. The 14 controls assert the exact real Shapely root family; GEOMETRYCOLLECTION accepts a collection root, not an arbitrary noncollection root.
+
+Direct assertions:
+
+
+```python
+assert parsed.geometry.geom_type == observed_type
+```
+
+### `test_type_contract_point_null_and_empty_source_controls`
+
+
+```python
+@pytest.mark.parametrize("blob", [None, _wkt_blob("POINT EMPTY")])
+def test_type_contract_point_null_and_empty_source_controls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, blob: bytes | None
+) -> None:
+```
+
+Builds complete source-bound POINT profiles for SQLite NULL and POINT EMPTY. It requires exact POINT metadata and separate NULL/EMPTY counts, with an empty observed-type domain only for NULL and Point retained for EMPTY.
+
+Direct assertions:
+
+
+```python
+assert layer.gpkg_geometry_type_name == "POINT"
+
+assert layer.null_geometry_count == int(blob is None)
+
+assert layer.empty_geometry_count == int(blob is not None)
+
+assert tuple(item.geometry_type for item in layer.geometry_type_counts) == (
+        () if blob is None else ("Point",)
+    )
+```
+
+### `test_type_contract_point_assignability_preserves_xy_z_m_zm`
+
+
+```python
+@pytest.mark.parametrize(("has_z", "has_m", "coordinates"), DIMENSIONS)
+@pytest.mark.parametrize("empty", [False, True])
+def test_type_contract_point_assignability_preserves_xy_z_m_zm(
+    has_z: bool, has_m: bool, coordinates: tuple[float, ...], empty: bool
+) -> None:
+```
+
+Constructs raw independent point WKB for all four XY/Z/M/ZM layouts, both populated and NaN-encoded EMPTY, under declared POINT. All eight real-parser controls require unchanged Point identity, Z/M flags, and empty state; dimension does not substitute another family.
+
+Direct assertions:
+
+
+```python
+assert parsed.geometry.geom_type == "Point"
+
+assert bool(shapely.has_z(parsed.geometry)) is has_z
+
+assert bool(shapely.has_m(parsed.geometry)) is has_m
+
+assert bool(shapely.is_empty(parsed.geometry)) is empty
+```
+
+### `test_type_contract_intrinsic_rejects_invalid_declaration_even_null_only`
+
+
+```python
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_intrinsic_rejects_invalid_declaration_even_null_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+```
+
+Builds a valid NULL-only source profile, substitutes each invalid declaration, and recalculates its complete profile SHA. The observed domain remains explicitly empty; intrinsic validation must still reject all six malformed/unsupported declarations before physical rebuilding.
+
+Direct assertions:
+
+
+```python
+assert forged.layers[0].geometry_type_counts == ()
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
+### `test_type_contract_intrinsic_rejects_rehashed_declared_observed_mismatch`
+
+
+```python
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ],
+)
+def test_type_contract_intrinsic_rejects_rehashed_declared_observed_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str, wkt: str
+) -> None:
+```
+
+Builds real source profiles containing LineString, MultiPolygon, or Polygon, changes only the retained GeoPackage declaration to an incompatible specific family, and recalculates the complete hash. It explicitly proves the hash is coherent, then requires the intrinsic profile boundary itself to reject each declaration/domain contradiction.
+
+Direct assertions:
+
+
+```python
+assert (
+        forged.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(forged)
+    )
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError)
+```
+
 ## 5. Hash and mutation proof boundaries
+
+### STEP 7F.1B.3.1 direct type-contract cases
+
+| Contract layer | Collected new cases |
+|---|---:|
+| Invalid GeoPackage metadata declaration | 6 |
+| Physical SQL declaration mismatch | 4 |
+| Non-exact SQL declaration runtime values | 3 |
+| Specific root-family mismatch, including typed EMPTY | 8 |
+| Matching concrete root | 7 |
+| GEOMETRY supertype root | 7 |
+| Source-bound POINT NULL/EMPTY | 2 |
+| POINT XY/Z/M/ZM, populated and EMPTY | 8 |
+| Intrinsic invalid NULL-only declaration after rehash | 6 |
+| Intrinsic declaration/domain mismatch after rehash | 3 |
+| Total | 54 |
+
+Red-first execution against unchanged production at `57edf93611d028092450a58de1b6df73bc6a1ee2` showed 28 failures and 26 passing controls, with the original 273 cases deselected. Subsequent fixture-only adjustments keep the same 54 cases and avoid unrelated metadata warnings. Five existing invalid-primary-key fixture declarations use `geom GEOMETRY` instead of `geom BLOB` so the new SQL-type gate does not mask their intended primary-key regressions. No existing case is removed.
 
 Expected FID/raw-BLOB hashes use an independently implemented canonical JSON helper. Component-forgery tests recalculate the complete profile hash so a stale outer digest does not substitute for the intended physical rejection. Raw header-byte changes are distinguished from parser geometry changes; M-only, Z-only, coordinate, FID, and ring-structure changes remain hash-significant in their correct streams. Portable roots/cache-hit state and repeated builds must produce exact equal public evidence.
 
@@ -2019,7 +2311,7 @@ Temporary package replacements occur after real SQLite deserialization and expli
 
 ## 6. Execution and non-goals
 
-Run this suite with a fresh unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`. The existing 399-case INPN baseline remains required, followed by this geometry suite, combined INPN suites, and the complete repository; exact completed command counts and warnings are recorded in docs/DEV_LOG.md. The focused geometry run collects 273 cases and reports zero unhandled warnings. One all-NULL mandatory Z/M Point metadata fixture explicitly captures eight expected Pyogrio measured-metadata warnings; this does not permit lossy geometry-row conversion. Unit fixtures do not constitute verification of the real EP snapshot. The separately controlled real-source run blocks network, alternative feature readers, attribute projections, geometry repair, and reprojection.
+Run this suite with a fresh unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`. The existing 399-case INPN baseline remains required, followed by this geometry suite, combined INPN suites, and the complete repository; exact completed commands and full-suite results are recorded in docs/DEV_LOG.md. The geometry suite passes all 327 cases (273 retained + 54 type-contract regressions), and the combined INPN suites pass all 726 cases; both focused runs report zero unhandled warnings. One all-NULL mandatory Z/M Point metadata fixture explicitly captures eight expected Pyogrio measured-metadata warnings; this does not permit lossy geometry-row conversion. Unit fixtures do not constitute verification of the real EP snapshot. The separately controlled real-source run blocks network, alternative feature readers, attribute projections, geometry repair, and reprojection.
 
 No test adds category/legal semantics, environmental normalization, parcel loading/relations/distances, exclusion, score, ranking, Natura 2000, or ZNIEFF. No fixture archive/GeoPackage/cache or audit dump is committed.
 
@@ -2087,6 +2379,23 @@ DIMENSIONS = (
     (True, False, (1.0, 2.0, 3.0)),
     (False, True, (1.0, 2.0, 4.0)),
     (True, True, (1.0, 2.0, 3.0, 4.0)),
+)
+CORE_TYPE_CASES = (
+    ("POINT", "Point", "POINT (1 2)"),
+    ("LINESTRING", "LineString", "LINESTRING (0 0, 1 2)"),
+    ("POLYGON", "Polygon", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ("MULTIPOINT", "MultiPoint", "MULTIPOINT ((1 2), (3 4))"),
+    ("MULTILINESTRING", "MultiLineString", "MULTILINESTRING ((0 0, 1 2))"),
+    ("MULTIPOLYGON", "MultiPolygon", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+    ("GEOMETRYCOLLECTION", "GeometryCollection", "GEOMETRYCOLLECTION (POINT (1 2))"),
+)
+INVALID_DECLARED_TYPES = (
+    "point",
+    " Point",
+    "POINT ",
+    "UNKNOWN",
+    "NOT_A_TYPE",
+    "CURVEPOLYGON",
 )
 
 
@@ -2976,11 +3285,11 @@ def test_physical_metadata_fails_closed_without_guessing(
         else:
             connection.execute("DROP TABLE physical_layer")
             declaration = {
-                "no-pk": "fid INTEGER, geom BLOB",
-                "wrong-pk": "fid TEXT PRIMARY KEY, geom BLOB",
-                "composite-pk": "fid INTEGER, other INTEGER, geom BLOB, PRIMARY KEY(fid, other)",
-                "desc-pk": "fid INTEGER PRIMARY KEY DESC, geom BLOB",
-                "without-rowid": "fid INTEGER PRIMARY KEY, geom BLOB",
+                "no-pk": "fid INTEGER, geom GEOMETRY",
+                "wrong-pk": "fid TEXT PRIMARY KEY, geom GEOMETRY",
+                "composite-pk": "fid INTEGER, other INTEGER, geom GEOMETRY, PRIMARY KEY(fid, other)",
+                "desc-pk": "fid INTEGER PRIMARY KEY DESC, geom GEOMETRY",
+                "without-rowid": "fid INTEGER PRIMARY KEY, geom GEOMETRY",
             }[mutation]
             suffix = " WITHOUT ROWID" if mutation == "without-rowid" else ""
             connection.execute(f"CREATE TABLE physical_layer ({declaration}){suffix}")
@@ -3624,4 +3933,208 @@ def test_quoted_source_table_name_cannot_inject_sql(
     profile = build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
     assert profile.layers[0].layer_name == layer_name
     assert profile.geometry_row_count == 2
+
+
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_metadata_rejects_noncanonical_declared_geometry_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+    package = _gpkg_bytes(tmp_path / "container")
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(package)
+        connection.execute(
+            "UPDATE gpkg_geometry_columns SET geometry_type_name=?", (declared_type,)
+        )
+        connection.commit()
+        changed = connection.serialize()
+    finally:
+        connection.close()
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(changed, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize("sql_type", ["GEOMETRY", "BLOB", "LINESTRING", "point"])
+def test_type_contract_metadata_rejects_different_sql_geometry_column_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: str
+) -> None:
+    package = _gpkg_bytes(tmp_path / "container")
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(package)
+        connection.execute("DROP TABLE physical_layer")
+        connection.execute(
+            f'CREATE TABLE physical_layer (fid INTEGER PRIMARY KEY, geom "{sql_type}")'
+        )
+        connection.execute(
+            "UPDATE gpkg_geometry_columns SET geometry_type_name='POINT'"
+        )
+        assert (
+            connection.execute("PRAGMA table_info(physical_layer)").fetchall()[1][2]
+            == sql_type
+        )
+        connection.commit()
+        changed = connection.serialize()
+    finally:
+        connection.close()
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(changed, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize("sql_type", [_StringSubclass("POINT"), None, 1])
+def test_type_contract_sql_declared_type_requires_exact_runtime_spelling(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: object
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path / "container", geometry_type="Point", z_flag=0, m_flag=0
+    )
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    original = geometry._sqlite_rows
+
+    def altered(
+        connection: sqlite3.Connection,
+        statement: str,
+        parameters: tuple[object, ...] = (),
+    ) -> tuple[tuple[object, ...], ...]:
+        rows = original(connection, statement, parameters)
+        if statement.startswith("PRAGMA main.table_info("):
+            return tuple(
+                (*row[:2], sql_type, *row[3:]) if row[1] == "geom" else row
+                for row in rows
+            )
+        return rows
+
+    monkeypatch.setattr(geometry, "_sqlite_rows", altered)
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(package, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("LINESTRING", "POINT (1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+        ("MULTIPOINT", "POINT (1 2)"),
+        ("MULTILINESTRING", "LINESTRING (0 0, 1 2)"),
+        ("GEOMETRYCOLLECTION", "POINT (1 2)"),
+        ("POINT", "LINESTRING EMPTY"),
+    ],
+)
+def test_type_contract_rejects_unassignable_root_wkb_family(
+    declared_type: str, wkt: str
+) -> None:
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._parse_gpkg_geometry_blob(
+            _wkt_blob(wkt),
+            _metadata(geometry_type_name=declared_type),
+            "EP/one.gpkg",
+            1,
+        )
+
+
+@pytest.mark.parametrize(("declared_type", "observed_type", "wkt"), CORE_TYPE_CASES)
+@pytest.mark.parametrize("use_supertype", [False, True])
+def test_type_contract_accepts_matching_core_roots_and_geometry_supertype(
+    declared_type: str, observed_type: str, wkt: str, use_supertype: bool
+) -> None:
+    metadata = _metadata(
+        geometry_type_name="GEOMETRY" if use_supertype else declared_type
+    )
+    parsed = geometry._parse_gpkg_geometry_blob(
+        _wkt_blob(wkt), metadata, "EP/one.gpkg", 1
+    )
+    assert parsed.geometry.geom_type == observed_type
+
+
+@pytest.mark.parametrize("blob", [None, _wkt_blob("POINT EMPTY")])
+def test_type_contract_point_null_and_empty_source_controls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, blob: bytes | None
+) -> None:
+    profile = _build(
+        tmp_path, monkeypatch, ((1, blob),), geometry_type="Point", z_flag=0, m_flag=0
+    )
+    layer = profile.layers[0]
+    assert layer.gpkg_geometry_type_name == "POINT"
+    assert layer.null_geometry_count == int(blob is None)
+    assert layer.empty_geometry_count == int(blob is not None)
+    assert tuple(item.geometry_type for item in layer.geometry_type_counts) == (
+        () if blob is None else ("Point",)
+    )
+
+
+@pytest.mark.parametrize(("has_z", "has_m", "coordinates"), DIMENSIONS)
+@pytest.mark.parametrize("empty", [False, True])
+def test_type_contract_point_assignability_preserves_xy_z_m_zm(
+    has_z: bool, has_m: bool, coordinates: tuple[float, ...], empty: bool
+) -> None:
+    ordinates = tuple(math.nan for _ in coordinates) if empty else coordinates
+    blob = _blob(_point_wkb(ordinates, has_z=has_z, has_m=has_m), empty=empty)
+    parsed = geometry._parse_gpkg_geometry_blob(
+        blob, _metadata(geometry_type_name="POINT"), "EP/one.gpkg", 1
+    )
+    assert parsed.geometry.geom_type == "Point"
+    assert bool(shapely.has_z(parsed.geometry)) is has_z
+    assert bool(shapely.has_m(parsed.geometry)) is has_m
+    assert bool(shapely.is_empty(parsed.geometry)) is empty
+
+
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_intrinsic_rejects_invalid_declaration_even_null_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+    profile = _build(tmp_path, monkeypatch, ((1, None),))
+    forged = _rehash(
+        replace(
+            profile,
+            layers=(replace(profile.layers[0], gpkg_geometry_type_name=declared_type),),
+        )
+    )
+    assert forged.layers[0].geometry_type_counts == ()
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._validate_profile_intrinsic(forged)
+
+
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ],
+)
+def test_type_contract_intrinsic_rejects_rehashed_declared_observed_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str, wkt: str
+) -> None:
+    profile = _build(tmp_path, monkeypatch, ((1, _wkt_blob(wkt)),))
+    forged = _rehash(
+        replace(
+            profile,
+            layers=(replace(profile.layers[0], gpkg_geometry_type_name=declared_type),),
+        )
+    )
+    assert (
+        forged.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(forged)
+    )
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._validate_profile_intrinsic(forged)
 ```

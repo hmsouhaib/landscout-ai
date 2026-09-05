@@ -14,6 +14,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from hashlib import sha256
 from pathlib import PurePosixPath
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -51,6 +52,49 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 class InpnProtectedAreasGeometryProfileError(ValueError):
     """Raised when exact source-bound geometry evidence cannot be proven."""
+
+
+# ID 0 is declaration-only: the raw WKB parser still accepts only core IDs 1..7.
+_CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingProxyType(
+    {
+        0: ("GEOMETRY", None),
+        1: ("POINT", "Point"),
+        2: ("LINESTRING", "LineString"),
+        3: ("POLYGON", "Polygon"),
+        4: ("MULTIPOINT", "MultiPoint"),
+        5: ("MULTILINESTRING", "MultiLineString"),
+        6: ("MULTIPOLYGON", "MultiPolygon"),
+        7: ("GEOMETRYCOLLECTION", "GeometryCollection"),
+    }
+)
+
+
+def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
+    """Require an exact core declaration; return its specific observed type, if any."""
+    if type(value) is str:
+        for declared, observed in _CORE_GEOMETRY_TYPES.values():
+            if value == declared:
+                return observed
+    raise InpnProtectedAreasGeometryProfileError(
+        f"{label}: exact supported uppercase GeoPackage geometry type required"
+    )
+
+
+def _require_geometry_assignable(
+    declared: object, observed: object, label: str
+) -> None:
+    """Bind a supported observed core root to its declaration, independent of Z/M."""
+    expected = _require_gpkg_geometry_type(declared, label)
+    if type(observed) is not str or not any(
+        observed == name for _, name in _CORE_GEOMETRY_TYPES.values()
+    ):
+        raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: unsupported Shapely WKB geometry type"
+        )
+    if expected is not None and observed != expected:
+        raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: observed {observed} is not assignable to declared {declared}"
+        )
 
 
 @dataclass(frozen=True)
@@ -253,6 +297,7 @@ def _read_gpkg_layer_metadata(
             or type(geometry_type) is not str
         ):
             raise ValueError("GeoPackage geometry metadata text is malformed")
+        _require_gpkg_geometry_type(geometry_type, label)
         if table != layer.layer_name:
             raise ValueError("GeoPackage table identity differs from catalog layer")
         if type(srs_id) is not int or not -(2**31) <= srs_id < 2**31:
@@ -292,6 +337,11 @@ def _read_gpkg_layer_metadata(
                 primary_columns.append(row)
         if len(names) != len(set(names)) or names.count(column) != 1:
             raise ValueError("exact geometry column is missing or ambiguous")
+        sql_geometry_type = table_info[names.index(column)][2]
+        if type(sql_geometry_type) is not str or sql_geometry_type != geometry_type:
+            raise ValueError(
+                "SQL geometry column type must exactly match GeoPackage declaration"
+            )
         if (
             len(primary_columns) != 1
             or primary_columns[0][5] != 1
@@ -435,16 +485,7 @@ def _assert_wkb_dimensions_preserved(
 ) -> tuple[bool, bool]:
     """Reject loss of declared Z/M at every parsed geometry-tree node."""
 
-    type_names = (
-        "Point",
-        "LineString",
-        "Polygon",
-        "MultiPoint",
-        "MultiLineString",
-        "MultiPolygon",
-        "GeometryCollection",
-    )
-    if geometry.geom_type != type_names[shape.type_id - 1]:
+    if geometry.geom_type != _CORE_GEOMETRY_TYPES[shape.type_id][1]:
         raise ValueError("WKB parser changed the geometry type")
     expected_z, expected_m = shape.has_z, shape.has_m
     if shape.type_id in (4, 5, 6, 7):
@@ -472,7 +513,7 @@ def _parse_gpkg_geometry_blob(
     relative_path: str,
     fid: int,
 ) -> _ParsedGpkgGeometry:
-    """Strictly parse the Standard GeoPackageBinary header and original WKB."""
+    """Validate header framing and typed WKB, not numerical envelope semantics."""
 
     label = f"package {relative_path} layer {metadata.table_name} FID {fid}"
     try:
@@ -513,6 +554,9 @@ def _parse_gpkg_geometry_blob(
         shape, consumed = _wkb_shape(embedded_wkb)
         if consumed != len(embedded_wkb):
             raise ValueError("embedded WKB has trailing bytes")
+        _require_geometry_assignable(
+            metadata.geometry_type_name, _CORE_GEOMETRY_TYPES[shape.type_id][1], label
+        )
         geometry = shapely.from_wkb(embedded_wkb, on_invalid="raise")
         if type(geometry) not in (
             shapely.Point,
@@ -1118,6 +1162,7 @@ def _validate_layer_intrinsic(layer: object) -> InpnProtectedAreasLayerGeometryP
         "bounds_relation",
     ):
         _exact_text(getattr(layer, name), name)
+    _require_gpkg_geometry_type(layer.gpkg_geometry_type_name, "GeoPackage declaration")
     for name in ("layer_name", "fid_column_name", "geometry_column_name"):
         _quote_sqlite_identifier(getattr(layer, name))
     if layer.driver_name != "GPKG" or layer.feature_table_kind != "table":
@@ -1224,19 +1269,9 @@ def _validate_layer_intrinsic(layer: object) -> InpnProtectedAreasLayerGeometryP
         for item in domain:
             _exact_int(item.count, f"{name} frequency", 1)
     for item in layer.geometry_type_counts:
-        _exact_text(item.geometry_type, "geometry type")
-        if item.geometry_type not in (
-            "Point",
-            "LineString",
-            "Polygon",
-            "MultiPoint",
-            "MultiLineString",
-            "MultiPolygon",
-            "GeometryCollection",
-        ):
-            raise InpnProtectedAreasGeometryProfileError(
-                "unsupported Shapely WKB geometry type"
-            )
+        _require_geometry_assignable(
+            layer.gpkg_geometry_type_name, item.geometry_type, "profile geometry type"
+        )
     _unique_ordered(
         tuple(item.geometry_type for item in layer.geometry_type_counts),
         "geometry types",

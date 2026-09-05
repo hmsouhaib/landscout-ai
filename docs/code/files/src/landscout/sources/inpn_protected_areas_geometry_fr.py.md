@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer/domain: source-bound INPN EP geometry technical-quality evidence
 - Responsibility: Profiles physical FIDs and raw geometry BLOBs from verified immutable GeoPackage bytes, preserving Z/M and independently validating raw/parser evidence without environmental meaning.
-- Source SHA256: `c94e52db2df6983445b1bee3004c8fb5ff7ad091004d146a5c93562ffcab9a93`
+- Source SHA256: `56b90e1fed87fab0dafda5100e9417a91219c3aa0c2467f47692bc71ce670fb4`
 
 ## 1. Architectural and reader contract
 
@@ -31,6 +31,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from hashlib import sha256
 from pathlib import PurePosixPath
+from types import MappingProxyType
 from typing import Any
 import numpy as np
 import pyogrio
@@ -72,6 +73,19 @@ The imported `_prepare_source_inputs` binding is an alias of `landscout.sources.
 
 
 ```python
+_CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingProxyType(
+    {
+        0: ("GEOMETRY", None),
+        1: ("POINT", "Point"),
+        2: ("LINESTRING", "LineString"),
+        3: ("POLYGON", "Polygon"),
+        4: ("MULTIPOINT", "MultiPoint"),
+        5: ("MULTILINESTRING", "MultiLineString"),
+        6: ("MULTIPOLYGON", "MultiPolygon"),
+        7: ("GEOMETRYCOLLECTION", "GeometryCollection"),
+    }
+)
+
 GEOMETRY_PROFILE_SCHEMA_VERSION = 1
 
 GEOMETRY_ENCODING_SCHEMA_VERSION = 1
@@ -117,7 +131,7 @@ _TOOLCHAIN_FIELDS = (
 )
 ```
 
-The two new schemas are both 1. The existing catalog stays at schema 2; no previous persisted hash is migrated. Source/count/toolchain field tuples define portable comparisons and aggregate closure, not environmental vocabularies. The encoding contract fixes extended little-endian parser WKB at the actual geometry dimension with no SRID; raw source WKB and full BLOB bytes remain distinct identities.
+Geometry-profile and parser-encoding schemas remain 1. The existing catalog stays at schema 2; no previous persisted hash is migrated. The private MappingProxyType core table owns an unaliased dictionary of immutable records: ID 0 represents only the GEOMETRY declaration; IDs 1–7 bind canonical GeoPackage names to exact Shapely names. It does not enable WKB type ID 0. Source/count/toolchain field tuples define portable comparisons and aggregate closure, not environmental vocabularies. The encoding contract fixes extended little-endian parser WKB at the actual geometry dimension with no SRID; raw source WKB and full BLOB bytes remain distinct identities.
 
 ## 4. Every model and field
 
@@ -141,7 +155,7 @@ Decorators: `dataclass(frozen=True)`.
 | `table_kind: str` | Exact physical SQLite kind; supported value is table. |
 | `fid_column_name: str` | Discovered INTEGER PRIMARY KEY rowid-alias column, not a guessed name. |
 | `geometry_column_name: str` | Exact physical geometry-BLOB column from GeoPackage metadata. |
-| `geometry_type_name: str` | Exact gpkg_geometry_columns declared type text; no category interpretation. |
+| `geometry_type_name: str` | Exact supported uppercase gpkg_geometry_columns declaration, proven equal to the physical geometry-column SQL declared type; no category interpretation. |
 | `srs_id: int` | Exact signed int32 GeoPackage source SRS identifier. |
 | `z_flag: int` | Exact GeoPackage Z declaration: 0 prohibited, 1 mandatory, 2 optional. |
 | `m_flag: int` | Exact GeoPackage M declaration: 0 prohibited, 1 mandatory, 2 optional. |
@@ -158,7 +172,7 @@ Decorators: `dataclass(frozen=True)`.
 | `embedded_wkb: bytes` | Temporary exact WKB slice extracted from the full source BLOB, not canonical parser output. |
 | `srs_id: int` | Exact signed int32 GeoPackage source SRS identifier. |
 | `envelope_code: int` | Parsed Standard GeoPackageBinary envelope code 0–4. |
-| `envelope: tuple[float, ...]` | Exact header-envelope doubles, retained only in the private parser record. |
+| `envelope: tuple[float, ...]` | Exact header-envelope doubles, retained only in the private parser record; no numerical consistency check against WKB coordinates. |
 | `header_little_endian: bool` | Header byte-order flag, independent of embedded WKB byte order. |
 | `is_empty: bool` | Parsed header/WKB empty agreement in the private record. |
 
@@ -230,7 +244,7 @@ Decorators: `dataclass(frozen=True)`.
 | `feature_table_kind: str` | Physical SQLite table kind; views and unsupported key contracts fail closed. |
 | `fid_column_name: str` | Discovered INTEGER PRIMARY KEY rowid-alias column, not a guessed name. |
 | `geometry_column_name: str` | Exact physical geometry-BLOB column from GeoPackage metadata. |
-| `gpkg_geometry_type_name: str` | Exact GeoPackage geometry-column declared type text. |
+| `gpkg_geometry_type_name: str` | Exact supported uppercase GeoPackage declaration, independently bound to the physical SQL declared type and assignable observed WKB-type domain. |
 | `gpkg_srs_id: int` | Signed source SRS ID agreed by metadata/header and proven integer EPSG authority. |
 | `gpkg_z_flag: int` | Exact GeoPackage Z declaration, checked against every non-null parsed geometry. |
 | `gpkg_m_flag: int` | Exact GeoPackage M declaration, checked against every non-null parsed geometry. |
@@ -251,7 +265,7 @@ Decorators: `dataclass(frozen=True)`.
 | `has_z_geometry_count: int` | Number of non-null geometries with actual Z, including dimensional EMPTY geometries. |
 | `has_m_geometry_count: int` | Number of non-null geometries with actual M, including dimensional EMPTY geometries. |
 | `total_coordinate_count: int` | Complete present coordinate count; NULL and EMPTY contribute zero. |
-| `geometry_type_counts: tuple[InpnProtectedAreasGeometryTypeCount, ...]` | Every observed non-null type and exact frequency in lexical type order. |
+| `geometry_type_counts: tuple[InpnProtectedAreasGeometryTypeCount, ...]` | Every observed non-null type and exact frequency in lexical type order; each type must be assignable to gpkg_geometry_type_name, including EMPTY. |
 | `coordinate_dimension_counts: tuple[InpnProtectedAreasCoordinateDimensionCount, ...]` | Complete joint dimension/Z/M domain in sorted tuple order, including EMPTY. |
 | `validity_reason_counts: tuple[InpnProtectedAreasGeometryValidityReasonCount, ...]` | Complete NON_EMPTY validity/reason domain sorted by (is_valid, reason). |
 | `catalog_total_bounds: tuple[float, float, float, float] &#124; None` | Exact physical catalog XY bounds tuple or None. |
@@ -307,6 +321,48 @@ Decorators: `dataclass(frozen=True)`.
 ## 5. Every helper and public function
 
 Signatures are source-derived. The contracts below describe each local definition; qualified imported ownership is listed separately above.
+
+### `_require_gpkg_geometry_type`
+
+
+```python
+def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
+```
+
+Requires an exact built-in string matching one of the eight canonical uppercase declarations in the private immutable core-type table. It returns the matching concrete Shapely family, or None for the declaration-only GEOMETRY supertype; lowercase, edge whitespace, unknown, extended, and non-string values fail with the controlled geometry error.
+
+Direct raise statements (enclosing guards are in the exact source snapshot):
+
+
+```python
+raise InpnProtectedAreasGeometryProfileError(
+        f"{label}: exact supported uppercase GeoPackage geometry type required"
+    )
+```
+
+### `_require_geometry_assignable`
+
+
+```python
+def _require_geometry_assignable(
+    declared: object, observed: object, label: str
+) -> None:
+```
+
+Revalidates the declared GeoPackage type, requires an exact supported observed Shapely type string, and rejects any mismatch with a concrete declaration. GEOMETRY accepts all seven core roots. The same helper binds raw WKB root evidence before Shapely parsing and intrinsic observed-type domains; Z/M is deliberately not part of assignability.
+
+Direct raise statements (enclosing guards are in the exact source snapshot):
+
+
+```python
+raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: unsupported Shapely WKB geometry type"
+        )
+
+raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: observed {observed} is not assignable to declared {declared}"
+        )
+```
 
 ### `_open_gpkg_sqlite_snapshot`
 
@@ -420,7 +476,7 @@ def _read_gpkg_layer_metadata(
 ) -> _GpkgLayerMetadata:
 ```
 
-Requires a spatial catalog layer with CRS and physical metadata tables. Exact parameterized contents/geometry-column rows must agree on feature-table and signed-int32 SRS; Z/M flags are exact 0/1/2 and proven integer EPSG authority must match. table_info discovers one distinct geometry column and one INTEGER PRIMARY KEY; index_list excludes non-rowid-alias DESC keys. Returns private source spellings without reading attributes.
+Requires a spatial catalog layer with CRS and physical metadata tables. Exact parameterized contents/geometry-column rows must agree on feature-table and signed-int32 SRS; Z/M flags are exact 0/1/2 and proven integer EPSG authority must match. The geometry_type_name is checked against the exact uppercase core vocabulary. table_info discovers one distinct geometry column and requires its SQL declared type to be an exact built-in string equal to that GeoPackage declaration, without casefolding or coercion. One INTEGER PRIMARY KEY is required; index_list excludes non-rowid-alias DESC keys. Returns private source spellings without reading attributes.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -455,6 +511,10 @@ raise ValueError("feature table column metadata is malformed")
 raise ValueError("feature column or primary-key metadata is malformed")
 
 raise ValueError("exact geometry column is missing or ambiguous")
+
+raise ValueError(
+                "SQL geometry column type must exactly match GeoPackage declaration"
+            )
 
 raise ValueError("feature table must have exactly one INTEGER PRIMARY KEY")
 
@@ -556,7 +616,7 @@ def _assert_wkb_dimensions_preserved(
 ) -> tuple[bool, bool]:
 ```
 
-Checks real parsed geometry type and child count against the original WKB tree and recursively verifies declared Z/M evidence at every node, rejecting parser loss rather than trusting the outer dimensional count alone.
+Checks real parsed geometry type against the original WKB tree using the private immutable core-type mapping, verifies child counts, and recursively verifies declared Z/M evidence at every node, rejecting parser loss rather than trusting the outer dimensional count alone.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -581,7 +641,7 @@ def _parse_gpkg_geometry_blob(
 ) -> _ParsedGpkgGeometry:
 ```
 
-Validates exact Standard GeoPackageBinary type/length/magic/version/reserved/extended/envelope flags, signed SRS, empty-envelope rule, and exact embedded-WKB consumption. Parses only WKB with on_invalid='raise', requires one exact core Shapely scalar, verifies recursive dimensions, header-empty agreement, and prohibited/mandatory/optional Z/M declarations. Parse/shape/struct/recursion failures retain their chained cause.
+Validates exact Standard GeoPackageBinary type/length/magic/version/reserved/extended flags, envelope code/byte order/framing/length, signed SRS, empty-envelope rule, and exact embedded-WKB consumption. After _wkb_shape proves the root type ID, its mapped family must be assignable to the declared GeoPackage type before shapely.from_wkb is called. Parses only WKB with on_invalid='raise', requires one exact core Shapely scalar, verifies recursive type/dimensions, header-empty agreement, and prohibited/mandatory/optional Z/M declarations. Numerical envelope doubles are not checked against WKB coordinates. Parse/shape/struct/recursion failures retain their chained cause.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -889,7 +949,7 @@ raise InpnProtectedAreasGeometryProfileError(f"{label}: reversed bounds")
 def _validate_layer_intrinsic(layer: object) -> InpnProtectedAreasLayerGeometryProfile:
 ```
 
-Proves exact frozen layer/domain classes, shared extraction-owned .gpkg path grammar, table/column/driver identity, FID count/extrema/inclusive capacity and empty hashes, signed SRS/CRS canonicality, Z/M flags, count equations, positive ordered complete domains, bounds and exact relation, and component-SHA syntax. The catalog-owned `_validated_bounds` rule is also applied to empty/populated feature counts; comparison-equal forged catalog bounds cannot evade that physical metadata contract. Non-empty source streams are not reconstructed here.
+Proves exact frozen layer/domain classes, shared extraction-owned .gpkg path grammar, table/column/driver identity, a supported canonical GeoPackage declaration, and assignability of every observed type to that declaration. Declaration validation also applies to NULL-only layers with empty type domains. It proves FID count/extrema/inclusive capacity and empty hashes, signed SRS/CRS canonicality, Z/M flags, count equations, positive ordered complete domains, bounds and exact relation, and component-SHA syntax. The catalog-owned _validated_bounds rule is also applied to empty/populated feature counts; comparison-equal forged catalog bounds cannot evade that physical metadata contract. Non-empty source streams are not reconstructed here.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -949,10 +1009,6 @@ raise InpnProtectedAreasGeometryProfileError("coordinate count is inconsistent")
 
 raise InpnProtectedAreasGeometryProfileError(
                 f"{name}: exact immutable domain required"
-            )
-
-raise InpnProtectedAreasGeometryProfileError(
-                "unsupported Shapely WKB geometry type"
             )
 
 raise InpnProtectedAreasGeometryProfileError(
@@ -1176,6 +1232,27 @@ raise InpnProtectedAreasGeometryProfileError(
 
 ## 6. Binary identity, dimensions, and geometry facts
 
+### Declared metadata, SQL declaration, and actual WKB family
+
+The three physical checks are distinct: `gpkg_geometry_columns.geometry_type_name` uses the exact supported uppercase vocabulary; the geometry-column row in `PRAGMA table_info` must have an identical exact built-in SQL type string; the parsed ISO WKB root family must be assignable to that declaration before GEOS conversion. The intrinsic layer check repeats declaration/domain assignability without reading rows. These implement the relevant core-type relationships in [GeoPackage 1.4 requirements 25, 31, and 32](https://www.geopackage.org/spec140/).
+
+| Canonical GeoPackage and SQL declaration | Allowed actual WKB / observed Shapely family |
+|---|---|
+| `GEOMETRY` | Any of the seven supported core families below |
+| `POINT` | `Point` |
+| `LINESTRING` | `LineString` |
+| `POLYGON` | `Polygon` |
+| `MULTIPOINT` | `MultiPoint` |
+| `MULTILINESTRING` | `MultiLineString` |
+| `MULTIPOLYGON` | `MultiPolygon` |
+| `GEOMETRYCOLLECTION` | `GeometryCollection` |
+
+No casefold equivalence, coercion, or extended/non-linear type is accepted. Z/M presence does not alter the root family. SQL NULL has no WKB type to compare; EMPTY still has its WKB type. A NULL-only layer still requires a valid declaration. Rehashing a caller-forged declaration/domain mismatch cannot make it intrinsically valid.
+
+### Header framing versus numerical envelope semantics
+
+GeoPackageBinary envelope code, byte order, framing, and length are validated. Header doubles are decoded but not verified numerically against WKB coordinates. Observed geometry bounds are independently calculated from parsed non-empty coordinates and compared with the physical catalog bounds; that comparison is not an envelope-value verification.
+
 Standard GeoPackageBinary ≠ embedded WKB ≠ parser-derived canonical WKB. The complete BLOB includes ASCII GP, version 0, flags, signed int32 SRS, optional envelope, and embedded WKB. Reserved and Extended flags, envelope codes 5–7, truncated headers/envelopes, missing/trailing WKB, unsupported non-core geometry types, and non-ISO EWKB flags fail. Header and WKB endianness are independent. EMPTY requires envelope code 0 and exact parsed empty agreement; SQL NULL has no BLOB, type, dimension, validity, or parser WKB. Header SRS equals geometry metadata and proven integer EPSG authority. Every non-null geometry obeys prohibited/mandatory/optional Z/M declarations.
 
 Recursive raw-WKB framing proves parsed type/member/Z/M preservation rather than assuming GEOS retained every declared dimension. Complete type and dimension domains include EMPTY; validity/reason domains include only NON_EMPTY. Coordinate extraction inspects only present XY/Z/M ordinates and traverses polygon rings/collection children so absent mixed dimensions are not fabricated as NaNs. Every present ordinate must be finite. Invalid but parseable topology is retained with its exact reason; no make_valid, buffer, normalize, precision change, simplification, snapping, overlay, or reprojection is permitted.
@@ -1196,9 +1273,11 @@ NULL uses state NULL and null for all seven geometry/validity/WKB fields; EMPTY 
 
 The complete profile hashes every portable dataclass field except its own hash: schema, source/archive/catalog locks, SQLite/Pyogrio/GDAL/Shapely/GEOS/PyProj versions, encoding identity, all ordered package/layer facts and domains, CRS, bounds, FIDs, component hashes, and aggregates. Absolute paths, cache roots, cache_hit, timing, user/machine identifiers, database state, raw bytes, and geometry objects are absent.
 
+STEP 7F.1B.3.1 adds validation without changing public fields, canonical payloads, raw/parser stream definitions, geometry-profile schema 1, or encoding schema 1/contract. Controlled offline revalidation of the same valid EP snapshot retains exact complete geometry-profile SHA256 `997c8c27cbbedb2860778386b3f2eb5afa9f64de6ad07e41fc67b4cec9060ee7`: all 15 layers declare `MULTIPOLYGON` and contain only observed `MultiPolygon`, totaling 11,381 rows. No hash migration is required.
+
 ## 8. Intrinsic versus physical validation and TOCTOU
 
-Intrinsic validation proves exact immutable runtime types, authoritative package-path grammar, contiguous lexical package/layer grouping, consistent repeated package facts, exact/NFKC/casefold uniqueness, FID extrema/inclusive capacity, canonical CRS/bounds, Z/M flag and domain/count relationships, component-SHA syntax, deterministic empty-component hashes, aggregate closure, and complete profile hash. It cannot reconstruct non-empty FID/raw/parser hashes without original rows.
+Intrinsic validation proves exact immutable runtime types, authoritative package-path grammar, contiguous lexical package/layer grouping, consistent repeated package facts, exact/NFKC/casefold uniqueness, FID extrema/inclusive capacity, canonical CRS/bounds, supported GeoPackage declarations and observed-root assignability, Z/M flag and domain/count relationships, component-SHA syntax, deterministic empty-component hashes, aggregate closure, and complete profile hash. It cannot reconstruct non-empty FID/raw/parser hashes without original rows.
 
 Public validation intrinsically validates first, reconstructs config/extraction authority and independently rebuilds the physical catalog, rejects catalog-bound mismatches before SQLite geometry-row reads, physically rebuilds every geometry fact and hash, and exact-compares all fields. Final extraction/catalog reconstruction must equal initial evidence. Temporary physical path replacement after deserialization cannot inject alternate geometry; persistent mutation fails before successful return. Caller-coordinated profile/hash changes do not replace this physical proof.
 
@@ -1242,6 +1321,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from hashlib import sha256
 from pathlib import PurePosixPath
+from types import MappingProxyType
 from typing import Any
 
 import numpy as np
@@ -1279,6 +1359,49 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 class InpnProtectedAreasGeometryProfileError(ValueError):
     """Raised when exact source-bound geometry evidence cannot be proven."""
+
+
+# ID 0 is declaration-only: the raw WKB parser still accepts only core IDs 1..7.
+_CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingProxyType(
+    {
+        0: ("GEOMETRY", None),
+        1: ("POINT", "Point"),
+        2: ("LINESTRING", "LineString"),
+        3: ("POLYGON", "Polygon"),
+        4: ("MULTIPOINT", "MultiPoint"),
+        5: ("MULTILINESTRING", "MultiLineString"),
+        6: ("MULTIPOLYGON", "MultiPolygon"),
+        7: ("GEOMETRYCOLLECTION", "GeometryCollection"),
+    }
+)
+
+
+def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
+    """Require an exact core declaration; return its specific observed type, if any."""
+    if type(value) is str:
+        for declared, observed in _CORE_GEOMETRY_TYPES.values():
+            if value == declared:
+                return observed
+    raise InpnProtectedAreasGeometryProfileError(
+        f"{label}: exact supported uppercase GeoPackage geometry type required"
+    )
+
+
+def _require_geometry_assignable(
+    declared: object, observed: object, label: str
+) -> None:
+    """Bind a supported observed core root to its declaration, independent of Z/M."""
+    expected = _require_gpkg_geometry_type(declared, label)
+    if type(observed) is not str or not any(
+        observed == name for _, name in _CORE_GEOMETRY_TYPES.values()
+    ):
+        raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: unsupported Shapely WKB geometry type"
+        )
+    if expected is not None and observed != expected:
+        raise InpnProtectedAreasGeometryProfileError(
+            f"{label}: observed {observed} is not assignable to declared {declared}"
+        )
 
 
 @dataclass(frozen=True)
@@ -1481,6 +1604,7 @@ def _read_gpkg_layer_metadata(
             or type(geometry_type) is not str
         ):
             raise ValueError("GeoPackage geometry metadata text is malformed")
+        _require_gpkg_geometry_type(geometry_type, label)
         if table != layer.layer_name:
             raise ValueError("GeoPackage table identity differs from catalog layer")
         if type(srs_id) is not int or not -(2**31) <= srs_id < 2**31:
@@ -1520,6 +1644,11 @@ def _read_gpkg_layer_metadata(
                 primary_columns.append(row)
         if len(names) != len(set(names)) or names.count(column) != 1:
             raise ValueError("exact geometry column is missing or ambiguous")
+        sql_geometry_type = table_info[names.index(column)][2]
+        if type(sql_geometry_type) is not str or sql_geometry_type != geometry_type:
+            raise ValueError(
+                "SQL geometry column type must exactly match GeoPackage declaration"
+            )
         if (
             len(primary_columns) != 1
             or primary_columns[0][5] != 1
@@ -1663,16 +1792,7 @@ def _assert_wkb_dimensions_preserved(
 ) -> tuple[bool, bool]:
     """Reject loss of declared Z/M at every parsed geometry-tree node."""
 
-    type_names = (
-        "Point",
-        "LineString",
-        "Polygon",
-        "MultiPoint",
-        "MultiLineString",
-        "MultiPolygon",
-        "GeometryCollection",
-    )
-    if geometry.geom_type != type_names[shape.type_id - 1]:
+    if geometry.geom_type != _CORE_GEOMETRY_TYPES[shape.type_id][1]:
         raise ValueError("WKB parser changed the geometry type")
     expected_z, expected_m = shape.has_z, shape.has_m
     if shape.type_id in (4, 5, 6, 7):
@@ -1700,7 +1820,7 @@ def _parse_gpkg_geometry_blob(
     relative_path: str,
     fid: int,
 ) -> _ParsedGpkgGeometry:
-    """Strictly parse the Standard GeoPackageBinary header and original WKB."""
+    """Validate header framing and typed WKB, not numerical envelope semantics."""
 
     label = f"package {relative_path} layer {metadata.table_name} FID {fid}"
     try:
@@ -1741,6 +1861,9 @@ def _parse_gpkg_geometry_blob(
         shape, consumed = _wkb_shape(embedded_wkb)
         if consumed != len(embedded_wkb):
             raise ValueError("embedded WKB has trailing bytes")
+        _require_geometry_assignable(
+            metadata.geometry_type_name, _CORE_GEOMETRY_TYPES[shape.type_id][1], label
+        )
         geometry = shapely.from_wkb(embedded_wkb, on_invalid="raise")
         if type(geometry) not in (
             shapely.Point,
@@ -2346,6 +2469,7 @@ def _validate_layer_intrinsic(layer: object) -> InpnProtectedAreasLayerGeometryP
         "bounds_relation",
     ):
         _exact_text(getattr(layer, name), name)
+    _require_gpkg_geometry_type(layer.gpkg_geometry_type_name, "GeoPackage declaration")
     for name in ("layer_name", "fid_column_name", "geometry_column_name"):
         _quote_sqlite_identifier(getattr(layer, name))
     if layer.driver_name != "GPKG" or layer.feature_table_kind != "table":
@@ -2452,19 +2576,9 @@ def _validate_layer_intrinsic(layer: object) -> InpnProtectedAreasLayerGeometryP
         for item in domain:
             _exact_int(item.count, f"{name} frequency", 1)
     for item in layer.geometry_type_counts:
-        _exact_text(item.geometry_type, "geometry type")
-        if item.geometry_type not in (
-            "Point",
-            "LineString",
-            "Polygon",
-            "MultiPoint",
-            "MultiLineString",
-            "MultiPolygon",
-            "GeometryCollection",
-        ):
-            raise InpnProtectedAreasGeometryProfileError(
-                "unsupported Shapely WKB geometry type"
-            )
+        _require_geometry_assignable(
+            layer.gpkg_geometry_type_name, item.geometry_type, "profile geometry type"
+        )
     _unique_ordered(
         tuple(item.geometry_type for item in layer.geometry_type_counts),
         "geometry types",

@@ -59,6 +59,23 @@ DIMENSIONS = (
     (False, True, (1.0, 2.0, 4.0)),
     (True, True, (1.0, 2.0, 3.0, 4.0)),
 )
+CORE_TYPE_CASES = (
+    ("POINT", "Point", "POINT (1 2)"),
+    ("LINESTRING", "LineString", "LINESTRING (0 0, 1 2)"),
+    ("POLYGON", "Polygon", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ("MULTIPOINT", "MultiPoint", "MULTIPOINT ((1 2), (3 4))"),
+    ("MULTILINESTRING", "MultiLineString", "MULTILINESTRING ((0 0, 1 2))"),
+    ("MULTIPOLYGON", "MultiPolygon", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+    ("GEOMETRYCOLLECTION", "GeometryCollection", "GEOMETRYCOLLECTION (POINT (1 2))"),
+)
+INVALID_DECLARED_TYPES = (
+    "point",
+    " Point",
+    "POINT ",
+    "UNKNOWN",
+    "NOT_A_TYPE",
+    "CURVEPOLYGON",
+)
 
 
 class _Response(io.BytesIO):
@@ -947,11 +964,11 @@ def test_physical_metadata_fails_closed_without_guessing(
         else:
             connection.execute("DROP TABLE physical_layer")
             declaration = {
-                "no-pk": "fid INTEGER, geom BLOB",
-                "wrong-pk": "fid TEXT PRIMARY KEY, geom BLOB",
-                "composite-pk": "fid INTEGER, other INTEGER, geom BLOB, PRIMARY KEY(fid, other)",
-                "desc-pk": "fid INTEGER PRIMARY KEY DESC, geom BLOB",
-                "without-rowid": "fid INTEGER PRIMARY KEY, geom BLOB",
+                "no-pk": "fid INTEGER, geom GEOMETRY",
+                "wrong-pk": "fid TEXT PRIMARY KEY, geom GEOMETRY",
+                "composite-pk": "fid INTEGER, other INTEGER, geom GEOMETRY, PRIMARY KEY(fid, other)",
+                "desc-pk": "fid INTEGER PRIMARY KEY DESC, geom GEOMETRY",
+                "without-rowid": "fid INTEGER PRIMARY KEY, geom GEOMETRY",
             }[mutation]
             suffix = " WITHOUT ROWID" if mutation == "without-rowid" else ""
             connection.execute(f"CREATE TABLE physical_layer ({declaration}){suffix}")
@@ -1595,3 +1612,207 @@ def test_quoted_source_table_name_cannot_inject_sql(
     profile = build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
     assert profile.layers[0].layer_name == layer_name
     assert profile.geometry_row_count == 2
+
+
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_metadata_rejects_noncanonical_declared_geometry_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+    package = _gpkg_bytes(tmp_path / "container")
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(package)
+        connection.execute(
+            "UPDATE gpkg_geometry_columns SET geometry_type_name=?", (declared_type,)
+        )
+        connection.commit()
+        changed = connection.serialize()
+    finally:
+        connection.close()
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(changed, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize("sql_type", ["GEOMETRY", "BLOB", "LINESTRING", "point"])
+def test_type_contract_metadata_rejects_different_sql_geometry_column_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: str
+) -> None:
+    package = _gpkg_bytes(tmp_path / "container")
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(package)
+        connection.execute("DROP TABLE physical_layer")
+        connection.execute(
+            f'CREATE TABLE physical_layer (fid INTEGER PRIMARY KEY, geom "{sql_type}")'
+        )
+        connection.execute(
+            "UPDATE gpkg_geometry_columns SET geometry_type_name='POINT'"
+        )
+        assert (
+            connection.execute("PRAGMA table_info(physical_layer)").fetchall()[1][2]
+            == sql_type
+        )
+        connection.commit()
+        changed = connection.serialize()
+    finally:
+        connection.close()
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(changed, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize("sql_type", [_StringSubclass("POINT"), None, 1])
+def test_type_contract_sql_declared_type_requires_exact_runtime_spelling(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sql_type: object
+) -> None:
+    package = _gpkg_bytes(
+        tmp_path / "container", geometry_type="Point", z_flag=0, m_flag=0
+    )
+    _, _, catalog = _source(tmp_path / "source", monkeypatch, package)
+    original = geometry._sqlite_rows
+
+    def altered(
+        connection: sqlite3.Connection,
+        statement: str,
+        parameters: tuple[object, ...] = (),
+    ) -> tuple[tuple[object, ...], ...]:
+        rows = original(connection, statement, parameters)
+        if statement.startswith("PRAGMA main.table_info("):
+            return tuple(
+                (*row[:2], sql_type, *row[3:]) if row[1] == "geom" else row
+                for row in rows
+            )
+        return rows
+
+    monkeypatch.setattr(geometry, "_sqlite_rows", altered)
+    with (
+        pytest.raises(InpnProtectedAreasGeometryProfileError),
+        geometry._open_gpkg_sqlite_snapshot(package, "EP/one.gpkg") as snapshot,
+    ):
+        geometry._read_gpkg_layer_metadata(
+            snapshot, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+
+
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("LINESTRING", "POINT (1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+        ("MULTIPOINT", "POINT (1 2)"),
+        ("MULTILINESTRING", "LINESTRING (0 0, 1 2)"),
+        ("GEOMETRYCOLLECTION", "POINT (1 2)"),
+        ("POINT", "LINESTRING EMPTY"),
+    ],
+)
+def test_type_contract_rejects_unassignable_root_wkb_family(
+    declared_type: str, wkt: str
+) -> None:
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._parse_gpkg_geometry_blob(
+            _wkt_blob(wkt),
+            _metadata(geometry_type_name=declared_type),
+            "EP/one.gpkg",
+            1,
+        )
+
+
+@pytest.mark.parametrize(("declared_type", "observed_type", "wkt"), CORE_TYPE_CASES)
+@pytest.mark.parametrize("use_supertype", [False, True])
+def test_type_contract_accepts_matching_core_roots_and_geometry_supertype(
+    declared_type: str, observed_type: str, wkt: str, use_supertype: bool
+) -> None:
+    metadata = _metadata(
+        geometry_type_name="GEOMETRY" if use_supertype else declared_type
+    )
+    parsed = geometry._parse_gpkg_geometry_blob(
+        _wkt_blob(wkt), metadata, "EP/one.gpkg", 1
+    )
+    assert parsed.geometry.geom_type == observed_type
+
+
+@pytest.mark.parametrize("blob", [None, _wkt_blob("POINT EMPTY")])
+def test_type_contract_point_null_and_empty_source_controls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, blob: bytes | None
+) -> None:
+    profile = _build(
+        tmp_path, monkeypatch, ((1, blob),), geometry_type="Point", z_flag=0, m_flag=0
+    )
+    layer = profile.layers[0]
+    assert layer.gpkg_geometry_type_name == "POINT"
+    assert layer.null_geometry_count == int(blob is None)
+    assert layer.empty_geometry_count == int(blob is not None)
+    assert tuple(item.geometry_type for item in layer.geometry_type_counts) == (
+        () if blob is None else ("Point",)
+    )
+
+
+@pytest.mark.parametrize(("has_z", "has_m", "coordinates"), DIMENSIONS)
+@pytest.mark.parametrize("empty", [False, True])
+def test_type_contract_point_assignability_preserves_xy_z_m_zm(
+    has_z: bool, has_m: bool, coordinates: tuple[float, ...], empty: bool
+) -> None:
+    ordinates = tuple(math.nan for _ in coordinates) if empty else coordinates
+    blob = _blob(_point_wkb(ordinates, has_z=has_z, has_m=has_m), empty=empty)
+    parsed = geometry._parse_gpkg_geometry_blob(
+        blob, _metadata(geometry_type_name="POINT"), "EP/one.gpkg", 1
+    )
+    assert parsed.geometry.geom_type == "Point"
+    assert bool(shapely.has_z(parsed.geometry)) is has_z
+    assert bool(shapely.has_m(parsed.geometry)) is has_m
+    assert bool(shapely.is_empty(parsed.geometry)) is empty
+
+
+@pytest.mark.parametrize("declared_type", INVALID_DECLARED_TYPES)
+def test_type_contract_intrinsic_rejects_invalid_declaration_even_null_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str
+) -> None:
+    profile = _build(tmp_path, monkeypatch, ((1, None),))
+    forged = _rehash(
+        replace(
+            profile,
+            layers=(replace(profile.layers[0], gpkg_geometry_type_name=declared_type),),
+        )
+    )
+    assert forged.layers[0].geometry_type_counts == ()
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._validate_profile_intrinsic(forged)
+
+
+@pytest.mark.parametrize(
+    ("declared_type", "wkt"),
+    [
+        ("POINT", "LINESTRING (0 0, 1 2)"),
+        ("POLYGON", "MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))"),
+        ("MULTIPOLYGON", "POLYGON ((0 0, 2 0, 2 2, 0 0))"),
+    ],
+)
+def test_type_contract_intrinsic_rejects_rehashed_declared_observed_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, declared_type: str, wkt: str
+) -> None:
+    profile = _build(tmp_path, monkeypatch, ((1, _wkt_blob(wkt)),))
+    forged = _rehash(
+        replace(
+            profile,
+            layers=(replace(profile.layers[0], gpkg_geometry_type_name=declared_type),),
+        )
+    )
+    assert (
+        forged.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(forged)
+    )
+    with pytest.raises(InpnProtectedAreasGeometryProfileError):
+        geometry._validate_profile_intrinsic(forged)
