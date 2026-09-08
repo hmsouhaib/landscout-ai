@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer/domain: source-bound INPN EP geometry technical-quality evidence
 - Responsibility: Profiles physical FIDs and raw geometry BLOBs from verified immutable GeoPackage bytes, preserving Z/M and independently validating raw/parser evidence without environmental meaning.
-- Source SHA256: `56b90e1fed87fab0dafda5100e9417a91219c3aa0c2467f47692bc71ce670fb4`
+- Source SHA256: `d65efdd0475a72b96088593ba86df301aeea4d746f032c8b880b91244231e710`
 
 ## 1. Architectural and reader contract
 
@@ -86,6 +86,31 @@ _CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingPro
     }
 )
 
+_CORE_GEOMETRY_ASSIGNABILITY: MappingProxyType[str, frozenset[str]] = MappingProxyType(
+    {
+        "GEOMETRY": frozenset(
+            (
+                "Point",
+                "LineString",
+                "Polygon",
+                "MultiPoint",
+                "MultiLineString",
+                "MultiPolygon",
+                "GeometryCollection",
+            )
+        ),
+        "POINT": frozenset(("Point",)),
+        "LINESTRING": frozenset(("LineString",)),
+        "POLYGON": frozenset(("Polygon",)),
+        "MULTIPOINT": frozenset(("MultiPoint",)),
+        "MULTILINESTRING": frozenset(("MultiLineString",)),
+        "MULTIPOLYGON": frozenset(("MultiPolygon",)),
+        "GEOMETRYCOLLECTION": frozenset(
+            ("GeometryCollection", "MultiPoint", "MultiLineString", "MultiPolygon")
+        ),
+    }
+)
+
 GEOMETRY_PROFILE_SCHEMA_VERSION = 1
 
 GEOMETRY_ENCODING_SCHEMA_VERSION = 1
@@ -131,7 +156,7 @@ _TOOLCHAIN_FIELDS = (
 )
 ```
 
-Geometry-profile and parser-encoding schemas remain 1. The existing catalog stays at schema 2; no previous persisted hash is migrated. The private MappingProxyType core table owns an unaliased dictionary of immutable records: ID 0 represents only the GEOMETRY declaration; IDs 1–7 bind canonical GeoPackage names to exact Shapely names. It does not enable WKB type ID 0. Source/count/toolchain field tuples define portable comparisons and aggregate closure, not environmental vocabularies. The encoding contract fixes extended little-endian parser WKB at the actual geometry dimension with no SRID; raw source WKB and full BLOB bytes remain distinct identities.
+Geometry-profile and parser-encoding schemas remain 1. The existing catalog stays at schema 2; no previous persisted hash is migrated. The private `_CORE_GEOMETRY_TYPES` MappingProxyType owns an unaliased dictionary of immutable records: ID 0 represents only the GEOMETRY declaration; IDs 1–7 bind canonical GeoPackage names to exact Shapely names. It does not enable WKB type ID 0. The separate private `_CORE_GEOMETRY_ASSIGNABILITY` MappingProxyType owns its own unaliased dictionary of exact declaration keys and frozenset root-name leaves. It is the single explicit acceptance relation used by both raw parsing and intrinsic validation; it is not exported or serialized into profile payloads. Source/count/toolchain field tuples define portable comparisons and aggregate closure, not environmental vocabularies. The encoding contract fixes extended little-endian parser WKB at the actual geometry dimension with no SRID; raw source WKB and full BLOB bytes remain distinct identities.
 
 ## 4. Every model and field
 
@@ -326,10 +351,10 @@ Signatures are source-derived. The contracts below describe each local definitio
 
 
 ```python
-def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
+def _require_gpkg_geometry_type(value: object, label: str) -> frozenset[str]:
 ```
 
-Requires an exact built-in string matching one of the eight canonical uppercase declarations in the private immutable core-type table. It returns the matching concrete Shapely family, or None for the declaration-only GEOMETRY supertype; lowercase, edge whitespace, unknown, extended, and non-string values fail with the controlled geometry error.
+Requires an exact built-in string matching one of the eight canonical uppercase declarations in `_CORE_GEOMETRY_ASSIGNABILITY`. Returns that declaration's immutable frozenset of accepted observed roots, not a single expected family. Lowercase, edge whitespace, unknown, extended, and non-string values fail with the controlled geometry error. Metadata and intrinsic declaration validation reuse this helper even when no root is present.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -349,7 +374,7 @@ def _require_geometry_assignable(
 ) -> None:
 ```
 
-Revalidates the declared GeoPackage type, requires an exact supported observed Shapely type string, and rejects any mismatch with a concrete declaration. GEOMETRY accepts all seven core roots. The same helper binds raw WKB root evidence before Shapely parsing and intrinsic observed-type domains; Z/M is deliberately not part of assignability.
+Revalidates the declared GeoPackage type and obtains its immutable allowed-root set. It separately requires an exact supported observed Shapely type string, then rejects roots outside that set. GEOMETRY accepts all seven core roots; GEOMETRYCOLLECTION accepts GeometryCollection, MultiPoint, MultiLineString, and MultiPolygon; the other six declarations accept only their matching family. The same helper binds raw WKB root evidence before Shapely parsing and intrinsic observed-type domains; Z/M is deliberately not part of assignability.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -1234,7 +1259,7 @@ raise InpnProtectedAreasGeometryProfileError(
 
 ### Declared metadata, SQL declaration, and actual WKB family
 
-The three physical checks are distinct: `gpkg_geometry_columns.geometry_type_name` uses the exact supported uppercase vocabulary; the geometry-column row in `PRAGMA table_info` must have an identical exact built-in SQL type string; the parsed ISO WKB root family must be assignable to that declaration before GEOS conversion. The intrinsic layer check repeats declaration/domain assignability without reading rows. These implement the relevant core-type relationships in [GeoPackage 1.4 requirements 25, 31, and 32](https://www.geopackage.org/spec140/).
+The three physical checks are distinct: `gpkg_geometry_columns.geometry_type_name` uses the exact supported uppercase vocabulary; the geometry-column row in `PRAGMA table_info` must have an identical exact built-in SQL type string; the parsed ISO WKB root family must be assignable to that declaration before GEOS conversion. The intrinsic layer check repeats declaration/domain assignability without reading rows. Declaration and SQL equality remain the requirements 25/31 boundaries; stored-root subtype assignability follows [GeoPackage 1.4 Requirement 32 and normative Annex G](https://www.geopackage.org/spec140/). Within the supported core vocabulary, Annex G makes MultiPoint a GeometryCollection subtype and reaches MultiLineString/MultiPolygon through the MultiCurve/MultiSurface branches. Those intermediate extension types are not newly accepted by this parser.
 
 | Canonical GeoPackage and SQL declaration | Allowed actual WKB / observed Shapely family |
 |---|---|
@@ -1245,9 +1270,13 @@ The three physical checks are distinct: `gpkg_geometry_columns.geometry_type_nam
 | `MULTIPOINT` | `MultiPoint` |
 | `MULTILINESTRING` | `MultiLineString` |
 | `MULTIPOLYGON` | `MultiPolygon` |
-| `GEOMETRYCOLLECTION` | `GeometryCollection` |
+| `GEOMETRYCOLLECTION` | `GeometryCollection`, `MultiPoint`, `MultiLineString`, `MultiPolygon` |
+
+`GEOMETRYCOLLECTION` is the second supported supertype, not a type-equality rule: bare Point, LineString, and Polygon remain forbidden for it. Polygon and MultiPolygon are not interchangeable. The SQL column must still be declared GEOMETRYCOLLECTION when its GeoPackage declaration says GEOMETRYCOLLECTION, even if a stored root is MultiPolygon. Stored geometries and observed type names are never wrapped, renamed, or converted to fit.
 
 No casefold equivalence, coercion, or extended/non-linear type is accepted. Z/M presence does not alter the root family. SQL NULL has no WKB type to compare; EMPTY still has its WKB type. A NULL-only layer still requires a valid declaration. Rehashing a caller-forged declaration/domain mismatch cannot make it intrinsically valid.
+
+STEP 7F.1B.3.1 implemented its ticket's prescribed equality rule correctly. STEP 7F.1B.3.2 corrects that review-authored rule to restore the normative subtype hierarchy: only GEOMETRYCOLLECTION/MultiPoint, GEOMETRYCOLLECTION/MultiLineString, and GEOMETRYCOLLECTION/MultiPolygon change from rejection to acceptance. The other 53 declared/root pairs keep their decisions, giving 17 accepted and 39 rejected pairs without adding a WKB root type.
 
 ### Header framing versus numerical envelope semantics
 
@@ -1376,12 +1405,37 @@ _CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingPro
 )
 
 
-def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
-    """Require an exact core declaration; return its specific observed type, if any."""
-    if type(value) is str:
-        for declared, observed in _CORE_GEOMETRY_TYPES.values():
-            if value == declared:
-                return observed
+# Core-only subtype relation from GeoPackage 1.4 Requirement 32 and Annex G.
+_CORE_GEOMETRY_ASSIGNABILITY: MappingProxyType[str, frozenset[str]] = MappingProxyType(
+    {
+        "GEOMETRY": frozenset(
+            (
+                "Point",
+                "LineString",
+                "Polygon",
+                "MultiPoint",
+                "MultiLineString",
+                "MultiPolygon",
+                "GeometryCollection",
+            )
+        ),
+        "POINT": frozenset(("Point",)),
+        "LINESTRING": frozenset(("LineString",)),
+        "POLYGON": frozenset(("Polygon",)),
+        "MULTIPOINT": frozenset(("MultiPoint",)),
+        "MULTILINESTRING": frozenset(("MultiLineString",)),
+        "MULTIPOLYGON": frozenset(("MultiPolygon",)),
+        "GEOMETRYCOLLECTION": frozenset(
+            ("GeometryCollection", "MultiPoint", "MultiLineString", "MultiPolygon")
+        ),
+    }
+)
+
+
+def _require_gpkg_geometry_type(value: object, label: str) -> frozenset[str]:
+    """Require an exact core declaration and return its assignable observed roots."""
+    if type(value) is str and value in _CORE_GEOMETRY_ASSIGNABILITY:
+        return _CORE_GEOMETRY_ASSIGNABILITY[value]
     raise InpnProtectedAreasGeometryProfileError(
         f"{label}: exact supported uppercase GeoPackage geometry type required"
     )
@@ -1398,7 +1452,7 @@ def _require_geometry_assignable(
         raise InpnProtectedAreasGeometryProfileError(
             f"{label}: unsupported Shapely WKB geometry type"
         )
-    if expected is not None and observed != expected:
+    if observed not in expected:
         raise InpnProtectedAreasGeometryProfileError(
             f"{label}: observed {observed} is not assignable to declared {declared}"
         )

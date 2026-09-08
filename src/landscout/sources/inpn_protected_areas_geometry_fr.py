@@ -69,12 +69,37 @@ _CORE_GEOMETRY_TYPES: MappingProxyType[int, tuple[str, str | None]] = MappingPro
 )
 
 
-def _require_gpkg_geometry_type(value: object, label: str) -> str | None:
-    """Require an exact core declaration; return its specific observed type, if any."""
-    if type(value) is str:
-        for declared, observed in _CORE_GEOMETRY_TYPES.values():
-            if value == declared:
-                return observed
+# Core-only subtype relation from GeoPackage 1.4 Requirement 32 and Annex G.
+_CORE_GEOMETRY_ASSIGNABILITY: MappingProxyType[str, frozenset[str]] = MappingProxyType(
+    {
+        "GEOMETRY": frozenset(
+            (
+                "Point",
+                "LineString",
+                "Polygon",
+                "MultiPoint",
+                "MultiLineString",
+                "MultiPolygon",
+                "GeometryCollection",
+            )
+        ),
+        "POINT": frozenset(("Point",)),
+        "LINESTRING": frozenset(("LineString",)),
+        "POLYGON": frozenset(("Polygon",)),
+        "MULTIPOINT": frozenset(("MultiPoint",)),
+        "MULTILINESTRING": frozenset(("MultiLineString",)),
+        "MULTIPOLYGON": frozenset(("MultiPolygon",)),
+        "GEOMETRYCOLLECTION": frozenset(
+            ("GeometryCollection", "MultiPoint", "MultiLineString", "MultiPolygon")
+        ),
+    }
+)
+
+
+def _require_gpkg_geometry_type(value: object, label: str) -> frozenset[str]:
+    """Require an exact core declaration and return its assignable observed roots."""
+    if type(value) is str and value in _CORE_GEOMETRY_ASSIGNABILITY:
+        return _CORE_GEOMETRY_ASSIGNABILITY[value]
     raise InpnProtectedAreasGeometryProfileError(
         f"{label}: exact supported uppercase GeoPackage geometry type required"
     )
@@ -91,7 +116,7 @@ def _require_geometry_assignable(
         raise InpnProtectedAreasGeometryProfileError(
             f"{label}: unsupported Shapely WKB geometry type"
         )
-    if expected is not None and observed != expected:
+    if observed not in expected:
         raise InpnProtectedAreasGeometryProfileError(
             f"{label}: observed {observed} is not assignable to declared {declared}"
         )

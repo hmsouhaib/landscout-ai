@@ -5,8 +5,8 @@
 - Repository path: `tests/unit/test_inpn_protected_areas_geometry_fr.py`
 - File type: Python unit/regression tests
 - Domain: isolated INPN EP raw-geometry source authority and technical evidence
-- Source SHA256: `d953df5225ddefb72928e478881ad130ab856f503ecd107ab32e74f892375e8c`
-- Collected cases: `327`
+- Source SHA256: `e17c3f03537e5bb58d7365f360ae4677cb7ea865975c749720495586cbd36d6f`
+- Collected cases: `404`
 
 ## 1. Fixture isolation and actual regression scope
 
@@ -100,9 +100,78 @@ INVALID_DECLARED_TYPES = (
     "NOT_A_TYPE",
     "CURVEPOLYGON",
 )
+
+CORE_ASSIGNABILITY_CASES = (
+    (
+        "GEOMETRY",
+        (
+            "Point",
+            "LineString",
+            "Polygon",
+            "MultiPoint",
+            "MultiLineString",
+            "MultiPolygon",
+            "GeometryCollection",
+        ),
+    ),
+    ("POINT", ("Point",)),
+    ("LINESTRING", ("LineString",)),
+    ("POLYGON", ("Polygon",)),
+    ("MULTIPOINT", ("MultiPoint",)),
+    ("MULTILINESTRING", ("MultiLineString",)),
+    ("MULTIPOLYGON", ("MultiPolygon",)),
+    (
+        "GEOMETRYCOLLECTION",
+        ("GeometryCollection", "MultiPoint", "MultiLineString", "MultiPolygon"),
+    ),
+)
+
+MEASURED_MULTI_CASES = (
+    (
+        "MultiPoint",
+        False,
+        "MULTIPOINT M ((1 2 4), (3 4 6))",
+        ((1.0, 2.0, 4.0), (3.0, 4.0, 6.0)),
+    ),
+    (
+        "MultiPoint",
+        True,
+        "MULTIPOINT ZM ((1 2 3 4), (5 6 7 8))",
+        ((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0)),
+    ),
+    (
+        "MultiLineString",
+        False,
+        "MULTILINESTRING M ((0 0 5, 3 4 6))",
+        ((0.0, 0.0, 5.0), (3.0, 4.0, 6.0)),
+    ),
+    (
+        "MultiLineString",
+        True,
+        "MULTILINESTRING ZM ((0 0 3 5, 3 4 7 6))",
+        ((0.0, 0.0, 3.0, 5.0), (3.0, 4.0, 7.0, 6.0)),
+    ),
+    (
+        "MultiPolygon",
+        False,
+        "MULTIPOLYGON M (((0 0 5, 2 0 6, 2 2 7, 0 0 5)))",
+        ((0.0, 0.0, 5.0), (2.0, 0.0, 6.0), (2.0, 2.0, 7.0), (0.0, 0.0, 5.0)),
+    ),
+    (
+        "MultiPolygon",
+        True,
+        "MULTIPOLYGON ZM (((0 0 3 5, 2 0 4 6, 2 2 5 7, 0 0 3 5)))",
+        (
+            (0.0, 0.0, 3.0, 5.0),
+            (2.0, 0.0, 4.0, 6.0),
+            (2.0, 2.0, 5.0, 7.0),
+            (0.0, 0.0, 3.0, 5.0),
+        ),
+    ),
+)
 ```
 
-Standard-library imports construct and corrupt synthetic bytes, record SQL, hash canonical expectations, and inspect frozen dataclasses. NumPy supplies forbidden scalar/array fixtures; GeoPandas/Pyogrio create ordinary containers and name fatal reader sentinels; Shapely provides real geometry assertions. `geometry` is the imported `landscout.sources.inpn_protected_areas_geometry_fr` module; `catalog_module` and `source_module` refer to their distinct qualified physical trust owners. `EXPECTED_EXPORTS` is the eight-name approved geometry API, and `DIMENSIONS` explicitly separates XY, XYZ, XYM, and XYZM layouts. CORE_TYPE_CASES contains the seven exact declaration/Shapely-name/WKT records used for concrete and GEOMETRY-supertype controls. INVALID_DECLARED_TYPES contains the six exact lowercase/edge-whitespace/unknown/extended negative declarations.
+Standard-library imports construct and corrupt synthetic bytes, record SQL, hash canonical expectations, and inspect frozen dataclasses. NumPy supplies forbidden scalar/array fixtures; GeoPandas/Pyogrio create ordinary containers and name fatal reader sentinels; Shapely provides real geometry assertions. `geometry` is the imported `landscout.sources.inpn_protected_areas_geometry_fr` module; `catalog_module` and `source_module` refer to their distinct qualified physical trust owners. `EXPECTED_EXPORTS` is the eight-name approved geometry API, and `DIMENSIONS` explicitly separates XY, XYZ, XYM, and XYZM layouts. CORE_TYPE_CASES contains the seven exact declaration/Shapely-name/WKT records used for concrete and GEOMETRY-supertype controls. INVALID_DECLARED_TYPES contains the six exact lowercase/edge-whitespace/unknown/extended negative declarations. CORE_ASSIGNABILITY_CASES independently spells out all eight declaration acceptance sets for the 56-pair matrix; no expected result is taken from production. MEASURED_MULTI_CASES contains six explicit non-empty M/ZM Multi* WKT/expected-ordinate records.
 
 ## 3. Every support class
 
@@ -244,6 +313,23 @@ def _gpkg_bytes(
 ```
 
 Writes an ordinary XY container only, then replaces FID/geometry BLOB rows and dimensional metadata using fixture-only SQLite. Measured geometries never pass through Pyogrio conversion.
+
+This helper/callback does not directly assert an outcome; its constructed or delegated state is checked by the owning tests.
+
+
+### `_collection_gpkg_bytes`
+
+
+```python
+def _collection_gpkg_bytes(
+    tmp_path: Path,
+    rows: tuple[tuple[int, bytes | None], ...],
+    *,
+    sql_type: str = "GEOMETRYCOLLECTION",
+) -> bytes:
+```
+
+Creates an ordinary synthetic XY GeoPackage, then recreates its real feature table with an INTEGER PRIMARY KEY FID, exact quoted SQL geometry declaration, and a never-read attribute column. It inserts the supplied exact FID/BLOB rows unchanged, sets gpkg_geometry_columns to GEOMETRYCOLLECTION, serializes the completed in-memory SQLite database, and always closes it. The default SQL type matches the declaration; the optional MULTIPOLYGON SQL value exists only for the explicit mismatch negative.
 
 This helper/callback does not directly assert an outcome; its constructed or delegated state is checked by the owning tests.
 
@@ -2141,7 +2227,7 @@ def test_type_contract_rejects_unassignable_root_wkb_family(
 ) -> None:
 ```
 
-Passes real typed ISO WKB inside Standard GeoPackageBinary to the actual parser with eight contradictory specific declarations. The cases cover each concrete family plus a POINT declaration with LINESTRING EMPTY; EMPTY cannot evade the root assignability check.
+Passes real typed ISO WKB inside Standard GeoPackageBinary to the actual parser with eight contradictory declaration/root pairs. The cases retain a mismatch for each of the seven same-named core declarations, including GEOMETRYCOLLECTION with bare Point, plus a POINT declaration with LINESTRING EMPTY; EMPTY cannot evade the root assignability check.
 
 Expected exception/warning/fatal-check expressions:
 
@@ -2161,7 +2247,7 @@ def test_type_contract_accepts_matching_core_roots_and_geometry_supertype(
 ) -> None:
 ```
 
-Runs all seven real core WKB families twice: once under their matching specific declaration and once under GEOMETRY. The 14 controls assert the exact real Shapely root family; GEOMETRYCOLLECTION accepts a collection root, not an arbitrary noncollection root.
+Runs all seven real core WKB families twice: once under their same-named declaration and once under GEOMETRY. These 14 retained controls assert the exact real Shapely root family; the separate exhaustive subtype matrix covers the additional Multi* roots accepted under GEOMETRYCOLLECTION.
 
 Direct assertions:
 
@@ -2285,6 +2371,367 @@ Expected exception/warning/fatal-check expressions:
 pytest.raises(InpnProtectedAreasGeometryProfileError)
 ```
 
+
+### `test_collection_subtype_complete_raw_iso_wkb_assignability_matrix`
+
+
+```python
+@pytest.mark.parametrize(
+    ("declared_type", "accepted_types"),
+    CORE_ASSIGNABILITY_CASES,
+    ids=[item[0] for item in CORE_ASSIGNABILITY_CASES],
+)
+@pytest.mark.parametrize(
+    ("root_declaration", "observed_type", "wkt"),
+    CORE_TYPE_CASES,
+    ids=[item[1] for item in CORE_TYPE_CASES],
+)
+def test_collection_subtype_complete_raw_iso_wkb_assignability_matrix(
+    declared_type: str,
+    accepted_types: tuple[str, ...],
+    root_declaration: str,
+    observed_type: str,
+    wkt: str,
+) -> None:
+```
+
+Exercises all eight declarations against all seven genuine core ISO WKB roots using independent test-owned expected sets: 56 cases, with 17 accepts and 39 rejects. Rejections must specifically report not assignable; accepted cases retain exact actual root name, embedded WKB, and an independent ISO WKB roundtrip. The expected matrix is never derived from production mappings.
+
+Direct assertions:
+
+
+```python
+assert parsed.geometry.geom_type == observed_type
+
+assert parsed.geometry.geom_type.upper() == root_declaration
+
+assert parsed.embedded_wkb == blob[8:]
+
+assert shapely.to_wkb(parsed.geometry, byte_order=1, flavor="iso") == blob[8:]
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        )
+```
+
+
+### `test_collection_subtype_intrinsic_individual_rehashed_domain`
+
+
+```python
+@pytest.mark.parametrize(
+    ("root_declaration", "observed_type", "wkt"), CORE_TYPE_CASES[:6]
+)
+def test_collection_subtype_intrinsic_individual_rehashed_domain(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    root_declaration: str,
+    observed_type: str,
+    wkt: str,
+) -> None:
+```
+
+Builds real source profiles for each of the six core root families other than GeometryCollection, changes only the declaration to GEOMETRYCOLLECTION, and coherently recalculates the complete hash. Intrinsic validation accepts each Multi* domain while rejecting bare Point, LineString, and Polygon; exact observed type names remain unchanged.
+
+Direct assertions:
+
+
+```python
+assert (
+        changed.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(changed)
+    )
+
+assert changed.layers[0].geometry_type_counts == (
+        geometry.InpnProtectedAreasGeometryTypeCount(observed_type, 1),
+    )
+
+assert observed_type.upper() == root_declaration
+
+assert geometry._validate_profile_intrinsic(changed) is changed
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        )
+```
+
+
+### `test_collection_subtype_intrinsic_mixed_rehashed_domain`
+
+
+```python
+@pytest.mark.parametrize("include_bare_polygon", [False, True])
+def test_collection_subtype_intrinsic_mixed_rehashed_domain(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    include_bare_polygon: bool,
+) -> None:
+```
+
+Builds coherent mixed domains containing GeometryCollection and all three Multi* families, optionally adding bare Polygon. It rehashes the declaration change, asserts exact row counts and sorted observed domains, and requires intrinsic acceptance only when every root is assignable. Adding bare Polygon must still fail despite a coherent complete hash.
+
+Direct assertions:
+
+
+```python
+assert changed.geometry_row_count == 4 + int(include_bare_polygon)
+
+assert tuple(
+        item.geometry_type for item in changed.layers[0].geometry_type_counts
+    ) == (
+        "GeometryCollection",
+        "MultiLineString",
+        "MultiPoint",
+        "MultiPolygon",
+        *(("Polygon",) if include_bare_polygon else ()),
+    )
+
+assert (
+        changed.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(changed)
+    )
+
+assert geometry._validate_profile_intrinsic(changed) is changed
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        )
+```
+
+
+### `test_collection_subtype_public_source_build_and_validation_preserve_multi_names`
+
+
+```python
+def test_collection_subtype_public_source_build_and_validation_preserve_multi_names(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+```
+
+Uses a genuine collection-declared physical GeoPackage with sparse FIDs 3/17/41 and raw MultiPoint/MultiLineString/MultiPolygon BLOBs. It directly asserts both SQL and GeoPackage declarations are GEOMETRYCOLLECTION and exact source rows are unchanged. Public build and independent public physical validation must succeed while retaining actual Multi* names, exact FID sequence, non-empty counts, and independently calculated full-BLOB stream hash.
+
+Direct assertions:
+
+
+```python
+assert (
+            connection.execute("PRAGMA table_info(physical_layer)").fetchall()[1][2]
+            == "GEOMETRYCOLLECTION"
+        )
+
+assert connection.execute(
+            "SELECT geometry_type_name FROM gpkg_geometry_columns"
+        ).fetchall() == [("GEOMETRYCOLLECTION",)]
+
+assert (
+            geometry._read_gpkg_geometry_rows(connection, metadata, "EP/one.gpkg", 3)
+            == rows
+        )
+
+assert layer.gpkg_geometry_type_name == "GEOMETRYCOLLECTION"
+
+assert tuple(
+        (item.geometry_type, item.count) for item in layer.geometry_type_counts
+    ) == (("MultiLineString", 1), ("MultiPoint", 1), ("MultiPolygon", 1))
+
+assert layer.non_empty_geometry_count == profile.geometry_row_count == 3
+
+assert layer.fid_sequence_sha256 == _json_hash([3, 17, 41])
+
+assert layer.raw_geometry_blob_content_sha256 == _json_hash(
+        [[fid, sha256(blob).hexdigest()] for fid, blob in rows]
+    )
+```
+
+
+### `test_collection_subtype_public_source_rejects_bare_polygon`
+
+
+```python
+def test_collection_subtype_public_source_rejects_bare_polygon(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+```
+
+Creates the same conforming SQL/GeoPackage collection declaration but stores a bare Polygon BLOB. The source-complete public builder must reject it with the precise not assignable controlled error rather than wrap or rename the root.
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(InpnProtectedAreasGeometryProfileError, match="not assignable")
+```
+
+
+### `test_collection_subtype_does_not_relax_exact_sql_declaration_equality`
+
+
+```python
+def test_collection_subtype_does_not_relax_exact_sql_declaration_equality(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+```
+
+Stores an otherwise assignable MultiPolygon under GeoPackage declaration GEOMETRYCOLLECTION but physical SQL declaration MULTIPOLYGON. It explicitly captures exactly two expected catalog and four expected build RuntimeWarnings about that GDAL metadata mismatch; public build must fail specifically at exact SQL/declaration equality. Subtype compatibility never substitutes for the separate SQL metadata contract.
+
+Direct assertions:
+
+
+```python
+assert len(catalog_warnings) == 2
+
+assert len(build_warnings) == 4
+```
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.warns(RuntimeWarning, match=warning)
+
+pytest.warns(RuntimeWarning, match=warning)
+
+pytest.raises(
+            InpnProtectedAreasGeometryProfileError,
+            match="SQL geometry column type must exactly match",
+        )
+```
+
+
+### `test_collection_subtype_empty_xy_multi_families_remain_empty_and_typed`
+
+
+```python
+@pytest.mark.parametrize(
+    ("observed_type", "wkt"),
+    [
+        ("MultiPoint", "MULTIPOINT EMPTY"),
+        ("MultiLineString", "MULTILINESTRING EMPTY"),
+        ("MultiPolygon", "MULTIPOLYGON EMPTY"),
+    ],
+)
+def test_collection_subtype_empty_xy_multi_families_remain_empty_and_typed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    observed_type: str,
+    wkt: str,
+) -> None:
+```
+
+Exercises EMPTY XY MultiPoint, MultiLineString, and MultiPolygon as genuine raw WKB under GEOMETRYCOLLECTION. Real parsing preserves each root, source WKB, EMPTY state, 2D flags, and absent coordinates. A public source-bound build retains the actual typed EMPTY domain with zero coordinates/non-empty rows. This does not add measured-empty multi-collection capability.
+
+Direct assertions:
+
+
+```python
+assert parsed.geometry.geom_type == observed_type
+
+assert parsed.embedded_wkb == blob[8:]
+
+assert parsed.is_empty is True
+
+assert bool(shapely.is_empty(parsed.geometry)) is True
+
+assert bool(shapely.has_z(parsed.geometry)) is False
+
+assert bool(shapely.has_m(parsed.geometry)) is False
+
+assert int(shapely.get_coordinate_dimension(parsed.geometry)) == 2
+
+assert shapely.get_coordinates(parsed.geometry).tolist() == []
+
+assert layer.geometry_type_counts == (
+        geometry.InpnProtectedAreasGeometryTypeCount(observed_type, 1),
+    )
+
+assert layer.empty_geometry_count == 1
+
+assert layer.total_coordinate_count == layer.non_empty_geometry_count == 0
+```
+
+
+### `test_collection_subtype_nonempty_m_zm_multi_ordinates_are_lossless`
+
+
+```python
+@pytest.mark.parametrize(
+    ("observed_type", "has_z", "wkt", "coordinates"), MEASURED_MULTI_CASES
+)
+def test_collection_subtype_nonempty_m_zm_multi_ordinates_are_lossless(
+    observed_type: str,
+    has_z: bool,
+    wkt: str,
+    coordinates: tuple[tuple[float, ...], ...],
+) -> None:
+```
+
+Exercises six genuine non-empty M/ZM MultiPoint/MultiLineString/MultiPolygon WKB fixtures with mandatory M and consistent Z flags. It asserts unchanged actual root, exact embedded ISO WKB, non-empty state, Z/M flags, 3D/4D dimension, every explicit ordinate, ISO WKB roundtrip, and coordinate count from the real evidence helper. No measured geometry passes through Pyogrio.
+
+Direct assertions:
+
+
+```python
+assert actual.geom_type == observed_type
+
+assert parsed.embedded_wkb == blob[8:]
+
+assert parsed.is_empty is False
+
+assert bool(shapely.has_z(actual)) is has_z
+
+assert bool(shapely.has_m(actual)) is True
+
+assert int(shapely.get_coordinate_dimension(actual)) == 3 + int(has_z)
+
+assert shapely.get_coordinates(
+        actual, include_z=has_z, include_m=True
+    ).tolist() == [list(row) for row in coordinates]
+
+assert (
+        shapely.to_wkb(actual, byte_order=1, output_dimension=4, flavor="iso")
+        == blob[8:]
+    )
+
+assert geometry._coordinate_evidence(actual, "measured collection subtype")[
+        0
+    ] == len(coordinates)
+```
+
+
+### `test_collection_subtype_keeps_wkb_root_zero_forbidden`
+
+
+```python
+def test_collection_subtype_keeps_wkb_root_zero_forbidden() -> None:
+```
+
+Constructs a valid GeoPackageBinary header around an explicit ISO WKB root type word 0 under declaration GEOMETRY. The parser must still raise the precise unsupported embedded WKB geometry type error; declaration supertypes never add another supported WKB root.
+
+Expected exception/warning/fatal-check expressions:
+
+
+```python
+pytest.raises(
+        InpnProtectedAreasGeometryProfileError,
+        match="unsupported embedded WKB geometry type",
+    )
+```
+
 ## 5. Hash and mutation proof boundaries
 
 ### STEP 7F.1B.3.1 direct type-contract cases
@@ -2305,13 +2752,34 @@ pytest.raises(InpnProtectedAreasGeometryProfileError)
 
 Red-first execution against unchanged production at `57edf93611d028092450a58de1b6df73bc6a1ee2` showed 28 failures and 26 passing controls, with the original 273 cases deselected. Subsequent fixture-only adjustments keep the same 54 cases and avoid unrelated metadata warnings. Five existing invalid-primary-key fixture declarations use `geom GEOMETRY` instead of `geom BLOB` so the new SQL-type gate does not mask their intended primary-key regressions. No existing case is removed.
 
+### STEP 7F.1B.3.2 collection subtype correction
+
+The preceding ticket prescribed type equality for every declaration except GEOMETRY, and its implementation followed that instruction. This correction restores the reviewed normative hierarchy: GEOMETRYCOLLECTION is also a supported supertype for GeometryCollection, MultiPoint, MultiLineString, and MultiPolygon. It still rejects bare Point, LineString, and Polygon; exact SQL/declaration equality and all other root decisions remain unchanged.
+
+| New permanent contract | Collected cases |
+|---|---:|
+| Independent raw-parser 8 × 7 assignability matrix | 56 |
+| Intrinsic individual rehashed domains | 6 |
+| Intrinsic mixed rehashed domains | 2 |
+| Public Multi* build plus independent validation | 1 |
+| Public bare Polygon rejection | 1 |
+| Exact SQL/declaration equality negative | 1 |
+| EMPTY XY Multi* roots | 3 |
+| Non-empty M/ZM Multi* ordinate preservation | 6 |
+| WKB root type 0 remains forbidden | 1 |
+| Total | 77 |
+
+The red-first matrix against unchanged production at `a2ebe5266a37cb8de6131b52631111e47e0235f3` produced exactly three failures and 53 passes: GEOMETRYCOLLECTION/MultiPoint, GEOMETRYCOLLECTION/MultiLineString, and GEOMETRYCOLLECTION/MultiPolygon were rejected as not assignable despite the independent accepted expectations. After correction, all 56 matrix pairs pass with 17 accept decisions and 39 reject decisions. The complete new 77-case focused run passes with the previous 327 cases deselected and zero unhandled warnings; no existing test body is changed.
+
+The correction exercises EMPTY XY Multi* and non-empty M/ZM Multi* only. Existing measured POINT/POINT EMPTY regressions remain intact. It does not redesign parsing or add a requirement to preserve M/Z on empty multi-collections beyond current capability; existing dimension-loss rejection remains active. Numerical header-envelope agreement is not added.
+
 Expected FID/raw-BLOB hashes use an independently implemented canonical JSON helper. Component-forgery tests recalculate the complete profile hash so a stale outer digest does not substitute for the intended physical rejection. Raw header-byte changes are distinguished from parser geometry changes; M-only, Z-only, coordinate, FID, and ring-structure changes remain hash-significant in their correct streams. Portable roots/cache-hit state and repeated builds must produce exact equal public evidence.
 
 Temporary package replacements occur after real SQLite deserialization and explicitly assert the hook ran; restoring the physical path cannot inject alternate geometry, whereas persistent mutation must fail final source checks. Fatal reader/repair/reprojection sentinels fail immediately on forbidden operations. Impossible SQLite DB-API row shapes are tested at the narrow row-fetch seam because real INTEGER PRIMARY KEY rowid aliases cannot naturally return Boolean/float/NumPy identifiers.
 
 ## 6. Execution and non-goals
 
-Run this suite with a fresh unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`. The existing 399-case INPN baseline remains required, followed by this geometry suite, combined INPN suites, and the complete repository; exact completed commands and full-suite results are recorded in docs/DEV_LOG.md. The geometry suite passes all 327 cases (273 retained + 54 type-contract regressions), and the combined INPN suites pass all 726 cases; both focused runs report zero unhandled warnings. One all-NULL mandatory Z/M Point metadata fixture explicitly captures eight expected Pyogrio measured-metadata warnings; this does not permit lossy geometry-row conversion. Unit fixtures do not constitute verification of the real EP snapshot. The separately controlled real-source run blocks network, alternative feature readers, attribute projections, geometry repair, and reprojection.
+Run this suite with a fresh unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`. The existing 399-case INPN baseline remains required, followed by this geometry suite, combined INPN suites, and the complete repository; exact completed commands and full-suite results are recorded in docs/DEV_LOG.md. The geometry suite passes all 404 cases (327 retained + 77 collection-subtype regressions); together with the unchanged 399 existing INPN cases, the combined suite passes all 803. Both focused runs report zero unhandled warnings. One all-NULL mandatory Z/M Point metadata fixture explicitly captures eight expected Pyogrio measured-metadata warnings; the new exact-SQL negative separately captures six expected geometry-declaration mismatch warnings (two catalog + four build). These warnings are asserted, not globally suppressed; this does not permit lossy geometry-row conversion. Unit fixtures do not constitute verification of the real EP snapshot. The separately controlled real-source run blocks network, alternative feature readers, attribute projections, geometry repair, and reprojection.
 
 No test adds category/legal semantics, environmental normalization, parcel loading/relations/distances, exclusion, score, ranking, Natura 2000, or ZNIEFF. No fixture archive/GeoPackage/cache or audit dump is committed.
 
@@ -2396,6 +2864,75 @@ INVALID_DECLARED_TYPES = (
     "UNKNOWN",
     "NOT_A_TYPE",
     "CURVEPOLYGON",
+)
+
+# Independent GeoPackage core assignability expectations, not production data.
+CORE_ASSIGNABILITY_CASES = (
+    (
+        "GEOMETRY",
+        (
+            "Point",
+            "LineString",
+            "Polygon",
+            "MultiPoint",
+            "MultiLineString",
+            "MultiPolygon",
+            "GeometryCollection",
+        ),
+    ),
+    ("POINT", ("Point",)),
+    ("LINESTRING", ("LineString",)),
+    ("POLYGON", ("Polygon",)),
+    ("MULTIPOINT", ("MultiPoint",)),
+    ("MULTILINESTRING", ("MultiLineString",)),
+    ("MULTIPOLYGON", ("MultiPolygon",)),
+    (
+        "GEOMETRYCOLLECTION",
+        ("GeometryCollection", "MultiPoint", "MultiLineString", "MultiPolygon"),
+    ),
+)
+MEASURED_MULTI_CASES = (
+    (
+        "MultiPoint",
+        False,
+        "MULTIPOINT M ((1 2 4), (3 4 6))",
+        ((1.0, 2.0, 4.0), (3.0, 4.0, 6.0)),
+    ),
+    (
+        "MultiPoint",
+        True,
+        "MULTIPOINT ZM ((1 2 3 4), (5 6 7 8))",
+        ((1.0, 2.0, 3.0, 4.0), (5.0, 6.0, 7.0, 8.0)),
+    ),
+    (
+        "MultiLineString",
+        False,
+        "MULTILINESTRING M ((0 0 5, 3 4 6))",
+        ((0.0, 0.0, 5.0), (3.0, 4.0, 6.0)),
+    ),
+    (
+        "MultiLineString",
+        True,
+        "MULTILINESTRING ZM ((0 0 3 5, 3 4 7 6))",
+        ((0.0, 0.0, 3.0, 5.0), (3.0, 4.0, 7.0, 6.0)),
+    ),
+    (
+        "MultiPolygon",
+        False,
+        "MULTIPOLYGON M (((0 0 5, 2 0 6, 2 2 7, 0 0 5)))",
+        ((0.0, 0.0, 5.0), (2.0, 0.0, 6.0), (2.0, 2.0, 7.0), (0.0, 0.0, 5.0)),
+    ),
+    (
+        "MultiPolygon",
+        True,
+        "MULTIPOLYGON ZM (((0 0 3 5, 2 0 4 6, 2 2 5 7, 0 0 3 5)))",
+        (
+            (0.0, 0.0, 3.0, 5.0),
+            (2.0, 0.0, 4.0, 6.0),
+            (2.0, 2.0, 5.0, 7.0),
+            (0.0, 0.0, 3.0, 5.0),
+        ),
+    ),
 )
 
 
@@ -2544,6 +3081,36 @@ def _gpkg_bytes(
                     "max_y=NULL WHERE table_name=?",
                     (layer_name,),
                 )
+        connection.commit()
+        return connection.serialize()
+    finally:
+        connection.close()
+
+
+def _collection_gpkg_bytes(
+    tmp_path: Path,
+    rows: tuple[tuple[int, bytes | None], ...],
+    *,
+    sql_type: str = "GEOMETRYCOLLECTION",
+) -> bytes:
+    """Install real XY rows with exact collection SQL/metadata declarations."""
+    package = _gpkg_bytes(tmp_path, rows, z_flag=0, m_flag=0)
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.deserialize(package)
+        connection.execute("DROP TABLE physical_layer")
+        connection.execute(
+            "CREATE TABLE physical_layer (fid INTEGER PRIMARY KEY, "
+            f'geom "{sql_type}", never_read_attribute TEXT)'
+        )
+        connection.executemany(
+            "INSERT INTO physical_layer (fid, geom, never_read_attribute) "
+            "VALUES (?, ?, ?)",
+            [(fid, blob, "never select this value") for fid, blob in rows],
+        )
+        connection.execute(
+            "UPDATE gpkg_geometry_columns SET geometry_type_name='GEOMETRYCOLLECTION'"
+        )
         connection.commit()
         return connection.serialize()
     finally:
@@ -4137,4 +4704,283 @@ def test_type_contract_intrinsic_rejects_rehashed_declared_observed_mismatch(
     )
     with pytest.raises(InpnProtectedAreasGeometryProfileError):
         geometry._validate_profile_intrinsic(forged)
+
+
+@pytest.mark.parametrize(
+    ("declared_type", "accepted_types"),
+    CORE_ASSIGNABILITY_CASES,
+    ids=[item[0] for item in CORE_ASSIGNABILITY_CASES],
+)
+@pytest.mark.parametrize(
+    ("root_declaration", "observed_type", "wkt"),
+    CORE_TYPE_CASES,
+    ids=[item[1] for item in CORE_TYPE_CASES],
+)
+def test_collection_subtype_complete_raw_iso_wkb_assignability_matrix(
+    declared_type: str,
+    accepted_types: tuple[str, ...],
+    root_declaration: str,
+    observed_type: str,
+    wkt: str,
+) -> None:
+    """All 56 real-parser decisions: 17 accepted and 39 rejected independently."""
+    blob = _wkt_blob(wkt)
+    metadata = _metadata(geometry_type_name=declared_type, z_flag=0, m_flag=0)
+    if observed_type not in accepted_types:
+        with pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        ):
+            geometry._parse_gpkg_geometry_blob(blob, metadata, "EP/one.gpkg", 1)
+        return
+    parsed = geometry._parse_gpkg_geometry_blob(blob, metadata, "EP/one.gpkg", 1)
+    assert parsed.geometry.geom_type == observed_type
+    assert parsed.geometry.geom_type.upper() == root_declaration
+    assert parsed.embedded_wkb == blob[8:]
+    assert shapely.to_wkb(parsed.geometry, byte_order=1, flavor="iso") == blob[8:]
+
+
+@pytest.mark.parametrize(
+    ("root_declaration", "observed_type", "wkt"), CORE_TYPE_CASES[:6]
+)
+def test_collection_subtype_intrinsic_individual_rehashed_domain(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    root_declaration: str,
+    observed_type: str,
+    wkt: str,
+) -> None:
+    """Each Multi* domain is assignable; bare Point/LineString/Polygon are not."""
+    profile = _build(tmp_path, monkeypatch, ((1, _wkt_blob(wkt)),))
+    changed = _rehash(
+        replace(
+            profile,
+            layers=(
+                replace(
+                    profile.layers[0], gpkg_geometry_type_name="GEOMETRYCOLLECTION"
+                ),
+            ),
+        )
+    )
+    assert (
+        changed.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(changed)
+    )
+    assert changed.layers[0].geometry_type_counts == (
+        geometry.InpnProtectedAreasGeometryTypeCount(observed_type, 1),
+    )
+    assert observed_type.upper() == root_declaration
+    if observed_type in ("MultiPoint", "MultiLineString", "MultiPolygon"):
+        assert geometry._validate_profile_intrinsic(changed) is changed
+    else:
+        with pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        ):
+            geometry._validate_profile_intrinsic(changed)
+
+
+@pytest.mark.parametrize("include_bare_polygon", [False, True])
+def test_collection_subtype_intrinsic_mixed_rehashed_domain(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    include_bare_polygon: bool,
+) -> None:
+    """A coherent mixed collection domain accepts all Multi* but not bare Polygon."""
+    selected = CORE_TYPE_CASES[3:]
+    if include_bare_polygon:
+        selected += (CORE_TYPE_CASES[2],)
+    rows = tuple((fid, _wkt_blob(wkt)) for fid, (_, _, wkt) in enumerate(selected, 1))
+    profile = _build(tmp_path, monkeypatch, rows)
+    changed = _rehash(
+        replace(
+            profile,
+            layers=(
+                replace(
+                    profile.layers[0], gpkg_geometry_type_name="GEOMETRYCOLLECTION"
+                ),
+            ),
+        )
+    )
+    assert changed.geometry_row_count == 4 + int(include_bare_polygon)
+    assert tuple(
+        item.geometry_type for item in changed.layers[0].geometry_type_counts
+    ) == (
+        "GeometryCollection",
+        "MultiLineString",
+        "MultiPoint",
+        "MultiPolygon",
+        *(("Polygon",) if include_bare_polygon else ()),
+    )
+    assert (
+        changed.complete_geometry_profile_content_sha256
+        == geometry._profile_content_sha256(changed)
+    )
+    if include_bare_polygon:
+        with pytest.raises(
+            InpnProtectedAreasGeometryProfileError, match="not assignable"
+        ):
+            geometry._validate_profile_intrinsic(changed)
+    else:
+        assert geometry._validate_profile_intrinsic(changed) is changed
+
+
+def test_collection_subtype_public_source_build_and_validation_preserve_multi_names(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rows = tuple(
+        (fid, _wkt_blob(wkt))
+        for fid, (_, _, wkt) in zip((3, 17, 41), CORE_TYPE_CASES[3:6], strict=True)
+    )
+    package = _collection_gpkg_bytes(tmp_path / "container", rows)
+    config, extraction, catalog = _source(tmp_path / "source", monkeypatch, package)
+    with geometry._open_gpkg_sqlite_snapshot(package, "EP/one.gpkg") as connection:
+        assert (
+            connection.execute("PRAGMA table_info(physical_layer)").fetchall()[1][2]
+            == "GEOMETRYCOLLECTION"
+        )
+        assert connection.execute(
+            "SELECT geometry_type_name FROM gpkg_geometry_columns"
+        ).fetchall() == [("GEOMETRYCOLLECTION",)]
+        metadata = geometry._read_gpkg_layer_metadata(
+            connection, "EP/one.gpkg", catalog.packages[0].layers[0]
+        )
+        assert (
+            geometry._read_gpkg_geometry_rows(connection, metadata, "EP/one.gpkg", 3)
+            == rows
+        )
+    profile = build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
+    validate_inpn_protected_areas_geometry_profile(extraction, config, catalog, profile)
+    layer = profile.layers[0]
+    assert layer.gpkg_geometry_type_name == "GEOMETRYCOLLECTION"
+    assert tuple(
+        (item.geometry_type, item.count) for item in layer.geometry_type_counts
+    ) == (("MultiLineString", 1), ("MultiPoint", 1), ("MultiPolygon", 1))
+    assert layer.non_empty_geometry_count == profile.geometry_row_count == 3
+    assert layer.fid_sequence_sha256 == _json_hash([3, 17, 41])
+    assert layer.raw_geometry_blob_content_sha256 == _json_hash(
+        [[fid, sha256(blob).hexdigest()] for fid, blob in rows]
+    )
+
+
+def test_collection_subtype_public_source_rejects_bare_polygon(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    package = _collection_gpkg_bytes(
+        tmp_path / "container", ((1, _wkt_blob("POLYGON ((0 0, 2 0, 2 2, 0 0))")),)
+    )
+    config, extraction, catalog = _source(tmp_path / "source", monkeypatch, package)
+    with pytest.raises(InpnProtectedAreasGeometryProfileError, match="not assignable"):
+        build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
+
+
+def test_collection_subtype_does_not_relax_exact_sql_declaration_equality(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    package = _collection_gpkg_bytes(
+        tmp_path / "container",
+        ((1, _wkt_blob("MULTIPOLYGON (((0 0, 2 0, 2 2, 0 0)))")),),
+        sql_type="MULTIPOLYGON",
+    )
+    warning = (
+        "geometry column type .* is not consistent with type in gpkg_geometry_columns"
+    )
+    with pytest.warns(RuntimeWarning, match=warning) as catalog_warnings:
+        config, extraction, catalog = _source(tmp_path / "source", monkeypatch, package)
+    assert len(catalog_warnings) == 2
+    with (
+        pytest.warns(RuntimeWarning, match=warning) as build_warnings,
+        pytest.raises(
+            InpnProtectedAreasGeometryProfileError,
+            match="SQL geometry column type must exactly match",
+        ),
+    ):
+        build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
+    assert len(build_warnings) == 4
+
+
+@pytest.mark.parametrize(
+    ("observed_type", "wkt"),
+    [
+        ("MultiPoint", "MULTIPOINT EMPTY"),
+        ("MultiLineString", "MULTILINESTRING EMPTY"),
+        ("MultiPolygon", "MULTIPOLYGON EMPTY"),
+    ],
+)
+def test_collection_subtype_empty_xy_multi_families_remain_empty_and_typed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    observed_type: str,
+    wkt: str,
+) -> None:
+    blob = _wkt_blob(wkt)
+    parsed = geometry._parse_gpkg_geometry_blob(
+        blob,
+        _metadata(geometry_type_name="GEOMETRYCOLLECTION", z_flag=0, m_flag=0),
+        "EP/one.gpkg",
+        1,
+    )
+    assert parsed.geometry.geom_type == observed_type
+    assert parsed.embedded_wkb == blob[8:]
+    assert parsed.is_empty is True
+    assert bool(shapely.is_empty(parsed.geometry)) is True
+    assert bool(shapely.has_z(parsed.geometry)) is False
+    assert bool(shapely.has_m(parsed.geometry)) is False
+    assert int(shapely.get_coordinate_dimension(parsed.geometry)) == 2
+    assert shapely.get_coordinates(parsed.geometry).tolist() == []
+    package = _collection_gpkg_bytes(tmp_path / "container", ((1, blob),))
+    config, extraction, catalog = _source(tmp_path / "source", monkeypatch, package)
+    profile = build_inpn_protected_areas_geometry_profile(extraction, config, catalog)
+    layer = profile.layers[0]
+    assert layer.geometry_type_counts == (
+        geometry.InpnProtectedAreasGeometryTypeCount(observed_type, 1),
+    )
+    assert layer.empty_geometry_count == 1
+    assert layer.total_coordinate_count == layer.non_empty_geometry_count == 0
+
+
+@pytest.mark.parametrize(
+    ("observed_type", "has_z", "wkt", "coordinates"), MEASURED_MULTI_CASES
+)
+def test_collection_subtype_nonempty_m_zm_multi_ordinates_are_lossless(
+    observed_type: str,
+    has_z: bool,
+    wkt: str,
+    coordinates: tuple[tuple[float, ...], ...],
+) -> None:
+    blob = _wkt_blob(wkt)
+    parsed = geometry._parse_gpkg_geometry_blob(
+        blob,
+        _metadata(geometry_type_name="GEOMETRYCOLLECTION", z_flag=int(has_z), m_flag=1),
+        "EP/one.gpkg",
+        1,
+    )
+    actual = parsed.geometry
+    assert actual.geom_type == observed_type
+    assert parsed.embedded_wkb == blob[8:]
+    assert parsed.is_empty is False
+    assert bool(shapely.has_z(actual)) is has_z
+    assert bool(shapely.has_m(actual)) is True
+    assert int(shapely.get_coordinate_dimension(actual)) == 3 + int(has_z)
+    assert shapely.get_coordinates(
+        actual, include_z=has_z, include_m=True
+    ).tolist() == [list(row) for row in coordinates]
+    assert (
+        shapely.to_wkb(actual, byte_order=1, output_dimension=4, flavor="iso")
+        == blob[8:]
+    )
+    assert geometry._coordinate_evidence(actual, "measured collection subtype")[
+        0
+    ] == len(coordinates)
+
+
+def test_collection_subtype_keeps_wkb_root_zero_forbidden() -> None:
+    with pytest.raises(
+        InpnProtectedAreasGeometryProfileError,
+        match="unsupported embedded WKB geometry type",
+    ):
+        geometry._parse_gpkg_geometry_blob(
+            _blob(struct.pack("<BI", 1, 0)),
+            _metadata(geometry_type_name="GEOMETRY"),
+            "EP/one.gpkg",
+            1,
+        )
 ```
