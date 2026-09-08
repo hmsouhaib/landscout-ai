@@ -2,7 +2,7 @@
 
 ## Current implemented scope
 
-The environment domain currently implements acquisition, exact snapshot verification, safe caching/extraction, complete file inventory, metadata-only physical GeoPackage cataloging, a complete non-geometry attribute-value profile, and a separate geometry technical-quality profile for the PatriNat/INPN protected-areas reference archive. Both profiles derive from verified immutable package bytes. Geometry profiling reads only physical FIDs and geometry BLOBs; it does not assign environmental semantics, normalize geometry, or perform parcel analysis.
+The environment domain currently implements acquisition, exact snapshot verification, safe caching/extraction, complete file inventory, metadata-only physical GeoPackage cataloging, a complete non-geometry attribute-value profile, a separate geometry technical-quality profile, and a source-bound evidence bundle proving their physical FID alignment for the PatriNat/INPN protected-areas reference archive. Both profiles derive from verified immutable package bytes. The bundle retains and physically revalidates those existing profiles; it introduces no new reader or cell/geometry join. Geometry profiling reads only physical FIDs and geometry BLOBs. These layers assign no environmental semantics, normalize no geometry, and perform no parcel analysis.
 
 ```mermaid
 flowchart TD
@@ -21,8 +21,11 @@ flowchart TD
     Catalog --> SQLite[Verified GPKG bytes into SQLite deserialize]
     SQLite --> Blobs[FID and exact GeoPackage geometry BLOB only]
     Blobs --> Geometry[Shapely WKB geometry-quality schema-1 profile]
-    Attributes -. not implemented .-> Semantics[Category interpretation]
-    Geometry -. not implemented .-> Semantics
+    Attributes --> Alignment[Public physical profile validation and exact FID alignment]
+    Geometry --> Alignment
+    Catalog --> Alignment
+    Alignment --> Bundle[schema-1 source-bound evidence bundle]
+    Bundle -. not implemented .-> Semantics[Category interpretation]
     Semantics -. not implemented .-> Overlay[Parcel intersection]
     Overlay -. not implemented .-> Decision[Environmental score or exclusion]
 ```
@@ -103,6 +106,16 @@ Each immutable layer profile binds source/package/catalog identity, table/FID/ge
 
 Intrinsic validation proves exact immutable runtime types, shared canonical package paths, grouping/identity uniqueness, ordered domains, count equations, finite bounds, digest syntax, deterministic empty hashes, and complete-hash closure. It cannot reconstruct non-empty raw/parser content hashes without geometry rows. Public validation first revalidates extraction and rebuilds the physical catalog, rejects cheap catalog/profile mismatches before SQLite geometry-row reads, and independently rebuilds every physical field/hash. Final extraction/catalog postconditions reject persistent source mutation; a temporary live-path replacement after byte capture cannot inject geometry into the deserialized snapshot.
 
+## Source-bound evidence bundle
+
+`build_inpn_protected_areas_evidence_bundle` accepts the exact extraction, source config, catalog, attribute profile, and geometry profile. It reuses both existing public profile validators to independently reconstruct evidence from the approved physical source; a private structural alignment helper is not an alternative public trust boundary. The final extraction postcondition remains mandatory. Lower source/catalog/profile failures become `InpnProtectedAreasEvidenceError` with chained causes.
+
+Alignment preserves the catalog's complete package/layer order and uses the full `(relative_path, layer_name)` key. Package path, position, size, SHA, driver, layer identity/position/count, source/archive/catalog lineage, and inventory must agree before one immutable `InpnProtectedAreasLayerAlignment` is emitted per catalog layer. Catalog feature count, both profile feature counts, and both FID counts must agree; FID minima, maxima, and complete sequence SHA256 must also match. Equal count and extrema alone do not suffice: `[1, 2, 4]` and `[1, 3, 4]` differ. Both established readers canonicalize exact physical integer FIDs by numeric order and hash the same compact JSON sequence. Negative, sparse, and empty FID domains remain valid under the existing intrinsic range rules. No semantic identifier such as `id_mnhn` substitutes for the physical FID.
+
+The frozen schema-1 `InpnProtectedAreasEvidenceBundle` retains the three upstream immutable records and an exact tuple of ten-field alignment records. Its compact canonical UTF-8 JSON hash binds the bundle schema, each upstream schema and complete SHA, and every ordered alignment field. It does not duplicate upstream attribute domains or geometry evidence in the hash payload; those are transitively bound by their complete hashes. Geometry toolchain dependence is therefore inherited. Portable relative paths remain evidence; absolute filesystem paths, cache-hit state, time, readers, raw bytes, and geometry objects are not retained by the new records. Existing catalog/attribute/geometry schemas, payloads, and hashes remain unchanged.
+
+`validate_inpn_protected_areas_evidence_bundle` checks exact nested structure and hash closure, repeats both public physical profile validations, reconstructs the expected alignment/bundle, and exact-compares it. Coordinated profile, alignment, and complete-bundle rehashing cannot authorize evidence that differs from the physical source. The result proves source-bound FID-domain alignment, not a materialized cell/geometry join, correct CRS interpretation, category meaning, or legal/environmental suitability.
+
 ## Current factual result
 
 The approved snapshot contains 15 archive-derived and physical regular files; all 15 report exact driver `GPKG`. Controlled offline inspection found 15 OGR layers, 195 ordered fields, and 11,381 total rows. Catalog SHA256 remains `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34`; attribute-profile schema 1 SHA256 is `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8`. The attribute profile contains 36,466 null cells and 38,993 per-field distinct non-null values across two observed runtime-dtype schema groups. The earlier attribute-only verification performed zero DNS, HTTP, downloads, GeoDataFrame construction, or geometry-object reads. The `EP/sig_tadl.gpkg` combination of raw EPSG:32753 authority and bounds near 140/-66 remains an unresolved physical source consistency observation; the geometry-quality profile records raw evidence without repair, reprojection, CRS substitution, or environmental meaning.
@@ -128,4 +141,4 @@ EP is not the separate Natura 2000 reference archive and is not the separate ZNI
 - environmental or global score;
 - parcel rejection/ranking.
 
-Future environmental work must start from these exact source-bound catalog and profile facts and introduce its own reviewed category, geometry-selection, normalization, provenance, and parcel-analysis contracts; this document does not invent them.
+Future environmental work must start from these exact source-bound catalog, profile, and alignment facts and introduce its own reviewed category, geometry-selection, normalization, provenance, and parcel-analysis contracts; this document does not invent them.

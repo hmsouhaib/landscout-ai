@@ -95,6 +95,13 @@ from landscout.sources.inpn_protected_areas_catalog_fr import (
     build_inpn_protected_areas_catalog,
     validate_inpn_protected_areas_catalog,
 )
+from landscout.sources.inpn_protected_areas_evidence_fr import (
+    InpnProtectedAreasEvidenceBundle,
+    InpnProtectedAreasEvidenceError,
+    InpnProtectedAreasLayerAlignment,
+    build_inpn_protected_areas_evidence_bundle,
+    validate_inpn_protected_areas_evidence_bundle,
+)
 from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
     InpnProtectedAreasExtractedFile,
@@ -180,6 +187,8 @@ __all__ = [
     "InpnProtectedAreasCoordinateDimensionCount",
     "InpnProtectedAreasDistinctAttributeValue",
     "InpnProtectedAreasDownload",
+    "InpnProtectedAreasEvidenceBundle",
+    "InpnProtectedAreasEvidenceError",
     "InpnProtectedAreasExtractedFile",
     "InpnProtectedAreasExtraction",
     "InpnProtectedAreasFieldAttributeProfile",
@@ -189,6 +198,7 @@ __all__ = [
     "InpnProtectedAreasGeometryProfileError",
     "InpnProtectedAreasGeometryTypeCount",
     "InpnProtectedAreasGeometryValidityReasonCount",
+    "InpnProtectedAreasLayerAlignment",
     "InpnProtectedAreasLayerAttributeProfile",
     "InpnProtectedAreasLayerCatalog",
     "InpnProtectedAreasLayerGeometryProfile",
@@ -208,6 +218,7 @@ __all__ = [
     "build_gpu_partition_download_url",
     "build_inpn_protected_areas_attribute_profile",
     "build_inpn_protected_areas_catalog",
+    "build_inpn_protected_areas_evidence_bundle",
     "build_inpn_protected_areas_geometry_profile",
     "build_rte_odre_export_url",
     "build_rte_odre_metadata_url",
@@ -242,6 +253,7 @@ __all__ = [
     "validate_ign_bdtopo_archive",
     "validate_inpn_protected_areas_attribute_profile",
     "validate_inpn_protected_areas_catalog",
+    "validate_inpn_protected_areas_evidence_bundle",
     "validate_inpn_protected_areas_extraction",
     "validate_inpn_protected_areas_geometry_profile",
 ]
