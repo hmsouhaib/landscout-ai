@@ -6,7 +6,17 @@
 - File type: Markdown engineering history
 - Layer/domain: repository engineering evidence
 - Responsibility: Preserves chronological implementation, real-source, regression, and quality-gate evidence while current source/tests remain authoritative.
-- Source SHA256: `1e3d90cce6bf7806201639d0d06147b6e400358678a83b85a448e6cb3100e9a0`
+- Source SHA256: `b3c840b8fb5ba75d984375dfcf9c74c679d4f02e4fdeec9d16fc790e8bfa7b1c`
+
+## STEP 7F.1C.1 evidence delta
+
+- Records the documentation-only, source-locked EP semantic research draft and its explicit non-runtime/pending-review status. No approved acquisition/catalog/profile/bundle implementation, schema, hash, test or source configuration changed.
+- Binds the independently physically validated bundle to 45 complete three-field profiles, 64 exact non-null values, 960 per-value layer counts and separate nulls. Exact source positions/dtypes and every complete domain/column hash remain intact; case and whole composite labels are preserved. Marginal domains establish no co-occurrence.
+- Separates 64/64 observed coverage from 0/64 snapshot-confirmed meaning: 55 context-only plus six unresolved type labels; two context-only plus one unresolved objective value; statut entirely null with no invented non-null entries. All three field and 64 value snapshot applicability states remain unresolved.
+- Records the 42-document primary-source register, unversioned producer CNIG claim, historical 2013 validation, closed 2026 revision consultation, conflicting draft chronology, dated/local context, unavailable/indexed-only sources, and the explicitly unsuccessful visual PDF review. Only actually obtained PDF/ODT bytes have document hashes.
+- Separates offline EP cache verification (all network/download/prohibited-operation sentinels zero, approved reader counts, unchanged pinned hashes and 144.831256 seconds) from online public-document research and Git transport. No legal/BESS/project decision, geometry correction, parcel analysis or score follows.
+- Records completed 944 focused and 3,939 full-suite passes, four individually identified pre-existing full-suite warnings, no skips/xfails, exit-zero quality gates, exact value/source/Markdown-JSON audits, unchanged 106 protected files with the documented pre-existing CRLF baseline, and bounded seven-path documentation scope.
+- This companion is synchronized only after the final log edit: raw SHA, 275-heading inventory and complete exact history snapshot. Previous implementation/source evidence remains unchanged.
 
 ## STEP 7F.1B.4 evidence delta
 
@@ -88,6 +98,7 @@ This file is chronological evidence, not implementation authority. Production so
 
 - `# LandScout AI development log`
 - `## Current project state`
+- `## STEP 7F.1C.1 — Establish source-locked EP category meaning (research draft)`
 - `## STEP 7F.1B.4 — Assemble aligned INPN EP source evidence`
 - `## STEP 7F.1B.3.2 — Correct collection subtype assignability`
 - `## STEP 7F.1B.3.1 — Close GeoPackage geometry-type contracts`
@@ -374,12 +385,67 @@ The raw-byte SHA above binds this complete current history snapshot.
 
 ## Current project state
 
-- Current phase: Environmental source evidence
-- Latest completed step: STEP 7F.1B.4
-- Current step: STEP 7F.1B.4 complete
+- Current phase: Environmental source semantic research
+- Latest completed step: STEP 7F.1C.1 (research draft)
+- Current step: STEP 7F.1C.1 complete as a research draft
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step: independent review of STEP 7F.1B.4 before further environmental work
+- Next step: independent review of STEP 7F.1C.1 before any executable semantic mapping
+
+## STEP 7F.1C.1 — Establish source-locked EP category meaning (research draft)
+
+- Date: 2026-09-08.
+- Starting state: fetched clean `main`, HEAD == origin/main == `ca0ec73de37137b5515c1dfea14e2ea8a2a1ba3d`. The initial restricted fetch could not connect; the authorized normal fetch succeeded. No reset, reconciliation, environment/security change or dependency reinstall.
+- Deliverables: [French semantic dossier](reference/inpn_ep_2026_07_semantic_reference.md) and [strict UTF-8 JSON research draft](reference/inpn_ep_2026_07_semantic_reference.json). Status is `RESEARCH_DRAFT_NOT_RUNTIME_POLICY`, pending independent review, not an approved or operational mapping. No production consumer, runtime schema, policy, loader, reader or feature was added.
+- Reading/review covered the five existing INPN modules, their public contracts and evidence tests, complete distinct-domain/FID/hash behavior, source configuration, and environment/trust/data-flow references. The approved STEP 7F.1B.4 implementation remains unchanged.
+- Source preparation used the existing pinned local cache under blocked DNS/HTTP/download sentinels. Public sequence: acquisition cache validation -> catalog -> attribute profile -> geometry profile -> bundle build -> independent public bundle validation. The marginal inventory was then copied from `bundle.attributes` twice with exact equality and zero further reader calls. No pickle or invented persisted bundle format was used.
+
+| Frozen binding | Schema | Exact evidence |
+|---|---:|---|
+| EP | — | 07/2026; 99,835,011 archive bytes; 15 packages; 15 aligned layers; 11,381 physical FIDs |
+| Archive SHA256 | — | `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5` |
+| Catalog SHA256 | 2 | `ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34` |
+| Attribute profile SHA256 | 1 | `c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8` |
+| Geometry profile SHA256 | 1 | `997c8c27cbbedb2860778386b3f2eb5afa9f64de6ad07e41fc67b4cec9060ee7` |
+| Evidence bundle SHA256 | 1 | `a558236c6a246999fca83ac10c443cd686807675327cdab2da5405143db56016` |
+
+- Recorded toolchain: Python 3.12.13; SQLite 3.53.1; Pyogrio 0.13.0 (native `pyogrio._io` imported normally); GDAL 3.12.4; Shapely 2.1.2; GEOS 3.13.1; PyProj 3.7.2. Geometry payload equals the previously recorded same-toolchain payload. The approved attribute SHA is verified; no unavailable historical attribute-JSON comparison is claimed.
+- All 45 exact layer/field records retain package/layer identities, source field positions, source/runtime dtypes, complete distinct domains/frequencies, separate null counts and column SHA. On all 15 layers: `type_espace` position 5, `object -> str`; `statut` position 7, `object -> object`; `objectif_protection` position 6, `object -> str`. There are 43 distinct column hashes, with legitimate identical-content pairs, not an assumed uniqueness requirement.
+
+| Field | Non-null distinct values | Non-null cells | NULL cells | CONFIRMED_FOR_SNAPSHOT | OFFICIAL_CONTEXT_ONLY | UNRESOLVED | CONFLICTING_EVIDENCE |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `type_espace` | 61 | 11,381 | 0 | 0 | 55 | 6 | 0 |
+| `statut` | 0 | 0 | 11,381 | 0 | 0 | 0 | 0 |
+| `objectif_protection` | 3 | 9,366 | 2,015 | 0 | 2 | 1 | 0 |
+
+- Objective values remain exactly `Géologie` = 263, `Nature` = 8,813, `nature` = 290. No empty text is observed. No casefold, trimming, delimiter splitting, added category, inferred co-occurrence or cross-field table. NULL `statut` does not mean no protection, and `objectif_protection` is not a BESS feasibility flag.
+- Observed-value coverage is 64/64 (100%); confirmed snapshot-meaning coverage is 0/64 (0%). All 64 entry applicability states and all three field applicability states remain `UNRESOLVED`, independently of the 57 contextual definitions and seven unresolved exact meanings. The CNIG chronology conflict is separately recorded as `CONFLICTING_EVIDENCE`, not assigned as a legal class to source rows.
+- Online primary-document research was explicitly separate from offline EP verification. The 42-record register distinguishes producer release/program pages, adopted historical exchange standards, consultation projects, official category context, legal terminology, dated local examples and inaccessible/indexed-only references. Only the two actually obtained CNIG PDFs and associated ODT have documentary SHA256; exact bytes were independently checked, retained outside Git, and not committed.
+- Producer evidence: the PatriNat page updated 2026-08-04 announces EP 07/2026; the 2026-08-03 release notice announces territorial GeoPackages and general CNIG ENP conformity without an edition or exact three-column/value correspondence. This is not absence of a producer standard claim, but no exact export-to-standard mapping was established.
+- Standards evidence: COVADIS v1.0 validated 2013-03-27 is historical exchange context. CNIG's revision consultation ran 2026-05-11 through 2026-06-14 and is shown closed; its linked `1bêta0` document is dated 2025-06-27. The draft/consultation status conflicts with its internal 2025-06-05 final-validation sentence; no independent adoption proof applicable to the snapshot was found. The consulted standards register still lists ENP under work in progress, with its own freshness caveat.
+- PDF skill limitation: clean extracted text and the official 2013 ODT's structured XML table cells were inspected, but PDF visual inspection was unavailable. A Windows renderer attempt was blocked by script policy, without bypass or security changes. Draft tables remain qualified text-only context. INPN/SINP and Ramsar/SPREP access failures remain documented; an indexed official document is not described as an official search index.
+- Open questions include exact producer edition/field/value/null/delimiter contracts, Nature/nature, CEN “ou assimilé”, Apia's historical context, local/provincial wording, maritime composites, buffer/perimeter categories, seasonal acts and dated applicability. Existing `sig_tadl` CRS/coordinate evidence remains unresolved and unchanged. Neither a newer standard nor a familiar label supplies missing snapshot authority.
+
+| Offline phase | Seconds |
+|---|---:|
+| Source cache | 1.971264 |
+| Catalog build | 3.028555 |
+| Attribute profile build | 16.080570 |
+| Geometry profile build | 30.138069 |
+| Evidence bundle build | 46.742794 |
+| Independent public bundle validation | 46.866220 |
+| Repeated marginal inventory | 0.002457 |
+| Complete measured sequence | 144.831256 |
+
+- Both cache-hit flags are true. Actual approved operations: 45 attribute-only reads / 34,143 rows; 45 SQLite snapshots, 45 exact FID/BLOB SELECTs and 45 geometry-layer reads / 34,143 rows; 285 `list_layers` and 285 `read_info` calls. One represented source still has only 11,381 FIDs. DNS, HTTP, downloads, alternative feature readers, Pyogrio geometry materialization, transformations, reprojection and parcel/spatial-analysis sentinels all equal zero. No warnings in the offline source run. This zero-network statement does not include online documentation research or Git fetch/push.
+- Temporary read-only audit outside Git passed: strict UTF-8 JSON without duplicate/non-finite values; exact 45 profile records; exactly 64 composite keys; all 960 per-value layer counts and all marginal/null equations; exact source bindings/offline report; 42 unique documentary identifiers; 106 unique resolvable document/value anchors; complete Markdown/JSON agreement on fields, counts, states, definitions, jurisdictions, sources, limitations and questions. Independent documentary reviews found no substantive unsupported mapping; the indexed-source wording was corrected.
+- Before finalizing this entry, protected-tree diff was empty. The 106 protected tracked paths (`src`, `tests`, `configs`, README, project metadata and lock) remain unchanged. 105 match starting Git bytes directly; the pre-existing CRLF representation of `configs/planning/muret_bess_zoning_policy.yaml` matches its starting checked-in raw-SHA companion and normalizes exactly to the unchanged Git blob. It was not rewritten. Existing 114 companion SHA bindings, complete previous log snapshot, 274 previous headings and historical bytes were audited successfully before this final log update.
+- Focused command: `uv run pytest -q tests/unit/test_inpn_protected_areas_fr.py tests/unit/test_inpn_protected_areas_catalog_fr.py tests/unit/test_inpn_protected_areas_attributes_fr.py tests/unit/test_inpn_protected_areas_geometry_fr.py tests/unit/test_inpn_protected_areas_evidence_fr.py --basetemp <fresh short i-GUID>`: **944 passed in 74.66s**, no warnings/skips/xfails, exit 0.
+- Full command: `uv run pytest -q --basetemp <separate fresh short f-GUID>`: **3,939 passed, 4 warnings in 792.28s**, no skips/xfails, native cleanup exit 0. Both isolated directories were under `%LOCALAPPDATA%\LandScout\pytest-runs`. No new test cases were added.
+- The four pre-existing full-suite UserWarnings are: missing CRS in `test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected[geometry0-None-CRS]`, `test_enrich_planning_features.py::test_missing_crs_is_rejected[source]` and `test_normalize_access_ign.py::test_wrong_or_missing_road_crs_is_rejected[None]`; GeoSeries.notna/EMPTY behavior in `test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected[geometry1]`. No source tests were modified to hide these.
+- Required quality commands actually passed with exit 0: `uv run ruff check .`; `uv run ruff format --check .` (109 files already formatted); `uv run mypy src` (52 source files); `uv lock --check` (48 resolved packages); `uv pip check` (45 compatible installed packages); `git diff --check`. Initial restricted quality invocations could not open the existing user uv cache; authorized invocations of the same commands succeeded without dependency changes.
+- Publication scope is exactly seven documentation paths: the two references, ENVIRONMENT_PIPELINE, CHANGE_IMPACT_GUIDE, FILE_INDEX, this log and its exact companion. FILE_INDEX records only this pair as a bounded exception to generic per-file companions. No source snapshot, cache, ZIP, GPKG, PDF, ODT, audit script, temporary report or generated output is included. This entry is finalized before synchronizing the companion's raw SHA, heading inventory and complete snapshot.
+- No environmental runtime mapping, geometry normalization or repair, CRS correction, parcel load/intersection/distance, Natura 2000/ZNIEFF interpretation, legal/BESS authorization, acceptance/exclusion rule, owner/contact logic, score or ranking. Independent review decides any later executable scope.
 
 ## STEP 7F.1B.4 — Assemble aligned INPN EP source evidence
 

@@ -128,6 +128,12 @@ Geometry-profile schema 1 complete SHA256 is `997c8c27cbbedb2860778386b3f2eb5afa
 
 EP is not the separate Natura 2000 reference archive and is not the separate ZNIEFF reference archive. Text resembling those datasets remains uninterpreted raw EP evidence.
 
+## Source-locked semantic research draft (STEP 7F.1C.1)
+
+The [French EP 07/2026 semantic reference](../reference/inpn_ep_2026_07_semantic_reference.md) and its [strict JSON research draft](../reference/inpn_ep_2026_07_semantic_reference.json) inventory only `type_espace`, `statut`, and `objectif_protection` from the independently physically validated bundle's complete attribute domains. They preserve all 45 layer/field profiles, 64 exact non-null values, per-layer frequencies and separate null counts. These are marginal domains, not cross-field co-occurrences.
+
+Status is `RESEARCH_DRAFT_NOT_RUNTIME_POLICY`: official category context is separate from exact export/standard/snapshot applicability, which remains unresolved. The producer announces general CNIG conformity without proving the required edition/field/value mapping; a consultation draft is not treated as an adopted standard. No production application reads the JSON. The offline EP verification is separate from online primary-document research. Existing technical implementations, schemas, hashes, geometry/CRS observations and all parcel/decision boundaries remain unchanged.
+
 ## Explicitly not implemented
 
 - protected-area category semantics;

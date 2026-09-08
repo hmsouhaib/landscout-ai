@@ -1,6 +1,13 @@
 # File index
 
-Each tracked file outside `docs/code/**` has exactly one SHA-bound companion. The role column is curated from the actual implementation/file consumer, not inferred from the basename alone.
+Each tracked file outside `docs/code/**` has exactly one SHA-bound companion, with one explicit bounded exception: the two STEP 7F.1C.1 research artifacts indexed below form a paired dossier and JSON draft, with their small research schema documented in the dossier itself. This exception does not cover other or future files. The role column is curated from the actual implementation/file consumer, not inferred from the basename alone.
+
+## Non-runtime semantic research reference
+
+| Repository file | Actual role | Paired explanation |
+|---|---|---|
+| `docs/reference/inpn_ep_2026_07_semantic_reference.md` | French source-locked inventory, official-document evidence and explicit unresolved snapshot meanings; research draft, not approved policy. | [Dossier](../reference/inpn_ep_2026_07_semantic_reference.md) |
+| `docs/reference/inpn_ep_2026_07_semantic_reference.json` | Strict UTF-8 research draft retaining the three complete marginal field domains, exact counts/lineage, source references and separate evidence/applicability states; no runtime consumer. | [Research schema and dossier](../reference/inpn_ep_2026_07_semantic_reference.md) |
 
 ## Project/root metadata
 
